@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+
+  db:
+    container_name: freelance_db
+    image: postgres:10-alpine
+    environment:
+      - POSTGRES_DB=freelance_pg
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=SecurityPassword
+    volumes:
+      - ./db_data:/var/lib/postgresql
+      - ./db_backups:/backups
+
+  redis:
+    container_name: freelance_redis
+    image: redis:5.0.7
+    env_file: "./docker/environments"
+    volumes:
+      - ./redis_data:/data
+
+  app:
+    container_name: freelance_app
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+      - ./docker:/docker
+    env_file: "./docker/environments"
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    container_name: freelance_celery
+    build:
+      context: .
+    command: 'celery -A freelance worker -l info --concurrency=4 -B'
+    env_file: "./docker/environments"
+    volumes:
+      - ./app:/app
+      - ./docker:/docker
+    links:
+      - db
+      - redis
+    depends_on:
+      - db
+      - redis
+
