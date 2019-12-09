@@ -1,0 +1,9 @@
+POSTGRES_USER=postgres
+POSTGRES_PASS=SecurityPassword
+POSTGRES_DBNAME=freelance_pg
+POSTGRES_PORT=5432
+POSTGRES_HOST=freelance_db
+SECRET_KEY=d80&6!a9%!)ratrcdk-om7lv2%qkm))tn&c72n))ah+ev^2!7
+
+PG_TRUST_LOCALNET=true
+REDIS_HOST=freelance_redis

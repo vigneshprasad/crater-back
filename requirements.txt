@@ -1,0 +1,11 @@
+Django==3.0
+psycopg2-binary==2.8.4
+django-material-admin==1.6.7
+celery==4.3.0
+django-cleanup==4.0.0
+redis==3.3.11
+djangorestframework==3.10.3
+djangorestframework-jwt==1.11.0
+drf-yasg==1.17.0
+django-rest-auth==0.9.5
+django-allauth==0.40.0
