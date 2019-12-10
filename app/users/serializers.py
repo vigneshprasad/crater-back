@@ -1,0 +1,126 @@
+from allauth.account import app_settings as allauth_settings
+from allauth.account.adapter import get_adapter
+from allauth.account.utils import setup_user_email
+from allauth.utils import (email_address_exists)
+from django.contrib.auth import get_user_model
+from django.utils.translation import ugettext_lazy as _
+from rest_auth import serializers as rest_auth_serializers
+from rest_auth.registration import serializers as register_serializers
+from rest_framework import serializers
+
+UserModel = get_user_model()
+
+
+class LoginSerializer(rest_auth_serializers.LoginSerializer):
+    username = None
+    email = serializers.EmailField(
+        required=True,
+        error_messages={
+            'blank': _('Please enter your email'),
+            'invalid': _('Please enter a valid email'),
+            'max_length': _('Please enter a valid email'),
+        },
+        max_length=100
+    )
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        error_messages={
+            'blank': _('Please enter the password'),
+        }
+    )
+
+    @staticmethod
+    def validate_email(email):
+        return email.strip().lower()
+
+
+class RegisterSerializer(register_serializers.RegisterSerializer):
+    username = None
+    name = serializers.CharField(
+        max_length=100,
+        error_messages={
+            'blank': _('Please enter your name'),
+            'max_length': _('Please enter the valid name'),
+        },
+    )
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        error_messages={
+            'blank': _('Please enter the password'),
+        }
+    )
+    email = serializers.EmailField(
+        required=True,
+        error_messages={
+            'blank': _('Please enter your email'),
+            'invalid': _('Please enter a valid email'),
+            'max_length': _('Please enter a valid email'),
+        },
+        max_length=100
+    )
+    password1 = None
+    password2 = None
+
+    def validate_email(self, email):
+        email = get_adapter().clean_email(email)
+        if allauth_settings.UNIQUE_EMAIL:
+            if email and email_address_exists(email):
+                raise serializers.ValidationError(
+                    _("This email is already registered, sign in instead"))
+        return email.strip().lower()
+
+    @staticmethod
+    def validate_password(password):
+        return get_adapter().clean_password(password)
+
+    @staticmethod
+    def validate(data):
+        return data
+
+    def get_cleaned_data(self):
+        return {
+            'username': self.validated_data.get('username', ''),
+            'password1': self.validated_data.get('password', ''),
+            'email': self.validated_data.get('email', '')
+        }
+
+    def save(self, request):
+        adapter = get_adapter()
+        user = adapter.new_user(request)
+        self.cleaned_data = self.get_cleaned_data()
+        adapter.save_user(request, user, self, commit=False)
+        self.custom_signup(request, user)
+        user.save()
+        setup_user_email(request, user, [])
+        return user
+
+    def custom_signup(self, request, user):
+        user.name = self.validated_data.get('name')
+
+
+class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
+
+    class Meta:
+        model = UserModel
+        fields = ('pk', 'email', 'name')
+        read_only_fields = ('email', )
+
+
+class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
+    new_password = serializers.CharField(max_length=128)
+    new_password1 = None
+    new_password2 = None
+
+    def validate(self, attrs):
+        self.set_password_form = self.set_password_form_class(
+            user=self.user,
+            data={
+                'new_password1': attrs.get('new_password'),
+                'new_password2': attrs.get('new_password'),
+                'old_password': attrs.get('old_password')
+            }
+        )
+
+        if not self.set_password_form.is_valid():
+            raise serializers.ValidationError(self.set_password_form.errors)
+        return attrs

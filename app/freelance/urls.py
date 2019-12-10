@@ -17,11 +17,12 @@ from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.urls import path, include
 from django.conf import settings
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 from django.contrib.auth import views as auth_views
 from django.contrib import admin
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
+from allauth.socialaccount import views as socialaccount_views
 
 from rest_framework import permissions
 
@@ -49,8 +50,11 @@ urlpatterns = [
     path('admin/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('admin/reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(),
          name='password_reset_confirm'),
-    path('rest-auth/', include('rest_auth.urls')),
-    path('rest-auth/registration/', include('rest_auth.registration.urls')),
+
+    path('v1/', include('freelance.routers.v1')),
+    path('account-confirm-email/<key>/', TemplateView.as_view(), name='account_confirm_email'),
+    path('account-signup/', socialaccount_views.signup, name='socialaccount_signup'),
+
     path('', RedirectView.as_view(url='admin/', permanent=False), name='home'),
     prefix_default_language=False
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(

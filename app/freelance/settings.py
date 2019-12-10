@@ -47,6 +47,10 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.linkedin_oauth2',
+    
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth.registration',
@@ -195,3 +199,27 @@ CELERY_RESULT_BACKEND = 'redis://%s:6379' % REDIS_HOST
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+
+REST_AUTH_SERIALIZERS = {
+    'LOGIN_SERIALIZER': 'users.serializers.LoginSerializer',
+    'USER_DETAILS_SERIALIZER': 'users.serializers.UserDetailSerializer',
+    'PASSWORD_CHANGE_SERIALIZER': 'users.serializers.PasswordChangeSerializer'
+}
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'users.serializers.RegisterSerializer'
+}
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        "api_key": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    },
+    'DOC_EXPANSION': 'none',
+    'TAGS_SORTER': 'alpha'
+}
+
+OLD_PASSWORD_FIELD_ENABLED = True
