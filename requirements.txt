@@ -9,3 +9,5 @@ djangorestframework-jwt==1.11.0
 drf-yasg==1.17.0
 django-rest-auth==0.9.5
 django-allauth==0.40.0
+django-storages==1.8
+boto3==1.10.35
