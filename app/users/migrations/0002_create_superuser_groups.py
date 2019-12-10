@@ -5,7 +5,8 @@ from django.db import migrations
 
 
 def createsuperuser(apps, schema_editor):
-    get_user_model().objects.get_or_create(
+    User = apps.get_model("users", "User")
+    User.objects.get_or_create(
         email='admin@admin.com',
         username='Admin',
         is_superuser=True,
