@@ -30,8 +30,7 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
             'min_length': _('Password should have 8 or more symbols')
         },
         min_length=8,
-        max_length=128,
-        validators=[password_validate_symbols]
+        max_length=128
     )
 
     @staticmethod
