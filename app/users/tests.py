@@ -1,12 +1,13 @@
+from unittest.mock import patch
+
+from django.contrib.auth.tokens import default_token_generator
 from django.test import TestCase, Client
 from django.urls import reverse
-from users import models
-from rest_auth.utils import jwt_encode
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.contrib.auth.tokens import default_token_generator
+from rest_auth.utils import jwt_encode
 
-from unittest.mock import patch
+from users import models
 
 
 class AuthTestCase(TestCase):
@@ -26,7 +27,8 @@ class AuthTestCase(TestCase):
             'register': reverse('v1:users:rest_register'),
             'change-password': reverse('v1:users:rest_password_change'),
             'reset-password': reverse('v1:users:rest_password_reset'),
-            'reset-password-confirm': reverse('v1:users:rest_password_reset_confirm')
+            'reset-password-confirm': reverse('v1:users:rest_password_reset_confirm'),
+            'user-details': reverse('v1:users:rest_user_details')
         }
 
     def test_login_success(self):
