@@ -19,7 +19,7 @@ class User(AbstractUser):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     username = models.CharField(_('Username'), max_length=150)
     email = models.EmailField(_('Email'), unique=True, null=True)
-    name = models.CharField(_('Name'), max_length=255)
+    name = models.CharField(_('Name'), max_length=100)
     city = models.ForeignKey(
         'locations.City',
         verbose_name=_('City'),
@@ -52,4 +52,44 @@ class User(AbstractUser):
         }
         # TODO: use Mailchip/Mandrill service when service will created
         pass
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(
+        'users.User',
+        related_name='profile',
+        on_delete=models.CASCADE,
+        verbose_name=_('User')
+    )
+    name = models.CharField(
+        max_length=100,
+        verbose_name=_('Name')
+    )
+    tag_line = models.CharField(
+        verbose_name=_('Tag lime'),
+        max_length=100,
+        null=True,
+        blank=True
+    )
+    photo = models.ImageField(
+        upload_to='profile/photo/%Y/%m/%d',
+        verbose_name=_('Photo'),
+        null=True
+    )
+    cover = models.FileField(
+        upload_to='profile/cover/%Y/%m/%d',
+        verbose_name=_('Cover'),
+        null=True
+    )
+    introduction = models.CharField(
+        max_length=800,
+        verbose_name=_('Introduction'),
+        blank=True
+    )
+    focus = models.CharField(
+        max_length=800,
+        verbose_name=_('Focus'),
+        blank=True
+    )
+
 
