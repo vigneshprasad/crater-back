@@ -5,7 +5,7 @@ from rest_auth.registration.views import (
 from rest_framework import routers
 from users import social_views
 
-app_name = 'usersS'
+app_name = 'users'
 
 router = routers.SimpleRouter()
 
