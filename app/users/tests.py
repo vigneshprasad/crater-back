@@ -8,6 +8,7 @@ from django.utils.http import urlsafe_base64_encode
 from rest_auth.utils import jwt_encode
 
 from users import models
+from locations import models as locations_models
 
 
 class AuthTestCase(TestCase):
@@ -30,6 +31,8 @@ class AuthTestCase(TestCase):
             'reset-password-confirm': reverse('v1:users:rest_password_reset_confirm'),
             'user-details': reverse('v1:users:rest_user_details')
         }
+        self.country = locations_models.Country.objects.create(name='Country')
+        self.city = locations_models.City.objects.create(name='City', country=self.country)
 
     def test_login_success(self):
         endpoint = self.endpoints.get('login')
@@ -209,4 +212,59 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 400)
         self.assertIn('new_password', resp.json())
 
+    def test_change_user_city_fail_unauth(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'city': self.city.pk
+        }
+        resp = self.client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 401)
 
+    def test_change_user_city(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'city': self.city.pk
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.city, self.city)
+
+    def test_reason_user_change_join(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'reason': 'join'
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.reason, 'join')
+
+    def test_reason_user_change_18_year_old(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'reason': '18_year_old'
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.reason, '18_year_old')
+
+    def test_reason_user_change_understand(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'reason': 'understand'
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.reason, 'understand')
+
+    def test_reason_user_change_fail(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'reason': '123123'
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('reason', resp.json())

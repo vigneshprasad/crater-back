@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers
+
 from .validators import password_validate_symbols
 
 UserModel = get_user_model()
@@ -110,7 +111,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
     class Meta:
         model = UserModel
-        fields = ('pk', 'email', 'name')
+        fields = ('pk', 'email', 'name', 'city', 'reason')
         read_only_fields = ('email', )
 
 

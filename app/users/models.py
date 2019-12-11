@@ -8,6 +8,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 
 from users.managers import UserManager
+from . import choices
 
 
 class User(AbstractUser):
@@ -19,6 +20,19 @@ class User(AbstractUser):
     username = models.CharField(_('Username'), max_length=150)
     email = models.EmailField(_('Email'), unique=True, null=True)
     name = models.CharField(_('Name'), max_length=255)
+    city = models.ForeignKey(
+        'locations.City',
+        verbose_name=_('City'),
+        null=True,
+        related_name='users',
+        on_delete=models.SET_NULL
+    )
+    reason = models.CharField(
+        max_length=100,
+        verbose_name=_('Reason'),
+        choices=choices.REASON_CHOICES,
+        null=True
+    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -38,3 +52,4 @@ class User(AbstractUser):
         }
         # TODO: use Mailchip/Mandrill service when service will created
         pass
+

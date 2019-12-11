@@ -58,7 +58,8 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     'drf_yasg',
 
-    'users'
+    'users',
+    'locations'
 ]
 
 SITE_ID = 1
