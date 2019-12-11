@@ -204,7 +204,9 @@ CELERY_RESULT_SERIALIZER = 'json'
 REST_AUTH_SERIALIZERS = {
     'LOGIN_SERIALIZER': 'users.serializers.LoginSerializer',
     'USER_DETAILS_SERIALIZER': 'users.serializers.UserDetailSerializer',
-    'PASSWORD_CHANGE_SERIALIZER': 'users.serializers.PasswordChangeSerializer'
+    'PASSWORD_CHANGE_SERIALIZER': 'users.serializers.PasswordChangeSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'users.serializers.PasswordResetSerializer',
+    'PASSWORD_RESET_CONFIRM_SERIALIZER': 'users.serializers.PasswordResetConfirmSerializer'
 }
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'users.serializers.RegisterSerializer'

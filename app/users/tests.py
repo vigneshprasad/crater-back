@@ -2,6 +2,11 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from users import models
 from rest_auth.utils import jwt_encode
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+
+from unittest.mock import patch
 
 
 class AuthTestCase(TestCase):
@@ -19,7 +24,9 @@ class AuthTestCase(TestCase):
             'login': reverse('v1:users:rest_login'),
             'user': reverse('v1:users:rest_user_details'),
             'register': reverse('v1:users:rest_register'),
-            'change-password': reverse('v1:users:rest_password_change')
+            'change-password': reverse('v1:users:rest_password_change'),
+            'reset-password': reverse('v1:users:rest_password_reset'),
+            'reset-password-confirm': reverse('v1:users:rest_password_reset_confirm')
         }
 
     def test_login_success(self):
@@ -151,3 +158,53 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 400)
         self.assertIn('old_password', resp.json())
+
+    @patch('users.models.User.send_reset_password_email', autospec=True)
+    def test_reset_password(self, send_email):
+        endpoint = self.endpoints.get('reset-password')
+        data = {'email': 'test@email.com'}
+        resp = self.client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(send_email.called)
+
+    @patch('users.models.User.send_reset_password_email', autospec=True)
+    def test_reset_password_wrong_email(self, send_email):
+        endpoint = self.endpoints.get('reset-password')
+        data = {'email': 'testy@email.com'}
+        resp = self.client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(send_email.called)
+
+    def test_reset_password_confirm(self):
+        endpoint = self.endpoints.get('reset-password-confirm')
+        data = {
+            'uid': urlsafe_base64_encode(force_bytes(self.user.pk)),
+            'token': default_token_generator.make_token(self.user),
+            'new_password': 'Qwer1234!'
+        }
+        resp = self.client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+
+    def test_reset_password_confirm_fail_less_symbols(self):
+        endpoint = self.endpoints.get('reset-password-confirm')
+        data = {
+            'uid': urlsafe_base64_encode(force_bytes(self.user.pk)),
+            'token': default_token_generator.make_token(self.user),
+            'new_password': 'Qwer12'
+        }
+        resp = self.client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('new_password', resp.json())
+
+    def test_reset_password_confirm_fail_only_letters(self):
+        endpoint = self.endpoints.get('reset-password-confirm')
+        data = {
+            'uid': urlsafe_base64_encode(force_bytes(self.user.pk)),
+            'token': default_token_generator.make_token(self.user),
+            'new_password': 'Qwer'
+        }
+        resp = self.client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('new_password', resp.json())
+
+

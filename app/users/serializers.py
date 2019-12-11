@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers
+from .validators import password_validate_symbols
 
 UserModel = get_user_model()
 
@@ -26,7 +27,11 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
         style={'input_type': 'password'},
         error_messages={
             'blank': _('Please enter the password'),
-        }
+            'min_length': _('Password should have 8 or more symbols')
+        },
+        min_length=8,
+        max_length=128,
+        validators=[password_validate_symbols]
     )
 
     @staticmethod
@@ -47,7 +52,11 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         style={'input_type': 'password'},
         error_messages={
             'blank': _('Please enter the password'),
-        }
+            'min_length': _('Password should have 8 or more symbols')
+        },
+        min_length=8,
+        max_length=128,
+        validators=[password_validate_symbols]
     )
     email = serializers.EmailField(
         required=True,
@@ -107,7 +116,16 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
 
 class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
-    new_password = serializers.CharField(max_length=128)
+    new_password = serializers.CharField(
+        style={'input_type': 'password'},
+        error_messages={
+            'blank': _('Please enter the password'),
+            'min_length': _('Password should have 8 or more symbols')
+        },
+        min_length=8,
+        max_length=128,
+        validators=[password_validate_symbols]
+    )
     new_password1 = None
     new_password2 = None
 
@@ -124,3 +142,53 @@ class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
         if not self.set_password_form.is_valid():
             raise serializers.ValidationError(self.set_password_form.errors)
         return attrs
+
+
+class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
+    email = serializers.EmailField(
+        required=True,
+        error_messages={
+            'blank': _('Please enter your email'),
+            'invalid': _('Please enter a valid email'),
+            'max_length': _('Please enter a valid email'),
+        },
+        max_length=100
+    )
+
+    @staticmethod
+    def validate_email(email):
+        return email.strip().lower()
+
+    def save(self):
+        # request = self.context.get('request')
+        # Set some values to trigger the send_email method.
+        email = self.validated_data.get('email')
+        try:
+            user = UserModel.objects.get(email=email)
+            user.send_reset_password_email()
+        except UserModel.DoesNotExist:
+            pass
+
+
+class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmSerializer):
+    new_password = serializers.CharField(
+        style={'input_type': 'password'},
+        error_messages={
+            'blank': _('Please enter the password'),
+            'min_length': _('Password should have 8 or more symbols')
+        },
+        validators=[password_validate_symbols],
+        min_length=8,
+        max_length=128
+    )
+    new_password1 = None
+    new_password2 = None
+
+    def validate(self, attrs):
+        attrs.update(
+            {
+                'new_password1': attrs.get('new_password'),
+                'new_password2': attrs.get('new_password')
+            }
+        )
+        return super().validate(attrs)
