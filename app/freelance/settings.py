@@ -59,7 +59,8 @@ INSTALLED_APPS = [
     'drf_yasg',
 
     'users',
-    'locations'
+    'locations',
+    'tags'
 ]
 
 SITE_ID = 1
@@ -78,6 +79,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 MATERIAL_ADMIN_SITE = {

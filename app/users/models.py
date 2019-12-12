@@ -1,11 +1,13 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.tokens import default_token_generator
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.contrib.auth.tokens import default_token_generator
+from django.utils.translation import ugettext_lazy as _
 
 from users.managers import UserManager
 from . import choices
@@ -53,6 +55,17 @@ class User(AbstractUser):
         # TODO: use Mailchip/Mandrill service when service will created
         pass
 
+    @property
+    def has_profile(self):
+        return hasattr(self, 'profile') and self.profile
+
+    @property
+    def full_registered(self):
+        status = (
+            self.has_profile
+        )
+        return status
+
 
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -91,5 +104,38 @@ class Profile(models.Model):
         verbose_name=_('Focus'),
         blank=True
     )
+    additional_information = models.CharField(
+        max_length=800,
+        null=True,
+        verbose_name=_('Additional Information')
+    )
+    instagram = models.URLField(
+        verbose_name=_('Instagram'),
+        blank=True
+    )
+    twitter = models.URLField(
+        verbose_name=_('Twitter'),
+        blank=True
+    )
+    work_city = models.ForeignKey(
+        'locations.City',
+        null=True,
+        verbose_name=_('Work city'),
+        on_delete=models.CASCADE
+    )
+    tags = models.ManyToManyField(
+        'tags.Tag',
+        verbose_name=_('Tags'),
+        related_name='profiles'
+    )
+
+    class Meta:
+        verbose_name = _('Profile')
+        verbose_name_plural = _('Profiles')
 
 
+@receiver(pre_save, sender=User)
+def create_push_and_rent(sender, instance, *args, **kwargs):
+    if not instance.name:
+        instance.name = f'{instance.first_name} {instance.last_name}'
+    return instance

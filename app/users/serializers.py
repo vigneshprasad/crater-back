@@ -9,6 +9,9 @@ from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers
 
 from .validators import password_validate_symbols
+from . import models
+from locations.models import City
+from tags.models import Tag
 
 UserModel = get_user_model()
 
@@ -111,8 +114,20 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
     class Meta:
         model = UserModel
-        fields = ('pk', 'email', 'name', 'city', 'reason')
-        read_only_fields = ('email', )
+        fields = (
+            'pk',
+            'email',
+            'name',
+            'city',
+            'reason',
+            'full_registered',
+            'has_profile'
+        )
+        read_only_fields = (
+            'email',
+            'full_registered',
+            'has_profile'
+        )
 
 
 class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
@@ -192,3 +207,73 @@ class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmS
             }
         )
         return super().validate(attrs)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(
+        error_messages={
+            'blank': _('Please enter your name'),
+            'max_length': _('Invalid name'),
+        },
+        max_length=100
+    )
+    tag_line = serializers.CharField(
+        error_messages={
+            'max_length': _('Tag line should not be longer than 100 symbols'),
+        },
+        max_length=100,
+        allow_blank=True
+    )
+    introduction = serializers.CharField(
+        max_length=800,
+        error_messages={
+            'max_length': _('Max symbols exceeded'),
+        },
+        allow_blank=True
+    )
+    focus = serializers.CharField(
+        max_length=800,
+        error_messages={
+            'max_length': _('Max symbols exceeded'),
+        },
+        allow_blank=True
+    )
+    additional_information = serializers.CharField(
+        max_length=800,
+        error_messages={
+            'max_length': _('Max symbols exceeded'),
+        },
+        allow_blank=True
+    )
+    work_city = serializers.PrimaryKeyRelatedField(
+        queryset=City.objects.filter(is_work=True)
+    )
+    tags = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=Tag.objects.all()
+        ),
+        min_length=1,
+        max_length=2,
+        error_messages={
+            'max_length': _('Please select 1 or 2 tags'),
+            'empty': _('Please select 1 or 2 tags'),
+            'blank': _('Please select 1 or 2 tags')
+        },
+
+    )
+
+    class Meta:
+        model = models.Profile
+        fields = (
+            'name',
+            'tag_line',
+            'photo',  # TODO
+            'cover',  # TODO
+            'introduction',
+            'focus',
+            'additional_information',
+            'instagram',
+            'twitter',
+            'work_city',
+            'tags',
+        )

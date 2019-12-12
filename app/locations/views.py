@@ -9,3 +9,4 @@ class CityViewSet(mixins.RetrieveModelMixin,
     queryset = models.City.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.CitySerializer
+    filterset_fields = ['is_work']

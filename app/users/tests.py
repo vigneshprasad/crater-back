@@ -31,6 +31,7 @@ class AuthTestCase(TestCase):
             'reset-password-confirm': reverse('v1:users:rest_password_reset_confirm'),
             'user-details': reverse('v1:users:rest_user_details')
         }
+
         self.country = locations_models.Country.objects.create(name='Country')
         self.city = locations_models.City.objects.create(name='City', country=self.country)
 
@@ -268,3 +269,27 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.patch(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 400)
         self.assertIn('reason', resp.json())
+
+    def test_has_profile(self):
+        self.assertFalse(self.user.has_profile)
+        self.assertFalse(self.user.full_registered)
+
+    def test_user_details_fail_unauth(self):
+        endpoint = self.endpoints.get('user-details')
+        resp = self.client.get(endpoint, content_type='application/json')
+        self.assertEqual(resp.status_code, 401)
+
+    def test_user_details_success(self):
+        endpoint = self.endpoints.get('user-details')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        data = {
+            'pk': str(self.user.pk),
+            'email': self.user.email,
+            'name': self.user.name,
+            'reason': None,
+            'city': None,
+            'full_registered': False,
+            'has_profile': False
+        }
+        self.assertDictEqual(data, resp.json())

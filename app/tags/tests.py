@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from rest_auth.utils import jwt_encode
 
-from locations import models
+from tags import models
 from users import models as user_models
 
 
@@ -18,12 +18,10 @@ class CityTestCase(TestCase):
         self.client = Client()
         self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
         self.endpoints = {
-            'list': reverse('v1:locations:city-list'),
-            'detail': lambda x: reverse('v1:locations:city-detail', kwargs={'pk': x})
+            'list': reverse('v1:tags:tag-list'),
+            'detail': lambda x: reverse('v1:tags:tag-detail', kwargs={'pk': x})
         }
-        self.country = models.Country.objects.create(name='Country')
-        self.city = models.City.objects.create(name='City', country=self.country)
-
+        self.tag = models.Tag.objects.create(name='Tag')
 
     def test_list_fail_unauth(self):
         endpoint = self.endpoints.get('list')
@@ -35,28 +33,17 @@ class CityTestCase(TestCase):
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(1, len(resp.json()))
-        self.assertEqual('City', resp.json()[0]['name'])
+        self.assertEqual('Tag', resp.json()[0]['name'])
 
     def test_retrieve_success(self):
-        endpoint = self.endpoints.get('detail')(self.city.pk)
+        endpoint = self.endpoints.get('detail')(self.tag.pk)
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual('City', resp.json()['name'])
+        self.assertEqual('Tag', resp.json()['name'])
 
     def test_retrieve_fail_unauth(self):
-        endpoint = self.endpoints.get('detail')(self.city.pk)
+        endpoint = self.endpoints.get('detail')(self.tag.pk)
         resp = self.client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 401)
 
-    def test_list_work_city_fail_unauth(self):
-        endpoint = self.endpoints.get('list') + '?is_work=true'
-        resp = self.client.get(endpoint, content_type='application/json')
-        self.assertEqual(resp.status_code, 401)
 
-    def test_list_work_city_success(self):
-        endpoint = self.endpoints.get('list') + '?is_work=true'
-        models.City.objects.create(name='WorkCity', is_work=True, country=self.country)
-        resp = self.auth_client.get(endpoint, content_type='application/json')
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(1, len(resp.json()))
-        self.assertEqual('WorkCity', resp.json()[0]['name'])
