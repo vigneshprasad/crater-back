@@ -1,0 +1,84 @@
+from rest_framework import serializers
+
+from community.comments.serializers import CommentSerializer
+from community.mixins import SetCreatorRequestDataMixin
+from community.posts.models import Post, File, Like
+from community.posts.services import get_post_files
+from utils.fields import Base64FileField
+
+
+class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+    request_user = 'creator'
+
+    files_base64 = serializers.ListField(
+        required=False, child=Base64FileField(max_length=None, use_url=True)
+    )
+    creator_name = serializers.CharField(read_only=True, source='creator.name')
+    files_urls = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    latest_comments = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = (
+            'pk',
+            'message',
+            'group',
+            'files_base64',
+            'files_urls',
+            'files',
+            'creator',
+            'creator_name',
+            'created',
+            'likes',
+            'comments',
+            'latest_comments'
+        )
+        extra_kwargs = {
+            'files': {'write_only': True, 'required': False},
+            'creator': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        files_json = validated_data.pop('files_base64', [])
+        post = super().create(validated_data)
+        self._create_post_files(files_json, post)
+        return post
+
+    def get_files_urls(self, post):
+        return [self.context['request'].build_absolute_uri(file.object.url) for file in get_post_files(post)]
+
+    @staticmethod
+    def _create_post_files(files, post):
+        """
+        Create post files for base64 data
+        """
+        if len(files) > 10:
+            raise serializers.ValidationError({'files', _('Can\'t be attached more than 10 photos/videos')})
+        for file in files:
+            File.objects.create(object=file, post=post)
+
+    @staticmethod
+    def get_likes(post):
+        return post.likes.count()
+
+    @staticmethod
+    def get_comments(post):
+        return post.comments.count()
+
+    @staticmethod
+    def get_latest_comments(post):
+        return CommentSerializer(post.comments.all()[:2], many=True).data
+
+
+class LikeSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+    request_user = 'user'
+
+    class Meta:
+        model = Like
+        fields = (
+            'pk',
+            'post',
+            'user'
+        )
