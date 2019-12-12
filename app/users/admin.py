@@ -5,7 +5,7 @@ from users.models import User
 
 
 @register(User)
-class MaterialUserPictureAdmin(ModelAdmin):
+class UserAdmin(ModelAdmin):
     icon_name = 'person'
     list_display = ('email', 'is_active', 'is_staff', 'is_superuser', 'group')
     list_editable = ['is_active']

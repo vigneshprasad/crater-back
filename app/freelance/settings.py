@@ -59,7 +59,10 @@ INSTALLED_APPS = [
     'drf_yasg',
 
     'users',
-    'locations'
+    'locations',
+    'community.groups',
+    'community.comments',
+    'community.posts',
 ]
 
 SITE_ID = 1
