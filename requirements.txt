@@ -12,5 +12,6 @@ django-allauth==0.40.0
 django-storages==1.8
 boto3==1.10.35
 mock==3.0.5
+git+git://github.com/jazzband/django-model-utils.git#egg=django-model-utils
 Pillow==6.2.1
 django-filter==2.2.0

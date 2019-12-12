@@ -61,6 +61,10 @@ INSTALLED_APPS = [
     'users',
     'locations',
     'tags'
+    'locations',
+    'community.groups',
+    'community.comments',
+    'community.posts',
 ]
 
 SITE_ID = 1
