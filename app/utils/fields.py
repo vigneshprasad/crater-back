@@ -27,6 +27,7 @@ class Base64FileField(serializers.FileField):
         if isinstance(payload, six.string_types):
             file_extension = None
             try:
+                data = None
                 if 'data:' in payload and ';base64,' in payload:
                     header, data = payload.split(';base64,')
                     file_extension = guess_extension(guess_type(f'{header};base64,')[0])
@@ -34,7 +35,7 @@ class Base64FileField(serializers.FileField):
                     if self.file_formats and file_extension not in self.file_formats:
                         self.fail('wrong_file_format')
                 try:
-                    decoded_file = base64.b64decode(payload)
+                    decoded_file = base64.b64decode(data)
                 except (TypeError, binascii.Error):
                     self.fail('invalid_file')
 
