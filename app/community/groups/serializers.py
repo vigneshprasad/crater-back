@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
-from community.groups.models import UserGroup, Location, Group, Block
+from community.groups.models import UserGroup, Location, Group, Block, Following
 from community.mixins import SetCreatorRequestDataMixin
 
 
 class UserGroupSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     request_user = 'user'
+    group_name = serializers.CharField(source='group.name', read_only=True)
 
     class Meta:
         model = UserGroup
@@ -13,6 +14,7 @@ class UserGroupSerializer(SetCreatorRequestDataMixin, serializers.ModelSerialize
             'pk',
             'user',
             'group',
+            'group_name'
         )
 
 
@@ -46,4 +48,16 @@ class BlockSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'pk',
             'blocked',
             'blocker'
+        )
+
+
+class FollowSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+    request_user = 'follower'
+
+    class Meta:
+        model = Following
+        fields = (
+            'pk',
+            'followed',
+            'follower'
         )

@@ -6,12 +6,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from community.groups.models import Group
-from community.groups.permissions import GroupPermission
+from community.groups.permissions import GroupPermission, GroupPostPermission
 from community.groups.services import get_group
 from community.posts.filter_backends import FollowingFilterBackend, BlockersFilterBackend
-from community.posts.models import Like
+from community.posts.models import Like, Report
 from community.posts.permissions import PostPermission
-from community.posts.serializers import PostSerializer, LikeSerializer
+from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer
 from community.posts.services import get_posts, get_likes, get_post
 
 
@@ -23,7 +23,6 @@ class PostViewSet(ModelViewSet):
 
     @action(
         methods=['get'],
-        serializer_class=PostSerializer,
         permission_classes=[IsAuthenticated, GroupPermission],
         detail=True
     )
@@ -33,13 +32,13 @@ class PostViewSet(ModelViewSet):
         except Group.DoesNotExist:
             raise NotFound
         context = self.get_serializer_context()
-        return Response(self.serializer_class(group.posts, **{'context': context}).data)
+        return Response(self.serializer_class(group.posts.all(), many=True, **{'context': context}).data)
 
 
 class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     serializer_class = LikeSerializer
     queryset = get_likes()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GroupPostPermission)
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -51,3 +50,9 @@ class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericView
         except Like.DoesNotExist:
             raise NotFound
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ReportViewSet(mixins.CreateModelMixin, GenericViewSet):
+    serializer_class = ReportSerializer
+    queryset = Report.objects.none()
+    permission_classes = (IsAuthenticated, GroupPostPermission)

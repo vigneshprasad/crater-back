@@ -1,14 +1,33 @@
 from rest_framework import mixins
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
+from rest_framework.mixins import DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from community.comments.paginators import CommentPagination
 from community.comments.serializers import CommentSerializer
-from community.comments.services import get_comments_without_latest
+from community.comments.services import get_comments
+from community.groups.models import Group
+from community.posts.services import get_post
 
 
-class CommentViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
+class CommentViewSet(mixins.CreateModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = CommentSerializer
-    queryset = get_comments_without_latest()
+    queryset = get_comments()
     pagination_class = CommentPagination
     permission_classes = (IsAuthenticated,)
+
+    @action(
+        methods=['get'],
+        permission_classes=[IsAuthenticated],
+        detail=True
+    )
+    def post(self, request, pk):
+        try:
+            queryset = self.filter_queryset(get_post(pk).comments.all()[2:])
+        except Group.DoesNotExist:
+            raise NotFound
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

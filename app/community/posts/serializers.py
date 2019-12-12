@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from community.comments.serializers import CommentSerializer
 from community.mixins import SetCreatorRequestDataMixin
-from community.posts.models import Post, File, Like
+from community.posts.models import Post, File, Like, Report
 from community.posts.services import get_post_files
 from utils.fields import Base64FileField
 
@@ -77,6 +77,18 @@ class LikeSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Like
+        fields = (
+            'pk',
+            'post',
+            'user'
+        )
+
+
+class ReportSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+    request_user = 'user'
+
+    class Meta:
+        model = Report
         fields = (
             'pk',
             'post',
