@@ -1,3 +1,4 @@
+import re
 from unittest.mock import patch
 
 from django.contrib.auth.tokens import default_token_generator
@@ -7,10 +8,18 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_auth.utils import jwt_encode
 
-from users import models
 from locations import models as locations_models
 from tags.models import Tag
+from users import models
+from utils.file_test_service import get_test_base64_image
 
+url_regex = re.compile(
+        r'^(?:http)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 class AuthTestCase(TestCase):
     def setUp(self):
@@ -349,6 +358,8 @@ class AuthTestCase(TestCase):
             'additional_information': 'Additional Information',
             'work_city': city.pk,
             'tags': [self.tag.pk],
+            'photo': get_test_base64_image(),
+            'cover': get_test_base64_image()
         }
         resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
@@ -360,7 +371,3 @@ class AuthTestCase(TestCase):
         self.assertEqual('Additional Information', self.user.profile.additional_information)
         self.assertEqual(city.pk, self.user.profile.work_city.pk)
         self.assertIn(self.tag, self.user.profile.tags.all())
-
-
-
-
