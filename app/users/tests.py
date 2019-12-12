@@ -9,6 +9,7 @@ from rest_auth.utils import jwt_encode
 
 from users import models
 from locations import models as locations_models
+from tags.models import Tag
 
 
 class AuthTestCase(TestCase):
@@ -29,11 +30,13 @@ class AuthTestCase(TestCase):
             'change-password': reverse('v1:users:rest_password_change'),
             'reset-password': reverse('v1:users:rest_password_reset'),
             'reset-password-confirm': reverse('v1:users:rest_password_reset_confirm'),
-            'user-details': reverse('v1:users:rest_user_details')
+            'user-details': reverse('v1:users:rest_user_details'),
+            'user-profile': reverse('v1:users:profile-list')
         }
 
         self.country = locations_models.Country.objects.create(name='Country')
         self.city = locations_models.City.objects.create(name='City', country=self.country)
+        self.tag = Tag.objects.create(name='Tag')
 
     def test_login_success(self):
         endpoint = self.endpoints.get('login')
@@ -293,3 +296,71 @@ class AuthTestCase(TestCase):
             'has_profile': False
         }
         self.assertDictEqual(data, resp.json())
+
+    def test_profile_get_fail_unauth(self):
+        endpoint = self.endpoints.get('user-profile')
+        resp = self.client.get(endpoint, content_type='application/json')
+        self.assertEqual(resp.status_code, 401)
+
+    def test_profile_get_fail_not_found(self):
+        endpoint = self.endpoints.get('user-profile')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(resp.status_code, 404)
+
+    def test_profile_get_success(self):
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy'
+        )
+        endpoint = self.endpoints.get('user-profile')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+
+    def test_profile_set_success(self):
+        endpoint = self.endpoints.get('user-profile')
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        data = {
+            'name': 'Test',
+            'tags': [self.tag.pk],
+            'tag_line': '',
+            'cover': None,
+            'photo': None,
+            'introduction': '',
+            'focus': '',
+            'additional_information': '',
+            'work_city': city.pk
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.has_profile)
+
+    def test_profile_change_success(self):
+        endpoint = self.endpoints.get('user-profile')
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy'
+        )
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        data = {
+            'name': 'Test',
+            'introduction': 'Introduction',
+            'focus': 'Focus',
+            'additional_information': 'Additional Information',
+            'work_city': city.pk,
+            'tags': [self.tag.pk],
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertNotEqual('Testy', self.user.profile.name)
+        self.assertEqual('Test', self.user.profile.name)
+        self.assertEqual('Introduction', self.user.profile.introduction)
+        self.assertEqual('Focus', self.user.profile.focus)
+        self.assertEqual('Additional Information', self.user.profile.additional_information)
+        self.assertEqual(city.pk, self.user.profile.work_city.pk)
+        self.assertIn(self.tag, self.user.profile.tags.all())
+
+
+
+

@@ -14,7 +14,7 @@ register_router.register('profile', views.ProfileViewSet, base_name='profile')
 auth_urlpatterns = [
     path('', include('rest_auth.urls')),
     path('registration/', include('rest_auth.registration.urls')),
-    path('registration/', include(register_router.urls)),
+    path('', include(register_router.urls)),
 
     path('social/facebook/', social_views.FacebookLogin.as_view(), name='fb_login'),
     path('social/facebook/connect/', social_views.FacebookConnect.as_view(), name='fb_connect'),

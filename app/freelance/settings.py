@@ -60,8 +60,7 @@ INSTALLED_APPS = [
 
     'users',
     'locations',
-    'tags'
-    'locations',
+    'tags',
     'community.groups',
     'community.comments',
     'community.posts',

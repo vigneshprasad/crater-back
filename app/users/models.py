@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from users.managers import UserManager
 from . import choices
+from utils.validators import file_size_wrap
 
 
 class User(AbstractUser):
@@ -87,12 +88,14 @@ class Profile(models.Model):
     photo = models.ImageField(
         upload_to='profile/photo/%Y/%m/%d',
         verbose_name=_('Photo'),
-        null=True
+        null=True,
+        validators=[file_size_wrap(30)]
     )
     cover = models.FileField(
         upload_to='profile/cover/%Y/%m/%d',
         verbose_name=_('Cover'),
-        null=True
+        null=True,
+        validators=[file_size_wrap(512)]
     )
     introduction = models.CharField(
         max_length=800,

@@ -12,6 +12,7 @@ from .validators import password_validate_symbols
 from . import models
 from locations.models import City
 from tags.models import Tag
+from utils.fields import Base64FileField
 
 UserModel = get_user_model()
 
@@ -248,18 +249,23 @@ class ProfileSerializer(serializers.ModelSerializer):
     work_city = serializers.PrimaryKeyRelatedField(
         queryset=City.objects.filter(is_work=True)
     )
-    tags = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(
-            queryset=Tag.objects.all()
-        ),
-        min_length=1,
-        max_length=2,
-        error_messages={
-            'max_length': _('Please select 1 or 2 tags'),
-            'empty': _('Please select 1 or 2 tags'),
-            'blank': _('Please select 1 or 2 tags')
-        },
-
+    # tags = serializers.ListField(
+    #     child=serializers.PrimaryKeyRelatedField(
+    #         queryset=Tag.objects.all()
+    #     ),
+    #     min_length=1,
+    #     max_length=2,
+    #     error_messages={
+    #         'max_length': _('Please select 1 or 2 tags'),
+    #         'empty': _('Please select 1 or 2 tags'),
+    #         'blank': _('Please select 1 or 2 tags')
+    #     },
+    #     write_only=True
+    # )
+    photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
+    cover = Base64FileField(
+        file_formats=['.jpg', '.png', '.tiff', '.bmp',  '.mov', '.mpeg', '.avi', '.mp4', '.3gp', '.mwv', '.flv'],
+        allow_null=True
     )
 
     class Meta:
@@ -267,8 +273,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = (
             'name',
             'tag_line',
-            'photo',  # TODO
-            'cover',  # TODO
+            'photo',
+            'cover',
             'introduction',
             'focus',
             'additional_information',
