@@ -24,6 +24,10 @@ class City(models.Model):
         max_length=255,
         verbose_name=_('Name')
     )
+    is_work = models.BooleanField(
+        default=False,
+        verbose_name=_('Is work')
+    )
 
     class Meta:
         verbose_name = _('City')

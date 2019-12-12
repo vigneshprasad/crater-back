@@ -4,14 +4,17 @@ from rest_auth.registration.views import (
 )
 from rest_framework import routers
 from users import social_views
+from .. import views
 
 app_name = 'users'
 
-router = routers.SimpleRouter()
+register_router = routers.SimpleRouter()
+register_router.register('profile', views.ProfileViewSet, base_name='profile')
 
-urlpatterns = [
+auth_urlpatterns = [
     path('', include('rest_auth.urls')),
     path('registration/', include('rest_auth.registration.urls')),
+    path('', include(register_router.urls)),
 
     path('social/facebook/', social_views.FacebookLogin.as_view(), name='fb_login'),
     path('social/facebook/connect/', social_views.FacebookConnect.as_view(), name='fb_connect'),
@@ -26,4 +29,8 @@ urlpatterns = [
     path('social/accounts/<int:pk>/disconnect/',
          SocialAccountDisconnectView.as_view(),
          name='social_account_disconnect'),
+]
+
+urlpatterns = [
+    path('auth/', include(auth_urlpatterns))
 ]

@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 
     'users',
     'locations',
+    'tags',
     'community.groups',
     'community.comments',
     'community.posts',
@@ -81,6 +82,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 MATERIAL_ADMIN_SITE = {
