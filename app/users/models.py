@@ -10,8 +10,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 
 from users.managers import UserManager
+from utils.validators import SizeValidator
 from . import choices
-from utils.validators import file_size_wrap
 
 
 class User(AbstractUser):
@@ -89,13 +89,13 @@ class Profile(models.Model):
         upload_to='profile/photo/%Y/%m/%d',
         verbose_name=_('Photo'),
         null=True,
-        validators=[file_size_wrap(30)]
+        validators=[SizeValidator(size=30)]
     )
     cover = models.FileField(
         upload_to='profile/cover/%Y/%m/%d',
         verbose_name=_('Cover'),
         null=True,
-        validators=[file_size_wrap(512)]
+        validators=[SizeValidator(size=512)]
     )
     introduction = models.CharField(
         max_length=800,

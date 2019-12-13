@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from django.utils.deconstruct import deconstructible
 
 
 def file_size(value, size=512):
@@ -9,10 +10,15 @@ def file_size(value, size=512):
         raise ValidationError(message.format(size))
 
 
-def file_size_wrap(size):
-    def file_size(value):
+@deconstructible
+class SizeValidator(object):
+    def __init__(self, **params):
+        self._size = params.get('size', 512)
+
+    def __call__(self, value):
         message = _('File too large. Size should not exceed {} MiB.')
-        limit = size * 1024 * 1024
+        limit = self._size * 1024 * 1024
         if value.size > limit:
-            raise ValidationError(message.format(size))
-    return file_size
+            raise ValidationError(message.format(self._size))
+        else:
+            return value
