@@ -174,16 +174,16 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
     @staticmethod
     def validate_email(email):
         return email.strip().lower()
-
-    def save(self):
-        # request = self.context.get('request')
-        # Set some values to trigger the send_email method.
-        email = self.validated_data.get('email')
-        try:
-            user = UserModel.objects.get(email=email)
-            user.send_reset_password_email()
-        except UserModel.DoesNotExist:
-            pass
+    #
+    # def save(self):
+    #     # request = self.context.get('request')
+    #     # Set some values to trigger the send_email method.
+    #     email = self.validated_data.get('email')
+    #     try:
+    #         user = UserModel.objects.get(email=email)
+    #         user.send_reset_password_email()
+    #     except UserModel.DoesNotExist:
+    #         pass
 
 
 class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmSerializer):
