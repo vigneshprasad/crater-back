@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from users.managers import UserManager
 from utils.validators import SizeValidator
+from utils.mandrill_service import mandrill_service
 from . import choices
 
 
@@ -53,6 +54,17 @@ class User(AbstractUser):
             'user': self,
             'token': default_token_generator.make_token(self)
         }
+        mandrill_service.send_email(
+            template_name='password_reset',
+            content=data,
+            to=[
+                {
+                    "email": self.email,
+                    "name": self.name,
+                    "type": "to"
+                }
+            ]
+        )
         # TODO: use Mailchip/Mandrill service when service will created
         pass
 
