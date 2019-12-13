@@ -33,3 +33,6 @@ class City(models.Model):
         verbose_name = _('City')
         verbose_name_plural = _('Cities')
         ordering = ['name']
+
+    def __str__(self):
+        return self.name

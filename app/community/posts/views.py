@@ -10,6 +10,7 @@ from community.groups.permissions import GroupPermission, GroupPostPermission
 from community.groups.services import get_group
 from community.posts.filter_backends import FollowingFilterBackend, BlockersFilterBackend
 from community.posts.models import Like, Report
+from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
 from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer
 from community.posts.services import get_posts, get_likes, get_post
@@ -18,6 +19,7 @@ from community.posts.services import get_posts, get_likes, get_post
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     queryset = get_posts()
+    pagination_class = PostPagination
     permission_classes = (IsAuthenticated, PostPermission)
     filter_backends = (FollowingFilterBackend, BlockersFilterBackend)
 
