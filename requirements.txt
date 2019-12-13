@@ -16,3 +16,4 @@ image==1.5.27
 git+git://github.com/jazzband/django-model-utils.git#egg=django-model-utils
 Pillow==6.2.1
 django-filter==2.2.0
+mandrill==1.0.57
