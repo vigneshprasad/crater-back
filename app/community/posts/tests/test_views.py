@@ -49,16 +49,18 @@ class TestPostView(APITestCase):
 
     def test_get_posts_from_chat(self):
         url = reverse('v1:community:post-list')
+        Post.objects.create(message='Test message old', creator=self.user)
         Post.objects.create(message='Test message', creator=self.user)
         self.client.login(email='user@user.com', password='123qaz123!A')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['message'], 'Test message')
-        self.assertEqual(response.data[0]['group'], None)
-        self.assertEqual(response.data[0]['creator_name'], 'user')
-        self.assertEqual(response.data[0]['likes'], 0)
-        self.assertEqual(response.data[0]['comments'], 0)
-        self.assertEqual(response.data[0]['latest_comments'], [])
+        results = response.data['results'][0]
+        self.assertEqual(results['message'], 'Test message')
+        self.assertEqual(results['group'], None)
+        self.assertEqual(results['creator_name'], 'user')
+        self.assertEqual(results['likes'], 0)
+        self.assertEqual(results['comments'], 0)
+        self.assertEqual(results['latest_comments'], [])
 
     def test_get_post_from_chat(self):
         url = reverse('v1:community:post-list')

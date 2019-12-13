@@ -15,9 +15,11 @@ class CommentSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer)
             'message',
             'creator_name',
             'creator',
-            'post'
+            'post',
+            'event'
         )
         extra_kwargs = {
             'post': {'write_only': True},
+            'event': {'write_only': True},
             'creator': {'write_only': True}
         }

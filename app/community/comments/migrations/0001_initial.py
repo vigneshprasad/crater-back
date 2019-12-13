@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Post',
                 'verbose_name_plural': 'Posts',
                 'db_table': 'community_comments',
-                'ordering': ['created'],
+                'ordering': ['-created'],
             },
         ),
     ]

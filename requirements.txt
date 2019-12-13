@@ -1,6 +1,6 @@
 Django==3.0
 psycopg2-binary==2.8.4
-django-material-admin==1.6.7
+django-material-admin==1.6.10
 celery==4.3.0
 django-cleanup==4.0.0
 redis==3.3.11
@@ -16,4 +16,5 @@ image==1.5.27
 git+git://github.com/jazzband/django-model-utils.git#egg=django-model-utils
 Pillow==6.2.1
 django-filter==2.2.0
+django-timezone-field==4.0
 mandrill==1.0.57

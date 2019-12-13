@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'rest_auth',
     'django_cleanup.apps.CleanupConfig',
     'drf_yasg',
+    'timezone_field',
 
     'users',
     'locations',
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
     'community.groups',
     'community.comments',
     'community.posts',
+    'resources.events'
 ]
 
 SITE_ID = 1
@@ -205,7 +207,6 @@ CELERY_RESULT_BACKEND = 'redis://%s:6379' % REDIS_HOST
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-
 
 REST_AUTH_SERIALIZERS = {
     'LOGIN_SERIALIZER': 'users.serializers.LoginSerializer',

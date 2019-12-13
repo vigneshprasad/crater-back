@@ -14,6 +14,7 @@ class GroupInline(admin.StackedInline):
 class UserAdmin(ModelAdmin):
     list_display = ('name', 'groups')
     inlines = [GroupInline]
+    icon_name = 'location_on'
 
     @staticmethod
     def groups(location):
@@ -24,6 +25,7 @@ class UserAdmin(ModelAdmin):
 
 @register(UserGroup)
 class UserGroupAdmin(ModelAdmin):
+    icon_name = 'people_outline'
     list_display = ('user', 'group', 'is_approved')
     list_editable = ('is_approved',)
     list_filter = ('is_approved',)
