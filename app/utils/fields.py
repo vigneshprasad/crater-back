@@ -1,11 +1,10 @@
 import base64
 import binascii
+from mimetypes import guess_extension, guess_type
 
 import six
-
-from django.utils.translation import ugettext_lazy as _
-from mimetypes import guess_extension, guess_type
 from django.core.files.base import ContentFile
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 
