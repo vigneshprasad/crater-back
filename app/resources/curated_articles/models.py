@@ -40,7 +40,7 @@ class CuratedArticle(TimeStampedModel):
     """
     title = models.CharField(_('Title'), max_length=255)
     picture = models.ImageField(_('Picture'))
-    text = models.TextField(_('Text'))
+    text = models.TextField(_('Short Intro'))
     tag = models.ForeignKey(Tag, verbose_name=_('Tag'), on_delete=models.CASCADE, related_name='curated_articles')
     website = models.ForeignKey(
         SourceWebsite, verbose_name=_('Source Website'), on_delete=models.CASCADE, related_name='website_articles'

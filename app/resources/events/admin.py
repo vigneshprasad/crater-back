@@ -1,5 +1,4 @@
-from django.contrib.admin import ModelAdmin, register, TabularInline
-
+from django.contrib.admin import ModelAdmin, register, TabularInline, DateFieldListFilter
 from resources.events.models import Event, RSVPD
 
 
@@ -27,7 +26,7 @@ class EventAdmin(ModelAdmin):
     icon_name = 'event'
     list_display = ('title', 'date', 'start', 'end', 'state')
     list_editable = ('date', 'start', 'end')
-    list_filter = ('title', 'start', 'state')
+    list_filter = ('state', ('date', DateFieldListFilter))
     search_fields = ('title',)
     readonly_fields = ('state',)
     inlines = [RSVPDAdmin]

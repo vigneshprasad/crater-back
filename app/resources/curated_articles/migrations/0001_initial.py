@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('title', models.CharField(max_length=255, verbose_name='Title')),
                 ('picture', models.ImageField(upload_to='', verbose_name='Picture')),
-                ('text', models.TextField(verbose_name='Text')),
+                ('text', models.TextField(verbose_name='Short Intro')),
                 ('tag', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='curated_articles', to='curated_articles.Tag', verbose_name='Tag')),
                 ('website', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='website_articles', to='curated_articles.SourceWebsite', verbose_name='Source Website')),
             ],

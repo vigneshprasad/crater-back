@@ -8,7 +8,9 @@ from resources.curated_articles.models import CuratedArticle, Tag, SourceWebsite
 @register(CuratedArticle)
 class CuratedArticleAdmin(ModelAdmin):
     icon_name = 'local_library'
-    list_display = ('title', 'image', 'tags', 'website')
+    list_display = ('title', 'created', 'tags', 'website', 'website_url', 'image')
+    list_filter = ('created', 'tag__name')
+    search_fields = ('title', 'website__name', 'website__url')
 
     @staticmethod
     def tags(curated_article):
@@ -16,7 +18,17 @@ class CuratedArticleAdmin(ModelAdmin):
 
     @staticmethod
     def image(curated_article):
-        return mark_safe(f'<a href="{settings.MEDIA_URL}{curated_article.picture}"><img height="50" width="70" src="{settings.MEDIA_URL}{curated_article.picture}"></a>')
+        return mark_safe(
+            f'<a href="{settings.MEDIA_URL}{curated_article.picture}">'
+            f'<img height="50" width="70" src="{settings.MEDIA_URL}{curated_article.picture}">'
+            f'</a>'
+        )
+
+    @staticmethod
+    def website_url(curated_article):
+        if not curated_article.website.url:
+            return mark_safe('<i class="material-icons red-color medium-icon">highlight_off</i>')
+        return mark_safe(f'<a href="{curated_article.website.url}">{curated_article.website.url}</a>')
 
 
 @register(Tag)
