@@ -1,5 +1,5 @@
 from rest_framework.pagination import PageNumberPagination
 
 
-class EventPagination(PageNumberPagination):
+class CuratedArticlePagination(PageNumberPagination):
     page_size = 9
