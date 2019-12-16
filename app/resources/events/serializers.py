@@ -17,6 +17,7 @@ class EventSerializer(serializers.ModelSerializer):
             'pk',
             'title',
             'text',
+            'picture',
             'date',
             'start',
             'end',

@@ -13,6 +13,7 @@ class Event(models.Model):
     """
     title = models.CharField(_('Title'), max_length=255)
     text = models.TextField(_('Text'))
+    picture = models.ImageField(_('Picture'), null=True)
     date = models.DateField(_('Date'))
     start = models.TimeField(_('Start Time'))
     end = models.TimeField(_('End Time'))
