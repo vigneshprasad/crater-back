@@ -136,7 +136,6 @@ class Profile(models.Model):
     tag_line = models.CharField(
         verbose_name=_('Tag lime'),
         max_length=100,
-        null=True,
         blank=True
     )
     photo = models.ImageField(
@@ -163,8 +162,8 @@ class Profile(models.Model):
     )
     additional_information = models.CharField(
         max_length=800,
-        null=True,
-        verbose_name=_('Additional Information')
+        verbose_name=_('Additional Information'),
+        blank=True
     )
     instagram = models.URLField(
         verbose_name=_('Instagram'),
@@ -184,6 +183,10 @@ class Profile(models.Model):
         'tags.Tag',
         verbose_name=_('Tags'),
         related_name='profiles'
+    )
+    public_profile = models.BooleanField(
+        default=True,
+        verbose_name=_('Public Profile')
     )
 
     class Meta:

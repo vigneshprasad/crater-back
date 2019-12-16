@@ -309,13 +309,30 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 404)
 
     def test_profile_get_success(self):
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
         models.Profile.objects.create(
             user=self.user,
-            name='Testy'
+            name='Testy',
+            work_city=city
         )
         endpoint = self.endpoints.get('user-profile')
+        data = {
+            'name': 'Testy',
+            'tags': [],
+            'tag_line': '',
+            'cover': None,
+            'photo': None,
+            'introduction': '',
+            'focus': '',
+            'instagram': '',
+            'twitter': '',
+            'additional_information': '',
+            'work_city': city.pk,
+            'public_profile': True
+        }
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
+        self.assertDictEqual(data, resp.json())
 
     def test_profile_set_success(self):
         endpoint = self.endpoints.get('user-profile')
@@ -335,6 +352,29 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.has_profile)
+
+    def test_profile_set_success_full_info(self):
+        endpoint = self.endpoints.get('user-profile')
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        data = {
+            'name': 'Test',
+            'tags': [self.tag.pk],
+            'tag_line': '',
+            'photo': None,
+            'cover': None,
+            'introduction': 'Introduction',
+            'focus': 'Focus',
+            'additional_information': 'Information',
+            'work_city': city.pk,
+            'instagram': 'https://instagram.com/',
+            'twitter': 'https://twitter.com/',
+            'public_profile': True
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.has_profile)
+        self.assertDictEqual(data, resp.json())
 
     def test_profile_change_success(self):
         endpoint = self.endpoints.get('user-profile')

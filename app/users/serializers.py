@@ -292,6 +292,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'twitter',
             'work_city',
             'tags',
+            'public_profile'
         )
 
 
