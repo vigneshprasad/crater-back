@@ -1,8 +1,6 @@
 from django.urls import path, include
-from rest_auth.registration.views import (
-    SocialAccountListView, SocialAccountDisconnectView
-)
 from rest_framework import routers
+
 from users import social_views
 from .. import views
 
@@ -28,9 +26,9 @@ auth_urlpatterns = [
     path('social/google/', social_views.GoogleLogin.as_view(), name='google_login'),
     path('social/google/connect/', social_views.GoogleConnect.as_view(), name='google_connect'),
 
-    path('social/accounts/', SocialAccountListView.as_view(), name='social_account_list'),
+    path('social/accounts/', social_views.SocialAccountListView.as_view(), name='social_account_list'),
     path('social/accounts/<int:pk>/disconnect/',
-         SocialAccountDisconnectView.as_view(),
+         social_views.SocialAccountDisconnectView.as_view(),
          name='social_account_disconnect'),
 ]
 

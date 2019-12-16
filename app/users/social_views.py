@@ -2,7 +2,8 @@ from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.linkedin_oauth2.views import LinkedInOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from rest_auth.registration.views import SocialLoginView, SocialConnectView
+from rest_auth.registration.views import SocialLoginView, SocialConnectView, \
+    SocialAccountDisconnectView as DisconnectView, SocialAccountListView as AccountListView
 
 from .mixins import CheckDeviceMixin
 from .serializers import SocialLoginSerializer
@@ -61,3 +62,18 @@ class FacebookConnect(SocialConnectView):
 class LinkedinConnect(SocialConnectView):
     adapter_class = LinkedInOAuth2Adapter
 
+
+class SocialAccountDisconnectView(DisconnectView):
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return None
+        return super().get_queryset()
+
+
+class SocialAccountListView(AccountListView):
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return None
+        return super().get_queryset()
