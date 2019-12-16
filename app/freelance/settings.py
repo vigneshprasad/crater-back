@@ -71,7 +71,8 @@ INSTALLED_APPS = [
     'community.groups',
     'community.comments',
     'community.posts',
-    'resources.events'
+    'resources.events',
+    'resources.curated_articles',
 ]
 
 SITE_ID = 1

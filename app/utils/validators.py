@@ -3,13 +3,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.deconstruct import deconstructible
 
 
-def file_size(value, size=512):
-    message = _('File too large. Size should not exceed {} MiB.')
-    limit = size * 1024 * 1024
-    if value.size > limit:
-        raise ValidationError(message.format(size))
-
-
 @deconstructible
 class SizeValidator(object):
     def __init__(self, **params):
