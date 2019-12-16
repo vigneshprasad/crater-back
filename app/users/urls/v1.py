@@ -12,7 +12,10 @@ register_router = routers.SimpleRouter()
 register_router.register('profile', views.ProfileViewSet, base_name='profile')
 
 auth_urlpatterns = [
+
+    path('logout/', views.LogoutView.as_view(), name='rest_logout'),
     path('', include('rest_auth.urls')),
+
     path('registration/', include('rest_auth.registration.urls')),
     path('', include(register_router.urls)),
 

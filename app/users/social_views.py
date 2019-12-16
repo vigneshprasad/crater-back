@@ -2,11 +2,10 @@ from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.linkedin_oauth2.views import LinkedInOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from rest_auth.registration.serializers import SocialLoginSerializer
 from rest_auth.registration.views import SocialLoginView, SocialConnectView
-from .mixins import CheckDeviceMixin
 
-# from .serializers import SocialLoginSerializer
+from .mixins import CheckDeviceMixin
+from .serializers import SocialLoginSerializer
 
 
 class GoogleLogin(SocialLoginView, CheckDeviceMixin):
@@ -24,7 +23,6 @@ class GoogleLogin(SocialLoginView, CheckDeviceMixin):
         return response
 
 
-
 class FacebookLogin(SocialLoginView, CheckDeviceMixin):
     """
     https://www.facebook.com/v2.2/dialog/oauth?client_id=1866118480133387&redirect_uri=https://www.domain.com/login&display=popup&response_type=code%20token
@@ -36,7 +34,6 @@ class FacebookLogin(SocialLoginView, CheckDeviceMixin):
         response = super().post(request, *args, **kwargs)
         self.check_device()
         return response
-
 
 
 class LinkedinLogin(SocialLoginView, CheckDeviceMixin):
