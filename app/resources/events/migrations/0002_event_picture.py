@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='event',
             name='picture',
-            field=models.ImageField(null=True, upload_to='', verbose_name='Picture'),
+            field=models.ImageField(null=True, upload_to='', verbose_name='Cover photo'),
         ),
     ]
