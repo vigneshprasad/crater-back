@@ -30,9 +30,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.mandrillapp.com'
+# EMAIL_HOST_PASSWORD = 'Q23YKb071AurOhmYLY5Hew'
+# EMAIL_HOST_USER = 'WurkNet'
+# EMAIL_PORT =  587
+# EMAIL_USE_TLS = True
 
 AUTH_USER_MODEL = 'users.User'
-
+import django.core.mail.backends.smtp
 # Application definition
 
 INSTALLED_APPS = [
@@ -237,3 +243,12 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 MANDRILL_API_KEY = os.getenv('MANDRILL_API_KEY', 'Q23YKb071AurOhmYLY5Hew')
 DEFAULT_EMAIL_FROM = os.getenv('DEFAULT_EMAIL_FROM', 'no-reply@fwmail.scenario-projects.com')
+
+
+DEFAULT_SMS_PHONE_NUMBER = os.getenv('DEFAULT_SMS_PHONE_NUMBER', '')
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', '')
+ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', '')
+
+ACCOUNT_LOGOUT_ON_GET = False

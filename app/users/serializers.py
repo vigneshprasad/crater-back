@@ -8,11 +8,10 @@ from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers
 
-from .validators import password_validate_symbols
-from . import models
 from locations.models import City
-from tags.models import Tag
 from utils.fields import Base64FileField
+from . import models
+from .validators import password_validate_symbols
 
 UserModel = get_user_model()
 
@@ -37,10 +36,30 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
         min_length=8,
         max_length=128
     )
+    os_id = serializers.CharField(
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
 
     @staticmethod
     def validate_email(email):
         return email.strip().lower()
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        self.check_device(attrs)
+        return attrs
+
+    @staticmethod
+    def check_device(attrs):
+        os_id = attrs.get('os_id', '')
+        user = attrs.get('user', '')
+        if user and os_id:
+            device, created = models.Device.objects.get_or_create(user=user, os_id=os_id)
+            if not created:
+                device.is_active = True
+                device.save()
 
 
 class RegisterSerializer(register_serializers.RegisterSerializer):
@@ -170,20 +189,24 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
         },
         max_length=100
     )
+    password_reset_form_class = rest_auth_serializers.PasswordResetSerializer.password_reset_form_class
 
-    @staticmethod
-    def validate_email(email):
+    def validate_email(self, email):
+    #     self.reset_form = self.password_reset_form_class(data=self.initial_data)
+    #     if not self.reset_form.is_valid():
+    #         raise serializers.ValidationError(self.reset_form.errors)
         return email.strip().lower()
-    #
-    # def save(self):
-    #     # request = self.context.get('request')
-    #     # Set some values to trigger the send_email method.
-    #     email = self.validated_data.get('email')
-    #     try:
-    #         user = UserModel.objects.get(email=email)
-    #         user.send_reset_password_email()
-    #     except UserModel.DoesNotExist:
-    #         pass
+
+
+    def save(self):
+        # request = self.context.get('request')
+        # Set some values to trigger the send_email method.
+        email = self.validated_data.get('email')
+        try:
+            user = UserModel.objects.get(email=email)
+            user.send_reset_password_email()
+        except UserModel.DoesNotExist:
+            pass
 
 
 class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmSerializer):
@@ -249,19 +272,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     work_city = serializers.PrimaryKeyRelatedField(
         queryset=City.objects.filter(is_work=True)
     )
-    # tags = serializers.ListField(
-    #     child=serializers.PrimaryKeyRelatedField(
-    #         queryset=Tag.objects.all()
-    #     ),
-    #     min_length=1,
-    #     max_length=2,
-    #     error_messages={
-    #         'max_length': _('Please select 1 or 2 tags'),
-    #         'empty': _('Please select 1 or 2 tags'),
-    #         'blank': _('Please select 1 or 2 tags')
-    #     },
-    #     write_only=True
-    # )
     photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
     cover = Base64FileField(
         file_formats=['.jpg', '.png', '.tiff', '.bmp',  '.mov', '.mpeg', '.avi', '.mp4', '.3gp', '.mwv', '.flv'],
@@ -283,3 +293,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             'work_city',
             'tags',
         )
+
+
+class LogoutSerializer(serializers.Serializer):
+    os_id = serializers.CharField(required=False, allow_blank=False, allow_null=True)
+
+
+class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
+    os_id = serializers.CharField(required=False, allow_blank=False)

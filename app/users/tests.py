@@ -1,8 +1,7 @@
-import re
 from unittest.mock import patch
 
 from django.contrib.auth.tokens import default_token_generator
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -13,13 +12,6 @@ from tags.models import Tag
 from users import models
 from utils.file_test_service import get_test_base64_image
 
-url_regex = re.compile(
-        r'^(?:http)s?://' # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-        r'localhost|' #localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-        r'(?::\d+)?' # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 class AuthTestCase(TestCase):
     def setUp(self):
@@ -34,6 +26,7 @@ class AuthTestCase(TestCase):
         self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
         self.endpoints = {
             'login': reverse('v1:users:rest_login'),
+            'logout': reverse('v1:users:rest_logout'),
             'user': reverse('v1:users:rest_user_details'),
             'register': reverse('v1:users:rest_register'),
             'change-password': reverse('v1:users:rest_password_change'),
@@ -122,7 +115,6 @@ class AuthTestCase(TestCase):
         self.assertEqual(data.get('name'), resp.json()['user']['name'])
         self.assertEqual(data.get('email'), resp.json()['user']['email'])
         self.assertIn('token', resp.json())
-
 
     def test_fail_register_empty_name(self):
         endpoint = self.endpoints.get('register')
@@ -371,3 +363,45 @@ class AuthTestCase(TestCase):
         self.assertEqual('Additional Information', self.user.profile.additional_information)
         self.assertEqual(city.pk, self.user.profile.work_city.pk)
         self.assertIn(self.tag, self.user.profile.tags.all())
+
+    def test_device_creation_success(self):
+        endpoint = self.endpoints.get('login')
+        data = {'email': 'test@email.com', 'password': 'Qwer1234!', 'os_id': 'testy_os_id'}
+        resp = self.client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(1, self.user.devices.filter(is_active=True).count())
+
+    def test_logout_device_deactivate(self):
+        endpoint = self.endpoints.get('logout')
+        data = {'os_id': 'testy_os_id'}
+        models.Device.objects.create(user=self.user, os_id='testy_os_id')
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(1, self.user.devices.filter(is_active=False).count())
+
+    def test_logout_fail_method_not_allowed(self):
+        endpoint = self.endpoints.get('logout')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(resp.status_code, 405)
+
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    @patch('utils.twilio_service.TwilioService.send_message', autospec=True)
+    def test_send_sms_success(self, send_message):
+        self.user._send_sms('1111', 'message')
+        self.assertTrue(send_message.called)
+
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    @patch('utils.one_signal_service.OneSignalService.send_push', autospec=True)
+    def test_send_push_success(self, send_push):
+        models.Device.objects.create(user=self.user, os_id='testy_os_id')
+
+        self.user.send_push({'key': 'value'}, 'message')
+        self.assertTrue(send_push.called)
+
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    @patch('utils.one_signal_service.OneSignalService.send_push', autospec=True)
+    def test_send_push_success_inactive_devices(self, send_push):
+        models.Device.objects.create(user=self.user, os_id='testy_os_id', is_active=False)
+        self.user.refresh_from_db()
+        self.user.send_push({'key': 'value'}, 'message')
+        self.assertFalse(send_push.called)

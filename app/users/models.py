@@ -8,11 +8,13 @@ from django.dispatch import receiver
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
+from model_utils.models import TimeStampedModel
 
 from users.managers import UserManager
 from utils.validators import SizeValidator
 # from utils.mandrill_service import mandrill_service
 from . import choices
+from .tasks import send_twilio_message, send_unique_push
 
 
 class User(AbstractUser):
@@ -78,6 +80,46 @@ class User(AbstractUser):
             self.has_profile
         )
         return status
+
+    @staticmethod
+    def _send_sms(phone_number, message):
+        send_twilio_message.delay(phone_number, message)
+
+    def send_push(self, data, message):
+        devices = self.devices.filter(is_active=True)
+        for device in devices:
+            send_unique_push.delay(
+                device.os_id,
+                {
+                    'en': message,
+                    # 'ru': translate('ru', message)
+                },
+                data=data
+            )
+
+
+class Device(TimeStampedModel):
+    user = models.ForeignKey(
+        'users.User',
+        verbose_name=_('User'),
+        on_delete=models.CASCADE,
+        related_name='devices',
+        null=True
+    )
+    os_id = models.CharField(
+        _('One signal id'),
+        max_length=150
+    )
+    is_active = models.BooleanField(
+        default=True
+    )
+
+    class Meta:
+        verbose_name = _('User Device')
+        verbose_name_plural = _('User Devices')
+
+    def __str__(self):
+        return f'{self.user.username} {self.os_id}'
 
 
 class Profile(models.Model):

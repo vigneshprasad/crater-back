@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from rest_framework import mixins, viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
-
+from rest_auth.views import LogoutView as RestLogoutView
 from . import serializers, models
 
 
@@ -44,3 +44,20 @@ class ProfileViewSet(mixins.CreateModelMixin,
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class LogoutView(RestLogoutView):
+    serializer_class = serializers.LogoutSerializer
+
+    def logout(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        os_id = serializer.validated_data.get('os_id', '')
+        if os_id:
+            try:
+                device = models.Device.objects.get(user=self.request.user, os_id=os_id)
+                device.is_active = False
+                device.save()
+            except models.Device.DoesNotExist:
+                pass
+        return super().logout(request)
