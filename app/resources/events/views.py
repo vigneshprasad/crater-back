@@ -18,7 +18,7 @@ from resources.events.services import get_events, get_event
 class EventViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = EventSerializer
     pagination_class = EventPagination
-    queryset = get_events().prefetch_related('event_comments', 'rsvpds').all()
+    queryset = get_events().prefetch_related('event_comments', 'participants').all()
     permission_classes = (IsAuthenticated,)
     filterset_class = EventFilter
 

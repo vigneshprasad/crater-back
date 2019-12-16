@@ -166,7 +166,7 @@ class TestEventView(APITestCase):
         )
         RSVPD.objects.create(event=event1, user=self.user)
         RSVPD.objects.create(event=event2, user=self.user)
-        response = self.client.get(f'{url}?rsvpds=true', format='json')
+        response = self.client.get(f'{url}?participants=true', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         result = response.data['results'][0]
         self.assertEqual(len(response.data['results']), 1)

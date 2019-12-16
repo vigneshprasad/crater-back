@@ -4,13 +4,13 @@ from resources.events.models import Event
 
 
 class EventFilter(filters.FilterSet):
-    rsvpds = filters.BooleanFilter(method='filter_rsvpds')
+    participants = filters.BooleanFilter(method='filter_participants')
 
     class Meta:
         model = Event
-        fields = ['rsvpds', 'is_free', 'state']
+        fields = ['participants', 'is_free', 'state']
 
-    def filter_rsvpds(self, queryset, name, value):
+    def filter_participants(self, queryset, name, value):
         if value:
-            return queryset.filter(rsvpds__user=self.request.user, state='upcoming')
+            return queryset.filter(participants__user=self.request.user, state='upcoming')
         return queryset
