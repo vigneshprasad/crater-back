@@ -19,7 +19,7 @@ def createsuperuser(apps, schema_editor):
 def create_groups(apps, schema_editor):
     group = apps.get_model('auth', 'Group')
     exist_group_names = group.objects.values_list('name', flat=True)
-    group_names = ['User', 'Investor']
+    group_names = ['User', 'Investor', 'Admin', 'Support']
     group.objects.bulk_create([group(name=name) for name in group_names if name not in exist_group_names])
 
 

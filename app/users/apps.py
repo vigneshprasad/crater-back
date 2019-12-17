@@ -6,3 +6,6 @@ class UserConfig(AppConfig):
     name = 'users'
     icon_name = 'person'
     verbose_name = _('User')
+
+    def ready(self):
+        import users.signals
