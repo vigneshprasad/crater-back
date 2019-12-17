@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='Location',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, verbose_name='Name')),
+                ('name', models.CharField(max_length=255, verbose_name='City Name')),
             ],
             options={
                 'verbose_name': 'Community Location',

@@ -14,7 +14,6 @@ class GroupInline(admin.StackedInline):
 class UserRequestInline(admin.TabularInline):
     model = UserRequest
     extra = 0
-    can_delete = False
     fields = ('pk', 'user', 'is_approved')
     readonly_fields = ('pk', 'user', 'is_approved')
 
@@ -40,18 +39,17 @@ class LocationAdmin(ModelAdmin):
 
 
 @register(Group)
-class UserRequestAdmin(ModelAdmin):
+class GroupAdmin(ModelAdmin):
     list_display = ('name', 'location', 'amount_of_users')
     readonly_fields = ('name', 'location')
     inlines = [UserRequestInline]
+    list_filter = ('location__name',)
+    search_fields = ('name',)
 
     @staticmethod
     def amount_of_users(group):
         return f'{group.group_users.count()}({group.group_users.filter(is_approved=True).count()})'
     amount_of_users.short_description = _('Amount of users')
-
-    def has_change_permission(self, request, obj=None):
-        return False
 
 
 @register(UserRequest)
@@ -61,6 +59,7 @@ class UserRequestAdmin(ModelAdmin):
     readonly_fields = ('user', 'group')
     list_editable = ('is_approved',)
     list_filter = ('is_approved',)
+    search_fields = ('user__email',)
 
     def has_add_permission(self, request):
         return False

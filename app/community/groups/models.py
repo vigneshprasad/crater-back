@@ -7,7 +7,7 @@ class Location(models.Model):
     """
     User's community group location
     """
-    name = models.CharField(_('Name'), max_length=255)
+    name = models.CharField(_('City Name'), max_length=255)
 
     class Meta:
         verbose_name = _('Community Location')
