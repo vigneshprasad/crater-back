@@ -96,6 +96,14 @@ class User(AbstractUser):
         )
         return status
 
+    @property
+    def role(self):
+        if self.groups.filter(name='Investor').exists():
+            return 'investor'
+        if self.groups.filter(name='User').exists():
+            return 'user'
+        return None
+
     @staticmethod
     def _send_sms(phone_number, message):
         send_twilio_message.delay(phone_number, message)

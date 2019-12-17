@@ -11,6 +11,7 @@ from rest_framework import serializers
 from locations.models import City
 from utils.fields import Base64FileField
 from utils import messages
+from django.contrib.auth import models as auth_models
 from . import models
 from .validators import password_validate_symbols
 
@@ -91,6 +92,13 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         },
         max_length=100
     )
+    role = serializers.ChoiceField(
+        choices=(
+            ('user', 'User'),
+            ('investor', 'Investor')
+        ),
+        default='user'
+    )
     password1 = None
     password2 = None
 
@@ -124,11 +132,20 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         adapter.save_user(request, user, self, commit=False)
         self.custom_signup(request, user)
         user.save()
+        self.add_to_group(user)
         setup_user_email(request, user, [])
         return user
 
     def custom_signup(self, request, user):
         user.name = self.validated_data.get('name')
+
+    def add_to_group(self, user):
+        role = self.validated_data.get('role', 'user')
+        try:
+            group = auth_models.Group.objects.get(name=role.capitalize())
+            user.groups.add(group)
+        except auth_models.Group.DoesNotExist:
+            pass
 
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
@@ -144,6 +161,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'reason',
             'phone_number',
             'phone_number_verified',
+            'role',
             'full_registered',
             'has_profile'
         )
@@ -154,6 +172,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'phone_number_verified',
             'email_verified',
             'phone_number',
+            'role'
         )
 
 
@@ -309,6 +328,13 @@ class LogoutSerializer(serializers.Serializer):
 
 class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
     os_id = serializers.CharField(required=False, allow_blank=False)
+    role = serializers.ChoiceField(
+        choices=(
+            ('user', 'User'),
+            ('investor', 'Investor')
+        ),
+        default='user'
+    )
 
 
 class NewPhoneNumberSerializer(serializers.ModelSerializer):
