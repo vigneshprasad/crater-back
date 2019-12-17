@@ -13,7 +13,7 @@ class Event(models.Model):
     """
     title = models.CharField(_('Title'), max_length=255)
     text = models.TextField(_('Text'))
-    picture = models.ImageField(_('Picture'), null=True)
+    picture = models.ImageField(_('Cover photo'), null=True)
     date = models.DateField(_('Date'))
     start = models.TimeField(_('Start Time'))
     end = models.TimeField(_('End Time'))
@@ -38,10 +38,10 @@ class RSVPD(models.Model):
     """
     Reply for invitation, subscription for an event
     """
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='rsvpds')
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='user_rsvpds')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='participants')
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='user_participants')
 
     class Meta:
-        verbose_name = _('RSVPD')
-        verbose_name_plural = _('RSVPD')
-        db_table = 'resources_rsvpd'
+        verbose_name = _('Participant')
+        verbose_name_plural = _('Participants')
+        db_table = 'resources_participants'

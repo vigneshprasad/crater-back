@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from community.groups.models import Location, Group, UserGroup
+from community.groups.models import Location, Group, UserRequest
 
 
 class TestLocationView(APITestCase):
@@ -45,7 +45,7 @@ class TestLocationView(APITestCase):
 
     def test_get_my_groups(self):
         url = reverse('v1:community:location-list')
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=True)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
         self.client.login(email='user@user.com', password='123qaz123!A')
         response = self.client.get(f'{url}my/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -54,14 +54,14 @@ class TestLocationView(APITestCase):
 
     def test_get_my_groups_not_approved(self):
         url = reverse('v1:community:location-list')
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=False)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
         self.client.login(email='user@user.com', password='123qaz123!A')
         response = self.client.get(f'{url}my/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
 
 
-class TestUserGroupView(APITestCase):
+class TestUserRequestView(APITestCase):
     def setUp(self):
         self.user = get_user_model().objects.create(
             email='user@user.com',
@@ -84,7 +84,7 @@ class TestUserGroupView(APITestCase):
         url = reverse('v1:community:location-list')
         self.client.login(email='user@user.com', password='123qaz123!A')
         response = self.client.post(url, format='json', data={'group': self.community_group.id})
-        user_group = UserGroup.objects.get(user=self.user)
+        user_group = UserRequest.objects.get(user=self.user)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertFalse(user_group.is_approved)

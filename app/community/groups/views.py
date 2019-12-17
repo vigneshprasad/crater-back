@@ -7,12 +7,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from community.groups.models import Location, Block, Following
-from community.groups.serializers import UserGroupSerializer, LocationSerializer, BlockSerializer, FollowSerializer
+from community.groups.serializers import UserRequestSerializer, LocationSerializer, BlockSerializer, FollowSerializer
 from community.groups.services import get_blockers, get_blocked_user, get_followers, get_followed_user
 
 
-class UserGroupViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet):
-    serializer_class = UserGroupSerializer
+class UserRequestViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet):
+    serializer_class = UserRequestSerializer
     queryset = Location.objects.all()
     permission_classes = (IsAuthenticated,)
 

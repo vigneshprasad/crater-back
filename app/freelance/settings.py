@@ -72,7 +72,8 @@ INSTALLED_APPS = [
     'community.groups',
     'community.comments',
     'community.posts',
-    'resources.events'
+    'resources.events',
+    'resources.curated_articles',
 ]
 
 SITE_ID = 1
@@ -247,9 +248,9 @@ DEFAULT_EMAIL_FROM = os.getenv('DEFAULT_EMAIL_FROM', 'no-reply@fwmail.scenario-p
 
 
 DEFAULT_SMS_PHONE_NUMBER = os.getenv('DEFAULT_SMS_PHONE_NUMBER', '')
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
-TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
-ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', '')
-ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', '')
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', 'example')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', 'example')
+ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', 'example')
+ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', 'example')
 
 ACCOUNT_LOGOUT_ON_GET = False

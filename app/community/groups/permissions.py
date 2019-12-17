@@ -1,5 +1,6 @@
 from rest_framework.permissions import BasePermission
 
+from community.posts.models import Post
 from community.posts.services import get_post
 
 
@@ -19,4 +20,7 @@ class GroupPostPermission(GroupPermission):
     def has_permission(self, request, view):
         post_id = request.data.get('post') or view.kwargs['pk']
         group_ids = request.user.user_groups.filter(is_approved=True).values_list('group', flat=True)
-        return not get_post(post_id).group or get_post(post_id).group.id in group_ids
+        try:
+            return not get_post(post_id).group or get_post(post_id).group.id in group_ids
+        except Post.DoesNotExist:
+            return False

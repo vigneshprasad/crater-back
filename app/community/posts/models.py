@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
 from community.groups.models import Group
-from utils.validators import file_size
+from utils.validators import SizeValidator
 
 
 class Post(TimeStampedModel):
@@ -32,7 +32,7 @@ class File(models.Model):
     object = models.FileField(
         _('File'),
         upload_to='posts/',
-        validators=[file_size]
+        validators=[SizeValidator(size=512)]
     )
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='files')
 

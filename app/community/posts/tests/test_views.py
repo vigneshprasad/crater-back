@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from community.groups.models import Location, Group, UserGroup
+from community.groups.models import Location, Group, UserRequest
 from community.posts.models import Post, Like, Report
 from utils.file_test_service import get_test_base64_image, get_test_image
 
@@ -91,7 +91,7 @@ class TestPostView(APITestCase):
 
     def test_get_posts_from_group(self):
         Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=True)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
         url = reverse('v1:community:post-detail', args=(self.community_group.id,))
         self.client.login(email='user@user.com', password='123qaz123!A')
         response = self.client.get(f'{url}group/', format='json')
@@ -99,7 +99,7 @@ class TestPostView(APITestCase):
 
     def test_get_posts_from_group_not_approved_by_admin(self):
         Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=False)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
         url = reverse('v1:community:post-detail', args=(self.community_group.id,))
         self.client.login(email='user@user.com', password='123qaz123!A')
         response = self.client.get(f'{url}group/', format='json')
@@ -186,7 +186,7 @@ class TestLikeView(APITestCase):
     def test_create_like_in_allowed_group(self):
         self.client.login(email='user@user.com', password='123qaz123!A')
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=True)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
         like_url = reverse('v1:community:like-list')
         response = self.client.post(like_url, data={'post': post.pk})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -194,7 +194,7 @@ class TestLikeView(APITestCase):
     def test_create_like_in_restricted_by_admin_group(self):
         self.client.login(email='user@user.com', password='123qaz123!A')
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=False)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
         like_url = reverse('v1:community:like-list')
         response = self.client.post(like_url, data={'post': post.pk})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -242,7 +242,7 @@ class TestReportView(APITestCase):
     def test_create_report_in_allowed_group(self):
         self.client.login(email='user@user.com', password='123qaz123!A')
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=True)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
 
         report_url = reverse('v1:community:report-list')
         response = self.client.post(report_url, data={'post': post.pk})
@@ -254,7 +254,7 @@ class TestReportView(APITestCase):
     def test_create_report_in_group_not_approved_by_admin(self):
         self.client.login(email='user@user.com', password='123qaz123!A')
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
-        UserGroup.objects.create(user=self.user, group=self.community_group, is_approved=False)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
 
         report_url = reverse('v1:community:report-list')
         response = self.client.post(report_url, data={'post': post.pk})

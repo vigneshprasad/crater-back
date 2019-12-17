@@ -1,15 +1,15 @@
 from rest_framework import serializers
 
-from community.groups.models import UserGroup, Location, Group, Block, Following
+from community.groups.models import UserRequest, Location, Group, Block, Following
 from community.mixins import SetCreatorRequestDataMixin
 
 
-class UserGroupSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+class UserRequestSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     request_user = 'user'
     group_name = serializers.CharField(source='group.name', read_only=True)
 
     class Meta:
-        model = UserGroup
+        model = UserRequest
         fields = (
             'pk',
             'user',

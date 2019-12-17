@@ -7,7 +7,7 @@ class Location(models.Model):
     """
     User's community group location
     """
-    name = models.CharField(_('Name'), max_length=255)
+    name = models.CharField(_('City Name'), max_length=255)
 
     class Meta:
         verbose_name = _('Community Location')
@@ -34,18 +34,18 @@ class Group(models.Model):
         return self.name
 
 
-class UserGroup(models.Model):
+class UserRequest(models.Model):
     """
-    User's community group relation
+    User's community group relation (requests)
     """
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='user_groups')
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='group_users')
     is_approved = models.BooleanField(_('Approved'), default=False)
 
     class Meta:
-        verbose_name = _('User Group')
-        verbose_name_plural = _('User Groups')
-        db_table = 'user_groups'
+        verbose_name = _('User Request')
+        verbose_name_plural = _('User Requests')
+        db_table = 'user_requests'
         unique_together = ('user', 'group')
 
 

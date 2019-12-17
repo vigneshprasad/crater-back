@@ -8,7 +8,7 @@ from resources.events.models import Event, RSVPD
 class EventSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
-    rsvpd = serializers.SerializerMethodField()
+    participants = serializers.SerializerMethodField()
     timezone = serializers.CharField(read_only=True)
 
     class Meta:
@@ -29,11 +29,11 @@ class EventSerializer(serializers.ModelSerializer):
             'timezone',
             'comments',
             'latest_comments',
-            'rsvpd'
+            'participants'
         )
 
-    def get_rsvpd(self, event):
-        return event.rsvpds.filter(user=self.context['request'].user).exists()
+    def get_participants(self, event):
+        return event.participants.filter(user=self.context['request'].user).exists()
 
     @staticmethod
     def get_comments(event):
