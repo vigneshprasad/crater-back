@@ -54,6 +54,40 @@ class User(AbstractUser):
         default=False,
         verbose_name=_('Phone Number Verified')
     )
+    is_staff = models.BooleanField(
+        _('Admin'),
+        default=False,
+        help_text=_('Admin permissions, can be restricted by superadmin.'),
+    )
+    is_active = models.BooleanField(
+        _('active'),
+        default=True,
+        help_text=_(
+            'Banned/Unbanned User.'
+        ),
+    )
+    is_approved = models.BooleanField(
+        _('Approved'),
+        default=False,
+        help_text=_(
+            'User Approval.'
+        ),
+    )
+    is_service_approved = models.BooleanField(
+        _('Service Approved'),
+        default=False,
+        help_text=_(
+            'User Service Approval.'
+        ),
+    )
+    is_support = models.BooleanField(
+        _('Support'),
+        default=False,
+        help_text=_(
+            'Admin access for support.'
+        ),
+    )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -229,7 +263,10 @@ class Profile(models.Model):
 
     class Meta:
         verbose_name = _('Profile')
-        verbose_name_plural = _('Profiles')
+        verbose_name_plural = _('Profile')
+
+    def __str__(self):
+        return self.name
 
 
 @receiver(pre_save, sender=User)
