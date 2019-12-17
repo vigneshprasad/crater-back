@@ -19,6 +19,7 @@ class FileAdmin(TabularInline):
 
 @register(Post)
 class PostAdmin(ModelAdmin):
+    icon_name = 'short_text'
     list_display = ('message', 'group')
 
     def has_add_permission(self, request):
