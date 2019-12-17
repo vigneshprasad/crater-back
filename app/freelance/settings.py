@@ -105,6 +105,7 @@ MATERIAL_ADMIN_SITE = {
     'PROFILE_BG':  'admin/profile_bg.png',
     'LOGIN_LOGO':  'admin/logo.jpg',
     'LOGOUT_BG':  'admin/logout_bg.png',
+    'REVERSE_TRAY': True,
     'APP_ICONS': {
         'authtoken': 'vpn_key',
         'account': 'account_box',

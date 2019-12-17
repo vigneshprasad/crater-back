@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'Profile',
-                'verbose_name_plural': 'Profiles',
+                'verbose_name_plural': 'Profile',
             },
         ),
     ]
