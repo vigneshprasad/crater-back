@@ -10,6 +10,7 @@ from rest_framework import serializers
 
 from locations.models import City
 from utils.fields import Base64FileField
+from utils import messages
 from . import models
 from .validators import password_validate_symbols
 
@@ -137,16 +138,22 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         fields = (
             'pk',
             'email',
+            'email_verified',
             'name',
             'city',
             'reason',
+            'phone_number',
+            'phone_number_verified',
             'full_registered',
             'has_profile'
         )
         read_only_fields = (
             'email',
             'full_registered',
-            'has_profile'
+            'has_profile',
+            'phone_number_verified',
+            'email_verified',
+            'phone_number',
         )
 
 
@@ -302,3 +309,30 @@ class LogoutSerializer(serializers.Serializer):
 
 class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
     os_id = serializers.CharField(required=False, allow_blank=False)
+
+
+class NewPhoneNumberSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserModel
+
+        fields = [
+            'phone_number'
+        ]
+
+
+class CheckCodeSerializer(serializers.ModelSerializer):
+    sms_code = serializers.CharField(max_length=4, min_length=4)
+
+    class Meta:
+        model = UserModel
+        fields = [
+            'sms_code'
+        ]
+
+    def validate_sms_code(self, code):
+        user = self.context['request'].user
+        if user.sms_code != code:
+            raise serializers.ValidationError(
+                messages.PHONE_CODE_WRONG
+            )

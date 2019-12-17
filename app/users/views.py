@@ -4,7 +4,9 @@ from rest_framework import mixins, viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_auth.views import LogoutView as RestLogoutView
+from rest_framework.decorators import action
 from . import serializers, models
+from utils import messages
 
 
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
@@ -61,3 +63,31 @@ class LogoutView(RestLogoutView):
             except models.Device.DoesNotExist:
                 pass
         return super().logout(request)
+
+
+class VerificationView(viewsets.GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(methods=['post'], detail=False, serializer_class=serializers.NewPhoneNumberSerializer)
+    def new_phone_number(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.phone_number = serializer.validated_data['phone_number']
+        request.user.generate_sms_code(commit=False)
+        request.user.save()
+        request.user.send_sms(
+            messages.PHONE_CODE_VERIFICATION.format(code=request.user.sms_code)
+        )
+        return Response({'status': messages.PHONE_CODE_SUCCESSFULLY_SENT})
+
+    @action(methods=['post'], detail=False, serializer_class=serializers.CheckCodeSerializer)
+    def check_sms_code(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.sms_code = ''
+        request.user.phone_number_verified = True
+        request.user.save()
+        return Response({'status': messages.PHONE_NUMBER_SUCCESSFULLY_VERIFIED})
+
+
+

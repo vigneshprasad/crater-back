@@ -33,7 +33,9 @@ class AuthTestCase(TestCase):
             'reset-password': reverse('v1:users:rest_password_reset'),
             'reset-password-confirm': reverse('v1:users:rest_password_reset_confirm'),
             'user-details': reverse('v1:users:rest_user_details'),
-            'user-profile': reverse('v1:users:profile-list')
+            'user-profile': reverse('v1:users:profile-list'),
+            'user-phone-number-new': reverse('v1:users:verify-new-phone-number'),
+            'user-check-code': reverse('v1:users:verify-check-sms-code')
         }
 
         self.country = locations_models.Country.objects.create(name='Country')
@@ -290,11 +292,14 @@ class AuthTestCase(TestCase):
         data = {
             'pk': str(self.user.pk),
             'email': self.user.email,
+            'email_verified': False,
             'name': self.user.name,
             'reason': None,
             'city': None,
             'full_registered': False,
-            'has_profile': False
+            'has_profile': False,
+            'phone_number': '',
+            'phone_number_verified': False
         }
         self.assertDictEqual(data, resp.json())
 
@@ -333,6 +338,61 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertDictEqual(data, resp.json())
+
+    @patch('users.models.User.send_sms', autospec=True)
+    def test_set_phone_number(self, send_sms):
+        endpoint = self.endpoints.get('user-phone-number-new')
+        data = {
+            'phone_number': '+380999999999'
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.phone_number, '+380999999999')
+        self.assertFalse(self.user.phone_number_verified)
+        self.assertTrue(send_sms.called)
+
+    @override_settings(DEBUG=True)
+    @patch('users.models.User.send_sms', autospec=True)
+    def test_change_phone_number(self, send_sms):
+        endpoint = self.endpoints.get('user-phone-number-new')
+        self.user.phone_number = '+380998888888'
+        self.user.save()
+        data = {
+            'phone_number': '+380999999999'
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.phone_number, '+380999999999')
+        self.assertFalse(self.user.phone_number_verified)
+        self.assertTrue(self.user.sms_code)
+        self.assertTrue(send_sms.called)
+        data = {
+            'sms_code': '1111'
+        }
+        endpoint = self.endpoints.get('user-check-code')
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.phone_number, '+380999999999')
+        self.assertTrue(self.user.phone_number_verified)
+        self.assertFalse(self.user.sms_code)
+
+    @patch('users.models.User.send_sms', autospec=True)
+    def test_resend_sms_code(self, send_sms):
+        endpoint = self.endpoints.get('user-phone-number-new')
+        self.user.phone_number = '+380998888888'
+        self.user.sms_code = sms_code = '2222'
+        self.user.save()
+        data = {
+            'phone_number': '+380998888888'
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.sms_code, sms_code)
+        self.assertTrue(send_sms.called)
 
     def test_profile_set_success(self):
         endpoint = self.endpoints.get('user-profile')

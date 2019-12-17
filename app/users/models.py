@@ -1,5 +1,5 @@
 import uuid
-
+import exrex
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.db import models
@@ -15,6 +15,8 @@ from utils.validators import SizeValidator
 # from utils.mandrill_service import mandrill_service
 from . import choices
 from .tasks import send_twilio_message, send_unique_push
+from phonenumber_field.modelfields import PhoneNumberField
+from django.conf import settings
 
 
 class User(AbstractUser):
@@ -38,6 +40,19 @@ class User(AbstractUser):
         verbose_name=_('Reason'),
         choices=choices.REASON_CHOICES,
         null=True
+    )
+    phone_number = PhoneNumberField(
+        blank=True,
+        verbose_name=_('Phone number')
+    )
+    sms_code = models.CharField(
+        blank=True,
+        verbose_name=_('Sms code'),
+        max_length=4
+    )
+    phone_number_verified = models.BooleanField(
+        default=False,
+        verbose_name=_('Phone Number Verified')
     )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -85,6 +100,9 @@ class User(AbstractUser):
     def _send_sms(phone_number, message):
         send_twilio_message.delay(phone_number, message)
 
+    def send_sms(self, message):
+        self._send_sms(self.phone_number, message)
+
     def send_push(self, data, message):
         devices = self.devices.filter(is_active=True)
         for device in devices:
@@ -96,6 +114,18 @@ class User(AbstractUser):
                 },
                 data=data
             )
+
+    @property
+    def email_verified(self):
+        return self.emailaddress_set.filter(email=self.email, verified=True).exists()
+
+    def generate_sms_code(self, commit=True):
+        code = exrex.getone('[1-9]{4}')
+        if settings.DEBUG:
+            code = '1111'
+        self.sms_code = code
+        if commit:
+            self.save()
 
 
 class Device(TimeStampedModel):

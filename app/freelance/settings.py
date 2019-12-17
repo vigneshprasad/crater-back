@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     'drf_yasg',
     'timezone_field',
+    'phonenumber_field',
 
     'users',
     'locations',
