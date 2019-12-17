@@ -11,6 +11,7 @@ from locations import models as locations_models
 from tags.models import Tag
 from users import models
 from utils.file_test_service import get_test_base64_image
+from django.contrib.auth import models as auth_models
 
 
 class AuthTestCase(TestCase):
@@ -19,6 +20,8 @@ class AuthTestCase(TestCase):
             email='test@email.com',
             name='ftest ltest'
         )
+        group = auth_models.Group.objects.get(name='User')
+        self.user.groups.add(group)
         self.user.set_password('Qwer1234!')
         self.user.save()
         self.token = jwt_encode(self.user)
@@ -48,6 +51,8 @@ class AuthTestCase(TestCase):
         resp = self.client.post(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('token', resp.json())
+
+        self.assertEqual('user', resp.json()['user']['role'])
 
     def test_login_success_with_spaces(self):
         endpoint = self.endpoints.get('login')
@@ -117,6 +122,19 @@ class AuthTestCase(TestCase):
         self.assertEqual(data.get('name'), resp.json()['user']['name'])
         self.assertEqual(data.get('email'), resp.json()['user']['email'])
         self.assertIn('token', resp.json())
+        user = models.User.objects.get(email='test1@email.com')
+        self.assertIn('User', list(user.groups.values_list('name', flat=True)))
+
+    def test_success_register_investor(self):
+        endpoint = self.endpoints.get('register')
+        data = {'email': 'test1@email.com', 'password': 'Qwer1234!', 'name': 'Testy User', 'role': 'investor'}
+        resp = self.client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(data.get('name'), resp.json()['user']['name'])
+        self.assertEqual(data.get('email'), resp.json()['user']['email'])
+        self.assertIn('token', resp.json())
+        user = models.User.objects.get(email='test1@email.com')
+        self.assertIn('Investor', list(user.groups.values_list('name', flat=True)))
 
     def test_fail_register_empty_name(self):
         endpoint = self.endpoints.get('register')
@@ -299,7 +317,8 @@ class AuthTestCase(TestCase):
             'full_registered': False,
             'has_profile': False,
             'phone_number': '',
-            'phone_number_verified': False
+            'phone_number_verified': False,
+            'role': 'user'
         }
         self.assertDictEqual(data, resp.json())
 

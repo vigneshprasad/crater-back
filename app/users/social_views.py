@@ -5,11 +5,11 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from rest_auth.registration.views import SocialLoginView, SocialConnectView, \
     SocialAccountDisconnectView as DisconnectView, SocialAccountListView as AccountListView
 
-from .mixins import CheckDeviceMixin
+from .mixins import CheckDeviceMixin, CheckGroupMixin
 from .serializers import SocialLoginSerializer
 
 
-class GoogleLogin(SocialLoginView, CheckDeviceMixin):
+class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
     """
     https://accounts.google.com/o/oauth2/auth?&client_id=468382212295-5e5ti698mjf4oruhneavnob13r58b80e.apps.googleusercontent.com&redirect_uri=http://127.0.0.1:8001/oauth/complete/google-oauth2&response_type=token&scope=https://www.googleapis.com/auth/userinfo.email
     """
@@ -21,10 +21,11 @@ class GoogleLogin(SocialLoginView, CheckDeviceMixin):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         self.check_device()
+        self.check_group()
         return response
 
 
-class FacebookLogin(SocialLoginView, CheckDeviceMixin):
+class FacebookLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
     """
     https://www.facebook.com/v2.2/dialog/oauth?client_id=1866118480133387&redirect_uri=https://www.domain.com/login&display=popup&response_type=code%20token
     """
@@ -34,10 +35,11 @@ class FacebookLogin(SocialLoginView, CheckDeviceMixin):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         self.check_device()
+        self.check_group()
         return response
 
 
-class LinkedinLogin(SocialLoginView, CheckDeviceMixin):
+class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
     """
     https://www.facebook.com/v2.2/dialog/oauth?client_id=1866118480133387&redirect_uri=https://www.domain.com/login&display=popup&response_type=code%20token
     """
@@ -48,6 +50,7 @@ class LinkedinLogin(SocialLoginView, CheckDeviceMixin):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         self.check_device()
+        self.check_group()
         return response
 
 

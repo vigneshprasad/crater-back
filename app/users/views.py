@@ -88,6 +88,3 @@ class VerificationView(viewsets.GenericViewSet):
         request.user.phone_number_verified = True
         request.user.save()
         return Response({'status': messages.PHONE_NUMBER_SUCCESSFULLY_VERIFIED})
-
-
-
