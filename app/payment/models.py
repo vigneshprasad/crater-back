@@ -24,8 +24,10 @@ class BankDetails(TimeStampedModel):
     )
     stripe_customer_id = models.CharField(
         max_length=400,
-        verbose_name=_('Stripe Customer ID')
+        verbose_name=_('Stripe Customer ID'),
+        null=True
     )
     card_data = JSONField(
-        verbose_name=_('Stripe card data')
+        verbose_name=_('Stripe card data'),
+        null=True
     )

@@ -20,63 +20,6 @@ class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
 class ProfileViewSet(mixins.CreateModelMixin,
                      mixins.ListModelMixin,
                      viewsets.GenericViewSet):
-    serializer_class = payment_serializers.BaskDetailsSerializer
-    queryset = payment_models.BankDetails.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-    def create(self, request, *args, **kwargs):
-        if hasattr(request.user, 'bank_details') and request.user.bank_details:
-            serializer = self.get_serializer(data=request.data, instance=request.user.bank_details, partial=True)
-        else:
-            serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.validated_data['user'] = request.user
-        self.get_stripe_customer_id(serializer)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
-
-    def get_object(self):
-        if hasattr(self.request.user, 'bank_details') and self.request.user.bank_details:
-            return self.request.user.bank_details
-        return None
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance:
-            serializer = self.get_serializer(instance)
-            return Response(serializer.data)
-        raise NotFound()
-
-    def list(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-
-    @staticmethod
-    def get_stripe_customer_id(serializer):
-        stripe_token = serializer.validate_data.get('stripe_token', None)
-        if not stripe_token:
-            return serializer
-        if serializer.instance:
-            stripe_service.update_customer_source(
-                serializer.instance.stripe_custome_id,
-                stripe_token
-            )
-        else:
-            serializer.validate_data['stripe_customer_id'] = stripe_service.get_customer_id(
-                serializer.validate_data['user'],
-                stripe_token
-            )
-        return serializer
-
-    def perform_create(self, serializer):
-        instance = serializer.save(commit=False)
-        instance.card_data = stripe_service.get_customer_card_data(instance.stripe_customer_id)
-        instance.save()
-
-
-class BankDetailViewSet(mixins.CreateModelMixin,
-                        mixins.ListModelMixin,
-                        viewsets.GenericViewSet):
     serializer_class = serializers.ProfileSerializer
     queryset = models.Profile.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -106,6 +49,63 @@ class BankDetailViewSet(mixins.CreateModelMixin,
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class BankDetailViewSet(mixins.CreateModelMixin,
+                        mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+    serializer_class = payment_serializers.BankDetailsSerializer
+    queryset = payment_models.BankDetails.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        if hasattr(request.user, 'bank_details') and request.user.bank_details:
+            serializer = self.get_serializer(data=request.data, instance=request.user.bank_details, partial=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['user'] = request.user
+        stripe_token = serializer.validated_data.pop('stripe_token', None)
+        if stripe_token:
+            self.get_stripe_customer_id(serializer)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    def get_object(self):
+        if hasattr(self.request.user, 'bank_details') and self.request.user.bank_details:
+            return self.request.user.bank_details
+        return None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance:
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        raise NotFound()
+
+    def list(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    @staticmethod
+    def get_stripe_customer_id(serializer):
+        stripe_token = serializer.validated_data.pop('stripe_token', None)
+        if serializer.instance:
+            stripe_service.update_customer_source(
+                serializer.instance.stripe_custome_id,
+                stripe_token
+            )
+        else:
+            serializer.validated_data['stripe_customer_id'] = stripe_service.get_customer_id(
+                serializer.validated_data['user'],
+                stripe_token
+            )
+        return serializer
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.card_data = stripe_service.get_customer_card_data(instance.stripe_customer_id)
+        instance.save()
 
 
 class LogoutView(RestLogoutView):

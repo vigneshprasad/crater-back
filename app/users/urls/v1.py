@@ -8,6 +8,7 @@ app_name = 'users'
 
 register_router = routers.SimpleRouter()
 register_router.register('profile', views.ProfileViewSet, base_name='profile')
+register_router.register('bank_details', views.BankDetailViewSet, base_name='bank-details')
 register_router.register('verify', views.VerificationView, base_name='verify')
 
 auth_urlpatterns = [

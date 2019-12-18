@@ -2,10 +2,12 @@ from rest_framework import serializers
 from . import models
 
 
-class BaskDetailsSerializer(serializers.ModelSerializer):
+class BankDetailsSerializer(serializers.ModelSerializer):
     stripe_token = serializers.CharField(
         max_length=400,
-        write_only=True
+        write_only=True,
+        required=False,
+        allow_null=True
     )
 
     class Meta:
@@ -16,6 +18,6 @@ class BaskDetailsSerializer(serializers.ModelSerializer):
             'card_data',
             'stripe_token'
         ]
-        readonly_fields = [
+        read_only_fields = [
             'card_data'
         ]
