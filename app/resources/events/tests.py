@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
@@ -252,3 +254,23 @@ class TestEventView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         result = response.data['results'][0]
         self.assertEqual(result['message'], 'Test Message 1')
+
+    @mock.patch('resources.events.signals.send_email.delay')
+    def test_rsvpd_email_sent(self, email_sent):
+        event = Event.objects.create(
+            title='Test title first',
+            text='Test text first',
+            date='2001-01-01',
+            start='11:20',
+            end='12:00',
+            is_free=True,
+            is_rsvp=True,
+            location=self.test_city,
+            capacity=10,
+            state='upcoming'
+        )
+        url = reverse('v1:resources:rsvpd-list')
+        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(url, data={'event': event.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        email_sent.assert_called_once()

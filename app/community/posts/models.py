@@ -31,7 +31,7 @@ class File(models.Model):
     """
     object = models.FileField(
         _('File'),
-        upload_to='posts/',
+        upload_to='posts/%Y/%m/%d',
         validators=[SizeValidator(size=512)]
     )
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='files')

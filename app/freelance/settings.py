@@ -229,6 +229,7 @@ REST_AUTH_REGISTER_SERIALIZERS = {
 }
 
 SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
     'SECURITY_DEFINITIONS': {
         "api_key": {
             "type": "apiKey",

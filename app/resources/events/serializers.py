@@ -53,5 +53,5 @@ class RSVPDSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'user'
         )
         extra_kwargs = {
-            'creator': {'write_only': True}
+            'user': {'write_only': True}
         }

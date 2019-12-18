@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
             name='File',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('object', models.FileField(upload_to='posts/', validators=[utils.validators.SizeValidator(size=512)], verbose_name='File')),
+                ('object', models.FileField(upload_to='posts/%Y/%m/%d', validators=[utils.validators.SizeValidator(size=512)], verbose_name='File')),
                 ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='files', to='posts.Post')),
             ],
             options={

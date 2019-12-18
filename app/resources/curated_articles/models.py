@@ -39,7 +39,7 @@ class CuratedArticle(TimeStampedModel):
     Curated Article created by admin
     """
     title = models.CharField(_('Title'), max_length=255)
-    picture = models.ImageField(_('Picture'))
+    picture = models.ImageField(_('Picture'), upload_to='articles/%Y/%m/%d',)
     text = models.TextField(_('Short Intro'))
     tag = models.ForeignKey(Tag, verbose_name=_('Tag'), on_delete=models.CASCADE, related_name='curated_articles')
     website = models.ForeignKey(

@@ -13,7 +13,7 @@ class Event(models.Model):
     """
     title = models.CharField(_('Title'), max_length=255)
     text = models.TextField(_('Text'))
-    picture = models.ImageField(_('Cover photo'), null=True)
+    picture = models.ImageField(_('Cover photo'), upload_to='events/%Y/%m/%d', null=True)
     date = models.DateField(_('Date'))
     start = models.TimeField(_('Start Time'))
     end = models.TimeField(_('End Time'))
@@ -45,3 +45,4 @@ class RSVPD(models.Model):
         verbose_name = _('Participant')
         verbose_name_plural = _('Participants')
         db_table = 'resources_participants'
+        unique_together = ['event', 'user']
