@@ -2,16 +2,17 @@ from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.utils import (email_address_exists)
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth import models as auth_models
 from django.utils.translation import ugettext_lazy as _
 from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 
 from locations.models import City
-from utils.fields import Base64FileField
 from utils import messages
-from django.contrib.auth import models as auth_models
+from utils.fields import Base64FileField
 from . import models
 from .validators import password_validate_symbols
 
@@ -48,11 +49,6 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
     def validate_email(email):
         return email.strip().lower()
 
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        self.check_device(attrs)
-        return attrs
-
     @staticmethod
     def check_device(attrs):
         os_id = attrs.get('os_id', '')
@@ -62,6 +58,60 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
             if not created:
                 device.is_active = True
                 device.save()
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        user = None
+
+        if 'allauth' in settings.INSTALLED_APPS:
+            from allauth.account import app_settings
+
+            # Authentication through email
+            if app_settings.AUTHENTICATION_METHOD == app_settings.AuthenticationMethod.EMAIL:
+                user = self._validate_email(email, password)
+
+            # Authentication through username
+            elif app_settings.AUTHENTICATION_METHOD == app_settings.AuthenticationMethod.USERNAME:
+                user = self._validate_username(username, password)
+
+            # Authentication through either username or email
+            else:
+                user = self._validate_username_email(username, email, password)
+
+        else:
+            # Authentication without using allauth
+            if email:
+                try:
+                    username = UserModel.objects.get(email__iexact=email).get_username()
+                except UserModel.DoesNotExist:
+                    pass
+
+            if username:
+                user = self._validate_username_email(username, '', password)
+
+        # Did we get back an active user?
+        if user:
+            if not user.is_active:
+                msg = _('User account is disabled.')
+                raise exceptions.ValidationError(msg)
+        else:
+            msg = _('Email or password is not correct')
+            raise exceptions.ValidationError(msg)
+
+        # If required, is the email verified?
+        if 'rest_auth.registration' in settings.INSTALLED_APPS:
+            from allauth.account import app_settings
+            if app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY:
+                email_address = user.emailaddress_set.get(email=user.email)
+                if not email_address.verified:
+                    raise serializers.ValidationError(_('E-mail is not verified.'))
+
+        attrs['user'] = user
+        self.check_device(attrs)
+        return attrs
 
 
 class RegisterSerializer(register_serializers.RegisterSerializer):

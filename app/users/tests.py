@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.contrib.auth import models as auth_models
 from django.contrib.auth.tokens import default_token_generator
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
@@ -8,11 +9,10 @@ from django.utils.http import urlsafe_base64_encode
 from rest_auth.utils import jwt_encode
 
 from locations import models as locations_models
+from payment.models import BankDetails
 from tags.models import Tag
 from users import models
 from utils.file_test_service import get_test_base64_image
-from django.contrib.auth import models as auth_models
-from payment.models import BankDetails
 
 
 class AuthTestCase(TestCase):
@@ -76,6 +76,7 @@ class AuthTestCase(TestCase):
         resp = self.client.post(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 400)
         self.assertIn('non_field_errors', resp.json())
+        self.assertEqual('Email or password is not correct', resp.json()['non_field_errors'][0])
 
     def test_login_fail_empty_email(self):
         endpoint = self.endpoints.get('login')
@@ -145,6 +146,14 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 400)
         self.assertIn('name', resp.json())
         self.assertEqual(['Please enter your name'], resp.json()['name'])
+
+    def test_fail_register_email_exists(self):
+        endpoint = self.endpoints.get('register')
+        data = {'email': 'test@email.com', 'password': 'Qwer1234!', 'name': 'Testy'}
+        resp = self.client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('email', resp.json())
+        self.assertEqual(['This email is already registered, sign in instead'], resp.json()['email'])
 
     def test_fail_register_name_too_long(self):
         endpoint = self.endpoints.get('register')
