@@ -31,4 +31,9 @@ class Migration(migrations.Migration):
             model_name='user',
             name='is_support',
         ),
+        migrations.AlterField(
+            model_name='user',
+            name='reason',
+            field=models.CharField(max_length=100, null=True, verbose_name='Reason'),
+        ),
     ]
