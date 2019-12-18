@@ -103,4 +103,3 @@ class Service(TimeStampedModel):
     @property
     def service_type_group(self):
         return self.service_type.group
-
