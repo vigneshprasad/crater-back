@@ -6,7 +6,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from users.filters import GroupNameFilter
-from users.forms import AdminCreationForm
+from users.forms import AdminCreationForm, UserForm
 from users.models import Profile, Admin
 from utils.mixins import ViewActionMixin
 from django.contrib.auth.models import Group
@@ -29,10 +29,10 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     list_editable = ['is_active']
     search_fields = ('name', 'email')
     list_filter = ('groups__name', 'is_active')
-
+    form = UserForm
     fieldsets = (
         ('Approvals', {
-            'fields': (('is_active', 'is_staff', 'is_superuser', 'is_approved', 'is_service_approved', 'groups'),),
+            'fields': (('is_active', 'is_staff', 'is_superuser'), ('is_approved', 'is_service_approved', 'groups'),),
             'classes': ['collapse in']
         }),
         ('User Data', {

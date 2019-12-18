@@ -1,14 +1,14 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField
 from django.contrib.auth.models import Group
-from django.forms import forms, ModelMultipleChoiceField, BooleanField, HiddenInput
+from django import forms
 from django.utils.translation import ugettext_lazy as _
 
 
 class AdminCreationForm(UserCreationForm):
 
-    groups = ModelMultipleChoiceField(queryset=Group.objects.filter(name__in=['Admin', 'Support']))
-    is_staff = BooleanField(initial=True)
+    groups = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(name__in=['Admin', 'Support']))
+    is_staff = forms.BooleanField(initial=True)
 
     class Meta:
         model = get_user_model()
@@ -26,3 +26,12 @@ class AdminCreationForm(UserCreationForm):
                 code='one_role',
             )
         return groups
+
+
+class UserForm(UserChangeForm):
+    groups = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(name__in=['User', 'Investor']))
+
+    class Meta:
+        model = get_user_model()
+        fields = '__all__'
+        field_classes = {'username': UsernameField}
