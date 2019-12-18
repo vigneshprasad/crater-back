@@ -163,12 +163,14 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'phone_number_verified',
             'role',
             'full_registered',
-            'has_profile'
+            'has_profile',
+            'has_bank_details'
         )
         read_only_fields = (
             'email',
             'full_registered',
             'has_profile',
+            'has_bank_details',
             'phone_number_verified',
             'email_verified',
             'phone_number',

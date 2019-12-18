@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'community.posts',
     'resources.events',
     'resources.curated_articles',
+    'payment'
 ]
 
 SITE_ID = 1
@@ -255,3 +256,5 @@ ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', 'example')
 ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', 'example')
 
 ACCOUNT_LOGOUT_ON_GET = False
+
+STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'example')

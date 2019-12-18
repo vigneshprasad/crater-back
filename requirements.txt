@@ -23,3 +23,4 @@ twilio==6.35.0
 django-phonenumber-field==4.0.0
 phonenumbers==8.11.1
 exrex==0.10.5
+stripe==2.41.0

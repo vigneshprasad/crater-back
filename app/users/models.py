@@ -34,9 +34,8 @@ class User(AbstractUser):
         on_delete=models.SET_NULL
     )
     reason = models.CharField(
-        max_length=100,
+        max_length=400,
         verbose_name=_('Reason'),
-        choices=choices.REASON_CHOICES,
         null=True
     )
     phone_number = PhoneNumberField(
@@ -115,9 +114,15 @@ class User(AbstractUser):
         return hasattr(self, 'profile') and self.profile
 
     @property
+    def has_bank_details(self):
+        return hasattr(self, 'bank_details') and self.bank_details
+
+    @property
     def full_registered(self):
         status = (
             self.has_profile
+            and
+            self.has_bank_detais
         )
         return status
 
