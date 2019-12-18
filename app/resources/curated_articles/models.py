@@ -2,20 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
-
-class Tag(models.Model):
-    """
-    Tag for Article created by admin
-    """
-    name = models.CharField(_('Name'), max_length=255)
-
-    class Meta:
-        verbose_name = _('Tag')
-        verbose_name_plural = _('Tags')
-        db_table = 'resources_tags'
-
-    def __str__(self):
-        return self.name
+from tags.models import ArticleTag
 
 
 class SourceWebsite(models.Model):
@@ -41,7 +28,13 @@ class CuratedArticle(TimeStampedModel):
     title = models.CharField(_('Title'), max_length=255)
     picture = models.ImageField(_('Picture'), upload_to='articles/%Y/%m/%d',)
     text = models.TextField(_('Short Intro'))
-    tag = models.ForeignKey(Tag, verbose_name=_('Tag'), on_delete=models.CASCADE, related_name='curated_articles')
+    tag = models.ForeignKey(
+        ArticleTag,
+        verbose_name=_('Tag'),
+        on_delete=models.CASCADE,
+        related_name='curated_articles',
+        null=True
+    )
     website = models.ForeignKey(
         SourceWebsite, verbose_name=_('Source Website'), on_delete=models.CASCADE, related_name='website_articles'
     )

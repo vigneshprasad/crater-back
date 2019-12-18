@@ -32,14 +32,22 @@ class TestEventView(APITestCase):
 
     def test_get_empty_events(self):
         url = reverse('v1:resources:event-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['results'], [])
 
     def test_get_events(self):
         url = reverse('v1:resources:event-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         Event.objects.create(
             title='Test title',
             text='Test text',
@@ -61,7 +69,11 @@ class TestEventView(APITestCase):
 
     def test_get_events_get_free_events_filter(self):
         url = reverse('v1:resources:event-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         Event.objects.create(
             title='Test title first',
             text='Test text first',
@@ -96,7 +108,11 @@ class TestEventView(APITestCase):
 
     def test_get_events_state_events_filter(self):
         url = reverse('v1:resources:event-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         Event.objects.create(
             title='Test title first',
             text='Test text first',
@@ -127,9 +143,15 @@ class TestEventView(APITestCase):
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(result['title'], 'Test title second')
 
-    def test_get_events_rsvpd_events_filter(self):
+    @mock.patch('resources.events.signals.send_email.delay')
+    def test_get_events_rsvpd_events_filter(self, send_email):
+        send_email.return_value = None
         url = reverse('v1:resources:event-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         event1 = Event.objects.create(
             title='Test title first',
             text='Test text first',
@@ -175,8 +197,11 @@ class TestEventView(APITestCase):
         self.assertEqual(result['title'], 'Test title first')
 
     def test_get_latest_comments(self):
-
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         event = Event.objects.create(
             title='Test title first',
             text='Test text first',
@@ -218,7 +243,11 @@ class TestEventView(APITestCase):
             state='upcoming'
         )
         url = reverse('v1:community:comment-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, data={'message': 'Test comment creation', 'event': event.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -247,7 +276,11 @@ class TestEventView(APITestCase):
         Comment.objects.create(message='Test Message 2', creator=self.user, event=event)
         Comment.objects.create(message='Test Message 3', creator=self.user, event=event)
 
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
 
         url = reverse('v1:resources:comment-list')
         response = self.client.get(f'{url}{event.pk}/event/', format='json')
@@ -257,6 +290,7 @@ class TestEventView(APITestCase):
 
     @mock.patch('resources.events.signals.send_email.delay')
     def test_rsvpd_email_sent(self, email_sent):
+        email_sent.return_value = None
         event = Event.objects.create(
             title='Test title first',
             text='Test text first',
@@ -270,7 +304,11 @@ class TestEventView(APITestCase):
             state='upcoming'
         )
         url = reverse('v1:resources:rsvpd-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, data={'event': event.id}, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         email_sent.assert_called_once()

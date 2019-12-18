@@ -2,7 +2,7 @@ from django.contrib.admin import ModelAdmin, register
 from django.utils.safestring import mark_safe
 from django.conf import settings
 
-from resources.curated_articles.models import CuratedArticle, Tag, SourceWebsite
+from resources.curated_articles.models import CuratedArticle, SourceWebsite
 
 
 @register(CuratedArticle)
@@ -29,16 +29,6 @@ class CuratedArticleAdmin(ModelAdmin):
         if not curated_article.website.url:
             return mark_safe('<i class="material-icons red-color medium-icon">highlight_off</i>')
         return mark_safe(f'<a href="{curated_article.website.url}">{curated_article.website.url}</a>')
-
-
-@register(Tag)
-class TagAdmin(ModelAdmin):
-    icon_name = 'local_offer'
-    list_display = ('tag_name',)
-
-    @staticmethod
-    def tag_name(tag):
-        return mark_safe(f'<span class="new badge" data-badge-caption="{tag.name}"></span>')
 
 
 @register(SourceWebsite)

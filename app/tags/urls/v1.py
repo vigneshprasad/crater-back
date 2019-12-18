@@ -6,7 +6,9 @@ from tags import views
 app_name = 'tags'
 
 router = routers.SimpleRouter()
-router.register('city', views.TagViewSet, base_name='tag')
+router.register('city', views.TagViewSet)
+router.register('masterclasses', views.MasterClassViewSet)
+router.register('articles', views.ArticleTagViewSet)
 
 urlpatterns = [
     path('', include(router.urls))

@@ -18,8 +18,8 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100, verbose_name='Name')),
             ],
             options={
-                'verbose_name': 'Tag',
-                'verbose_name_plural': 'Tags',
+                'verbose_name': 'User Tag',
+                'verbose_name_plural': 'User Tags',
                 'ordering': ['name'],
             },
         ),
