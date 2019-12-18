@@ -32,7 +32,11 @@ class TestPostView(APITestCase):
 
     def test_post_creation_success_with_base64file(self):
         url = reverse('v1:community:post-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, format='json', data={
                 'message': 'Post message',
                 'files_base64': [get_test_base64_image()]
@@ -41,7 +45,11 @@ class TestPostView(APITestCase):
 
     def test_post_creation_success_with_formdata(self):
         url = reverse('v1:community:post-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, format='json', data={
                 'message': 'Post message',
                 'files': get_test_image()
@@ -52,7 +60,11 @@ class TestPostView(APITestCase):
         url = reverse('v1:community:post-list')
         Post.objects.create(message='Test message old', creator=self.user)
         Post.objects.create(message='Test message', creator=self.user)
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results'][0]
@@ -66,14 +78,22 @@ class TestPostView(APITestCase):
     @freeze_time("2020-01-01")
     def test_get_post_from_chat(self):
         url = reverse('v1:community:post-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         self.client.post(url, format='json', data={
             'message': 'Test message for community chat',
             'files_base64': [get_test_base64_image()]
         })
         post = Post.objects.get(message='Test message for community chat')
         url = reverse('v1:community:post-detail', args=(post.id,))
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], 'Test message for community chat')
@@ -87,7 +107,11 @@ class TestPostView(APITestCase):
     def test_get_posts_from_closed_group_forbidden(self):
         Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         url = reverse('v1:community:post-detail', args=(self.community_group.id,))
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}group/', format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -95,7 +119,11 @@ class TestPostView(APITestCase):
         Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
         url = reverse('v1:community:post-detail', args=(self.community_group.id,))
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}group/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -103,7 +131,11 @@ class TestPostView(APITestCase):
         Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
         url = reverse('v1:community:post-detail', args=(self.community_group.id,))
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}group/', format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -129,7 +161,11 @@ class TestLikeView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_post_create_like(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user)
 
         like_url = reverse('v1:community:like-list')
@@ -148,7 +184,11 @@ class TestLikeView(APITestCase):
         self.assertEqual(response.data['latest_comments'], [])
 
     def test_get_post_create_unlike(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user)
 
         like_url = reverse('v1:community:like-list')
@@ -169,7 +209,11 @@ class TestLikeView(APITestCase):
         self.assertEqual(response.data['comments'], 0)
 
     def test_get_post_create_like_forbidden_group(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
 
         like_url = reverse('v1:community:like-list')
@@ -177,7 +221,11 @@ class TestLikeView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_post_create_unlike_forbidden_group(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         Like.objects.create(post=post, user=self.user)
 
@@ -186,7 +234,11 @@ class TestLikeView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_like_in_allowed_group(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
         like_url = reverse('v1:community:like-list')
@@ -194,7 +246,11 @@ class TestLikeView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_like_in_restricted_by_admin_group(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
         like_url = reverse('v1:community:like-list')
@@ -223,7 +279,11 @@ class TestReportView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_report(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user)
 
         report_url = reverse('v1:community:report-list')
@@ -234,7 +294,11 @@ class TestReportView(APITestCase):
         self.assertFalse(report.is_reviewed)
 
     def test_create_report_forbidden_group(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
 
         report_url = reverse('v1:community:report-list')
@@ -242,7 +306,11 @@ class TestReportView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_report_in_allowed_group(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
 
@@ -254,7 +322,11 @@ class TestReportView(APITestCase):
         self.assertFalse(report.is_reviewed)
 
     def test_create_report_in_group_not_approved_by_admin(self):
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
 

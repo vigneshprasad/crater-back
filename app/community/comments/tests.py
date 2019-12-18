@@ -31,7 +31,11 @@ class TestCommentView(APITestCase):
     def test_comments_creation(self):
         post = Post.objects.create(message='Test message', creator=self.user)
         url = reverse('v1:community:comment-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, data={'message': 'Test comment', 'post': post.id})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -44,7 +48,11 @@ class TestCommentView(APITestCase):
         Comment.objects.create(message='Test message 4', post=post, creator=self.user)
         Comment.objects.create(message='Test message 5', post=post2, creator=self.user)
         url = reverse('v1:community:comment-detail', args=(post.id,))
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}post/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 4)

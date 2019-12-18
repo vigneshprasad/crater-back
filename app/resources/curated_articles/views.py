@@ -3,9 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from resources.curated_articles.paginators import CuratedArticlePagination
-from resources.curated_articles.serializers import CuratedArticleSerializer, ArticleWebsiteSerializer, \
-    ArticleTagSerializer
-from resources.curated_articles.services import get_curated_articles, get_tags, get_websites
+from resources.curated_articles.serializers import CuratedArticleSerializer, ArticleWebsiteSerializer
+from resources.curated_articles.services import get_curated_articles, get_websites
 
 
 class CuratedArticleViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -14,12 +13,6 @@ class CuratedArticleViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, Ge
     queryset = get_curated_articles()
     permission_classes = (IsAuthenticated,)
     filterset_fields = ['tag', 'website']
-
-
-class TagViewSet(mixins.ListModelMixin, GenericViewSet):
-    serializer_class = ArticleTagSerializer
-    queryset = get_tags()
-    permission_classes = (IsAuthenticated,)
 
 
 class WebsiteViewSet(mixins.ListModelMixin, GenericViewSet):

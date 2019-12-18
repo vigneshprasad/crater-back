@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from resources.curated_articles.models import Tag, SourceWebsite, CuratedArticle
+from resources.curated_articles.models import SourceWebsite, CuratedArticle
 
 
 class CuratedArticleSerializer(serializers.ModelSerializer):
@@ -19,16 +19,6 @@ class CuratedArticleSerializer(serializers.ModelSerializer):
             'website',
             'website_url',
             'created',
-        )
-
-
-class ArticleTagSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Tag
-        fields = (
-            'pk',
-            'name',
         )
 
 

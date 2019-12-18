@@ -4,38 +4,8 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.urls import reverse
 
-from resources.curated_articles.models import Tag, SourceWebsite, CuratedArticle
-
-
-class TestTagsView(APITestCase):
-    def setUp(self):
-        self.user = get_user_model().objects.create(
-            email='user@user.com',
-            name='user',
-            username='User',
-            is_superuser=False,
-            is_active=True,
-            is_staff=True,
-            password=make_password('123qaz123!A')
-        )
-
-    def test_tags_authentication_required(self):
-        url = reverse('v1:resources:tag-list')
-        response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_get_tags(self):
-        Tag.objects.create(name='Tag 1')
-        Tag.objects.create(name='Tag 2')
-        Tag.objects.create(name='Tag 3')
-        url = reverse('v1:resources:tag-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
-        self.assertEqual(response.data[0]['name'], 'Tag 1')
-        self.assertEqual(response.data[1]['name'], 'Tag 2')
-        self.assertEqual(response.data[2]['name'], 'Tag 3')
+from resources.curated_articles.models import SourceWebsite, CuratedArticle
+from tags.models import ArticleTag
 
 
 class TestWebsiteView(APITestCase):
@@ -60,7 +30,11 @@ class TestWebsiteView(APITestCase):
         SourceWebsite.objects.create(name='Website 2', url='http://test.com')
         SourceWebsite.objects.create(name='Website 3', url='http://test.com')
         url = reverse('v1:resources:sourcewebsite-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
@@ -81,9 +55,9 @@ class TestArticleView(APITestCase):
             password=make_password('123qaz123!A')
         )
 
-        self.tag1 = Tag.objects.create(name='Tag 1')
-        tag2 = Tag.objects.create(name='Tag 2')
-        self.tag3 = Tag.objects.create(name='Tag 3')
+        self.tag1 = ArticleTag.objects.create(name='Tag 1')
+        tag2 = ArticleTag.objects.create(name='Tag 2')
+        self.tag3 = ArticleTag.objects.create(name='Tag 3')
 
         self.website = SourceWebsite.objects.create(name='Website 1', url='http://test.com')
         website = SourceWebsite.objects.create(name='Website 2', url='http://test.com')
@@ -100,7 +74,11 @@ class TestArticleView(APITestCase):
 
     def test_get_all_articles(self):
         url = reverse('v1:resources:curatedarticle-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
@@ -112,7 +90,11 @@ class TestArticleView(APITestCase):
 
     def test_get_articles_filtered_by_tag(self):
         url = reverse('v1:resources:curatedarticle-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}?tag={self.tag1.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
@@ -122,7 +104,11 @@ class TestArticleView(APITestCase):
 
     def test_get_articles_filtered_by_website(self):
         url = reverse('v1:resources:curatedarticle-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}?website={self.website.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
@@ -132,7 +118,11 @@ class TestArticleView(APITestCase):
 
     def test_get_articles_filtered_by_website_and_tag(self):
         url = reverse('v1:resources:curatedarticle-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}?website={self.website.pk}&tag={self.tag1.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
@@ -141,7 +131,11 @@ class TestArticleView(APITestCase):
 
     def test_get_articles_filtered_by_website_and_tag_empty_result(self):
         url = reverse('v1:resources:curatedarticle-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}?website={self.website.pk}&tag={self.tag3.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']

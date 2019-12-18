@@ -28,7 +28,11 @@ class TestLocationView(APITestCase):
 
     def test_get_location_authentication_success(self):
         url = reverse('v1:community:location-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['name'], 'Test location')
@@ -38,7 +42,11 @@ class TestLocationView(APITestCase):
 
     def test_get_my_groups_empty(self):
         url = reverse('v1:community:location-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}my/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -46,7 +54,11 @@ class TestLocationView(APITestCase):
     def test_get_my_groups(self):
         url = reverse('v1:community:location-list')
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}my/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
@@ -55,7 +67,11 @@ class TestLocationView(APITestCase):
     def test_get_my_groups_not_approved(self):
         url = reverse('v1:community:location-list')
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.get(f'{url}my/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -82,7 +98,11 @@ class TestUserRequestView(APITestCase):
 
     def test_connect_to_group_request(self):
         url = reverse('v1:community:location-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, format='json', data={'group': self.community_group.id})
         user_group = UserRequest.objects.get(user=self.user)
 
@@ -120,13 +140,21 @@ class TestBlockView(APITestCase):
 
     def test_block_user(self):
         url = reverse('v1:community:block-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, data={'blocked': self.abuser.pk}, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_unblock_user(self):
         url = reverse('v1:community:block-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, data={'blocked': self.abuser.pk}, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -165,13 +193,21 @@ class TestFollowView(APITestCase):
 
     def test_follow_user(self):
         url = reverse('v1:community:following-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, data={'followed': self.followed.pk}, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_unfollow_user(self):
         url = reverse('v1:community:following-list')
-        self.client.login(email='user@user.com', password='123qaz123!A')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
         response = self.client.post(url, data={'followed': self.followed.pk}, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
