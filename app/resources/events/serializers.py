@@ -33,7 +33,8 @@ class EventSerializer(serializers.ModelSerializer):
         )
 
     def get_participants(self, event):
-        return event.participants.filter(user=self.context['request'].user).exists()
+        if 'request' in self.context:
+            return event.participants.filter(user=self.context['request'].user).exists()
 
     @staticmethod
     def get_comments(event):

@@ -14,6 +14,9 @@ from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
 from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer
 from community.posts.services import get_posts, get_likes, get_post
+from resources.curated_articles.services import get_company_curated_articles_data
+from resources.events.services import get_first_event_data
+from resources.masterclasses.services import get_first_masterclass_data
 
 
 class PostViewSet(ModelViewSet):
@@ -35,6 +38,20 @@ class PostViewSet(ModelViewSet):
             raise NotFound
         context = self.get_serializer_context()
         return Response(self.serializer_class(group.posts.all(), many=True, **{'context': context}).data)
+
+    @action(
+        methods=['get'],
+        permission_classes=[IsAuthenticated],
+        detail=False,
+        pagination_class=None,
+        filter_backends=None
+    )
+    def company(self, request):
+        return Response({
+            'event': get_first_event_data(),
+            'masterclass':  get_first_masterclass_data(),
+            'articles': get_company_curated_articles_data(),
+        })
 
 
 class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):

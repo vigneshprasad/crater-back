@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Event',
                 'verbose_name_plural': 'Events',
                 'db_table': 'resources_events',
-                'ordering': ('date', 'start'),
+                'ordering': ('-date', '-start'),
             },
         ),
         migrations.CreateModel(

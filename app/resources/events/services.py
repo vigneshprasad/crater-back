@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from resources.events.models import Event
+from resources.events.serializers import EventSerializer
 
 
 def get_datetime_now(event):
@@ -33,3 +34,9 @@ def get_events():
 
 def get_event(pk):
     return Event.objects.get(pk=pk)
+
+
+def get_first_event_data():
+    event = Event.objects.first()
+    if event:
+        return EventSerializer(event).data
