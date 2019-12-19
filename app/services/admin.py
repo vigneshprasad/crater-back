@@ -12,6 +12,9 @@ class ServiceTypeInline(admin.TabularInline):
 
 @register(Category)
 class CategoryAdmin(ViewActionMixin, ModelAdmin):
+    """
+    Service Category contains service types
+    """
     icon_name = 'apps'
     list_display = ('name', 'action')
     inlines = [ServiceTypeInline]
@@ -20,6 +23,9 @@ class CategoryAdmin(ViewActionMixin, ModelAdmin):
 
 @register(Service)
 class ServiceAdmin(ViewActionMixin, ModelAdmin):
+    """
+    User Services
+    """
     icon_name = 'room_service'
     list_display = ('service_type', 'status', 'user', 'action')
     list_filter = ['status']
