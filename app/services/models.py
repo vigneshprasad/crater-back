@@ -4,6 +4,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
+from .choices import YEAR_OF_EXPERIENCE_CHOICES
+
 
 class Category(TimeStampedModel):
     name = models.CharField(
@@ -103,3 +105,23 @@ class Service(TimeStampedModel):
     @property
     def service_type_group(self):
         return self.service_type.group
+
+
+class UserServiceInfo(models.Model):
+    user = models.OneToOneField(
+        'users.User',
+        related_name='user_services_info',
+        on_delete=models.CASCADE
+    )
+    years_of_experience = models.CharField(
+        max_length=100,
+        choices=YEAR_OF_EXPERIENCE_CHOICES,
+        null=True,
+        blank=True
+    )
+    ba_council = models.CharField(
+        max_length=100,
+        verbose_name=_('Bar council / CA identification')
+    )
+
+
