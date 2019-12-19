@@ -11,7 +11,7 @@ class MasterClassSerializer(serializers.ModelSerializer):
         model = MasterClass
         fields = (
             'pk',
-            'teacher',
+            'author',
             'position',
             'description',
             'cover',

@@ -25,21 +25,21 @@ class TestArticleView(APITestCase):
         self.tag3 = MasterClassTag.objects.create(name='Tag 3')
 
         m1 = MasterClass.objects.create(
-            teacher='Teacher 1',
+            author='Teacher 1',
             position='Position 1',
             description='Test description1'
         )
         m1.tags.add(self.tag1)
         m1.tags.add(self.tag2)
         m2 = MasterClass.objects.create(
-            teacher='Teacher 2',
+            author='Teacher 2',
             position='Position 2',
             description='Test description2'
         )
         m2.tags.add(self.tag1)
         m2.tags.add(self.tag2)
         m3 = MasterClass.objects.create(
-            teacher='Teacher 3',
+            author='Teacher 3',
             position='Position 3',
             description='Test description3'
         )
@@ -61,9 +61,9 @@ class TestArticleView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
         self.assertEqual(len(results), 3)
-        self.assertEqual(results[0]['teacher'], 'Teacher 3')
-        self.assertEqual(results[1]['teacher'], 'Teacher 2')
-        self.assertEqual(results[2]['teacher'], 'Teacher 1')
+        self.assertEqual(results[0]['author'], 'Teacher 3')
+        self.assertEqual(results[1]['author'], 'Teacher 2')
+        self.assertEqual(results[2]['author'], 'Teacher 1')
 
         tags1 = results[0]['tags']
         self.assertEqual(len(tags1), 1)
@@ -90,8 +90,8 @@ class TestArticleView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
         self.assertEqual(len(results), 2)
-        self.assertEqual(results[0]['teacher'], 'Teacher 2')
-        self.assertEqual(results[1]['teacher'], 'Teacher 1')
+        self.assertEqual(results[0]['author'], 'Teacher 2')
+        self.assertEqual(results[1]['author'], 'Teacher 1')
 
         tags2 = results[0]['tags']
         self.assertEqual(len(tags2), 2)
@@ -114,7 +114,7 @@ class TestArticleView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]['teacher'], 'Teacher 3')
+        self.assertEqual(results[0]['author'], 'Teacher 3')
 
         tags1 = results[0]['tags']
         self.assertEqual(len(tags1), 1)
@@ -130,9 +130,9 @@ class TestArticleView(APITestCase):
         response = self.client.get(f'{url}?tags={self.tag3.pk}&tags={self.tag2.pk}&tags={self.tag1.pk}')
         results = response.data['results']
         self.assertEqual(len(results), 3)
-        self.assertEqual(results[0]['teacher'], 'Teacher 3')
-        self.assertEqual(results[1]['teacher'], 'Teacher 2')
-        self.assertEqual(results[2]['teacher'], 'Teacher 1')
+        self.assertEqual(results[0]['author'], 'Teacher 3')
+        self.assertEqual(results[1]['author'], 'Teacher 2')
+        self.assertEqual(results[2]['author'], 'Teacher 1')
 
         tags1 = results[0]['tags']
         self.assertEqual(len(tags1), 1)

@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
-from .choices import YEAR_OF_EXPERIENCE_CHOICES
+from services.choices import SERVICE_STATUS, YEAR_OF_EXPERIENCE_CHOICES
 
 
 class Category(TimeStampedModel):
@@ -53,6 +53,12 @@ class Service(TimeStampedModel):
         on_delete=models.CASCADE,
         verbose_name=_('User'),
         related_name='services'
+    )
+    status = models.CharField(
+        _('Status'),
+        choices=SERVICE_STATUS,
+        max_length=16,
+        default='unknown'
     )
     service_type = models.ForeignKey(
         'services.ServiceType',

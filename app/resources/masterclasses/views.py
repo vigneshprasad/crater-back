@@ -5,6 +5,7 @@ from rest_framework.viewsets import GenericViewSet
 from resources.masterclasses.models import MasterClass
 from resources.masterclasses.paginations import MasterClassPagination
 from resources.masterclasses.serializers import MasterClassSerializer
+from resources.masterclasses.tasks import masterclass_count_views
 
 
 class MaterClassViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -13,3 +14,7 @@ class MaterClassViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, Generi
     permission_classes = (IsAuthenticated,)
     pagination_class = MasterClassPagination
     filterset_fields = ['tags']
+
+    def retrieve(self, request, *args, **kwargs):
+        masterclass_count_views.delay(self.get_object().pk)
+        return super().retrieve(request, *args, **kwargs)
