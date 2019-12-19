@@ -3,12 +3,13 @@ from django.contrib.admin import register
 from django.utils.safestring import mark_safe
 
 from tags.models import Tag, ArticleTag, MasterClassTag
+from utils.mixins import ViewActionMixin
 
 
 @register(Tag)
-class TagAdmin(admin.ModelAdmin):
+class TagAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = 'local_offer'
-    list_display = ('tag_name',)
+    list_display = ('tag_name', 'action')
 
     @staticmethod
     def tag_name(tag):
@@ -16,9 +17,9 @@ class TagAdmin(admin.ModelAdmin):
 
 
 @register(ArticleTag)
-class ArticleTagAdmin(admin.ModelAdmin):
+class ArticleTagAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = 'local_offer'
-    list_display = ('tag_name',)
+    list_display = ('tag_name', 'action')
 
     @staticmethod
     def tag_name(tag):
@@ -26,9 +27,9 @@ class ArticleTagAdmin(admin.ModelAdmin):
 
 
 @register(MasterClassTag)
-class MasterClassTagAdmin(admin.ModelAdmin):
+class MasterClassTagAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = 'local_offer'
-    list_display = ('tag_name',)
+    list_display = ('tag_name', 'action')
 
     @staticmethod
     def tag_name(tag):

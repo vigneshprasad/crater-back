@@ -3,12 +3,13 @@ from django.utils.safestring import mark_safe
 from django.conf import settings
 
 from resources.curated_articles.models import CuratedArticle, SourceWebsite
+from utils.mixins import ViewActionMixin
 
 
 @register(CuratedArticle)
-class CuratedArticleAdmin(ModelAdmin):
+class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'local_library'
-    list_display = ('title', 'created', 'tags', 'website', 'website_url', 'image')
+    list_display = ('title', 'created', 'tags', 'website', 'website_url', 'image', 'action')
     list_filter = ('created', 'tag__name')
     search_fields = ('title', 'website__name', 'website__url')
 

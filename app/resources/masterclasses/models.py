@@ -7,8 +7,8 @@ from utils.validators import SizeValidator
 
 
 class MasterClass(TimeStampedModel):
-    teacher = models.CharField(_('Teacher Name'), max_length=255)
-    position = models.CharField(_('Teacher Position'), max_length=255)
+    author = models.CharField(_('Author Name'), max_length=255)
+    position = models.CharField(_('Author Position'), max_length=255)
     description = models.TextField(_('Description'))
     cover = models.FileField(
         upload_to='masterclasses/%Y/%m/%d',
@@ -17,6 +17,7 @@ class MasterClass(TimeStampedModel):
         validators=[SizeValidator(size=512)]
     )
     tags = models.ManyToManyField(MasterClassTag)
+    count = models.IntegerField(_('Times viewed'), default=0)
 
     class Meta:
         verbose_name = _('Master Class')

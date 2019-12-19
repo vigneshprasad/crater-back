@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from community.groups.models import Group, Location, UserRequest
+from utils.mixins import ViewActionMixin
 
 
 class GroupInline(admin.StackedInline):
@@ -26,8 +27,8 @@ class UserRequestInline(admin.TabularInline):
 
 
 @register(Location)
-class LocationAdmin(ModelAdmin):
-    list_display = ('name', 'groups')
+class LocationAdmin(ViewActionMixin, ModelAdmin):
+    list_display = ('name', 'groups', 'action')
     inlines = [GroupInline]
     icon_name = 'location_on'
 
@@ -39,8 +40,9 @@ class LocationAdmin(ModelAdmin):
 
 
 @register(Group)
-class GroupAdmin(ModelAdmin):
-    list_display = ('name', 'location', 'amount_of_users')
+class GroupAdmin(ViewActionMixin, ModelAdmin):
+    edit_icon = 'launch'
+    list_display = ('name', 'location', 'amount_of_users', 'action')
     readonly_fields = ('name', 'location')
     inlines = [UserRequestInline]
     list_filter = ('location__name',)
@@ -53,9 +55,10 @@ class GroupAdmin(ModelAdmin):
 
 
 @register(UserRequest)
-class UserRequestAdmin(ModelAdmin):
+class UserRequestAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'people_outline'
-    list_display = ('user', 'group', 'is_approved')
+    edit_icon = 'launch'
+    list_display = ('user', 'group', 'is_approved', 'action')
     readonly_fields = ('user', 'group')
     list_editable = ('is_approved',)
     list_filter = ('is_approved',)
