@@ -123,11 +123,75 @@ class UserServiceInfo(models.Model):
         max_length=100,
         choices=YEAR_OF_EXPERIENCE_CHOICES,
         null=True,
-        blank=True
+        blank=True, verbose_name=_('Years of Experience')
     )
-    ba_council = models.CharField(
+    bar_council = models.CharField(
         max_length=100,
-        verbose_name=_('Bar council / CA identification')
+        verbose_name=_('Bar council / CA identification'),
+        null=True
     )
+    followers = models.PositiveIntegerField(
+        null=True,
+        verbose_name=_('Combined followers on social networks')
+    )
+    industries = models.ManyToManyField(
+        'tags.Industry',
+        related_name='user_infos'
+    )
+    services = models.ManyToManyField(
+        'services.Service',
+        related_name='user_infos'
+    )
+
+    class Meta:
+        verbose_name = _('User Service Info')
+        verbose_name_plural = _('User Service Infos')
+
+
+class InvestorServiceInfo(models.Model):
+    user = models.OneToOneField(
+        'users.User',
+        related_name='investor_services_info',
+        on_delete=models.CASCADE
+    )
+    years_of_experience = models.CharField(
+        max_length=100,
+        choices=YEAR_OF_EXPERIENCE_CHOICES,
+        null=True,
+        blank=True, verbose_name=_('Years of Experience')
+    )
+    number_of_startups = models.PositiveIntegerField(
+        null=True,
+        verbose_name=_('Number of Startups')
+    )
+    kind_of_funding = models.ManyToManyField(
+        'tags.Funding',
+        verbose_name=_('Kind of Funding')
+    )
+    companies = models.ManyToManyField(
+        'tags.Company',
+        verbose_name=_('Companies can connect to')
+    )
+    connect_with_us = models.BooleanField(
+        default=False,
+        verbose_name=_('Connect with us')
+    )
+    process = models.TextField(
+        max_length=800,
+        verbose_name=_('Process')
+    )
+    attachments = ArrayField(
+        models.CharField(max_length=255),
+        size=3,
+    )
+    questions = ArrayField(
+        models.CharField(max_length=255),
+        size=3,
+    )
+
+    class Meta:
+        verbose_name = _('User Investor Info')
+        verbose_name_plural = _('User Investor Infos')
+
 
 

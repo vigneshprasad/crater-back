@@ -1,5 +1,7 @@
 import uuid
+
 import exrex
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.db import models
@@ -7,14 +9,12 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
+from phonenumber_field.modelfields import PhoneNumberField
 
 from users.managers import UserManager
 from utils.validators import SizeValidator
 # from utils.mandrill_service import mandrill_service
-from . import choices
 from .tasks import send_twilio_message, send_unique_push
-from phonenumber_field.modelfields import PhoneNumberField
-from django.conf import settings
 
 
 class User(AbstractUser):
@@ -125,6 +125,14 @@ class User(AbstractUser):
             self.has_bank_detais
         )
         return status
+
+    @property
+    def has_services(self):
+        if self.role == 'user':
+            return hasattr(self, 'user_services_info') and self.user_services_info
+        elif self.role == 'investor':
+            return hasattr(self, 'investor_services_info') and self.investor_services_info
+        return None
 
     @property
     def role(self):

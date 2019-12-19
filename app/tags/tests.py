@@ -10,7 +10,7 @@ from tags import models
 from users import models as user_models
 
 
-class CityTestCase(TestCase):
+class TagTestCase(TestCase):
     def setUp(self):
         self.user = user_models.User.objects.create(
             email='test@email.com',

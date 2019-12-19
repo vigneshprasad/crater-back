@@ -10,7 +10,8 @@ from rest_auth.utils import jwt_encode
 
 from locations import models as locations_models
 from payment.models import BankDetails
-from tags.models import Tag
+from services import models as services_models
+from tags.models import Tag, Industry
 from users import models
 from utils.file_test_service import get_test_base64_image
 
@@ -41,6 +42,8 @@ class AuthTestCase(TestCase):
             'user-phone-number-new': reverse('v1:users:verify-new-phone-number'),
             'user-check-code': reverse('v1:users:verify-check-sms-code'),
             'user-bank-details': reverse('v1:users:bank-details-list'),
+            'user-services-details': reverse('v1:users:services-list'),
+            'user-investor-details': reverse('v1:users:investor-services-list')
         }
 
         self.country = locations_models.Country.objects.create(name='Country')
@@ -311,6 +314,10 @@ class AuthTestCase(TestCase):
 
     def test_has_bank_details(self):
         self.assertFalse(self.user.has_bank_details)
+        self.assertFalse(self.user.full_registered)
+
+    def test_has_services(self):
+        self.assertFalse(self.user.has_services)
         self.assertFalse(self.user.full_registered)
 
     def test_user_details_fail_unauth(self):
@@ -600,3 +607,97 @@ class AuthTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertIsNone(self.user.bank_details.card_data)
         self.assertIsNone(self.user.bank_details.stripe_customer_id)
+
+    def test_user_services_get_fail_unauth(self):
+        endpoint = self.endpoints.get('user-services-details')
+        resp = self.client.get(endpoint, content_type='application/json')
+        self.assertEqual(401, resp.status_code)
+
+    def test_user_services_get_fail_no_data(self):
+        endpoint = self.endpoints.get('user-services-details')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(404, resp.status_code)
+
+    def test_user_services_get_success(self):
+        endpoint = self.endpoints.get('user-services-details')
+        services_models.UserServiceInfo.objects.create(
+            user=self.user
+        )
+        data = {
+            'years_of_experience': None,
+            'bar_council': None,
+            'followers': None,
+            'industries': [],
+            'services': [],
+        }
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertDictEqual(data, resp.json())
+
+    def test_user_services_post_success_without_services(self):
+        endpoint = self.endpoints.get('user-services-details')
+        industry = Industry.objects.create(name='Industry')
+        industry2 = Industry.objects.create(name='Industry2')
+        data = {
+            'years_of_experience': 'less_1_year',
+            'bar_council': 'text',
+            'followers': 100,
+            'industries': [industry.pk, industry2.pk],
+            'services': [],
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertDictEqual(data, resp.json())
+
+    def test_user_services_update_success_without_services(self):
+        endpoint = self.endpoints.get('user-services-details')
+        services = services_models.UserServiceInfo.objects.create(
+            user=self.user
+        )
+        industry = Industry.objects.create(name='Industry')
+        industry2 = Industry.objects.create(name='Industry2')
+        data = {
+            'years_of_experience': 'less_1_year',
+            'bar_council': 'text',
+            'followers': 100,
+            'industries': [industry.pk, industry2.pk],
+            'services': [],
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertDictEqual(data, resp.json())
+        services.refresh_from_db()
+        self.assertEqual(services.years_of_experience, 'less_1_year')
+        self.assertEqual(services.bar_council, 'text')
+        self.assertEqual(services.followers, 100)
+        self.assertIn(industry, services.industries.all())
+        self.assertIn(industry2, services.industries.all())
+
+    def test_user_investor_services_get_fail_unauth(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        resp = self.client.get(endpoint, content_type='application/json')
+        self.assertEqual(401, resp.status_code)
+
+    def test_user_investor_services_get_fail_no_data(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(404, resp.status_code)
+
+    def test_user_investor_services_get_fail_wrong_role(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        services = services_models.UserServiceInfo.objects.create(
+            user=self.user
+        )
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(404, resp.status_code)
+
+    def test_user_investor_services_get_fail(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        services = services_models.InvestorServiceInfo.objects.create(
+            user=self.user
+        )
+        self.user.groups.clear()
+        g = auth_models.Group.objects.get(name='Investor')
+        self.user.groups.add(g)
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(404, resp.status_code)

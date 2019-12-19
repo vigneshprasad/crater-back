@@ -45,3 +45,48 @@ class ArticleTag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Industry(models.Model):
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_('Name')
+    )
+
+    class Meta:
+        verbose_name = _('Industry')
+        verbose_name_plural = _('Industries')
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Funding(models.Model):
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_('Name')
+    )
+
+    class Meta:
+        verbose_name = _('Funding')
+        verbose_name_plural = _('Fundings')
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Company(models.Model):
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_('Name')
+    )
+
+    class Meta:
+        verbose_name = _('Company')
+        verbose_name_plural = _('Companies')
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
