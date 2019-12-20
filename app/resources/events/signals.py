@@ -17,7 +17,6 @@ def send_rsvpd_email(sender, instance, **kwargs):
     :return: None
     """
     email = instance.user.email
-    print(email)
     data = {
         email: {
             'date': str(instance.event.date),
