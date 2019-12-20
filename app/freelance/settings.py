@@ -29,6 +29,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+CORS_ORIGIN_REGEX_WHITELIST = [
+    r"^http://localhost[:0-9]*",
+    r"*.scenario-projects.com*",
+]
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.mandrillapp.com'
@@ -65,6 +69,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'timezone_field',
     'phonenumber_field',
+    'corsheaders',
 
     'users',
     'locations',
@@ -128,6 +133,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
