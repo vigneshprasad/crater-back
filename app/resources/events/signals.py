@@ -3,7 +3,8 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from resources.events.models import RSVPD
-from resources.events.tasks import send_email
+from users import choices
+from users.tasks import send_email
 
 
 @receiver(post_save, sender=RSVPD)
@@ -15,6 +16,19 @@ def send_rsvpd_email(sender, instance, **kwargs):
     :param kwargs: Additional params
     :return: None
     """
-    # TODO Send email for instance.user.email (using SMTP)
-    message = _('You are invited to the event on {} at {}').format(instance.event.date, instance.event.start)
-    send_email.delay(instance.event.title, message, 'from@example.com', instance.user.email)
+    email = instance.user.email
+    print(email)
+    data = {
+        email: {
+            'date': str(instance.event.date),
+            'time': str(instance.event.start),
+            'user': str(instance.user)
+        }
+    }
+    send_email.delay(
+        subject=_('Event invitation'),
+        to=[email],
+        template_name=choices.template_names.get('participate_event'),
+        content={},
+        merge_vars=data
+    )
