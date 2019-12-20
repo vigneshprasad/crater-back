@@ -348,7 +348,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_blank=True
     )
     work_city = serializers.PrimaryKeyRelatedField(
-        queryset=City.objects.filter(is_work=True)
+        queryset=City.objects.filter(is_work=True),
+        allow_null=True
     )
     photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
     cover = Base64FileField(
