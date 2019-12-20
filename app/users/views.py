@@ -1,18 +1,28 @@
+from cryptography.fernet import Fernet
 from django.contrib.auth import views as auth_views
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 from django.urls import reverse_lazy
+from drf_yasg.utils import swagger_auto_schema
 from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import mixins, viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework import filters
+from rest_framework.views import APIView
 
 from payment import models as payment_models, serializers as payment_serializers
 from services import serializers as service_serializers, models as service_models
 from utils import messages
 from utils.stripe_service import stripe_service
-from . import serializers, models
+from . import serializers, models, choices
+from django.utils.translation import ugettext_lazy as _
+
+from .swagger_schemas import referer_email
+from .tasks import send_email
 
 
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
@@ -242,3 +252,32 @@ class NetworkView(generics.ListAPIView):
     filterset_fields = ['tags']
     search_fields = ['name']
     permission_classes = [permissions.IsAuthenticated]
+
+
+class RefererEmailView(APIView):
+
+    @swagger_auto_schema(request_body=referer_email)
+    def post(self, request):
+        uuid = str(request.user.pk)
+        fernet = Fernet(settings.FERNET_KEY)
+        encrypted_uuid = fernet.encrypt(uuid.encode('ascii'))
+        try:
+            email = request.data.get('email')
+            validate_email(email)
+            data = {
+                email: {
+                    'key': encrypted_uuid.decode("ascii"),
+                    'user': str(request.user)
+                }
+            }
+            send_email.delay(
+                subject=_('Signup invitation'),
+                to=[email],
+                template_name=choices.template_names.get('invite_friend'),
+                content={},
+                merge_vars=data)
+            return Response({'detail': _('Verification e-mail sent.')})
+        except ValidationError:
+            return Response({'email': _('Email is not valid.')}, status=status.HTTP_400_BAD_REQUEST)
+
+

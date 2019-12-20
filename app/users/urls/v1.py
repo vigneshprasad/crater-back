@@ -36,6 +36,7 @@ auth_urlpatterns = [
          name='social_account_disconnect'),
 
     path('network/', views.NetworkView.as_view(), name='network'),
+    path('referer/', views.RefererEmailView.as_view(), name='referer'),
 
 ]
 

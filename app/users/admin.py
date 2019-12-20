@@ -38,10 +38,11 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             'classes': ['collapse in']
         }),
         ('User Data', {
-            'fields': (('name', 'email'), ('city', 'phone_number', 'phone_number_verified')),
+            'fields': (('name', 'email'), ('city', 'phone_number', 'phone_number_verified', 'referer')),
             'classes': ['collapse in']
         }),
     )
+    readonly_fields = ['referer']
     inlines = [ProfileAdmin]
 
     @staticmethod
