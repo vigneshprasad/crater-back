@@ -31,7 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_REGEX_WHITELIST = [
     r"^http://localhost[:0-9]*",
-    r"*.scenario-projects.com*",
+    r"scenario-projects.com*",
 ]
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
