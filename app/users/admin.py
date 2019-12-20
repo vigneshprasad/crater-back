@@ -49,7 +49,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
         if not user.is_active:
             return _('Banned')
 
-        if user.has_profile:
+        if user.is_approved:
             return _('Approved')
         return _('Pending')
 

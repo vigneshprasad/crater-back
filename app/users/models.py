@@ -239,7 +239,7 @@ class Profile(models.Model):
         verbose_name=_('Name')
     )
     tag_line = models.CharField(
-        verbose_name=_('Tag lime'),
+        verbose_name=_('Tag line'),
         max_length=100,
         blank=True
     )

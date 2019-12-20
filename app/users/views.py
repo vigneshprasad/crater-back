@@ -1,10 +1,12 @@
 from django.contrib.auth import views as auth_views
+from django_filters.rest_framework import DjangoFilterBackend
 from django.urls import reverse_lazy
 from rest_auth.views import LogoutView as RestLogoutView
-from rest_framework import mixins, viewsets, permissions, status
+from rest_framework import mixins, viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
+from rest_framework import filters
 
 from payment import models as payment_models, serializers as payment_serializers
 from services import serializers as service_serializers, models as service_models
@@ -226,3 +228,17 @@ class InvestorServicesViewSet(mixins.CreateModelMixin,
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class NetworkView(generics.ListAPIView):
+    serializer_class = serializers.ProfileSerializer
+    queryset = models.Profile.objects.filter(
+        user__is_approved=True,
+        user__is_active=True,
+        user__is_staff=False,
+        user__is_superuser=False
+    ).order_by('name')
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filterset_fields = ['tags']
+    search_fields = ['name']
+    permission_classes = [permissions.IsAuthenticated]

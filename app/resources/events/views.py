@@ -15,7 +15,7 @@ from resources.events.serializers import EventSerializer, RSVPDSerializer
 from resources.events.services import get_events, get_event
 
 
-class EventViewSet(mixins.ListModelMixin, GenericViewSet):
+class EventViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     serializer_class = EventSerializer
     pagination_class = EventPagination
     queryset = get_events().prefetch_related('event_comments', 'participants').all()

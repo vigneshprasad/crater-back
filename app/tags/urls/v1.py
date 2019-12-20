@@ -6,7 +6,7 @@ from tags import views
 app_name = 'tags'
 
 router = routers.SimpleRouter()
-router.register('city', views.TagViewSet)
+router.register('user', views.TagViewSet)
 router.register('masterclasses', views.MasterClassViewSet)
 router.register('articles', views.ArticleTagViewSet)
 

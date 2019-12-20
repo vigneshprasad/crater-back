@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import datetime
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -29,13 +30,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.mandrillapp.com'
-# EMAIL_HOST_PASSWORD = 'Q23YKb071AurOhmYLY5Hew'
-# EMAIL_HOST_USER = 'WurkNet'
-# EMAIL_PORT =  587
-# EMAIL_USE_TLS = True
+CORS_ORIGIN_REGEX_WHITELIST = [
+    r"^http://localhost[:0-9]*",
+    r"scenario-projects.com*",
+]
+
 EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
 
 AUTH_USER_MODEL = 'users.User'
@@ -66,6 +65,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'timezone_field',
     'phonenumber_field',
+    'corsheaders',
     'djrill',
 
     'users',
@@ -100,6 +100,10 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=8),
+}
+
 MATERIAL_ADMIN_SITE = {
     'HEADER':  _('Administration'),
     'TITLE':  _('Marketplace'),
@@ -130,6 +134,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

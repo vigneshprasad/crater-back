@@ -1,6 +1,7 @@
+from rest_framework import status
 from unittest.mock import patch
 
-from django.contrib.auth import models as auth_models
+from django.contrib.auth import models as auth_models, get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
@@ -365,7 +366,7 @@ class AuthTestCase(TestCase):
         endpoint = self.endpoints.get('user-profile')
         data = {
             'name': 'Testy',
-            'tags': [],
+            'tag_list': [],
             'tag_line': '',
             'cover': None,
             'photo': None,
@@ -476,6 +477,8 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.has_profile)
+        data.pop('tags')
+        data['tag_list'] = [{'name': self.tag.name, 'pk': self.tag.pk}]
         self.assertDictEqual(data, resp.json())
 
     def test_profile_change_success(self):
@@ -607,6 +610,116 @@ class AuthTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertIsNone(self.user.bank_details.card_data)
         self.assertIsNone(self.user.bank_details.stripe_customer_id)
+
+    def test_network_people_authentication_required(self):
+        url = reverse('v1:users:network')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_network_people_list(self):
+        self.user.is_approved = True
+        self.user.save(update_fields=['is_approved'])
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy',
+            work_city=city,
+            introduction='Introduction'
+        )
+        url = reverse('v1:users:network')
+        response = self.auth_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        person = response.data[0]
+        self.assertEqual(person['name'], 'Testy')
+        self.assertEqual(person['introduction'], 'Introduction')
+
+    def test_network_people_filter_by_tag(self):
+        self.user.is_approved = True
+        self.user.save(update_fields=['is_approved'])
+        user2 = models.User.objects.create(
+            email='user2@email.com',
+            name='User 2',
+            is_approved=True
+        )
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy',
+            work_city=city,
+            introduction='Introduction',
+        )
+        profile2 = models.Profile.objects.create(
+            user=user2,
+            name='Test 2',
+            work_city=city,
+            introduction='Introduction 2',
+        )
+        profile2.tags.add(self.tag)
+        url = reverse('v1:users:network')
+        response = self.auth_client.get(f'{url}?tags={self.tag.pk}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        person = response.data[0]
+        self.assertEqual(person['name'], 'Test 2')
+        self.assertEqual(person['introduction'], 'Introduction 2')
+
+    def test_network_people_filter_by_tag_and_search(self):
+        self.user.is_approved = True
+        self.user.save(update_fields=['is_approved'])
+        user2 = models.User.objects.create(
+            email='user2@email.com',
+            name='User 2',
+            is_approved=True
+        )
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy',
+            work_city=city,
+            introduction='Introduction',
+        )
+        profile2 = models.Profile.objects.create(
+            user=user2,
+            name='Test 2',
+            work_city=city,
+            introduction='Introduction 2',
+        )
+        profile2.tags.add(self.tag)
+        url = reverse('v1:users:network')
+        response = self.auth_client.get(f'{url}?tags={self.tag.pk}&search=test 2')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        person = response.data[0]
+        self.assertEqual(person['name'], 'Test 2')
+        self.assertEqual(person['introduction'], 'Introduction 2')
+
+    def test_network_people_filter_by_tag_and_search_not_found(self):
+        self.user.is_approved = True
+        self.user.save(update_fields=['is_approved'])
+        user2 = models.User.objects.create(
+            email='user2@email.com',
+            name='User 2',
+            is_approved=True
+        )
+        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy',
+            work_city=city,
+            introduction='Introduction',
+        )
+        profile2 = models.Profile.objects.create(
+            user=user2,
+            name='Test 2',
+            work_city=city,
+            introduction='Introduction 2',
+        )
+        profile2.tags.add(self.tag)
+        url = reverse('v1:users:network')
+        response = self.auth_client.get(f'{url}?tags={self.tag.pk}&search=wrong')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
 
     def test_user_services_get_fail_unauth(self):
         endpoint = self.endpoints.get('user-services-details')

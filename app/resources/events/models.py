@@ -28,7 +28,7 @@ class Event(models.Model):
         verbose_name = _('Event')
         verbose_name_plural = _('Events')
         db_table = 'resources_events'
-        ordering = ('date', 'start')
+        ordering = ('-date', '-start')
 
     def __str__(self):
         return self.title
