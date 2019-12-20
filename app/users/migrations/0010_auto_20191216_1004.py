@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='tag_line',
-            field=models.CharField(blank=True, default='', max_length=100, verbose_name='Tag lime'),
+            field=models.CharField(blank=True, default='', max_length=100, verbose_name='Tag line'),
             preserve_default=False,
         ),
     ]

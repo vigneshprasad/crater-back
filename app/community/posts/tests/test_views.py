@@ -7,6 +7,11 @@ from rest_framework.test import APITestCase
 
 from community.groups.models import Location, Group, UserRequest
 from community.posts.models import Post, Like, Report
+from locations.models import Country, City
+from resources.curated_articles.models import SourceWebsite, CuratedArticle
+from resources.events.models import Event
+from resources.masterclasses.models import MasterClass
+from tags.models import MasterClassTag, ArticleTag
 from utils.file_test_service import get_test_base64_image, get_test_image
 
 
@@ -333,3 +338,106 @@ class TestReportView(APITestCase):
         report_url = reverse('v1:community:report-list')
         response = self.client.post(report_url, data={'post': post.pk})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class CompanyPostView(APITestCase):
+
+    def setUp(self):
+        self.user = get_user_model().objects.create(
+            email='user@user.com',
+            name='user',
+            username='User',
+            is_superuser=False,
+            is_active=True,
+            is_staff=True,
+            password=make_password('123qaz123!A')
+        )
+        self.community_location = Location.objects.create(name='Test location')
+        self.community_group = Group.objects.create(location=self.community_location, name='Group name')
+
+    def test_company_posts_authentication_required(self):
+        url = reverse('v1:community:post-list')
+        response = self.client.get(f'{url}company/', format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_company_post_block_empty_data(self):
+        expected_result = {'event': None, 'masterclass': None, 'articles': []}
+
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
+        url = reverse('v1:community:post-list')
+        response = self.client.get(f'{url}company/', format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, expected_result)
+
+    def test_get_company_post_block_data(self):
+
+        country = Country.objects.create(name='Test country')
+        city = City.objects.create(name='Test city', country=country)
+        Event.objects.create(
+            title='Test title 1',
+            text='Test text 1',
+            date='2001-01-01',
+            start='11:20',
+            end='12:00',
+            is_free=True,
+            is_rsvp=True,
+            location=city,
+            capacity=10,
+            state='upcoming'
+        )
+        Event.objects.create(
+            title='Test title 2',
+            text='Test text 2',
+            date='2001-02-01',
+            start='11:20',
+            end='12:00',
+            is_free=True,
+            is_rsvp=True,
+            location=city,
+            capacity=10,
+            state='upcoming'
+        )
+        self.tag1 = MasterClassTag.objects.create(name='Tag 1')
+
+        MasterClass.objects.create(
+            author='Author 1',
+            position='Position 1',
+            description='Test description1'
+        )
+
+        m1 = MasterClass.objects.create(
+            author='Author 2',
+            position='Position 2',
+            description='Test description1'
+        )
+        m1.tags.add(self.tag1)
+        article_tag = ArticleTag.objects.create(name='Tag 1')
+        website = SourceWebsite.objects.create(name='Website 1', url='http://test.com')
+        CuratedArticle.objects.bulk_create([
+            CuratedArticle(title='Article 1', text='Text 1', tag=article_tag, website=website),
+            CuratedArticle(title='Article 2', text='Text 2', tag=article_tag, website=website),
+            CuratedArticle(title='Article 3', text='Text 3', tag=article_tag, website=website),
+            CuratedArticle(title='Article 4', text='Text 4', tag=article_tag, website=website),
+            CuratedArticle(title='Article 5', text='Text 5', tag=article_tag, website=website),
+            CuratedArticle(title='Article 6', text='Text 6', tag=article_tag, website=website),
+            CuratedArticle(title='Article 7', text='Text 7', tag=article_tag, website=website),
+            CuratedArticle(title='Article 8', text='Text 8', tag=article_tag, website=website),
+            CuratedArticle(title='Article 9', text='Text 9', tag=article_tag, website=website),
+        ])
+
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
+        url = reverse('v1:community:post-list')
+        response = self.client.get(f'{url}company/', format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['event']['title'], 'Test title 2')
+        self.assertEqual(response.data['masterclass']['author'], 'Author 2')
+        self.assertEqual(len(response.data['articles']), 8)
+        self.assertEqual(response.data['articles'][0]['title'], 'Article 9')

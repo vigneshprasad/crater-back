@@ -32,6 +32,9 @@ auth_urlpatterns = [
     path('social/accounts/<int:pk>/disconnect/',
          social_views.SocialAccountDisconnectView.as_view(),
          name='social_account_disconnect'),
+
+    path('network/', views.NetworkView.as_view(), name='network'),
+
 ]
 
 urlpatterns = [

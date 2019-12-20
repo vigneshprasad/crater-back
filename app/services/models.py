@@ -46,6 +46,9 @@ class ServiceType(TimeStampedModel):
         verbose_name = _('Service Type')
         verbose_name_plural = _('Service Types')
 
+    def __str__(self):
+        return self.name
+
 
 class Service(TimeStampedModel):
     user = models.ForeignKey(
