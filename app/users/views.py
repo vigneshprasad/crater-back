@@ -150,6 +150,11 @@ class VerificationView(viewsets.GenericViewSet):
         request.user.save()
         return Response({'status': messages.PHONE_NUMBER_SUCCESSFULLY_VERIFIED})
 
+    @action(methods=['post'], detail=False)
+    def send_verify_email(self, request):
+        request.user.send_verify_email()
+        return Response({'status': messages.EMAIL_VERIFY_SUCCESSFULLY_SENT})
+
 
 class UserServicesViewSet(mixins.CreateModelMixin,
                           mixins.ListModelMixin,

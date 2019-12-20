@@ -78,9 +78,9 @@ class UserServicesSerializer(serializers.ModelSerializer):
             self.update_services(instance, services)
         return instance
 
-    def update_services(self, instance, services):
+    @staticmethod
+    def update_services(instance, services):
         instance.services.clear()
-        print(len(services))
         for service in services:
             service_instance = None
             if 'pk' in service:
@@ -101,7 +101,6 @@ class UserServicesSerializer(serializers.ModelSerializer):
                     **service
                 )
             instance.services.add(service_instance)
-        print(instance.services.all())
 
 
 class InvestorServicesSerializer(serializers.ModelSerializer):

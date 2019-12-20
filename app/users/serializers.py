@@ -184,6 +184,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         user.save()
         self.add_to_group(user)
         setup_user_email(request, user, [])
+        user.send_verify_email()
         return user
 
     def custom_signup(self, request, user):

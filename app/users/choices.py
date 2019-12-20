@@ -12,3 +12,9 @@ REASON_CHOICES = (
         _('I understand that no from of trading of equities take place on the platform, only connectionsare made')
     )
 )
+
+
+template_names = {
+    'password_reset': 'Password reset',
+    'verify_email': 'Verify email'
+}

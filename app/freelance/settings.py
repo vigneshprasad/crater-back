@@ -29,13 +29,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.mandrillapp.com'
 # EMAIL_HOST_PASSWORD = 'Q23YKb071AurOhmYLY5Hew'
 # EMAIL_HOST_USER = 'WurkNet'
 # EMAIL_PORT =  587
 # EMAIL_USE_TLS = True
+EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
 
 AUTH_USER_MODEL = 'users.User'
 import django.core.mail.backends.smtp
@@ -65,6 +66,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'timezone_field',
     'phonenumber_field',
+    'djrill',
 
     'users',
     'locations',
@@ -261,3 +263,5 @@ ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', 'example')
 ACCOUNT_LOGOUT_ON_GET = False
 
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'example')
+
+ACCOUNT_EMAIL_VERIFICATION = 'none'
