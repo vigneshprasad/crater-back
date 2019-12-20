@@ -277,7 +277,7 @@ class RefererEmailView(APIView):
                 content={},
                 merge_vars=data)
             return Response({'detail': _('Verification e-mail sent.')})
-        except ValidationError:
+        except (ValidationError, AttributeError):
             return Response({'email': _('Email is not valid.')}, status=status.HTTP_400_BAD_REQUEST)
 
 
