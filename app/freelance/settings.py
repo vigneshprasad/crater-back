@@ -34,13 +34,8 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"^http://localhost[:0-9]*",
     r"scenario-projects.com*",
 ]
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.mandrillapp.com'
-# EMAIL_HOST_PASSWORD = 'Q23YKb071AurOhmYLY5Hew'
-# EMAIL_HOST_USER = 'WurkNet'
-# EMAIL_PORT =  587
-# EMAIL_USE_TLS = True
+
+EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
 
 AUTH_USER_MODEL = 'users.User'
 import django.core.mail.backends.smtp
@@ -71,6 +66,7 @@ INSTALLED_APPS = [
     'timezone_field',
     'phonenumber_field',
     'corsheaders',
+    'djrill',
 
     'users',
     'locations',
@@ -272,3 +268,5 @@ ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', 'example')
 ACCOUNT_LOGOUT_ON_GET = False
 
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'example')
+
+ACCOUNT_EMAIL_VERIFICATION = 'none'

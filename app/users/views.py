@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import filters
 
 from payment import models as payment_models, serializers as payment_serializers
+from services import serializers as service_serializers, models as service_models
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models
@@ -150,6 +151,83 @@ class VerificationView(viewsets.GenericViewSet):
         request.user.phone_number_verified = True
         request.user.save()
         return Response({'status': messages.PHONE_NUMBER_SUCCESSFULLY_VERIFIED})
+
+    @action(methods=['post'], detail=False)
+    def send_verify_email(self, request):
+        request.user.send_verify_email()
+        return Response({'status': messages.EMAIL_VERIFY_SUCCESSFULLY_SENT})
+
+
+class UserServicesViewSet(mixins.CreateModelMixin,
+                          mixins.ListModelMixin,
+                          viewsets.GenericViewSet):
+    serializer_class = service_serializers.UserServicesSerializer
+    queryset = service_models.UserServiceInfo.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        if hasattr(request.user, 'user_services_info') and request.user.user_services_info:
+            serializer = self.get_serializer(data=request.data, instance=request.user.user_services_info, partial=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['user'] = request.user
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    def get_object(self):
+        if self.request.user.role == 'user':
+            if hasattr(self.request.user, 'user_services_info') and self.request.user.user_services_info:
+                return self.request.user.user_services_info
+        return None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance:
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        raise NotFound()
+
+    def list(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+class InvestorServicesViewSet(mixins.CreateModelMixin,
+                              mixins.ListModelMixin,
+                              viewsets.GenericViewSet):
+    serializer_class = service_serializers.InvestorServicesSerializer
+    queryset = service_models.InvestorServiceInfo.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        if hasattr(request.user, 'investor_services_info') and request.user.investor_services_info:
+            serializer = self.get_serializer(
+                data=request.data, instance=request.user.investor_services_info, partial=True
+            )
+        else:
+            serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['user'] = request.user
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    def get_object(self):
+        if self.request.user.role == 'investor':
+            if hasattr(self.request.user, 'investor_services_info') and self.request.user.investor_services_info:
+                return self.request.user.investor_services_info
+        return None
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance:
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        raise NotFound()
+
+    def list(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
 
 class NetworkView(generics.ListAPIView):

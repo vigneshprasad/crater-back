@@ -10,6 +10,8 @@ register_router = routers.SimpleRouter()
 register_router.register('profile', views.ProfileViewSet, base_name='profile')
 register_router.register('bank_details', views.BankDetailViewSet, base_name='bank-details')
 register_router.register('verify', views.VerificationView, base_name='verify')
+register_router.register('user_services', views.UserServicesViewSet, base_name='services')
+register_router.register('investor_services', views.InvestorServicesViewSet, base_name='investor-services')
 
 auth_urlpatterns = [
 

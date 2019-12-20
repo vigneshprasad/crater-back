@@ -1,5 +1,8 @@
 import uuid
+
 import exrex
+from allauth.account.models import EmailAddress, EmailConfirmation, EmailConfirmationHMAC
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.db import models
@@ -7,14 +10,12 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
+from phonenumber_field.modelfields import PhoneNumberField
 
 from users.managers import UserManager
 from utils.validators import SizeValidator
-# from utils.mandrill_service import mandrill_service
 from . import choices
-from .tasks import send_twilio_message, send_unique_push
-from phonenumber_field.modelfields import PhoneNumberField
-from django.conf import settings
+from .tasks import send_twilio_message, send_unique_push, send_email
 
 
 class User(AbstractUser):
@@ -89,25 +90,33 @@ class User(AbstractUser):
         db_table = 'users'
         ordering = ('date_joined',)
 
+    def send_email(self,
+                   subject,
+                   to,
+                   template_name,
+                   content,
+                   merge_vars,
+                   from_email='no-reply@fwmail.scenario-projects.com'):
+        send_email.delay(
+            subject=subject,
+            to=to,
+            template_name=template_name,
+            content=content,
+            merge_vars=merge_vars,
+            from_email=from_email
+        )
+
     def send_reset_password_email(self):
         data = {
-            'uid': urlsafe_base64_encode(force_bytes(self.pk)),
-            'user': self,
-            'token': default_token_generator.make_token(self)
+            self.email: {
+                'uid': urlsafe_base64_encode(force_bytes(self.pk)),
+                'name': self.name,
+                'token': default_token_generator.make_token(self)
+            }
         }
-        # mandrill_service.send_email(
-        #     template_name='password_reset',
-        #     content=data,
-        #     to=[
-        #         {
-        #             "email": self.email,
-        #             "name": self.name,
-        #             "type": "to"
-        #         }
-        #     ]
-        # )
-        # TODO: use Mailchip/Mandrill service when service will created
-        pass
+        self.send_email(subject='Password reset', to=[self.email],
+                        template_name=choices.template_names.get('password_reset'), content={},
+                        merge_vars=data)
 
     @property
     def has_profile(self):
@@ -123,8 +132,18 @@ class User(AbstractUser):
             self.has_profile
             and
             self.has_bank_detais
+            and
+            self.has_services
         )
         return status
+
+    @property
+    def has_services(self):
+        if self.role == 'user':
+            return hasattr(self, 'user_services_info') and self.user_services_info
+        elif self.role == 'investor':
+            return hasattr(self, 'investor_services_info') and self.investor_services_info
+        return None
 
     @property
     def role(self):
@@ -152,6 +171,24 @@ class User(AbstractUser):
                 },
                 data=data
             )
+
+    def send_verify_email(self):
+        try:
+            email_address = EmailAddress.objects.get_for_user(self, self.email)
+        except EmailAddress.DoesNotExist:
+            email_address = EmailAddress.objects.create(self, self.email, verified=False)
+        confirmation = EmailConfirmationHMAC(email_address)
+        data = {
+            self.email : {
+                'key': confirmation.key,
+                'name': self.name
+            }
+        }
+        self.send_email(subject='Verify your email', to=[self.email],
+                        template_name=choices.template_names.get('verify_email'), content={},
+                        merge_vars=data)
+
+
 
     @property
     def email_verified(self):

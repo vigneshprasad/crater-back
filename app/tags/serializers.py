@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from . import models
-from .models import MasterClassTag, ArticleTag
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -14,7 +13,7 @@ class TagSerializer(serializers.ModelSerializer):
 class MasterClassTagSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = MasterClassTag
+        model = models.MasterClassTag
         fields = (
             'pk', 'name'
         )
@@ -23,5 +22,26 @@ class MasterClassTagSerializer(serializers.ModelSerializer):
 class ArticleTagSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ArticleTag
+        model = models.ArticleTag
+        fields = ('pk', 'name')
+
+
+class CompanySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Company
+        fields = ('pk', 'name')
+
+
+class FundingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Funding
+        fields = ('pk', 'name')
+
+
+class IndustrySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Industry
         fields = ('pk', 'name')
