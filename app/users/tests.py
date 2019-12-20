@@ -11,7 +11,7 @@ from rest_auth.utils import jwt_encode
 from locations import models as locations_models
 from payment.models import BankDetails
 from services import models as services_models
-from tags.models import Tag, Industry
+from tags.models import Tag, Industry, Company, Funding
 from users import models
 from utils.file_test_service import get_test_base64_image
 
@@ -691,13 +691,111 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(404, resp.status_code)
 
-    def test_user_investor_services_get_fail(self):
+    def test_user_investor_services_get_success(self):
         endpoint = self.endpoints.get('user-investor-details')
         services = services_models.InvestorServiceInfo.objects.create(
-            user=self.user
+            user=self.user,
+            attachments=[],
+            questions=[]
         )
         self.user.groups.clear()
         g = auth_models.Group.objects.get(name='Investor')
         self.user.groups.add(g)
         resp = self.auth_client.get(endpoint, content_type='application/json')
-        self.assertEqual(404, resp.status_code)
+        self.assertEqual(200, resp.status_code)
+
+    def test_investor_services_set(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        services = services_models.InvestorServiceInfo.objects.create(
+            user=self.user,
+            attachments=[],
+            questions=[]
+        )
+        self.user.groups.clear()
+        g = auth_models.Group.objects.get(name='Investor')
+        self.user.groups.add(g)
+        funding = Funding.objects.create(name='Funding')
+        company = Company.objects.create(name='Company')
+        data = {
+            'years_of_experience': 'less_1_year',
+            'number_of_startups': 100,
+            'kind_of_funding': [funding.pk],
+            'companies': [company.pk],
+            'connect_with_us': True,
+            'process': 'Text',
+            'attachments': ['First attach', 'Second attach'],
+            'questions': ['First question', 'Second question'],
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+
+    def test_investor_services_set_2(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        self.user.groups.clear()
+        g = auth_models.Group.objects.get(name='Investor')
+        self.user.groups.add(g)
+        funding = Funding.objects.create(name='Funding')
+        company = Company.objects.create(name='Company')
+        data = {
+            'years_of_experience': 'less_1_year',
+            'number_of_startups': 100,
+            'kind_of_funding': [funding.pk],
+            'companies': [company.pk],
+            'connect_with_us': True,
+            'process': 'Text',
+            'attachments': ['First attach', 'Second attach'],
+            'questions': ['First question', 'Second question'],
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+
+    def test_user_services_set_with_services(self):
+        endpoint = self.endpoints.get('user-services-details')
+        services = services_models.UserServiceInfo.objects.create(
+            user=self.user
+        )
+        category = services_models.Category.objects.create(
+            name='Test'
+        )
+        service_type = services_models.ServiceType.objects.create(
+            category=category,
+            name='Type',
+            description='Description',
+            group='service'
+        )
+        industry = Industry.objects.create(name='Industry')
+        industry2 = Industry.objects.create(name='Industry2')
+        data = {
+            'years_of_experience': 'less_1_year',
+            'bar_council': 'text',
+            'followers': 100,
+            'industries': [industry.pk, industry2.pk],
+            'services': [
+                {
+                    'pk': 1,
+                    'service_type': service_type.pk,
+                    'price_type': 'price',
+                    'price': 100,
+                    'timeline': 60,
+                    'revision': 5,
+                    'includes': 'test',
+                    'attachments': ['1','2'],
+                    'questions': ['1','2']
+
+                },
+                {
+                    'service_type': service_type.pk,
+                    'price_type': 'price',
+                    'price': 100,
+                    'timeline': 60,
+                    'revision': 5,
+                    'includes': 'test',
+                    'attachments': ['1', '2'],
+                    'questions': ['1', '2']
+
+                }
+            ],
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(2, len(resp.json()['services']))
