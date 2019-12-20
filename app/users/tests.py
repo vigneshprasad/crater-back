@@ -1,3 +1,7 @@
+from unittest import mock
+
+from cryptography.fernet import Fernet
+from django.conf import settings
 from rest_framework import status
 from unittest.mock import patch
 
@@ -121,7 +125,8 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 400)
         self.assertIn('non_field_errors', resp.json())
 
-    def test_success_register(self):
+    @mock.patch('users.models.User.send_verify_email', return_value=None)
+    def test_success_register(self, send_verify_email):
         endpoint = self.endpoints.get('register')
         data = {'email': 'test1@email.com', 'password': 'Qwer1234!', 'name': 'Testy User'}
         resp = self.client.post(endpoint, data=data, content_type='application/json')
@@ -132,7 +137,8 @@ class AuthTestCase(TestCase):
         user = models.User.objects.get(email='test1@email.com')
         self.assertIn('User', list(user.groups.values_list('name', flat=True)))
 
-    def test_success_register_investor(self):
+    @mock.patch('users.models.User.send_verify_email', return_value=None)
+    def test_success_register_investor(self, send_verify_email):
         endpoint = self.endpoints.get('register')
         data = {'email': 'test1@email.com', 'password': 'Qwer1234!', 'name': 'Testy User', 'role': 'investor'}
         resp = self.client.post(endpoint, data=data, content_type='application/json')
@@ -167,7 +173,8 @@ class AuthTestCase(TestCase):
         self.assertIn('name', resp.json())
         self.assertEqual(['Please enter the valid name'], resp.json()['name'])
 
-    def test_regiter_success_email_with_camelcase(self):
+    @mock.patch('users.models.User.send_verify_email', return_value=None)
+    def test_register_success_email_with_camelcase(self, send_verify_email):
         endpoint = self.endpoints.get('register')
         data = {'email': ' tesTy@email.com ', 'password': 'Qwer1234!', 'name': 'name'}
         resp = self.client.post(endpoint, data, content_type='application/json')
@@ -912,3 +919,54 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(2, len(resp.json()['services']))
+
+
+class RefererTestCase(TestCase):
+    def setUp(self):
+        self.user = models.User.objects.create(
+            email='test@email.com',
+            name='ftest ltest'
+        )
+        group = auth_models.Group.objects.get(name='User')
+        self.user.groups.add(group)
+        self.user.set_password('Qwer1234!')
+        self.user.save()
+        self.token = jwt_encode(self.user)
+        self.client = Client()
+        self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
+        self.endpoints = {
+            'refer': reverse('v1:users:referer'),
+            'register': reverse('v1:users:rest_register'),
+        }
+
+        self.country = locations_models.Country.objects.create(name='Country')
+        self.city = locations_models.City.objects.create(name='City', country=self.country)
+        self.tag = Tag.objects.create(name='Tag')
+
+    def test_refer_friend_authentication_required(self):
+        response = self.client.post(self.endpoints['refer'])
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @mock.patch('users.views.send_email.delay', return_value=None)
+    def test_send_invitation_email(self, send_email):
+        response = self.auth_client.post(self.endpoints['refer'], data={'email': 'test@gmail.com'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        send_email.assert_called_once()
+
+    @mock.patch('users.views.send_email.delay', return_value=None)
+    def test_send_invitation_email_not_valid(self, send_email):
+        response = self.auth_client.post(self.endpoints['refer'], data={'email': 'WRONG.com'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        send_email.assert_not_called()
+
+    @mock.patch('users.models.User.send_verify_email', return_value=None)
+    def test_success_register(self, send_email):
+        endpoint = self.endpoints.get('register')
+        uuid = str(self.user.pk)
+        fernet = Fernet(settings.FERNET_KEY)
+        encrypted_uuid = fernet.encrypt(uuid.encode('ascii')).decode("ascii")
+        data = {'email': 'test1@email.com', 'password': 'Qwer1234!', 'name': 'Testy User', 'referer': encrypted_uuid}
+        resp = self.client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(resp.status_code, 201)
+        user = models.User.objects.get(email='test1@email.com')
+        self.assertEqual(user.referer.email, 'test@email.com')

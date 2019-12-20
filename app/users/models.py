@@ -52,6 +52,13 @@ class User(AbstractUser):
         default=False,
         verbose_name=_('Phone Number Verified')
     )
+    referer = models.ForeignKey(
+        'users.User',
+        verbose_name=_('Referer'),
+        related_name='referrals',
+        on_delete=models.CASCADE,
+        null=True
+    )
     is_staff = models.BooleanField(
         _('Admin'),
         default=False,
@@ -179,7 +186,7 @@ class User(AbstractUser):
             email_address = EmailAddress.objects.create(self, self.email, verified=False)
         confirmation = EmailConfirmationHMAC(email_address)
         data = {
-            self.email : {
+            self.email: {
                 'key': confirmation.key,
                 'name': self.name
             }

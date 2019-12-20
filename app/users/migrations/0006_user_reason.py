@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='reason',
-            field=models.CharField(choices=[('18_year_old', 'I am atleast 18 year old.'), ('join', 'I want to join the community to collaborate or share.'), ('understand', 'I understand the membership appication process.')], max_length=100, null=True, verbose_name='Reason'),
+            field=models.CharField(choices=[('18_year_old', 'I am at least 18 year old.'), ('join', 'I want to join the community to collaborate or share.'), ('understand', 'I understand the membership appication process.')], max_length=100, null=True, verbose_name='Reason'),
         ),
     ]

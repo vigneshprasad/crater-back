@@ -1,7 +1,11 @@
+import cryptography
+import logging
+
 from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from allauth.utils import (email_address_exists)
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
@@ -18,6 +22,9 @@ from . import models
 from .validators import password_validate_symbols
 
 UserModel = get_user_model()
+
+logger = logging.getLogger('django.request')
+logger.setLevel(logging.ERROR)
 
 
 class LoginSerializer(rest_auth_serializers.LoginSerializer):
@@ -150,6 +157,10 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         ),
         default='user'
     )
+    referer = serializers.CharField(
+        required=False,
+        max_length=255
+    )
     password1 = None
     password2 = None
 
@@ -179,6 +190,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
     def save(self, request):
         adapter = get_adapter()
         user = adapter.new_user(request)
+        user.referer = self._get_referer()
         self.cleaned_data = self.get_cleaned_data()
         adapter.save_user(request, user, self, commit=False)
         self.custom_signup(request, user)
@@ -198,6 +210,15 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
             user.groups.add(group)
         except auth_models.Group.DoesNotExist:
             pass
+
+    def _get_referer(self):
+        try:
+            code = self.validated_data.get('referer')
+            fernet = Fernet(settings.FERNET_KEY)
+            uuid = fernet.decrypt(code.encode('ascii')).decode('ascii')
+            return get_user_model().objects.get(uuid=uuid)
+        except (cryptography.fernet.InvalidToken, AttributeError):
+            return None
 
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):

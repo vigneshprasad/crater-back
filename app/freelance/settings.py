@@ -9,11 +9,13 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
+import datetime
 import os
 import datetime
 
 from django.utils.translation import ugettext_lazy as _
+from cryptography.fernet import Fernet
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,11 +27,13 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
+FERNET_KEY = b'TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8='
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
 CORS_ORIGIN_REGEX_WHITELIST = [
     r"^http://localhost[:0-9]*",
     r"scenario-projects.com*",
