@@ -262,7 +262,7 @@ class RefererEmailView(APIView):
         fernet = Fernet(settings.FERNET_KEY)
         encrypted_uuid = fernet.encrypt(uuid.encode('ascii'))
         try:
-            email = request.data.get('email')
+            email = request.data.get('email').strip()
             validate_email(email)
             data = {
                 email: {
