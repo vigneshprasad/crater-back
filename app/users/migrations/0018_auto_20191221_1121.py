@@ -4,6 +4,14 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def delete_cities(apps, schema_editor):
+    User = apps.get_model('users', 'User')
+    Profile = apps.get_model('users', 'Profile')
+    db_alias = schema_editor.connection.alias
+    User.objects.using(db_alias).update(city=None)
+    Profile.objects.using(db_alias).update(work_city=None)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -12,6 +20,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(delete_cities, reverse_code=migrations.RunPython.noop),
         migrations.AlterField(
             model_name='profile',
             name='work_city',
