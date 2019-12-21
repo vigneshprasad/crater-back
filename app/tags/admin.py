@@ -15,6 +15,7 @@ class TagAdmin(SortableAdminMixin, ViewActionMixin, admin.ModelAdmin):
     """
     icon_name = 'local_offer'
     list_display = ('tag_name', 'action', 'order')
+    search_fields = ['name']
 
     @staticmethod
     def tag_name(tag):

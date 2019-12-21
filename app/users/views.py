@@ -10,6 +10,7 @@ from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import mixins, viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.views import APIView
@@ -240,7 +241,9 @@ class InvestorServicesViewSet(mixins.CreateModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
 
-class NetworkView(generics.ListAPIView):
+class NetworkView(mixins.RetrieveModelMixin,
+                  mixins.ListModelMixin,
+                  GenericAPIView):
     serializer_class = serializers.ProfileSerializer
     queryset = models.Profile.objects.filter(
         user__is_approved=True,
@@ -252,6 +255,11 @@ class NetworkView(generics.ListAPIView):
     filterset_fields = ['tags']
     search_fields = ['name']
     permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('pk'):
+            return self.retrieve(request, *args, **kwargs)
+        return self.list(request, *args, **kwargs)
 
 
 class RefererEmailView(APIView):
@@ -279,5 +287,3 @@ class RefererEmailView(APIView):
             return Response({'detail': _('Verification e-mail sent.')})
         except (ValidationError, AttributeError):
             return Response({'email': _('Email is not valid.')}, status=status.HTTP_400_BAD_REQUEST)
-
-

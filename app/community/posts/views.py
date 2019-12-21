@@ -7,13 +7,13 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from community.groups.models import Group
 from community.groups.permissions import GroupPermission, GroupPostPermission
-from community.groups.services import get_group
+from community.groups.services import get_group, get_followers_count
 from community.posts.filter_backends import FollowingFilterBackend, BlockersFilterBackend
 from community.posts.models import Like, Report
 from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
-from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer
-from community.posts.services import get_posts, get_likes, get_post
+from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer, LimitedPostSerializer
+from community.posts.services import get_posts, get_likes, get_post, get_posts_count
 from resources.curated_articles.services import get_company_curated_articles_data
 from resources.events.services import get_first_event_data
 from resources.masterclasses.services import get_first_masterclass_data
@@ -40,17 +40,22 @@ class PostViewSet(ModelViewSet):
         return Response(self.serializer_class(group.posts.all(), many=True, **{'context': context}).data)
 
     @action(
-        methods=['get'],
-        permission_classes=[IsAuthenticated],
-        detail=False,
-        pagination_class=None,
-        filter_backends=None
+        methods=['get'], permission_classes=[IsAuthenticated], detail=False, pagination_class=None, filter_backends=None
     )
     def company(self, request):
         return Response({
             'event': get_first_event_data(),
             'masterclass':  get_first_masterclass_data(),
             'articles': get_company_curated_articles_data(),
+        })
+
+    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=False, filter_backends=None,
+            serializer_class=LimitedPostSerializer)
+    def all(self, request):
+        return Response({
+            'count': get_posts_count(),
+            'followers': get_followers_count(),
+            'posts': self.serializer_class(self.get_queryset(), many=True).data,
         })
 
 

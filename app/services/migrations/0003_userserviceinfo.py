@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'User Service Info',
-                'verbose_name_plural': 'User Service Infos',
+                'verbose_name_plural': 'User Service Info',
             },
         ),
     ]

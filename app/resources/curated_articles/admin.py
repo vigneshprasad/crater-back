@@ -9,7 +9,7 @@ from utils.mixins import ViewActionMixin
 @register(CuratedArticle)
 class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'local_library'
-    list_display = ('title', 'created', 'tags', 'website', 'website_url', 'image', 'action')
+    list_display = ('title', 'created', 'tags', 'website', 'image', 'action')
     list_filter = ('created', 'tag__name')
     search_fields = ('title', 'website_tag__name', 'website_tag__url')
 

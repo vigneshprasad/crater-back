@@ -72,6 +72,24 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
         return CommentSerializer(post.comments.all()[:2], many=True).data
 
 
+class LimitedPostSerializer(PostSerializer):
+
+    class Meta:
+        model = Post
+        fields = (
+            'pk',
+            'message',
+            'files_base64',
+            'files_urls',
+            'files',
+            'creator',
+            'creator_name',
+            'created',
+            'likes',
+            'comments',
+        )
+
+
 class LikeSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     request_user = 'user'
 

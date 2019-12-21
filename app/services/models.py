@@ -148,7 +148,7 @@ class UserServiceInfo(models.Model):
 
     class Meta:
         verbose_name = _('User Service Info')
-        verbose_name_plural = _('User Service Infos')
+        verbose_name_plural = _('User Service Info')
 
 
 class InvestorServiceInfo(models.Model):
@@ -194,7 +194,7 @@ class InvestorServiceInfo(models.Model):
 
     class Meta:
         verbose_name = _('User Investor Info')
-        verbose_name_plural = _('User Investor Infos')
+        verbose_name_plural = _('User Investor Info')
 
 
 
