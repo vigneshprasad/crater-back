@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'User Investor Info',
-                'verbose_name_plural': 'User Investor Infos',
+                'verbose_name_plural': 'User Investor Info',
             },
         ),
     ]

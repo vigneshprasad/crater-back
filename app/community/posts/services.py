@@ -5,6 +5,10 @@ def get_posts():
     return Post.objects.all()
 
 
+def get_posts_count():
+    return Post.objects.count()
+
+
 def get_post(pk):
     return Post.objects.get(pk=pk)
 

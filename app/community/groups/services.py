@@ -19,3 +19,7 @@ def get_blockers():
 
 def get_followers():
     return Following.objects.all()
+
+
+def get_followers_count():
+    return Following.objects.count()

@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework import status
 from unittest.mock import patch
 
-from django.contrib.auth import models as auth_models, get_user_model
+from django.contrib.auth import models as auth_models
 from django.contrib.auth.tokens import default_token_generator
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
@@ -16,7 +16,7 @@ from rest_auth.utils import jwt_encode
 from locations import models as locations_models
 from payment.models import BankDetails
 from services import models as services_models
-from tags.models import Tag, Industry, Company, Funding
+from tags.models import Tag, Industry, Company, Funding, CityProxy, WorkCityProxy
 from users import models
 from utils.file_test_service import get_test_base64_image
 
@@ -52,7 +52,8 @@ class AuthTestCase(TestCase):
         }
 
         self.country = locations_models.Country.objects.create(name='Country')
-        self.city = locations_models.City.objects.create(name='City', country=self.country)
+        self.city = CityProxy.objects.create(name='City', country=self.country)
+        self.work_city = WorkCityProxy.objects.create(name='City', country=self.country)
         self.tag = Tag.objects.create(name='Tag')
 
     def test_login_success(self):
@@ -364,7 +365,7 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 404)
 
     def test_profile_get_success(self):
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         models.Profile.objects.create(
             user=self.user,
             name='Testy',
@@ -387,7 +388,9 @@ class AuthTestCase(TestCase):
         }
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
-        self.assertDictEqual(data, resp.json())
+        result = resp.json()
+        result.pop('pk')
+        self.assertDictEqual(data, result)
 
     @patch('users.models.User.send_sms', autospec=True)
     def test_set_phone_number(self, send_sms):
@@ -446,7 +449,7 @@ class AuthTestCase(TestCase):
 
     def test_profile_set_success(self):
         endpoint = self.endpoints.get('user-profile')
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         data = {
             'name': 'Test',
             'tags': [self.tag.pk],
@@ -465,7 +468,7 @@ class AuthTestCase(TestCase):
 
     def test_profile_set_success_full_info(self):
         endpoint = self.endpoints.get('user-profile')
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         data = {
             'name': 'Test',
             'tags': [self.tag.pk],
@@ -486,7 +489,9 @@ class AuthTestCase(TestCase):
         self.assertTrue(self.user.has_profile)
         data.pop('tags')
         data['tag_list'] = [{'name': self.tag.name, 'pk': self.tag.pk}]
-        self.assertDictEqual(data, resp.json())
+        result = resp.json()
+        result.pop('pk')
+        self.assertDictEqual(data, result)
 
     def test_profile_change_success(self):
         endpoint = self.endpoints.get('user-profile')
@@ -494,7 +499,7 @@ class AuthTestCase(TestCase):
             user=self.user,
             name='Testy'
         )
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         data = {
             'name': 'Test',
             'introduction': 'Introduction',
@@ -626,7 +631,7 @@ class AuthTestCase(TestCase):
     def test_network_people_list(self):
         self.user.is_approved = True
         self.user.save(update_fields=['is_approved'])
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         models.Profile.objects.create(
             user=self.user,
             name='Testy',
@@ -649,7 +654,7 @@ class AuthTestCase(TestCase):
             name='User 2',
             is_approved=True
         )
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         models.Profile.objects.create(
             user=self.user,
             name='Testy',
@@ -679,7 +684,7 @@ class AuthTestCase(TestCase):
             name='User 2',
             is_approved=True
         )
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         models.Profile.objects.create(
             user=self.user,
             name='Testy',
@@ -709,7 +714,7 @@ class AuthTestCase(TestCase):
             name='User 2',
             is_approved=True
         )
-        city = locations_models.City.objects.create(name='Work City', is_work=True, country=self.country)
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         models.Profile.objects.create(
             user=self.user,
             name='Testy',
@@ -727,6 +732,64 @@ class AuthTestCase(TestCase):
         response = self.auth_client.get(f'{url}?tags={self.tag.pk}&search=wrong')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
+
+    def test_other_profile_authentication_required(self):
+        url = reverse('v1:users:other-profile', args=(1,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_network_people_detail_other_profile(self):
+        self.user.is_approved = True
+        self.user.save(update_fields=['is_approved'])
+        user2 = models.User.objects.create(
+            email='user2@email.com',
+            name='User 2',
+            is_approved=True
+        )
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy',
+            work_city=city,
+            introduction='Introduction',
+        )
+        profile2 = models.Profile.objects.create(
+            user=user2,
+            name='Test 2',
+            work_city=city,
+            introduction='Introduction 2',
+        )
+        url = reverse('v1:users:other-profile', args=(profile2.pk,))
+        response = self.auth_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'Test 2')
+        self.assertEqual(response.data['introduction'], 'Introduction 2')
+
+    def test_network_people_detail_other_profile_not_found(self):
+        self.user.is_approved = True
+        self.user.save(update_fields=['is_approved'])
+        user2 = models.User.objects.create(
+            email='user2@email.com',
+            name='User 2',
+            is_approved=True
+        )
+        city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
+        models.Profile.objects.create(
+            user=self.user,
+            name='Testy',
+            work_city=city,
+            introduction='Introduction',
+        )
+        profile2 = models.Profile.objects.create(
+            user=user2,
+            name='Test 2',
+            work_city=city,
+            introduction='Introduction 2',
+        )
+        url = reverse('v1:users:other-profile', args=(profile2.pk,))
+        profile2.delete()
+        response = self.auth_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_user_services_get_fail_unauth(self):
         endpoint = self.endpoints.get('user-services-details')
@@ -940,7 +1003,7 @@ class RefererTestCase(TestCase):
         }
 
         self.country = locations_models.Country.objects.create(name='Country')
-        self.city = locations_models.City.objects.create(name='City', country=self.country)
+        self.city = CityProxy.objects.create(name='City', country=self.country)
         self.tag = Tag.objects.create(name='Tag')
 
     def test_refer_friend_authentication_required(self):

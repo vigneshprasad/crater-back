@@ -15,6 +15,7 @@ admin.site.unregister(Group)
 
 class ProfileAdmin(admin.StackedInline):
     model = Profile
+    autocomplete_fields = ['work_city']
 
 
 @admin.register(get_user_model())
@@ -42,6 +43,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             'classes': ['collapse in']
         }),
     )
+    autocomplete_fields = ['city']
     readonly_fields = ['referer']
     inlines = [ProfileAdmin]
 

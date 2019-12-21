@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 
-from services.models import Category, ServiceType, Service
+from services.models import Category, ServiceType, Service, UserServiceInfo, InvestorServiceInfo
 from utils.mixins import ViewActionMixin
 
 
@@ -31,3 +31,43 @@ class ServiceAdmin(ViewActionMixin, ModelAdmin):
     list_filter = ['status']
     search_fields = ['user__email', 'service_type__name']
 
+
+@register(UserServiceInfo)
+class UserServiceInfoAdmin(ViewActionMixin, ModelAdmin):
+    """
+    User Service instance Info
+    """
+    icon_name = 'extension'
+    list_display = (
+        'user',
+        'years_of_experience',
+        'bar_council',
+        'followers',
+        'action'
+    )
+    readonly_fields = ['user']
+    search_fields = ['user__email']
+
+    def has_add_permission(self, request):
+        return False
+
+
+@register(InvestorServiceInfo)
+class InvestorServiceInfoAdmin(ViewActionMixin, ModelAdmin):
+    """
+    User Service instance Info
+    """
+    icon_name = 'extension'
+    list_display = (
+        'user',
+        'years_of_experience',
+        'number_of_startups',
+        'connect_with_us',
+        'process',
+        'action'
+    )
+    readonly_fields = ['user']
+    search_fields = ['user__email']
+
+    def has_add_permission(self, request):
+        return False

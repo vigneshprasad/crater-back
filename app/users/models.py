@@ -28,7 +28,7 @@ class User(AbstractUser):
     email = models.EmailField(_('Email'), unique=True, null=True)
     name = models.CharField(_('Name'), max_length=100)
     city = models.ForeignKey(
-        'locations.City',
+        'tags.CityProxy',
         verbose_name=_('City'),
         null=True,
         related_name='users',
@@ -284,7 +284,7 @@ class Profile(models.Model):
         blank=True
     )
     work_city = models.ForeignKey(
-        'locations.City',
+        'tags.WorkCityProxy',
         null=True,
         verbose_name=_('Work city'),
         on_delete=models.CASCADE

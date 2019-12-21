@@ -14,7 +14,6 @@ from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers, exceptions
 
-from locations.models import City
 from tags.serializers import TagSerializer
 from utils import messages
 from utils.fields import Base64FileField
@@ -370,10 +369,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         },
         allow_blank=True
     )
-    work_city = serializers.PrimaryKeyRelatedField(
-        queryset=City.objects.filter(is_work=True),
-        allow_null=True
-    )
     photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
     cover = Base64FileField(
         file_formats=['.jpg', '.png', '.tiff', '.bmp',  '.mov', '.mpeg', '.avi', '.mp4', '.3gp', '.mwv', '.flv'],
@@ -384,6 +379,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Profile
         fields = (
+            'pk',
             'name',
             'tag_line',
             'photo',
