@@ -45,3 +45,14 @@ class IndustrySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Industry
         fields = ('pk', 'name')
+
+
+class ArticleWebsiteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.SourceWebsite
+        fields = (
+            'pk',
+            'name',
+            'url',
+        )

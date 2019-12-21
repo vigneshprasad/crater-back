@@ -26,7 +26,6 @@ class RSVPDAdmin(TabularInline):
 class EventAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'event'
     list_display = ('title', 'date', 'start', 'end', 'state', 'action')
-    list_editable = ('date', 'start', 'end')
     list_filter = ('state', ('date', DateFieldListFilter))
     search_fields = ('title',)
     readonly_fields = ('state',)

@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from resources.curated_articles.models import SourceWebsite, CuratedArticle
+from resources.curated_articles.models import CuratedArticle
 
 
 class CuratedArticleSerializer(serializers.ModelSerializer):
     tag = serializers.CharField(source='tag.name')
-    website = serializers.CharField(source='website.name')
-    website_url = serializers.CharField(source='website.url')
+    website_tag = serializers.CharField(source='website_tag.name')
+    website_url = serializers.CharField(source='website_tag.url')
 
     class Meta:
         model = CuratedArticle
@@ -16,19 +16,7 @@ class CuratedArticleSerializer(serializers.ModelSerializer):
             'text',
             'picture',
             'tag',
-            'website',
+            'website_tag',
             'website_url',
             'created',
         )
-
-
-class ArticleWebsiteSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = SourceWebsite
-        fields = (
-            'pk',
-            'name',
-            'url',
-        )
-

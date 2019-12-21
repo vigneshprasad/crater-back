@@ -195,8 +195,6 @@ class User(AbstractUser):
                         template_name=choices.template_names.get('verify_email'), content={},
                         merge_vars=data)
 
-
-
     @property
     def email_verified(self):
         return self.emailaddress_set.filter(email=self.email, verified=True).exists()

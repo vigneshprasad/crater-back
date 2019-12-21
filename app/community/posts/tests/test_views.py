@@ -8,10 +8,10 @@ from rest_framework.test import APITestCase
 from community.groups.models import Location, Group, UserRequest
 from community.posts.models import Post, Like, Report
 from locations.models import Country, City
-from resources.curated_articles.models import SourceWebsite, CuratedArticle
+from resources.curated_articles.models import CuratedArticle
 from resources.events.models import Event
 from resources.masterclasses.models import MasterClass
-from tags.models import MasterClassTag, ArticleTag
+from tags.models import MasterClassTag, ArticleTag, SourceWebsite
 from utils.file_test_service import get_test_base64_image, get_test_image
 
 
@@ -418,15 +418,15 @@ class CompanyPostView(APITestCase):
         article_tag = ArticleTag.objects.create(name='Tag 1')
         website = SourceWebsite.objects.create(name='Website 1', url='http://test.com')
         CuratedArticle.objects.bulk_create([
-            CuratedArticle(title='Article 1', text='Text 1', tag=article_tag, website=website),
-            CuratedArticle(title='Article 2', text='Text 2', tag=article_tag, website=website),
-            CuratedArticle(title='Article 3', text='Text 3', tag=article_tag, website=website),
-            CuratedArticle(title='Article 4', text='Text 4', tag=article_tag, website=website),
-            CuratedArticle(title='Article 5', text='Text 5', tag=article_tag, website=website),
-            CuratedArticle(title='Article 6', text='Text 6', tag=article_tag, website=website),
-            CuratedArticle(title='Article 7', text='Text 7', tag=article_tag, website=website),
-            CuratedArticle(title='Article 8', text='Text 8', tag=article_tag, website=website),
-            CuratedArticle(title='Article 9', text='Text 9', tag=article_tag, website=website),
+            CuratedArticle(title='Article 1', text='Text 1', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 2', text='Text 2', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 3', text='Text 3', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 4', text='Text 4', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 5', text='Text 5', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 6', text='Text 6', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 7', text='Text 7', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 8', text='Text 8', tag=article_tag, website_tag=website),
+            CuratedArticle(title='Article 9', text='Text 9', tag=article_tag, website_tag=website),
         ])
 
         response = self.client.post(
