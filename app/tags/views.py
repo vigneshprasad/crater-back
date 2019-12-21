@@ -1,7 +1,8 @@
 from rest_framework import viewsets, mixins, permissions
 
 from . import models, serializers
-from .serializers import ArticleTagSerializer
+from .serializers import ArticleTagSerializer, ArticleWebsiteSerializer
+from .services import get_websites
 
 
 class TagViewSet(mixins.RetrieveModelMixin,
@@ -43,3 +44,9 @@ class IndustryViewSet(mixins.RetrieveModelMixin,
     queryset = models.Industry.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.IndustrySerializer
+
+
+class WebsiteViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    serializer_class = ArticleWebsiteSerializer
+    queryset = get_websites()
+    permission_classes = [permissions.IsAuthenticated]

@@ -13,6 +13,9 @@ class Country(models.Model):
         verbose_name_plural = _('Countries')
         ordering = ['name']
 
+    def __str__(self):
+        return self.name
+
 
 class City(models.Model):
     country = models.ForeignKey(
@@ -28,11 +31,12 @@ class City(models.Model):
         default=False,
         verbose_name=_('Is work')
     )
+    order = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         verbose_name = _('City')
         verbose_name_plural = _('Cities')
-        ordering = ['name']
+        ordering = ['order', 'name']
 
     def __str__(self):
         return self.name

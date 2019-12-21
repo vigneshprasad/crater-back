@@ -5,6 +5,7 @@ from timezone_field import TimeZoneField
 
 from locations.models import City
 from resources.events.choices import EVENT_STATE
+from tags.models import EventTag
 
 
 class Event(models.Model):
@@ -23,6 +24,13 @@ class Event(models.Model):
     capacity = models.PositiveIntegerField(_('Venue capacity'), null=True)
     state = models.CharField(_('State'), choices=EVENT_STATE, default='upcoming', max_length=16)
     timezone = TimeZoneField(default='Asia/Kolkata')
+    tag = models.ForeignKey(
+        EventTag,
+        verbose_name=_('Event Tag'),
+        on_delete=models.CASCADE,
+        related_name='events',
+        null=True
+    )
 
     class Meta:
         verbose_name = _('Event')

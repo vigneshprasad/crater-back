@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from tags import models
+from tags.models import SourceWebsite
 from users import models as user_models
 
 
@@ -120,3 +121,37 @@ class MasterClassTagTestCase(APITestCase):
         self.assertEqual(response.data[1]['name'], 'Tag 2')
         self.assertEqual(response.data[2]['name'], 'Tag 3')
 
+
+class TestWebsiteView(APITestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create(
+            email='user@user.com',
+            name='user',
+            username='User',
+            is_superuser=False,
+            is_active=True,
+            is_staff=True,
+            password=make_password('123qaz123!A')
+        )
+
+    def test_websites_authentication_required(self):
+        url = reverse('v1:tags:sourcewebsite-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_websites(self):
+        SourceWebsite.objects.create(name='Website 1', url='http://test.com')
+        SourceWebsite.objects.create(name='Website 2', url='http://test.com')
+        SourceWebsite.objects.create(name='Website 3', url='http://test.com')
+        url = reverse('v1:tags:sourcewebsite-list')
+        response = self.client.post(
+            reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
+        )
+        token = response.data['token']
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+        self.assertEqual(response.data[0]['name'], 'Website 1')
+        self.assertEqual(response.data[1]['name'], 'Website 2')
+        self.assertEqual(response.data[2]['name'], 'Website 3')

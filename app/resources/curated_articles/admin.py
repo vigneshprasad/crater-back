@@ -2,7 +2,7 @@ from django.contrib.admin import ModelAdmin, register
 from django.utils.safestring import mark_safe
 from django.conf import settings
 
-from resources.curated_articles.models import CuratedArticle, SourceWebsite
+from resources.curated_articles.models import CuratedArticle
 from utils.mixins import ViewActionMixin
 
 
@@ -11,11 +11,15 @@ class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'local_library'
     list_display = ('title', 'created', 'tags', 'website', 'website_url', 'image', 'action')
     list_filter = ('created', 'tag__name')
-    search_fields = ('title', 'website__name', 'website__url')
+    search_fields = ('title', 'website_tag__name', 'website_tag__url')
 
     @staticmethod
     def tags(curated_article):
         return mark_safe(f'<span class="new badge" data-badge-caption="{curated_article.tag}"></span>')
+
+    @staticmethod
+    def website(curated_article):
+        return mark_safe(f'<span class="new badge" data-badge-caption="{curated_article.website_tag}"></span>')
 
     @staticmethod
     def image(curated_article):
@@ -27,12 +31,6 @@ class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
 
     @staticmethod
     def website_url(curated_article):
-        if not curated_article.website.url:
+        if not curated_article.website_tag or not curated_article.website_tag.url:
             return mark_safe('<i class="material-icons red-color medium-icon">highlight_off</i>')
-        return mark_safe(f'<a href="{curated_article.website.url}">{curated_article.website.url}</a>')
-
-
-@register(SourceWebsite)
-class SourceWebsiteAdmin(ModelAdmin):
-    icon_name = 'launch'
-    list_display = ('name', 'url')
+        return mark_safe(f'<a href="{curated_article.website_tag.url}">{curated_article.website_tag.url}</a>')

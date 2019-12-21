@@ -7,8 +7,16 @@ from locations.models import Country, City
 
 class CityInline(admin.TabularInline):
     model = City
+    fields = ('id', 'name', 'country', 'is_work')
     ordering = ('name',)
+    can_delete = False
     extra = 0
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @register(Country)

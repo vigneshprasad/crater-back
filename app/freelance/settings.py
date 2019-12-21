@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'corsheaders',
     'djrill',
+    'adminsortable2',
 
     'users',
     'locations',

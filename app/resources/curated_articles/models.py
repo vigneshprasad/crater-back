@@ -5,22 +5,6 @@ from model_utils.models import TimeStampedModel
 from tags.models import ArticleTag
 
 
-class SourceWebsite(models.Model):
-    """
-    Source Website for Article created by admin
-    """
-    name = models.CharField(_('Name'), max_length=255)
-    url = models.URLField(_('Url'), max_length=255, blank=True, null=True)
-
-    class Meta:
-        verbose_name = _('Source Website')
-        verbose_name_plural = _('Source Websites')
-        db_table = 'resources_websites'
-
-    def __str__(self):
-        return self.name
-
-
 class CuratedArticle(TimeStampedModel):
     """
     Curated Article created by admin
@@ -35,8 +19,12 @@ class CuratedArticle(TimeStampedModel):
         related_name='curated_articles',
         null=True
     )
-    website = models.ForeignKey(
-        SourceWebsite, verbose_name=_('Source Website'), on_delete=models.CASCADE, related_name='website_articles'
+    website_tag = models.ForeignKey(
+        'tags.SourceWebsite',
+        verbose_name=_('Source Website'),
+        on_delete=models.CASCADE,
+        related_name='website_articles',
+        null=True
     )
 
     class Meta:
