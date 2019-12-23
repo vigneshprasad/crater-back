@@ -9,7 +9,7 @@ from resources.events.models import Event
 
 class Comment(TimeStampedModel):
     """
-    User's post in community chat
+    User's post in community chat and groups
     """
     message = models.TextField(_('Comment Message'))
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', null=True)

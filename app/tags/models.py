@@ -138,6 +138,9 @@ class SourceWebsite(models.Model):
 
 
 class CityProxy(City):
+    """
+    City proxy model with relation to City, which is_work value is False
+    """
     proxy = True
 
     class Meta:
@@ -147,6 +150,9 @@ class CityProxy(City):
 
 
 class WorkCityProxy(City):
+    """
+    City proxy model with relation to City, which is_work value is True
+    """
     proxy = True
 
     class Meta:
