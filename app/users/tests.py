@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_auth.utils import jwt_encode
+from rest_framework import status
 
 from locations import models as locations_models
 from payment.models import BankDetails
@@ -812,6 +813,8 @@ class AuthTestCase(TestCase):
             'followers': None,
             'industries': [],
             'services': [],
+            'generate_business': False,
+            'professional_service_provider': False
         }
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
@@ -827,6 +830,8 @@ class AuthTestCase(TestCase):
             'followers': 100,
             'industries': [industry.pk, industry2.pk],
             'services': [],
+            'generate_business': False,
+            'professional_service_provider': False
         }
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
         self.assertEqual(200, resp.status_code)
@@ -844,6 +849,8 @@ class AuthTestCase(TestCase):
             'bar_council': 'text',
             'followers': 100,
             'industries': [industry.pk, industry2.pk],
+            'professional_service_provider': True,
+            'generate_business': True,
             'services': [],
         }
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
@@ -855,6 +862,8 @@ class AuthTestCase(TestCase):
         self.assertEqual(services.followers, 100)
         self.assertIn(industry, services.industries.all())
         self.assertIn(industry2, services.industries.all())
+        self.assertTrue(services.professional_service_provider)
+        self.assertTrue(services.generate_business)
 
     def test_user_investor_services_get_fail_unauth(self):
         endpoint = self.endpoints.get('user-investor-details')
@@ -925,6 +934,8 @@ class AuthTestCase(TestCase):
             'kind_of_funding': [funding.pk],
             'companies': [company.pk],
             'connect_with_us': True,
+            'understand': True,
+            'reach_out': True,
             'process': 'Text',
             'attachments': ['First attach', 'Second attach'],
             'questions': ['First question', 'Second question'],
