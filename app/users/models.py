@@ -162,10 +162,10 @@ class User(AbstractUser):
 
     @staticmethod
     def _send_sms(phone_number, message):
-        send_twilio_message.delay(phone_number, message)
+        send_twilio_message.delay(str(phone_number), message)
 
     def send_sms(self, message):
-        self._send_sms(self.phone_number, message)
+        self._send_sms(str(self.phone_number), message)
 
     def send_push(self, data, message):
         devices = self.devices.filter(is_active=True)
