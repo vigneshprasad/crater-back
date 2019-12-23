@@ -21,6 +21,7 @@ from services import serializers as service_serializers, models as service_model
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, choices
+from .paginators import Pagination
 from .swagger_schemas import referer_email
 from .tasks import send_email
 
@@ -322,3 +323,24 @@ class RefererEmailView(APIView):
             return Response({'detail': _('Verification e-mail sent.')})
         except (ValidationError, AttributeError):
             return Response({'email': _('Email is not valid.')}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InvestorsViewSet(mixins.ListModelMixin,
+                       viewsets.GenericViewSet):
+    queryset = models.Profile.objects.filter(
+        user__groups__name='Investor',
+        user__bank_details__isnull=False,
+        user__investor_services_info__isnull=False,
+        user__is_active=True,
+        user__is_superuser=False,
+        user__investor_services_info__reach_out=True
+    ).order_by('name')
+
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = Pagination
+    serializer_class = serializers.ProfileSerializer
+    filterset_fields = [
+        'user__investor_services_info__kind_of_funding',
+        'user__investor_services_info__companies',
+        'work_city'
+    ]

@@ -1,10 +1,8 @@
 from unittest import mock
+from unittest.mock import patch
 
 from cryptography.fernet import Fernet
 from django.conf import settings
-from rest_framework import status
-from unittest.mock import patch
-
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.tokens import default_token_generator
 from django.test import TestCase, Client, override_settings
@@ -1044,3 +1042,104 @@ class RefererTestCase(TestCase):
         self.assertEqual(resp.status_code, 201)
         user = models.User.objects.get(email='test1@email.com')
         self.assertEqual(user.referer.email, 'test@email.com')
+
+
+class InvestorTestCase(TestCase):
+    def setUp(self):
+        self.country = locations_models.Country.objects.create(name='Country')
+        self.city = CityProxy.objects.create(name='City', country=self.country)
+        self.work_city = WorkCityProxy.objects.create(name='WorkCity', country=self.country)
+        self.work_city2 = WorkCityProxy.objects.create(name='WorkCity2', country=self.country)
+        self.tag = Tag.objects.create(name='Tag')
+        group = auth_models.Group.objects.get(name='Investor')
+        self.fund1 = Funding.objects.create(name='Fund')
+        self.fund2 = Funding.objects.create(name='Fund2')
+        self.company = Company.objects.create(name='Company')
+        self.company2 = Company.objects.create(name='Company2')
+        for i in range(1, 21):
+            user = models.User.objects.create(
+                email=f'test{i}@email.com',
+                name='ftest ltest',
+                city=self.city,
+            )
+            models.Profile.objects.create(
+                user=user,
+                name='Testy',
+                work_city=self.work_city if i <= 5 else self.work_city2
+            )
+            s = services_models.InvestorServiceInfo.objects.create(
+                user=user,
+                attachments=[],
+                questions=[],
+                reach_out=True
+            )
+            if i > 10:
+                s.kind_of_funding.add(self.fund1)
+                s.companies.add(self.company)
+                if i > 15:
+                    s.kind_of_funding.add(self.fund2)
+                    s.companies.add(self.company2)
+            BankDetails.objects.create(
+                user=user,
+                membership='basic',
+                terms_and_condition=True
+            )
+            user.groups.add(group)
+            user.save()
+        self.user = models.User.objects.create(
+            email='test@email.com',
+            name='ftest ltest'
+        )
+        group = auth_models.Group.objects.get(name='User')
+        self.user.groups.add(group)
+        self.user.set_password('Qwer1234!')
+        self.user.save()
+        self.token = jwt_encode(self.user)
+        self.client = Client()
+        self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
+        self.endpoints = {
+            'investor': reverse('v1:users:investors-list'),
+        }
+
+    def test_get_fail_unauth(self):
+        endpoint = self.endpoints.get('investor')
+        resp = self.client.get(endpoint, content_type='application/json')
+        self.assertEqual(401, resp.status_code)
+
+    def test_get_success(self):
+        endpoint = self.endpoints.get('investor')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(20, len(resp.json()['results']))
+
+    def test_get_success_with_custom_pagination(self):
+        endpoint = self.endpoints.get('investor')
+        resp = self.auth_client.get(f'{endpoint}?page_size=5', content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(5, len(resp.json()['results']))
+
+    def test_get_success_with_fund_filter(self):
+        endpoint = self.endpoints.get('investor')
+        resp = self.auth_client.get(
+            f'{endpoint}?user__investor_services_info__kind_of_funding={self.fund1.pk}&user__investor_services_info__kind_of_funding={self.fund2.pk}',
+            content_type='application/json'
+        )
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(10, len(resp.json()['results']))
+
+    def test_get_success_with_company_filter(self):
+        endpoint = self.endpoints.get('investor')
+        resp = self.auth_client.get(
+            f'{endpoint}?user__investor_services_info__companies={self.company.pk}&user__investor_services_info__companies={self.company2.pk}',
+            content_type='application/json'
+        )
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(10, len(resp.json()['results']))
+
+    def test_get_success_with_work_city_filter(self):
+        endpoint = self.endpoints.get('investor')
+        resp = self.auth_client.get(
+            f'{endpoint}?work_city={self.work_city2.pk}',
+            content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(15, len(resp.json()['results']))

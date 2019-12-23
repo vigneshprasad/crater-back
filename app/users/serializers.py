@@ -1,6 +1,6 @@
-import cryptography
 import logging
 
+import cryptography
 from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
@@ -236,13 +236,15 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'role',
             'full_registered',
             'has_profile',
-            'has_bank_details'
+            'has_bank_details',
+            'has_services'
         )
         read_only_fields = (
             'email',
             'full_registered',
             'has_profile',
             'has_bank_details',
+            'has_services',
             'phone_number_verified',
             'email_verified',
             'phone_number',

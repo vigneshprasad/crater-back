@@ -13,6 +13,10 @@ register_router.register('verify', views.VerificationView, base_name='verify')
 register_router.register('user_services', views.UserServicesViewSet, base_name='services')
 register_router.register('investor_services', views.InvestorServicesViewSet, base_name='investor-services')
 
+
+router = routers.SimpleRouter()
+router.register('investors', views.InvestorsViewSet, base_name='investors')
+
 auth_urlpatterns = [
 
     path('logout/', views.LogoutView.as_view(), name='rest_logout'),
@@ -38,6 +42,8 @@ auth_urlpatterns = [
     path('network/', views.NetworkView.as_view(), name='network'),
     path('network/<pk>/', views.NetworkView.as_view(), name='other-profile'),
     path('referer/', views.RefererEmailView.as_view(), name='referer'),
+
+    path('', include(router.urls))
 
 ]
 
