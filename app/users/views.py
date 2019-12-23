@@ -1,18 +1,19 @@
 from cryptography.fernet import Fernet
+from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.conf import settings
-from django_filters.rest_framework import DjangoFilterBackend
 from django.urls import reverse_lazy
+from django.utils.translation import ugettext_lazy as _
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_auth.views import LogoutView as RestLogoutView
-from rest_framework import mixins, viewsets, permissions, status, generics
+from rest_framework import filters
+from rest_framework import mixins, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework import filters
 from rest_framework.views import APIView
 
 from payment import models as payment_models, serializers as payment_serializers
@@ -20,8 +21,6 @@ from services import serializers as service_serializers, models as service_model
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, choices
-from django.utils.translation import ugettext_lazy as _
-
 from .swagger_schemas import referer_email
 from .tasks import send_email
 
@@ -176,6 +175,42 @@ class UserServicesViewSet(mixins.CreateModelMixin,
     queryset = service_models.UserServiceInfo.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="""
+        Request example
+            {
+            'years_of_experience': 'less_1_year',
+            'bar_council': 'text',
+            'followers': 100,
+            'industries': [industry_pk, industry2_pk],
+            'services': [
+                {
+                    'pk': 1, # if pk exists and service with that pk yours server update service
+                    'service_type': service_type_pk,
+                    'price_type': 'price',
+                    'price': 100,
+                    'timeline': 60,
+                    'revision': 5,
+                    'includes': 'test',
+                    'attachments': ['1','2'],
+                    'questions': ['1','2']
+
+                },
+                {
+                    'service_type': service_type_pk,
+                    'price_type': 'price',
+                    'price': 100,
+                    'timeline': 60,
+                    'revision': 5,
+                    'includes': 'test',
+                    'attachments': ['1', '2'],
+                    'questions': ['1', '2']
+
+                }
+            ],
+        }
+        """
+    )
     def create(self, request, *args, **kwargs):
         if hasattr(request.user, 'user_services_info') and request.user.user_services_info:
             serializer = self.get_serializer(data=request.data, instance=request.user.user_services_info, partial=True)

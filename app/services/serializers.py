@@ -61,7 +61,9 @@ class UserServicesSerializer(serializers.ModelSerializer):
             'bar_council',
             'followers',
             'industries',
-            'services'
+            'services',
+            'professional_service_provider',
+            'generate_business'
         ]
 
     def create(self, validated_data):
@@ -116,4 +118,6 @@ class InvestorServicesSerializer(serializers.ModelSerializer):
             'process',
             'attachments',
             'questions',
+            'understand',
+            'reach_out'
         ]

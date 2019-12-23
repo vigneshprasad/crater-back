@@ -145,6 +145,14 @@ class UserServiceInfo(models.Model):
         'services.Service',
         related_name='user_infos'
     )
+    professional_service_provider = models.BooleanField(
+        default=False,
+        verbose_name=_('Professional service provider')
+    )
+    generate_business = models.BooleanField(
+        default=False,
+        verbose_name=_('Generate business')
+    )
 
     class Meta:
         verbose_name = _('User Service Info')
@@ -190,6 +198,14 @@ class InvestorServiceInfo(models.Model):
     questions = ArrayField(
         models.CharField(max_length=255),
         size=3,
+    )
+    understand = models.BooleanField(
+        default=False,
+        verbose_name=_('Understand')
+    )
+    reach_out = models.BooleanField(
+        default=False,
+        verbose_name=_('Reach out')
     )
 
     class Meta:
