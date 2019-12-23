@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from tags.models import Industry
 from . import models
 
 
@@ -53,6 +54,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class UserServicesSerializer(serializers.ModelSerializer):
     services = ServiceSerializer(many=True)
+    industries = serializers.PrimaryKeyRelatedField(allow_empty=True, many=True, queryset=Industry.objects.all())
 
     class Meta:
         model = models.UserServiceInfo

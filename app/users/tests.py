@@ -347,6 +347,7 @@ class AuthTestCase(TestCase):
             'full_registered': False,
             'has_profile': False,
             'has_bank_details': False,
+            'has_services': False,
             'phone_number': '',
             'phone_number_verified': False,
             'role': 'user'
@@ -827,6 +828,23 @@ class AuthTestCase(TestCase):
             'bar_council': 'text',
             'followers': 100,
             'industries': [industry.pk, industry2.pk],
+            'services': [],
+            'generate_business': False,
+            'professional_service_provider': False
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertDictEqual(data, resp.json())
+
+    def test_user_services_post_success_without_services_empty_industries(self):
+        endpoint = self.endpoints.get('user-services-details')
+        industry = Industry.objects.create(name='Industry')
+        industry2 = Industry.objects.create(name='Industry2')
+        data = {
+            'years_of_experience': 'less_1_year',
+            'bar_council': 'text',
+            'followers': 100,
+            'industries': [],
             'services': [],
             'generate_business': False,
             'professional_service_provider': False
