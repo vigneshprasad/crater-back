@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from users.filters import GroupNameFilter
+from users.filters import GroupNameAdminFilter, GroupNameUserFilter
 from users.forms import AdminCreationForm, UserForm
 from users.models import Profile, Admin
 from utils.mixins import ViewActionMixin
@@ -31,7 +31,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     list_display = ('name', 'email', 'group', 'date_joined', 'status', 'is_active', 'action')
     list_editable = ['is_active']
     search_fields = ('name', 'email')
-    list_filter = ('groups__name', 'is_active')
+    list_filter = ('is_active', GroupNameUserFilter)
     form = UserForm
     fieldsets = (
         ('Approvals', {
@@ -74,7 +74,7 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
 
     form = AdminCreationForm
     list_display = ('name', 'email', 'is_superuser', 'group', 'action')
-    list_filter = ('is_superuser', GroupNameFilter)
+    list_filter = ('is_superuser', GroupNameAdminFilter)
     search_fields = ('name', 'email')
     list_editable = ('name', 'is_superuser')
 
