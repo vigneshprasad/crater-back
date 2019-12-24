@@ -127,11 +127,11 @@ class User(AbstractUser):
 
     @property
     def has_profile(self):
-        return hasattr(self, 'profile') and self.profile
+        return bool(hasattr(self, 'profile') and self.profile)
 
     @property
     def has_bank_details(self):
-        return hasattr(self, 'bank_details') and self.bank_details
+        return bool(hasattr(self, 'bank_details') and self.bank_details)
 
     @property
     def full_registered(self):
@@ -147,9 +147,9 @@ class User(AbstractUser):
     @property
     def has_services(self):
         if self.role == 'user':
-            return hasattr(self, 'user_services_info') and self.user_services_info
+            return bool(hasattr(self, 'user_services_info') and self.user_services_info)
         elif self.role == 'investor':
-            return hasattr(self, 'investor_services_info') and self.investor_services_info
+            return bool(hasattr(self, 'investor_services_info') and self.investor_services_info)
         return None
 
     @property
