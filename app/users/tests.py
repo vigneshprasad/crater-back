@@ -384,6 +384,7 @@ class AuthTestCase(TestCase):
             'twitter': '',
             'additional_information': '',
             'work_city': city.pk,
+            'work_city_name':city.name,
             'public_profile': True
         }
         resp = self.auth_client.get(endpoint, content_type='application/json')
@@ -479,6 +480,7 @@ class AuthTestCase(TestCase):
             'focus': 'Focus',
             'additional_information': 'Information',
             'work_city': city.pk,
+            'work_city_name': city.name,
             'instagram': 'https://instagram.com/',
             'twitter': 'https://twitter.com/',
             'public_profile': True

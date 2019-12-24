@@ -377,6 +377,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_null=True
     )
     tag_list = TagSerializer(source='tags', many=True, read_only=True)
+    work_city_name = serializers.CharField(source='work_city.name', read_only=True)
 
     class Meta:
         model = models.Profile
@@ -392,6 +393,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'instagram',
             'twitter',
             'work_city',
+            'work_city_name',
             'tags',
             'tag_list',
             'public_profile'
