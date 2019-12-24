@@ -104,6 +104,8 @@ class User(AbstractUser):
                    content,
                    merge_vars,
                    from_email='no-reply@fwmail.scenario-projects.com'):
+        for d in merge_vars.values():
+            d.update({'front_url': settings.FRONT_URL})
         send_email.delay(
             subject=subject,
             to=to,

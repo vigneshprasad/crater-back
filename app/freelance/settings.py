@@ -273,3 +273,5 @@ ACCOUNT_LOGOUT_ON_GET = False
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'example')
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+FRONT_URL = os.getenv('FRONT_URL', 'front-dev-freelance.scenario-projects.com')

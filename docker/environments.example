@@ -19,3 +19,4 @@ ONESIGNAL_APP_ID=example
 ONESIGNAL_APIKEY=example
 
 STRIPE_API_KEY=example
+FRONT_URL=front-dev-freelance.scenario-projects.com
