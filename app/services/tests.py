@@ -26,9 +26,9 @@ class CategoryTestCase(TestCase):
         }
         file_mock = mock.MagicMock(spec=File)
         file_mock.name = 'test.jpg'
-        self.category = models.Category.objects.create(name='Category')
-        self.category2 = models.Category.objects.create(name='Category2', photo=file_mock)
-        self.category2.save()
+        self.category = models.ProfessionalCategoryProxy.objects.create(name='Category')
+        self.category2 = models.ProfessionalCategoryProxy.objects.create(name='Category2', photo=file_mock)
+        self.marketing = models.MarketingCategoryProxy.objects.create(name='Category3')
         self.service_type = models.ServiceType.objects.create(
             name='Type', category=self.category, description='Description', group='service'
         )
@@ -38,11 +38,11 @@ class CategoryTestCase(TestCase):
         resp = self.client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 401)
 
-    def test_tags_list_success(self):
+    def test_list_success(self):
         endpoint = self.endpoints.get('list')
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(2, len(resp.json()))
+        self.assertEqual(3, len(resp.json()))
         self.assertEqual('Category', resp.json()[0]['name'])
         self.assertEqual(1, len(resp.json()[0]['service_types']))
 
@@ -64,3 +64,17 @@ class CategoryTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual('Category2', resp.json()['name'])
         self.assertTrue(resp.json()['photo'])
+
+    def test_list_professional(self):
+        endpoint = self.endpoints.get('list')
+        resp = self.auth_client.get(f'{endpoint}?direction=professional', content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(2, len(resp.json()))
+
+    def test_list_marketing(self):
+        endpoint = self.endpoints.get('list')
+        resp = self.auth_client.get(f'{endpoint}?direction=marketing', content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(1, len(resp.json()))
+
+

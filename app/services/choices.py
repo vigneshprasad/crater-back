@@ -13,3 +13,8 @@ YEAR_OF_EXPERIENCE_CHOICES = (
     ('5-7', _('5-7 years')),
     ('8-10', _('8-10 years'))
 )
+
+DIRECTION_CHOICES = (
+    ('professional', _('Professional')),
+    ('marketing', _('Marketing'))
+)

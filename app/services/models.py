@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
-from services.choices import SERVICE_STATUS, YEAR_OF_EXPERIENCE_CHOICES
+from services.choices import SERVICE_STATUS, YEAR_OF_EXPERIENCE_CHOICES, DIRECTION_CHOICES
 
 
 class Category(TimeStampedModel):
@@ -17,10 +17,40 @@ class Category(TimeStampedModel):
         verbose_name=_('Photo'),
         null=True
     )
+    direction = models.CharField(
+        choices=DIRECTION_CHOICES,
+        max_length=100,
+        verbose_name=_('Direction'),
+        default='professional'
+    )
 
     class Meta:
         verbose_name = _('Category')
         verbose_name_plural = _('Categories')
+
+
+class ProfessionalCategoryProxy(Category):
+    """
+    Category proxy model with relation to City, which direction value is professional
+    """
+    proxy = True
+
+    class Meta:
+        verbose_name = _('Professional Category')
+        verbose_name_plural = _('Professional Categories')
+        ordering = ['name']
+
+
+class MarketingCategoryProxy(Category):
+    """
+    Category proxy model with relation to City, which direction value is marketing
+    """
+    proxy = True
+
+    class Meta:
+        verbose_name = _('Marketing Category')
+        verbose_name_plural = _('Marketing Categories')
+        ordering = ['name']
 
 
 class ServiceType(TimeStampedModel):

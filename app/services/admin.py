@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 
-from services.models import Category, ServiceType, Service, UserServiceInfo, InvestorServiceInfo
+from services.models import ServiceType, Service, UserServiceInfo, InvestorServiceInfo, \
+    MarketingCategoryProxy, ProfessionalCategoryProxy
 from utils.mixins import ViewActionMixin
 
 
@@ -10,8 +11,19 @@ class ServiceTypeInline(admin.TabularInline):
     extra = 0
 
 
-@register(Category)
-class CategoryAdmin(ViewActionMixin, ModelAdmin):
+# @register(Category)
+# class CategoryAdmin(ViewActionMixin, ModelAdmin):
+#     """
+#     Service Category contains service types
+#     """
+#     icon_name = 'apps'
+#     list_display = ('name', 'action')
+#     inlines = [ServiceTypeInline]
+#     search_fields = ['name']
+
+
+@register(MarketingCategoryProxy)
+class MarketingCategoryAdmin(ViewActionMixin, ModelAdmin):
     """
     Service Category contains service types
     """
@@ -19,6 +31,23 @@ class CategoryAdmin(ViewActionMixin, ModelAdmin):
     list_display = ('name', 'action')
     inlines = [ServiceTypeInline]
     search_fields = ['name']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(direction='marketing')
+
+
+@register(ProfessionalCategoryProxy)
+class ProfessionalCategoryAdmin(ViewActionMixin, ModelAdmin):
+    """
+    Service Category contains service types
+    """
+    icon_name = 'apps'
+    list_display = ('name', 'action')
+    inlines = [ServiceTypeInline]
+    search_fields = ['name']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(direction='professional')
 
 
 @register(Service)
@@ -55,7 +84,7 @@ class UserServiceInfoAdmin(ViewActionMixin, ModelAdmin):
 @register(InvestorServiceInfo)
 class InvestorServiceInfoAdmin(ViewActionMixin, ModelAdmin):
     """
-    User Service instance Info
+    Investor Service instance Info
     """
     icon_name = 'extension'
     list_display = (

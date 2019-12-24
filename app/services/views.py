@@ -9,3 +9,4 @@ class CategoryViewSet(mixins.RetrieveModelMixin,
     queryset = models.Category.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.CategorySerializer
+    filterset_fields = ['direction']

@@ -573,8 +573,6 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 404)
 
-    # @patch('utils.stripe_service.StripeService.get_customer_id', autospec=True, return_value='customer_id')
-    # @patch('utils.stripe_service.StripeService.get_customer_card_data', autospec=True, return_value={'a': 'a'})
     def test_bank_details_get_success(self):
         BankDetails.objects.create(
             user=self.user,
