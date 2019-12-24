@@ -9,11 +9,10 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-import os
 import datetime
+import os
 
 from django.utils.translation import ugettext_lazy as _
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,6 +34,7 @@ ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_REGEX_WHITELIST = [
     r"^http://localhost[:0-9]*",
     r"scenario-projects.com*",
+    r"https://[a-zA-Z-]+.scenario-projects.com*",
 ]
 
 EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
