@@ -21,7 +21,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Category
-        fields = ('pk', 'name', 'service_types')
+        fields = ('pk', 'name', 'service_types', 'photo')
 
 
 class ServiceSerializer(serializers.ModelSerializer):

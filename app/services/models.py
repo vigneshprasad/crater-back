@@ -12,6 +12,11 @@ class Category(TimeStampedModel):
         max_length=255,
         verbose_name=_('Category')
     )
+    photo = models.ImageField(
+        upload_to='category/photo/%Y/%m/%d',
+        verbose_name=_('Photo'),
+        null=True
+    )
 
     class Meta:
         verbose_name = _('Category')
