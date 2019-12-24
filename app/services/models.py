@@ -1,6 +1,8 @@
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
@@ -248,4 +250,7 @@ class InvestorServiceInfo(models.Model):
         verbose_name_plural = _('User Investor Info')
 
 
-
+@receiver(pre_save, sender=MarketingCategoryProxy)
+def marketing_pre_save(sender, instance, *args, **kwargs):
+    instance.direction = 'marketing'
+    return instance
