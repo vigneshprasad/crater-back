@@ -29,6 +29,7 @@ class MarketingCategoryAdmin(ViewActionMixin, ModelAdmin):
     """
     icon_name = 'apps'
     list_display = ('name', 'action')
+    fields = ['name', 'photo']
     inlines = [ServiceTypeInline]
     search_fields = ['name']
 
@@ -43,6 +44,7 @@ class ProfessionalCategoryAdmin(ViewActionMixin, ModelAdmin):
     """
     icon_name = 'apps'
     list_display = ('name', 'action')
+    fields = ['name', 'photo']
     inlines = [ServiceTypeInline]
     search_fields = ['name']
 

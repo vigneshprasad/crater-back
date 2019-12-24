@@ -7,3 +7,4 @@ from .models import MarketingCategoryProxy
 @receiver(pre_save, sender=MarketingCategoryProxy)
 def marketing_pre_save(sender, instance, *args, **kwargs):
     instance.direction = 'marketing'
+    return instance
