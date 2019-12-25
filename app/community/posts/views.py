@@ -52,10 +52,11 @@ class PostViewSet(ModelViewSet):
     @action(methods=['get'], permission_classes=[IsAuthenticated], detail=False, filter_backends=None,
             serializer_class=LimitedPostSerializer)
     def all(self, request):
+        context = self.get_serializer_context()
         return Response({
             'count': get_posts_count(),
             'followers': get_followers_count(),
-            'posts': self.serializer_class(self.get_queryset(), many=True).data,
+            'posts': self.serializer_class(self.get_queryset(), many=True, context=context).data,
         })
 
 

@@ -1,12 +1,15 @@
+from unittest import mock
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
+from django.core.files import File as DjangoFile
 from django.urls import reverse
 from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from community.groups.models import Location, Group, UserRequest
-from community.posts.models import Post, Like, Report
+from community.posts.models import Post, Like, Report, File
 from locations.models import Country, City
 from resources.curated_articles.models import CuratedArticle
 from resources.events.models import Event
@@ -142,6 +145,18 @@ class TestPostView(APITestCase):
         self.assertEqual(response.data['posts'][0]['creator'], self.user.pk)
         self.assertEqual(response.data['posts'][1]['message'], 'Test message')
         self.assertEqual(response.data['posts'][1]['creator'], self.user.pk)
+
+    def test_all_posts_with_files_read_only(self):
+        post1 = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
+        post2 = Post.objects.create(message='Test message 2', creator=self.user)
+        file_mock = mock.MagicMock(spec=DjangoFile)
+        file_mock.name = 'test.jpg'
+        file = File.objects.create(post=post1, object=file_mock)
+        file = File.objects.create(post=post2, object=file_mock)
+        url = reverse('v1:community:post-list')
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(self.token))
+        response = self.client.get(f'{url}all/', format='json')
+        self.assertEqual(200, response.status_code)
 
 
 class TestLikeView(APITestCase):
