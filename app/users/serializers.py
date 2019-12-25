@@ -396,11 +396,17 @@ class ProfileSerializer(serializers.ModelSerializer):
             'work_city_name',
             'tags',
             'tag_list',
-            'public_profile'
+            'public_profile',
+            'cover_thumbnail',
+            'cover_transcoder'
         )
         extra_kwargs = {
             'tags': {'write_only': True},
         }
+        read_only_fields = (
+            'cover_thumbnail',
+            'cover_transcoder'
+        )
 
 
 class LogoutSerializer(serializers.Serializer):

@@ -262,6 +262,14 @@ class Profile(models.Model):
         null=True,
         validators=[SizeValidator(size=512)]
     )
+    cover_thumbnail = models.URLField(
+        null=True,
+        verbose_name=_('Cover thumbnail')
+    )
+    cover_transcoder = models.URLField(
+        null=True,
+        verbose_name=_('Cover transcoder')
+    )
     introduction = models.CharField(
         max_length=800,
         verbose_name=_('Introduction'),

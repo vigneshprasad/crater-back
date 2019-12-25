@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from tags.models import Industry
+from users.serializers import ProfileSerializer
 from . import models
 
 
@@ -123,3 +124,19 @@ class InvestorServicesSerializer(serializers.ModelSerializer):
             'understand',
             'reach_out'
         ]
+
+
+class ProfessionalServiceSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(source='user.profile')
+    user_pk = serializers.IntegerField(source='user_id')
+
+    class Meta:
+        model = models.Service
+        fields = (
+            'pk',
+            'profile',
+            'user_pk',
+            'rating',
+            'rating_count',
+            'price'
+        )

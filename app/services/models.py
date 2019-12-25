@@ -143,14 +143,28 @@ class Service(TimeStampedModel):
         models.CharField(max_length=255),
         size=3,
     )
+    rating = models.FloatField(
+        verbose_name=_('Rating'),
+        default=5.0
+    )
 
     class Meta:
         verbose_name_plural = _('Services')
         verbose_name = _('Service')
+        ordering = ['id']
 
     @property
     def service_type_group(self):
         return self.service_type.group
+
+    @property
+    def rating_count(self):
+        # TODO: after rate logic improve
+        return 10
+
+    def recalculate_rating(self):
+        # TODO: after rate logic improve
+        pass
 
 
 class UserServiceInfo(models.Model):

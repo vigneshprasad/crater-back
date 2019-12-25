@@ -384,8 +384,10 @@ class AuthTestCase(TestCase):
             'twitter': '',
             'additional_information': '',
             'work_city': city.pk,
-            'work_city_name':city.name,
-            'public_profile': True
+            'work_city_name': city.name,
+            'public_profile': True,
+            'cover_transcoder': None,
+            'cover_thumbnail': None
         }
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
@@ -483,7 +485,8 @@ class AuthTestCase(TestCase):
             'work_city_name': city.name,
             'instagram': 'https://instagram.com/',
             'twitter': 'https://twitter.com/',
-            'public_profile': True
+            'public_profile': True,
+
         }
         resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
@@ -493,6 +496,7 @@ class AuthTestCase(TestCase):
         data['tag_list'] = [{'name': self.tag.name, 'pk': self.tag.pk}]
         result = resp.json()
         result.pop('pk')
+        data.update({'cover_transcoder': None, 'cover_thumbnail': None})
         self.assertDictEqual(data, result)
 
     def test_profile_change_success(self):
@@ -989,8 +993,8 @@ class AuthTestCase(TestCase):
                     'timeline': 60,
                     'revision': 5,
                     'includes': 'test',
-                    'attachments': ['1','2'],
-                    'questions': ['1','2']
+                    'attachments': ['1', '2'],
+                    'questions': ['1', '2']
 
                 },
                 {
