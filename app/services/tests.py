@@ -245,3 +245,24 @@ class ServiceTestCase(TestCase):
         resp = self.auth_client.get(f'{endpoint}?service_type__group=call_request', content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(15, len(resp.json()['results']))
+
+    def test_list_rating_ordering(self):
+        endpoint = self.endpoints.get('list')
+        resp = self.auth_client.get(f'{endpoint}?ordering=-rating', content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()['results'][0]['rating'] >= resp.json()['results'][1]['rating'])
+        self.assertTrue(resp.json()['results'][0]['rating'] >= resp.json()['results'][19]['rating'])
+
+    def test_list_price_ordering(self):
+        endpoint = self.endpoints.get('list')
+        resp = self.auth_client.get(f'{endpoint}?ordering=price', content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()['results'][0]['price'] <= resp.json()['results'][1]['price'])
+        self.assertTrue(resp.json()['results'][0]['price'] <= resp.json()['results'][19]['price'])
+
+    def test_list_desc_price_ordering(self):
+        endpoint = self.endpoints.get('list')
+        resp = self.auth_client.get(f'{endpoint}?ordering=-price', content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()['results'][0]['price'] >= resp.json()['results'][1]['price'])
+        self.assertTrue(resp.json()['results'][0]['price'] >= resp.json()['results'][19]['price'])
