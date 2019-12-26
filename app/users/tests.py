@@ -396,6 +396,29 @@ class AuthTestCase(TestCase):
         self.assertDictEqual(data, result)
 
     @patch('users.models.User.send_sms', autospec=True)
+    def test_set_phone_number_fail_blank(self, send_sms):
+        endpoint = self.endpoints.get('user-phone-number-new')
+        data = {
+            'phone_number': ''
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+
+    @patch('users.models.User.send_sms', autospec=True)
+    def test_set_phone_number_success_resend(self, send_sms):
+        endpoint = self.endpoints.get('user-phone-number-new')
+        self.user.phone_number = '+380999999999'
+        self.user.save()
+        data = {}
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.phone_number, '+380999999999')
+        self.assertFalse(self.user.phone_number_verified)
+        self.assertTrue(send_sms.called)
+
+
+    @patch('users.models.User.send_sms', autospec=True)
     def test_set_phone_number(self, send_sms):
         endpoint = self.endpoints.get('user-phone-number-new')
         data = {
@@ -622,7 +645,7 @@ class AuthTestCase(TestCase):
         }
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
-        self.assertTrue(get_customer_card_data.called)
+        self.assertFalse(get_customer_card_data.called)
         self.user.refresh_from_db()
         self.assertIsNone(self.user.bank_details.card_data)
         self.assertIsNone(self.user.bank_details.stripe_customer_id)

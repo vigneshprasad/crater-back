@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
 from django.utils.translation import ugettext_lazy as _
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers, exceptions
@@ -425,6 +426,7 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
 
 
 class NewPhoneNumberSerializer(serializers.ModelSerializer):
+    phone_number = PhoneNumberField(required=False, allow_blank=False, allow_null=False)
 
     class Meta:
         model = UserModel
