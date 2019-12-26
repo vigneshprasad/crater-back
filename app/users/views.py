@@ -147,12 +147,15 @@ class VerificationView(viewsets.GenericViewSet):
     def new_phone_number(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        request.user.phone_number = serializer.validated_data['phone_number']
+        phone_number = serializer.validated_data.get('phone_number')
+        if phone_number:
+            request.user.phone_number = phone_number
         request.user.generate_sms_code(commit=False)
         request.user.save()
-        request.user.send_sms(
-            messages.PHONE_CODE_VERIFICATION.format(code=request.user.sms_code)
-        )
+        if request.user.phone_number:
+            request.user.send_sms(
+                messages.PHONE_CODE_VERIFICATION.format(code=request.user.sms_code)
+            )
         return Response({'status': messages.PHONE_CODE_SUCCESSFULLY_SENT})
 
     @action(methods=['post'], detail=False, serializer_class=serializers.CheckCodeSerializer)
