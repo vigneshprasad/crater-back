@@ -2,8 +2,9 @@ from django_filters import rest_framework as filters
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.filters import OrderingFilter
 
+from users.models import User
 from . import models, serializers
-from .filters import ServiceFilter
+from .filters import ProfessionalFilter
 from .paginators import Pagination
 
 
@@ -16,20 +17,20 @@ class CategoryViewSet(mixins.RetrieveModelMixin,
     filterset_fields = ['direction']
 
 
-class ServiceViewSet(mixins.RetrieveModelMixin,
-                     mixins.ListModelMixin,
-                     viewsets.GenericViewSet):
-    queryset = models.Service.objects.filter(
-        status='approved',
-        user_infos__generate_business=True,
-        user__bank_details__membership='premium',
-        user__is_approved=True,
-        user__is_active=True
+class ProfessionalsViewSet(mixins.ListModelMixin,
+                           mixins.RetrieveModelMixin,
+                           viewsets.GenericViewSet):
+    queryset = User.objects.filter(
+        is_active=True,
+        is_approved=True,
+        user_services_info__generate_business=True,
+        bank_details__membership='premium',
+        services__isnull=False,
+        services__status='approved'
     )
-    pagination_class = Pagination
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.ProfessionalServiceSerializer
-    ordering_fields = ['price', 'rating']
+    pagination_class = Pagination
+    serializer_class = serializers.ProfessionalSerializer
+    ordering_fields = ['services__price', 'user_services_info__followers']
     filter_backends = (filters.DjangoFilterBackend, OrderingFilter)
-    filterset_class = ServiceFilter
-
+    filterset_class = ProfessionalFilter

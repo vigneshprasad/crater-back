@@ -7,7 +7,7 @@ app_name = 'services'
 
 router = routers.SimpleRouter()
 router.register('category', views.CategoryViewSet)
-router.register('user-service', views.ServiceViewSet, base_name='user-service')
+router.register('user-service', views.ProfessionalsViewSet, base_name='user-service')
 
 urlpatterns = [
     path('', include(router.urls))

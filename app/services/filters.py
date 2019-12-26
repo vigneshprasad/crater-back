@@ -1,30 +1,36 @@
 from django_filters import rest_framework as filters
 
-from .models import Service
+from users.models import User
 
 
-class ServiceFilter(filters.FilterSet):
-    price_from = filters.NumberFilter(field_name="price", lookup_expr='gte')
-    price_to = filters.NumberFilter(field_name="price", lookup_expr='lte')
-    rating_from = filters.NumberFilter(field_name="rating", lookup_expr='gte')
-    rating_to = filters.NumberFilter(field_name="rating", lookup_expr='lte')
+class ProfessionalFilter(filters.FilterSet):
+    price_from = filters.NumberFilter(field_name='services__price', lookup_expr='gte')
+    price_to = filters.NumberFilter(field_name='services__price', lookup_expr='lte')
+    # rating_from = filters.NumberFilter(field_name="rating", lookup_expr='gte')
+    # rating_to = filters.NumberFilter(field_name="rating", lookup_expr='lte')
     city = filters.NumberFilter(method='city_filter')
+    category = filters.NumberFilter(method='category_filter')
+    followers_from = filters.NumberFilter(field_name='user_services_info__followers', lookup_expr='gte')
+    followers_to = filters.NumberFilter(field_name='user_services_info__followers', lookup_expr='lte')
 
     class Meta:
-        model = Service
+        model = User
         fields = [
-            'price_from',
             'price_to',
-            'rating_from',
-            'rating_to',
+            'price_from',
+            'followers_from',
+            'followers_to',
+            'category',
             'city',
+            'user_services_info__industries',
+            'user_services_info__services__service_type'
 
-            'user_infos__industries',
-            'service_type__group',
-            'service_type__category'
         ]
 
     @staticmethod
-    def city_filter(queryset, name, value):
-        return queryset.filter(user__profile__work_city=value)
+    def category_filter(queryset, name, value):
+        return queryset.filter(services__status='approved', services__service_type__category=value)
 
+    @staticmethod
+    def city_filter(queryset, name, value):
+        return queryset.filter(profile__work_city=value)

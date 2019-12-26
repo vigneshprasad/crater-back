@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from tags.models import Industry
+from users.models import User
 from users.serializers import ProfileSerializer
 from . import models
 
@@ -140,3 +141,45 @@ class ProfessionalServiceSerializer(serializers.ModelSerializer):
             'rating_count',
             'price'
         )
+
+
+class ProfessionalSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+    rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+    price_start = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'pk',
+            'profile',
+            'rating',
+            'rating_count',
+            'price_start',
+            'followers'
+        )
+
+    @staticmethod
+    def get_rating(obj):
+        # TODO
+        return 5.0
+
+    @staticmethod
+    def get_rating_count(obj):
+        # TODO
+        return 5.0
+
+    def get_price_start(self, obj):
+        price_from = self.context['request'].query_params.get('price_from')
+        services = obj.services.filter(status='approved')
+        if price_from:
+            services = services.filter(price__gte=price_from)
+        return services.order_by('price')[0].price
+
+    @staticmethod
+    def get_followers(obj):
+        if hasattr(obj, 'user_services_info') and obj.user_services_info:
+            return obj.user_services_info.followers
+        return None
