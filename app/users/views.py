@@ -118,7 +118,8 @@ class BankDetailViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        instance.card_data = stripe_service.get_customer_card_data(instance.stripe_customer_id)
+        if instance.stripe_customer_id:
+            instance.card_data = stripe_service.get_customer_card_data(instance.stripe_customer_id)
         instance.save()
 
 

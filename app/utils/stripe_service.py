@@ -1,5 +1,6 @@
 import stripe
 from django.conf import settings
+
 from users.models import User
 
 
@@ -18,13 +19,14 @@ class StripeService:
         return customer.stripe_id
 
     def get_customer_card_data(self, customer_id):
-        cards = self.stripe.Customer.list_sources(
-            customer_id,
-            object='bank_account',
-            limit=1,
-        )
-        if cards.data:
-            return cards.data[0]
+        if customer_id:
+            cards = self.stripe.Customer.list_sources(
+                customer_id,
+                object='bank_account',
+                limit=1,
+            )
+            if cards.data:
+                return cards.data[0]
         return None
 
     def update_customer_source(self, customer_id, token):
