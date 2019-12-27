@@ -6,6 +6,8 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
@@ -15,7 +17,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from users.managers import UserManager
 from utils.validators import SizeValidator
 from . import choices
-from .tasks import send_twilio_message, send_unique_push, send_email
+from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_profile
 
 
 class User(AbstractUser):
@@ -262,13 +264,32 @@ class Profile(models.Model):
         null=True,
         validators=[SizeValidator(size=512)]
     )
+    _old_cover = models.URLField(
+        null=True,
+        blank=True
+    )
     cover_thumbnail = models.URLField(
         null=True,
+        blank=True,
         verbose_name=_('Cover thumbnail')
     )
     cover_transcoder = models.URLField(
         null=True,
+        blank=True,
         verbose_name=_('Cover transcoder')
+    )
+    transcoder_job_id = models.CharField(
+        max_length=255,
+        verbose_name=_('Transcoder job id'),
+        null=True,
+        blank=True
+    )
+    transcoder_job_success = models.BooleanField(
+        default=False
+    )
+    transcoder_uuid = models.UUIDField(
+        null=True,
+        blank=True
     )
     introduction = models.CharField(
         max_length=800,
@@ -323,3 +344,13 @@ class Admin(User):
     class Meta:
         verbose_name = _('Admin')
         verbose_name_plural = _('Admins')
+
+
+@receiver(post_save, sender=Profile)
+def profile_post_save(sender, instance, *args, **kwargs):
+    if instance.cover:
+        if instance.cover.url != instance._old_cover:
+            start_transcoding_for_profile.delay(instance.pk)
+    elif not instance.transcoder_job_success and not instance.transcoder_job_id:
+        start_transcoding_for_profile.delay(instance.pk)
+
