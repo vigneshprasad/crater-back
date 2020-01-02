@@ -22,6 +22,7 @@ auth_urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='rest_logout'),
     path('', include('rest_auth.urls')),
 
+    path('registration/verify-email/', views.VerifyEmailView.as_view(), name='rest_verify_email'),
     path('registration/', include('rest_auth.registration.urls')),
     path('', include(register_router.urls)),
 

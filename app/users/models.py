@@ -1,13 +1,14 @@
 import uuid
 
 import exrex
-from allauth.account.models import EmailAddress, EmailConfirmation, EmailConfirmationHMAC
+from allauth.account.models import EmailAddress, EmailConfirmation
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
@@ -184,11 +185,12 @@ class User(AbstractUser):
             )
 
     def send_verify_email(self):
-        try:
-            email_address = EmailAddress.objects.get_for_user(self, self.email)
-        except EmailAddress.DoesNotExist:
-            email_address = EmailAddress.objects.create(self, self.email, verified=False)
-        confirmation = EmailConfirmationHMAC(email_address)
+        email_address, created = EmailAddress.objects.get_or_create(
+            user=self, email__iexact=self.email, defaults={"email": self.email}
+        )
+        confirmation = EmailConfirmation.create(email_address=email_address)
+        confirmation.sent = timezone.now()
+        confirmation.save()
         data = {
             self.email: {
                 'key': confirmation.key,

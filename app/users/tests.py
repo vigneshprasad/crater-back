@@ -1,6 +1,7 @@
 from unittest import mock
 from unittest.mock import patch
 
+from allauth.account.models import EmailAddress, EmailConfirmation
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth import models as auth_models
@@ -44,6 +45,8 @@ class AuthTestCase(TestCase):
             'user-details': reverse('v1:users:rest_user_details'),
             'user-profile': reverse('v1:users:profile-list'),
             'user-phone-number-new': reverse('v1:users:verify-new-phone-number'),
+            'user-send-verify-email': reverse('v1:users:verify-send-verify-email'),
+            'user-verify-email': reverse('v1:users:rest_verify_email'),
             'user-check-code': reverse('v1:users:verify-check-sms-code'),
             'user-bank-details': reverse('v1:users:bank-details-list'),
             'user-services-details': reverse('v1:users:services-list'),
@@ -136,6 +139,33 @@ class AuthTestCase(TestCase):
         self.assertIn('token', resp.json())
         user = models.User.objects.get(email='test1@email.com')
         self.assertIn('User', list(user.groups.values_list('name', flat=True)))
+
+    @mock.patch('users.models.User.send_email', return_value=None)
+    def test_success_send_verify_email(self, send_email):
+        endpoint = self.endpoints.get('user-send-verify-email')
+        resp = self.auth_client.post(endpoint, data={}, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertTrue(send_email.called)
+
+    @mock.patch('users.models.User.send_email', return_value=None)
+    def test_success_verify_email_fail(self, send_email):
+        endpoint = self.endpoints.get('user-verify-email')
+        self.user.send_verify_email()
+        self.assertTrue(send_email.called)
+        resp = self.auth_client.post(endpoint, data={'key': 'not valid key'}, content_type='application/json')
+        self.assertEqual(400, resp.status_code)
+
+    @mock.patch('users.models.User.send_email', return_value=None)
+    def test_success_verify_email_success(self, send_email):
+        endpoint = self.endpoints.get('user-verify-email')
+        self.user.send_verify_email()
+        self.assertTrue(send_email.called)
+        email_address = EmailAddress.objects.get(user=self.user, email=self.user.email, verified=False)
+        key = EmailConfirmation.objects.filter(email_address=email_address).first().key
+        resp = self.auth_client.post(endpoint, data={'key': key}, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.email_verified)
 
     @mock.patch('users.models.User.send_verify_email', return_value=None)
     def test_success_register_investor(self, send_verify_email):
@@ -416,7 +446,6 @@ class AuthTestCase(TestCase):
         self.assertEqual(self.user.phone_number, '+380999999999')
         self.assertFalse(self.user.phone_number_verified)
         self.assertTrue(send_sms.called)
-
 
     @patch('users.models.User.send_sms', autospec=True)
     def test_set_phone_number(self, send_sms):
@@ -1188,3 +1217,4 @@ class InvestorTestCase(TestCase):
             content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(15, len(resp.json()['results']))
+

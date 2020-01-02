@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
+from rest_auth.registration.views import VerifyEmailView as DefaultVerifyEmailView
 from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import filters
 from rest_framework import mixins, viewsets, permissions, status
@@ -348,3 +349,9 @@ class InvestorsViewSet(mixins.ListModelMixin,
         'user__investor_services_info__companies',
         'work_city'
     ]
+
+
+class VerifyEmailView(DefaultVerifyEmailView):
+
+    def get_serializer(self, *args, **kwargs):
+        return serializers.VerifyEmailSerializer(*args, **kwargs)

@@ -3,6 +3,7 @@ import logging
 import cryptography
 from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
+from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
 from allauth.account.utils import setup_user_email
 from allauth.utils import (email_address_exists)
 from cryptography.fernet import Fernet
@@ -451,3 +452,20 @@ class CheckCodeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 messages.PHONE_CODE_WRONG
             )
+
+
+class VerifyEmailSerializer(register_serializers.VerifyEmailSerializer):
+    key = serializers.CharField()
+
+    @staticmethod
+    def validate_key(key):
+        emailconfirmation = EmailConfirmationHMAC.from_key(key)
+        if not emailconfirmation:
+            queryset = EmailConfirmation.objects.all_valid()
+            try:
+                emailconfirmation = queryset.get(key=key.lower())
+            except EmailConfirmation.DoesNotExist:
+                raise serializers.ValidationError(
+                    messages.WRONG_VALIDATE_KEY
+                )
+        return key
