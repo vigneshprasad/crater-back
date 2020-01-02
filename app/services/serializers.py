@@ -123,7 +123,8 @@ class InvestorServicesSerializer(serializers.ModelSerializer):
             'attachments',
             'questions',
             'understand',
-            'reach_out'
+            'reach_out',
+            'pk'
         ]
 
 
@@ -176,10 +177,31 @@ class ProfessionalSerializer(serializers.ModelSerializer):
         services = obj.services.filter(status='approved')
         if price_from:
             services = services.filter(price__gte=price_from)
-        return services.order_by('price')[0].price
+        if services:
+            return services.order_by('price')[0].price
+        return None
 
     @staticmethod
     def get_followers(obj):
         if hasattr(obj, 'user_services_info') and obj.user_services_info:
             return obj.user_services_info.followers
         return None
+
+
+class PublicUserServicesInfoSerializer(UserServicesSerializer):
+    services = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.UserServiceInfo
+        fields = [
+            'pk',
+            'years_of_experience',
+            'bar_council',
+            'followers',
+            'industries',
+            'services',
+        ]
+
+    @staticmethod
+    def get_services(obj):
+        return ServiceSerializer(obj.services.filter(status='approved'), many=True).data

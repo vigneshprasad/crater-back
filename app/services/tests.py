@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.contrib.auth import models as auth_models
 from django.core.files import File
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -166,8 +167,8 @@ class ProfessionalTestCase(TestCase):
         self.client = Client()
         self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
         self.endpoints = {
-            'list': reverse('v1:services:user-service-list'),
-            'detail': lambda x: reverse('v1:services:user-service-detail', kwargs={'pk': x})
+            'list': reverse('v1:services:professionals-list'),
+            'detail': lambda x: reverse('v1:services:professionals-detail', kwargs={'pk': x})
         }
 
     def test_list_fail_unauth(self):
@@ -222,25 +223,7 @@ class ProfessionalTestCase(TestCase):
         resp = self.auth_client.get(f'{endpoint}?price_from=2000&price_to=3000', content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(6, len(resp.json()['results']))
-    #
-    # def test_list_rating_to_filter(self):
-    #     endpoint = self.endpoints.get('list')
-    #     resp = self.auth_client.get(f'{endpoint}?rating_to=1.0', content_type='application/json')
-    #     self.assertEqual(resp.status_code, 200)
-    #     self.assertEqual(10, len(resp.json()['results']))
-    #
-    # def test_list_rating_from_filter(self):
-    #     endpoint = self.endpoints.get('list')
-    #     resp = self.auth_client.get(f'{endpoint}?rating_from=1.5', content_type='application/json')
-    #     self.assertEqual(resp.status_code, 200)
-    #     self.assertEqual(12, len(resp.json()['results']))
-    #
-    # def test_list_rating_filter(self):
-    #     endpoint = self.endpoints.get('list')
-    #     resp = self.auth_client.get(f'{endpoint}?rating_from=1.0&rating_to=1.6', content_type='application/json')
-    #     self.assertEqual(resp.status_code, 200)
-    #     self.assertEqual(14, len(resp.json()['results']))
-    #
+
     def test_list_industries_filter(self):
         endpoint = self.endpoints.get('list')
         resp = self.auth_client.get(f'{endpoint}?user_services_info__industries={self.industry1.pk}', content_type='application/json')
@@ -266,13 +249,6 @@ class ProfessionalTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(10, len(resp.json()['results']))
 
-    # def test_list_rating_ordering(self):
-    #     endpoint = self.endpoints.get('list')
-    #     resp = self.auth_client.get(f'{endpoint}?ordering=-rating', content_type='application/json')
-    #     self.assertEqual(resp.status_code, 200)
-    #     self.assertTrue(resp.json()['results'][0]['rating'] >= resp.json()['results'][1]['rating'])
-    #     self.assertTrue(resp.json()['results'][0]['rating'] >= resp.json()['results'][19]['rating'])
-    #
     def test_list_price_ordering(self):
         endpoint = self.endpoints.get('list')
         resp = self.auth_client.get(f'{endpoint}?ordering=services__price', content_type='application/json')
@@ -318,3 +294,131 @@ class ProfessionalTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.json()['results'][0]['followers'] >= resp.json()['results'][1]['followers'])
         self.assertTrue(resp.json()['results'][0]['followers'] >= resp.json()['results'][19]['followers'])
+
+
+class ServicesTestCase(TestCase):
+    def setUp(self):
+        self.category = models.ProfessionalCategoryProxy.objects.create(name='Category')
+        self.category2 = models.ProfessionalCategoryProxy.objects.create(name='Category2')
+        self.service_type = models.ServiceType.objects.create(
+            name='Type', category=self.category, description='Description', group='service'
+        )
+        self.service_type2 = models.ServiceType.objects.create(
+            name='Type2', category=self.category2, description='Description', group='call_request'
+        )
+        self.industry1 = Industry.objects.create(name='Industry')
+        self.industry2 = Industry.objects.create(name='Industry2')
+        self.country = Country.objects.create(name='Country')
+        self.work_city = WorkCityProxy.objects.create(
+            name='WorkCity1',
+            country=self.country
+        )
+        self.work_city2 = WorkCityProxy.objects.create(
+            name='WorkCity2',
+            country=self.country
+        )
+        self.users = []
+        user_group = auth_models.Group.objects.get(name='User')
+        investor_group = auth_models.Group.objects.get(name='Investor')
+        for i in range(1, 21):
+            user = user_models.User.objects.create(
+                email=f'test{i}@email.com',
+                name='ftest ltest',
+                is_approved=True
+            )
+            self.users.append(user)
+            BankDetails.objects.create(
+                user=user,
+                membership='premium'
+            )
+            user_service_info = models.UserServiceInfo.objects.create(
+                user=user,
+                professional_service_provider=True,
+                generate_business=True,
+                followers=i * 1000
+            )
+            user.groups.add(user_group)
+            if i > 10:
+                user_models.Profile.objects.create(
+                    user=user,
+                    name='Profile',
+                    work_city=self.work_city2
+                )
+                user_service_info.industries.add(self.industry1)
+                s1 = models.Service.objects.create(
+                    service_type=self.service_type,
+                    user=user,
+                    status='approved',
+                    price_type='price',
+                    price=i * 200,
+                    rating=i * 0.1,
+                    timeline=60,
+                    attachments=[],
+                    questions=[]
+                )
+            else:
+                user_models.Profile.objects.create(
+                    user=user,
+                    name='Profile',
+                    work_city=self.work_city
+                )
+                s1 = models.Service.objects.create(
+                    service_type=self.service_type2,
+                    user=user,
+                    status='approved',
+                    price_type='price',
+                    price=i * 200,
+                    rating=i * 0.1,
+                    timeline=60,
+                    attachments=[],
+                    questions=[]
+                )
+                user_service_info.industries.add(self.industry2)
+            user_service_info.services.add(s1)
+        self.investors = []
+        for i in range(1, 5):
+            user = user_models.User.objects.create(
+                email=f'test{i+20}@email.com',
+                name='ftest ltest',
+                is_approved=True
+            )
+            self.users.append(user)
+            BankDetails.objects.create(
+                user=user,
+                membership='premium'
+            )
+            investor_info = models.InvestorServiceInfo.objects.create(
+                process='asdasd',
+                attachments=['asd', 'asdasd'],
+                questions=['asdasdasd', 'asdadqw123'],
+                understand=True,
+                reach_out=True,
+                user=user
+            )
+            user.groups.add(investor_group)
+            self.investors.append(user)
+
+        self.user = user_models.User.objects.create(
+            email='test@email.com',
+            name='ftest ltest',
+            is_approved=True
+        )
+        self.user.set_password('Qwer1234!')
+        self.user.save()
+        self.token = jwt_encode(self.user)
+        self.client = Client()
+        self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
+        self.endpoints = {
+            'user_service_detail': lambda x: reverse('v1:services:user-service-detail', kwargs={'pk': x}),
+            'investor_service_detail': lambda x: reverse('v1:services:investor-service-detail', kwargs={'pk': x}),
+        }
+
+    def test_user_service_detail(self):
+        endpoint = self.endpoints.get('user_service_detail')(self.users[0].pk)
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+
+    def test_investor_service_detail(self):
+        endpoint = self.endpoints.get('investor_service_detail')(self.investors[0].pk)
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)

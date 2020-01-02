@@ -1,5 +1,6 @@
 from django_filters import rest_framework as filters
 from rest_framework import viewsets, mixins, permissions
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import OrderingFilter
 
 from users.models import User
@@ -34,3 +35,51 @@ class ProfessionalsViewSet(mixins.ListModelMixin,
     ordering_fields = ['services__price', 'user_services_info__followers']
     filter_backends = (filters.DjangoFilterBackend, OrderingFilter)
     filterset_class = ProfessionalFilter
+
+
+class UserServicesViewSet(mixins.RetrieveModelMixin,
+                          viewsets.GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.PublicUserServicesInfoSerializer
+    queryset = User.objects.filter(
+        is_active=True,
+        is_approved=True,
+        groups__name='User',
+        user_services_info__generate_business=True,
+        bank_details__membership='premium',
+        services__isnull=False,
+        services__status='approved'
+    )
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        try:
+            user = queryset.get(pk=self.kwargs['pk'])
+            if hasattr(user, 'user_services_info') and user.user_services_info:
+                return user.user_services_info
+        except User.DoesNotExist:
+            raise NotFound
+
+
+class InvestorServicesViewSet(mixins.ListModelMixin,
+                              mixins.RetrieveModelMixin,
+                              viewsets.GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.InvestorServicesSerializer
+    queryset = User.objects.filter(
+        is_active=True,
+        is_approved=True,
+        groups__name='Investor',
+        bank_details__isnull=False,
+        investor_services_info__isnull=False,
+        investor_services_info__reach_out=True
+    )
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        try:
+            user = queryset.get(pk=self.kwargs['pk'])
+            if hasattr(user, 'investor_services_info') and user.investor_services_info:
+                return user.investor_services_info
+        except User.DoesNotExist:
+            raise NotFound

@@ -332,22 +332,23 @@ class RefererEmailView(APIView):
 
 class InvestorsViewSet(mixins.ListModelMixin,
                        viewsets.GenericViewSet):
-    queryset = models.Profile.objects.filter(
-        user__groups__name='Investor',
-        user__bank_details__isnull=False,
-        user__investor_services_info__isnull=False,
-        user__is_active=True,
-        user__is_superuser=False,
-        user__investor_services_info__reach_out=True
+    queryset = models.User.objects.filter(
+        groups__name='Investor',
+        bank_details__isnull=False,
+        investor_services_info__isnull=False,
+        is_active=True,
+        is_superuser=False,
+        investor_services_info__reach_out=True
     ).order_by('name')
 
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = Pagination
-    serializer_class = serializers.ProfileSerializer
+    # serializer_class = serializers.ProfileSerializer
+    serializer_class = service_serializers.ProfessionalSerializer
     filterset_fields = [
-        'user__investor_services_info__kind_of_funding',
-        'user__investor_services_info__companies',
-        'work_city'
+        'investor_services_info__kind_of_funding',
+        'investor_services_info__companies',
+        'profile__work_city'
     ]
 
 

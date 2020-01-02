@@ -1195,7 +1195,7 @@ class InvestorTestCase(TestCase):
     def test_get_success_with_fund_filter(self):
         endpoint = self.endpoints.get('investor')
         resp = self.auth_client.get(
-            f'{endpoint}?user__investor_services_info__kind_of_funding={self.fund1.pk}&user__investor_services_info__kind_of_funding={self.fund2.pk}',
+            f'{endpoint}?investor_services_info__kind_of_funding={self.fund1.pk}&investor_services_info__kind_of_funding={self.fund2.pk}',
             content_type='application/json'
         )
         self.assertEqual(200, resp.status_code)
@@ -1204,7 +1204,7 @@ class InvestorTestCase(TestCase):
     def test_get_success_with_company_filter(self):
         endpoint = self.endpoints.get('investor')
         resp = self.auth_client.get(
-            f'{endpoint}?user__investor_services_info__companies={self.company.pk}&user__investor_services_info__companies={self.company2.pk}',
+            f'{endpoint}?investor_services_info__companies={self.company.pk}&investor_services_info__companies={self.company2.pk}',
             content_type='application/json'
         )
         self.assertEqual(200, resp.status_code)
@@ -1213,7 +1213,7 @@ class InvestorTestCase(TestCase):
     def test_get_success_with_work_city_filter(self):
         endpoint = self.endpoints.get('investor')
         resp = self.auth_client.get(
-            f'{endpoint}?work_city={self.work_city2.pk}',
+            f'{endpoint}?profile__work_city={self.work_city2.pk}',
             content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(15, len(resp.json()['results']))
