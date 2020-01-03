@@ -296,15 +296,10 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
     password_reset_form_class = rest_auth_serializers.PasswordResetSerializer.password_reset_form_class
 
     def validate_email(self, email):
-    #     self.reset_form = self.password_reset_form_class(data=self.initial_data)
-    #     if not self.reset_form.is_valid():
-    #         raise serializers.ValidationError(self.reset_form.errors)
         return email.strip().lower()
 
 
     def save(self):
-        # request = self.context.get('request')
-        # Set some values to trigger the send_email method.
         email = self.validated_data.get('email')
         try:
             user = UserModel.objects.get(email=email)

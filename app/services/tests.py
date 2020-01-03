@@ -417,6 +417,7 @@ class ServicesTestCase(TestCase):
         endpoint = self.endpoints.get('user_service_detail')(self.users[0].pk)
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
+        self.assertEqual(1, len(resp.json()['services']))
 
     def test_investor_service_detail(self):
         endpoint = self.endpoints.get('investor_service_detail')(self.investors[0].pk)

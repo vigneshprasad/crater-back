@@ -81,7 +81,8 @@ INSTALLED_APPS = [
     'resources.curated_articles',
     'resources.masterclasses',
     'payment',
-    'services'
+    'services',
+    'order'
 ]
 
 SITE_ID = 1

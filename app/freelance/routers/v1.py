@@ -8,5 +8,6 @@ urlpatterns = [
     path('community/', include('community.urls.v1', namespace='community')),
     path('resources/', include('resources.urls.v1', namespace='resources')),
     path('tags/', include('tags.urls.v1', namespace='tags')),
-    path('services/', include('services.urls.v1', namespace='services'))
+    path('services/', include('services.urls.v1', namespace='services')),
+    path('order/', include('order.urls.v1', namespace='orders')),
 ]

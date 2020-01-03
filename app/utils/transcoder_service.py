@@ -23,7 +23,7 @@ class TranscoderService:
         from users.models import Profile
         try:
             profile = Profile.objects.get(pk=profile_pk)
-            if profile.cover and not profile.cover_thumbnail:
+            if profile.cover and profile.cover.url != profile._old_cover:
                 cover_name = profile.cover.name
                 ext = cover_name.split('.')[1]
                 if ext.lower() in ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']:
@@ -41,6 +41,7 @@ class TranscoderService:
                     job_info = self.create_elastic_transcoder_hls_job(
                         input_file=input_file, outputs=outputs, output_file_prefix=self.output_file_prefix
                     )
+                    print(job_info)
                     if job_info:
                         return job_info['Id'], output_file
             return None, None

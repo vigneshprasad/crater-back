@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import GroupAdmin
+from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -9,13 +10,21 @@ from users.filters import GroupNameAdminFilter, GroupNameUserFilter
 from users.forms import AdminCreationForm, UserForm
 from users.models import Profile, Admin
 from utils.mixins import ViewActionMixin
-from django.contrib.auth.models import Group
+
 admin.site.unregister(Group)
 
 
 class ProfileAdmin(admin.StackedInline):
     model = Profile
     autocomplete_fields = ['work_city']
+    readonly_fields = [
+        '_old_cover',
+        'cover_thumbnail',
+        'cover_transcoder',
+        'transcoder_job_id',
+        'transcoder_job_success',
+        'transcoder_uuid',
+    ]
 
 
 @admin.register(get_user_model())
