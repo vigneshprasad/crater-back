@@ -58,6 +58,7 @@ def start_transcoding_for_profile(self, profile_pk):
             profile.cover_transcoder = ''
             profile.save()
     except Profile.DoesNotExist:
+        print(f'Profile does not exist')
         pass
 
 

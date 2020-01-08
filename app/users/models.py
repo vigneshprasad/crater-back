@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
 from django.db import models
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -349,10 +350,10 @@ class Admin(User):
 
 
 @receiver(post_save, sender=Profile)
-def profile_post_save(sender, instance, *args, **kwargs):
+def profile_post_save(sender, instance, created,  *args, **kwargs):
     if instance.cover:
         if instance.cover.url != instance._old_cover:
-            start_transcoding_for_profile.delay(instance.pk)
+            transaction.on_commit(lambda: start_transcoding_for_profile.delay(instance.pk))
     elif not instance.transcoder_job_success and not instance.transcoder_job_id:
-        start_transcoding_for_profile.delay(instance.pk)
+        transaction.on_commit(lambda: start_transcoding_for_profile.delay(instance.pk))
 
