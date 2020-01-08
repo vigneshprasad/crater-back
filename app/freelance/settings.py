@@ -82,7 +82,8 @@ INSTALLED_APPS = [
     'resources.masterclasses',
     'payment',
     'services',
-    'order'
+    'order',
+    'creative_exchange'
 ]
 
 SITE_ID = 1

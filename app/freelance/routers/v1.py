@@ -10,4 +10,5 @@ urlpatterns = [
     path('tags/', include('tags.urls.v1', namespace='tags')),
     path('services/', include('services.urls.v1', namespace='services')),
     path('order/', include('order.urls.v1', namespace='orders')),
+    path('creative-exchange/', include('creative_exchange.urls.v1', namespace='creative-exchange')),
 ]
