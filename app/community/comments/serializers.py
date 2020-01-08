@@ -7,6 +7,7 @@ from community.mixins import SetCreatorRequestDataMixin
 class CommentSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     request_user = 'creator'
     creator_name = serializers.CharField(source='creator.name', read_only=True)
+    creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
 
     class Meta:
         model = Comment
@@ -14,6 +15,7 @@ class CommentSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer)
             'pk',
             'message',
             'creator_name',
+            'creator_photo',
             'creator',
             'post',
             'event'

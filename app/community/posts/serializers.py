@@ -18,6 +18,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
+    creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
 
     class Meta:
         model = Post
@@ -30,6 +31,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'files',
             'creator',
             'creator_name',
+            'creator_photo',
             'created',
             'likes',
             'comments',
