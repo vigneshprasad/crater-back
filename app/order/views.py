@@ -15,6 +15,10 @@ class OrderViewSet(mixins.RetrieveModelMixin,
     def get_queryset(self):
         return self.request.user.buyer_orders.all()
 
+    def perform_create(self, serializer):
+        serializer.validated_data['buyer'] = self.request.user
+        serializer.save()
+
 
 class FundingRequestViewSet(mixins.RetrieveModelMixin,
                             mixins.ListModelMixin,

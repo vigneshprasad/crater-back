@@ -114,6 +114,36 @@ class OrderTestCase(TestCase):
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
 
+    def test_post_success(self):
+        endpoint = self.endpoints.get('order-list')
+        data = {
+            'seller': self.user.pk,
+            'services': [
+                {
+                    'service_pk': self.service.pk,
+                    'answers': [
+                        {'question': '1', 'text': '213'}
+                    ],
+                    'attachments': [
+                        {
+                            'name': '1',
+                            'files_base64': [
+                                file_test_service.get_test_base64_image(),
+                                file_test_service.get_test_base64_image()
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(201, resp.status_code)
+        self.assertEqual(1, len(resp.json()['services']))
+        self.assertEqual(1, len(resp.json()['services'][0]['attachments']))
+        self.assertEqual(1, len(resp.json()['services'][0]['answers']))
+
+
+
 
 class FundingRequestTestCase(TestCase):
     def setUp(self):
@@ -170,7 +200,7 @@ class FundingRequestTestCase(TestCase):
         self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
         self.endpoints = {
             'funding-request-list': reverse('v1:orders:funding-request-buyer-list'),
-            'funding-request-detail': lambda x: reverse('v1:orders:funding-request-buyer-detail', kwargs={'pk': x})
+            'funding-request-detail': lambda x: reverse('v1:orders:funding-request-buyer-detail', kwargs={'pk': x}),
         }
 
         self.funding_request = models.FundingRequest.objects.create(
@@ -201,18 +231,18 @@ class FundingRequestTestCase(TestCase):
     def test_success_setup(self):
         self.assertEqual(1, 1)
 
-    def test_get_list_fail_unauth(self):
+    def test_get_funding_list_fail_unauth(self):
         endpoint = self.endpoints.get('funding-request-list')
         resp = self.client.get(endpoint, content_type='application/json')
         self.assertEqual(401, resp.status_code)
 
-    def test_get_list_success(self):
+    def test_get_funding_list_success(self):
         endpoint = self.endpoints.get('funding-request-list')
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
 
-    def test_post_success(self):
+    def test_post_funding_success(self):
         endpoint = self.endpoints.get('funding-request-list')
         data = {
             'investor': self.user.pk,
@@ -233,5 +263,3 @@ class FundingRequestTestCase(TestCase):
         self.assertEqual(201, resp.status_code)
         self.assertTrue(resp.json()['attachments'])
         self.assertTrue(resp.json()['answers'])
-
-
