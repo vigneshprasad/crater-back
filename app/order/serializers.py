@@ -204,4 +204,3 @@ class FundingRequestSerializer(serializers.ModelSerializer):
                 question=answer['question'],
                 text=answer['text']
             )
-
