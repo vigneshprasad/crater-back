@@ -1,6 +1,9 @@
+import re
+
 from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField, AuthenticationForm, \
+    SetPasswordForm
 from django.contrib.auth.models import Group
 from django import forms
 from django.core.exceptions import ValidationError
@@ -72,3 +75,14 @@ class FreelanceAdminAuthenticationForm(AdminAuthenticationForm):
         if '@' not in username or len(username) > 100:
             raise ValidationError(_('Please enter a valid email'))
         return username.lower()
+
+
+class AdminSetPasswordForm(SetPasswordForm):
+
+    def clean_new_password1(self):
+        password1 = self.cleaned_data.get('new_password1')
+        if len(password1) < 8:
+            raise forms.ValidationError(_('Password should have 8 or more symbols'))
+        if not re.search(r'\d', password1) or not re.search(r'\D', password1):
+            raise forms.ValidationError(_('Password should contain numbers and letters'))
+        return password1

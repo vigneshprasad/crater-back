@@ -22,6 +22,7 @@ from services import serializers as service_serializers, models as service_model
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, choices
+from .forms import AdminSetPasswordForm
 from .paginators import Pagination
 from .swagger_schemas import referer_email
 from .tasks import send_email
@@ -29,6 +30,7 @@ from .tasks import send_email
 
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     post_reset_login = True
+    form_class = AdminSetPasswordForm
     success_url = reverse_lazy('home')
 
 
