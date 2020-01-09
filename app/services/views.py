@@ -49,7 +49,7 @@ class UserServicesViewSet(mixins.RetrieveModelMixin,
         bank_details__membership='premium',
         services__isnull=False,
         services__status='approved'
-    )
+    ).distinct()
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())

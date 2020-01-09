@@ -39,7 +39,8 @@ class FundingViewSet(mixins.RetrieveModelMixin,
     serializer_class = serializers.FundingSerializer
 
 
-class IndustryViewSet(mixins.RetrieveModelMixin,
+class IndustryViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet):
     queryset = models.Industry.objects.all()
     permission_classes = [permissions.IsAuthenticated]
