@@ -1,6 +1,7 @@
 from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField, AuthenticationForm, \
+    PasswordResetForm
 from django.contrib.auth.models import Group
 from django import forms
 from django.core.exceptions import ValidationError
@@ -72,3 +73,7 @@ class FreelanceAdminAuthenticationForm(AdminAuthenticationForm):
         if '@' not in username or len(username) > 100:
             raise ValidationError(_('Please enter a valid email'))
         return username.lower()
+
+
+class AdminPasswordResetForm(PasswordResetForm):
+    pass

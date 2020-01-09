@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import FileField
 
 from community.comments.serializers import CommentSerializer
 from community.mixins import SetCreatorRequestDataMixin
@@ -12,6 +13,9 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
     files_base64 = serializers.ListField(
         required=False, child=Base64FileField(max_length=None, use_url=True)
+    )
+    files_formdata = serializers.ListField(
+        required=False, child=FileField(max_length=None, use_url=True)
     )
     creator_name = serializers.CharField(read_only=True, source='creator.name')
     files_urls = serializers.SerializerMethodField()
@@ -28,7 +32,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'group',
             'files_base64',
             'files_urls',
-            'files',
+            'files_formdata',
             'creator',
             'creator_name',
             'creator_photo',
@@ -38,14 +42,14 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'latest_comments'
         )
         extra_kwargs = {
-            'files': {'write_only': True, 'required': False},
             'creator': {'write_only': True}
         }
 
     def create(self, validated_data):
         files_json = validated_data.pop('files_base64', [])
+        files_formdata = validated_data.pop('files_formdata', [])
         post = super().create(validated_data)
-        self._create_post_files(files_json, post)
+        self._create_post_files(files_json or files_formdata, post)
         return post
 
     def get_files_urls(self, post):
