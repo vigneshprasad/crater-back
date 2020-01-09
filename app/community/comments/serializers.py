@@ -17,6 +17,7 @@ class CommentSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer)
             'creator_name',
             'creator_photo',
             'creator',
+            'created',
             'post',
             'event'
         )
