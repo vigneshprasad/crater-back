@@ -19,12 +19,21 @@ class UserRequestSerializer(SetCreatorRequestDataMixin, serializers.ModelSeriali
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    is_my = serializers.SerializerMethodField()
+    location_name = serializers.CharField(source='location.name')
+
     class Meta:
         model = Group
         fields = (
             'pk',
             'name',
+            'is_my',
+            'cover',
+            'location_name'
         )
+
+    def get_is_my(self, group):
+        return self.context['request'].user.user_groups.filter(group=group, is_approved=True).exists()
 
 
 class LocationSerializer(serializers.ModelSerializer):
