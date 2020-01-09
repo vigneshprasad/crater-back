@@ -96,6 +96,8 @@ class UserServicesSerializer(serializers.ModelSerializer):
                     if service_instance.exists() and service_instance[0].user == instance.user:
                         service_instance.update(**service)
                         service_instance = service_instance[0]
+                    else:
+                        continue
                 except models.Service.DoesNotExist:
                     service_instance = models.Service.objects.create(
                         user=instance.user,
