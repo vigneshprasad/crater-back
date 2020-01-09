@@ -19,7 +19,7 @@ class Post(TimeStampedModel):
         verbose_name = _('Post')
         verbose_name_plural = _('Posts')
         db_table = 'community_posts'
-        ordering = ('-created',)
+        ordering = ('-modified',)
 
     def __str__(self):
         return self.message
