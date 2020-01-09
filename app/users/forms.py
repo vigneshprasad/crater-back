@@ -1,7 +1,9 @@
+from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField, AuthenticationForm
 from django.contrib.auth.models import Group
 from django import forms
+from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -37,3 +39,36 @@ class UserForm(GroupMixin, UserChangeForm):
         model = get_user_model()
         fields = '__all__'
         field_classes = {'username': UsernameField}
+
+
+class FreelanceAdminAuthenticationForm(AdminAuthenticationForm):
+    username = UsernameField(
+        widget=forms.TextInput(attrs={'autofocus': True}),
+        error_messages={
+            'required': _('Please enter your email.'),
+        }
+    )
+    password = forms.CharField(
+        label=_("Password"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
+        error_messages={
+            'required': _('Please enter the password.'),
+        }
+    )
+
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        'invalid_login': _(
+            "Please enter the correct %(username)s and password for a staff "
+            "account."
+        ),
+    }
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if not username:
+            raise ValidationError(_('Please enter your email'))
+        if '@' not in username or len(username) > 100:
+            raise ValidationError(_('Please enter a valid email'))
+        return username.lower()

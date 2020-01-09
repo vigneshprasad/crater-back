@@ -6,3 +6,6 @@ class CommentConfig(AppConfig):
     name = 'community.comments'
     icon_name = 'assignment'
     verbose_name = _('Comment')
+
+    def ready(self):
+        pass
