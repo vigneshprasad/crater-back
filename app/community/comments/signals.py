@@ -6,4 +6,5 @@ from community.comments.models import Comment
 
 @receiver(post_save, sender=Comment)
 def update_post(sender, instance, **kwargs):
-    instance.post.save()
+    if instance.post:
+        instance.post.save()

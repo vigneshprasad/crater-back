@@ -14,3 +14,10 @@ class UserManager(Manager):
 
     def create_superuser(self, username=None, email=None, password=None, **extra_fields):
         return super().create_superuser(username='Admin', email=email, password=password)
+
+    @classmethod
+    def normalize_email(cls, email):
+        """
+        Normalize the email address by lowercasing the all of the email string.
+        """
+        return super().normalize_email(email).lower()
