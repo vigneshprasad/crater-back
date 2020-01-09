@@ -8,4 +8,4 @@ class CommentConfig(AppConfig):
     verbose_name = _('Comment')
 
     def ready(self):
-        import community.comments.signals
+        pass
