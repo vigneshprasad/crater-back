@@ -25,6 +25,13 @@ class ExchangeRequest(models.Model):
         verbose_name=_('Exchange'),
         related_name='exchange_requests'
     )
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        verbose_name=_('User'),
+        related_name='exchange_requests',
+        null=True
+    )
     title = models.CharField(
         max_length=100,
         verbose_name=_('Title')

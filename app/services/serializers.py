@@ -97,7 +97,7 @@ class UserServicesSerializer(serializers.ModelSerializer):
                         service_instance.update(**service)
                         service_instance = service_instance[0]
                     else:
-                        continue
+                        service_instance = None
                 except models.Service.DoesNotExist:
                     service_instance = models.Service.objects.create(
                         user=instance.user,
