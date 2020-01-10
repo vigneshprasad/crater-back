@@ -29,8 +29,10 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
         ), write_only=True
     )
     files_urls = serializers.SerializerMethodField()
-    cover_image_base64 = Base64FileField(required=False)
+    cover_image_base64 = Base64FileField(required=False, write_only=True)
     cover_image = serializers.ImageField(required=False)
+    user_name = serializers.SerializerMethodField()
+    user_logo = serializers.SerializerMethodField()
 
     class Meta:
         model = models.ExchangeRequest
@@ -42,7 +44,8 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
             'city',
             'city_name',
             'user',
-            'city_name',
+            'user_name',
+            'user_logo',
             'days',
             'require',
             'cover_image',
@@ -53,11 +56,15 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
             'extended_price',
             'files',
             'files_base64',
-            'files_urls'
+            'files_urls',
+            'created'
         ]
         extra_kwargs = {
             'user': {'write_only': True},
         }
+        read_only_fields = [
+            'created'
+        ]
 
     def create(self, validated_data):
         files_json = validated_data.pop('files_base64', [])
@@ -91,3 +98,20 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
         if not (cover or cover_base64):
             raise serializers.ValidationError({'cover_image': _('This field is required')})
         return attrs
+
+    @staticmethod
+    def get_user_name(obj):
+        if hasattr(obj, 'user') and obj.user:
+            if hasattr(obj.user, 'profile') and obj.user.profile:
+                return obj.user.profile.name
+            return obj.user.name
+        return ''
+
+    @staticmethod
+    def get_user_logo(obj):
+        if hasattr(obj, 'user') and obj.user:
+            if hasattr(obj.user, 'profile') and obj.user.profile:
+                return obj.user.profile.photo
+        return None
+
+

@@ -1,5 +1,7 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from model_utils.models import TimeStampedModel
 
 
 class ExchangeCategory(models.Model):
@@ -18,7 +20,7 @@ class ExchangeCategory(models.Model):
         ordering = ['is_active', 'name']
 
 
-class ExchangeRequest(models.Model):
+class ExchangeRequest(TimeStampedModel):
     category = models.ForeignKey(
         'creative_exchange.ExchangeCategory',
         on_delete=models.CASCADE,
@@ -71,6 +73,10 @@ class ExchangeRequest(models.Model):
         verbose_name=_('Extended Price')
     )
 
+    class Meta:
+        verbose_name = _('Exchange Request')
+        verbose_name_plural = _('Exchange Requests')
+
 
 class RequestImage(models.Model):
     request = models.ForeignKey(
@@ -83,3 +89,64 @@ class RequestImage(models.Model):
         upload_to='exchange_request/files/%Y/%m/%d/',
         verbose_name=_('Image')
     )
+
+
+class ExchangeResponse(models.Model):
+    request = models.ForeignKey(
+        'creative_exchange.ExchangeRequest',
+        on_delete=models.CASCADE,
+        verbose_name=_('Request'),
+        related_name='responses'
+    )
+    user = models.ForeignKey(
+        'users.User',
+        related_name='exchange_responses',
+        on_delete=models.CASCADE,
+        verbose_name=_('User')
+    )
+    price = models.PositiveIntegerField(
+        verbose_name=_('Price'),
+        validators=[MaxValueValidator(999999), MinValueValidator(1)]
+    )
+    timeline = models.PositiveIntegerField(
+        verbose_name=_('Timeline'),
+        validators=[MaxValueValidator(99), MinValueValidator(1)]
+    )
+
+    revisions = models.PositiveIntegerField(
+        verbose_name=_('Revisions'),
+        validators=[MaxValueValidator(10), MinValueValidator(1)]
+    )
+    year_of_experience = models.PositiveIntegerField(
+        verbose_name=_('Years of experience'),
+        validators=[MaxValueValidator(50), MinValueValidator(1)]
+    )
+    followers = models.PositiveIntegerField(
+        verbose_name=_('Followers'),
+        null=True
+    )
+    includes = models.TextField(
+        max_length=800,
+        verbose_name=_('Includes and Process')
+    )
+    additional_text = models.TextField(
+        max_length=800,
+        verbose_name=_('Additional text')
+    )
+    require = models.TextField(
+        max_length=800,
+        verbose_name=_('I require')
+    )
+    status = models.CharField(
+        max_length=100,
+        choices=(
+            ('approved', _('Approved')),
+            ('pending', _('Pending')),
+            ('declined', _('Declined'))
+        ),
+        default='pending'
+    )
+
+    class Meta:
+        verbose_name = _('Exchange Response')
+        verbose_name_plural = _('Exchange Responses')

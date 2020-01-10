@@ -1,8 +1,13 @@
+from unittest import mock
+
+from django.core.files import File
 from django.test import TestCase, Client
 from django.urls import reverse
 from rest_auth.utils import jwt_encode
 
 from creative_exchange import models
+from locations.models import Country
+from tags.models import CityProxy
 from users import models as user_models
 
 
@@ -40,7 +45,127 @@ class ExchangeCategoryTestCase(TestCase):
         self.assertEqual(1, len(resp.json()))
 
     def test_get_retrieve_success(self):
-        endpoint = self.endpoints.get('category-list')
+        endpoint = self.endpoints.get('category-detail')(self.category.pk)
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
-        self.assertEqual(1, len(resp.json()))
+        self.assertIn('name', resp.json())
+
+
+class ExchangeRequestTestCase(TestCase):
+
+    def setUp(self):
+        self.country = Country.objects.create(name='Test')
+        self.city = CityProxy.objects.create(
+            name='City',
+            country=self.country
+        )
+        self.user = user_models.User.objects.create(
+            email='test1@email.com',
+            name='ftest ltest',
+            is_approved=True
+        )
+        self.user.set_password('Qwer1234!')
+        self.user.save()
+        self.token = jwt_encode(self.user)
+        self.client = Client()
+        self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
+        self.endpoints = {
+            'request-list': reverse('v1:creative-exchange:request-list'),
+            'request-detail': lambda x: reverse('v1:creative-exchange:request-detail', kwargs={'pk': x})
+        }
+        self.category = models.ExchangeCategory.objects.create(name='Category')
+        self.category2 = models.ExchangeCategory.objects.create(name='Category', is_active=False)
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.jpg'
+        self.requests = []
+        for i in range(1, 26):
+            request = models.ExchangeRequest.objects.create(
+                category=self.category,
+                user=self.user,
+                title='Title',
+                city=self.city,
+                cover_image=file_mock,
+                description='Description',
+                special_requirement='Requirements',
+                additional_information='Info',
+                extended_price=i * 100
+            )
+            self.requests.append(request)
+
+    def test_success_setup(self):
+        self.assertEqual(1, 1)
+
+    def test_get_list_fail_unauth(self):
+        endpoint = self.endpoints.get('request-list')
+        resp = self.client.get(endpoint, content_type='application/json')
+        self.assertEqual(401, resp.status_code)
+
+    def test_get_list_success(self):
+        endpoint = self.endpoints.get('request-list')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(20, len(resp.json()['results']))
+
+    def test_get_list_success_with_page_size(self):
+        endpoint = self.endpoints.get('request-list')
+        resp = self.auth_client.get(f'{endpoint}?page_size=10', content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(10, len(resp.json()['results']))
+
+    def test_get_list_success_data(self):
+        endpoint = self.endpoints.get('request-list')
+        resp = self.auth_client.get(f'{endpoint}?page_size=10', content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(10, len(resp.json()['results']))
+        d = resp.json()['results'][0]
+        request = self.requests[24]
+        cover_image = d.pop('cover_image')
+        self.assertTrue(cover_image)
+        data = {
+            'pk': request.pk,
+            'title': request.title,
+            'extended_price': request.extended_price,
+            'city': self.city.pk,
+            'city_name': self.city.name,
+            'created': request.created.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            'user_name': self.user.name,
+            'user_logo': None,
+            'category': request.category.pk,
+            'category_name': request.category.name,
+            'days': request.days,
+            'require': request.require,
+            'description': request.description,
+            'special_requirement': request.special_requirement,
+            'additional_information': request.additional_information,
+            'files_urls': [],
+        }
+        self.assertDictEqual(d, data)
+
+    def test_get_retrieve_success(self):
+        endpoint = self.endpoints.get('request-detail')(self.requests[0].pk)
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        d = resp.json()
+        request = self.requests[0]
+        cover_image = d.pop('cover_image')
+        self.assertTrue(cover_image)
+        data = {
+            'pk': request.pk,
+            'title': request.title,
+            'extended_price': request.extended_price,
+            'city': self.city.pk,
+            'city_name': self.city.name,
+            'created': request.created.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            'user_name': self.user.name,
+            'user_logo': None,
+            'category': request.category.pk,
+            'category_name': request.category.name,
+            'days': request.days,
+            'require': request.require,
+            'description': request.description,
+            'special_requirement': request.special_requirement,
+            'additional_information': request.additional_information,
+            'files_urls': [],
+        }
+        self.assertDictEqual(d, data)
+

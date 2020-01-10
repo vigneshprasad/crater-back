@@ -1,6 +1,7 @@
 from rest_framework import viewsets, mixins, permissions
 
 from community.mixins import SetCreatorRequestDataMixin
+from users.paginators import Pagination
 from . import models, serializers
 
 
@@ -17,6 +18,7 @@ class ExchangeRequestViewSet(SetCreatorRequestDataMixin,
                              mixins.ListModelMixin,
                              mixins.CreateModelMixin,
                              viewsets.GenericViewSet):
-    queryset = models.ExchangeRequest.objects.all()
+    queryset = models.ExchangeRequest.objects.all().order_by('-id')
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ExchangeRequestSerializer
+    pagination_class = Pagination
