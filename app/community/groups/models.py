@@ -8,11 +8,13 @@ class Location(models.Model):
     User's community group location
     """
     name = models.CharField(_('City Name'), max_length=255)
+    order = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         verbose_name = _('Community Location')
         verbose_name_plural = _('Community Locations')
         db_table = 'community_locations'
+        ordering = ['order', 'name']
 
     def __str__(self):
         return self.name

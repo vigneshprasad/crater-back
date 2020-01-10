@@ -1,3 +1,4 @@
+from adminsortable2.admin import SortableAdminMixin
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin, register
 from django.utils.safestring import mark_safe
@@ -27,10 +28,11 @@ class UserRequestInline(admin.TabularInline):
 
 
 @register(Location)
-class LocationAdmin(ViewActionMixin, ModelAdmin):
-    list_display = ('name', 'groups', 'action')
+class LocationAdmin(SortableAdminMixin, ViewActionMixin, ModelAdmin):
+    list_display = ('name', 'groups', 'action', 'order')
     inlines = [GroupInline]
     icon_name = 'location_on'
+    search_fields = ['name']
 
     @staticmethod
     def groups(location):

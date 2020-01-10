@@ -4,20 +4,6 @@ from community.groups.models import UserRequest, Location, Group, Block, Followi
 from community.mixins import SetCreatorRequestDataMixin
 
 
-class UserRequestSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
-    request_user = 'user'
-    group_name = serializers.CharField(source='group.name', read_only=True)
-
-    class Meta:
-        model = UserRequest
-        fields = (
-            'pk',
-            'user',
-            'group',
-            'group_name'
-        )
-
-
 class GroupSerializer(serializers.ModelSerializer):
     is_my = serializers.SerializerMethodField()
     is_requested = serializers.SerializerMethodField()
@@ -51,6 +37,23 @@ class LocationSerializer(serializers.ModelSerializer):
             'name',
             'groups'
         )
+
+
+class UserRequestSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+    request_user = 'user'
+    group_data = GroupSerializer(source='group', read_only=True)
+
+    class Meta:
+        model = UserRequest
+        fields = (
+            'pk',
+            'user',
+            'group',
+            'group_data',
+        )
+        extra_kwargs = {
+            'group': {'write_only': True},
+        }
 
 
 class BlockSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
