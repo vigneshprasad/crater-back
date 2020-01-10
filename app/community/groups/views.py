@@ -18,7 +18,9 @@ class UserRequestViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet
     permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
-        serializer = LocationSerializer(self.queryset, many=True, context={'request': request})
+        serializer = LocationSerializer(
+            self.queryset.order_by('order', 'name'), many=True, context={'request': request}
+        )
         return Response(serializer.data)
 
     @action(
