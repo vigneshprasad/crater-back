@@ -1,6 +1,6 @@
 from cryptography.fernet import Fernet
 from django.conf import settings
-from django.contrib.auth import views as auth_views
+from django.contrib.auth import views as auth_views, get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.urls import reverse_lazy
@@ -315,18 +315,19 @@ class RefererEmailView(APIView):
         try:
             email = request.data.get('email').strip()
             validate_email(email)
-            data = {
-                email: {
-                    'key': encrypted_uuid.decode("ascii"),
-                    'user': str(request.user)
+            if not get_user_model().objects.filter(email=email).exists():
+                data = {
+                    email: {
+                        'key': encrypted_uuid.decode("ascii"),
+                        'user': str(request.user)
+                    }
                 }
-            }
-            send_email.delay(
-                subject=_('Signup invitation'),
-                to=[email],
-                template_name=choices.template_names.get('invite_friend'),
-                content={},
-                merge_vars=data)
+                send_email.delay(
+                    subject=_('Signup invitation'),
+                    to=[email],
+                    template_name=choices.template_names.get('invite_friend'),
+                    content={},
+                    merge_vars=data)
             return Response({'detail': _('Verification e-mail sent.')})
         except (ValidationError, AttributeError):
             return Response({'email': _('Email is not valid.')}, status=status.HTTP_400_BAD_REQUEST)
