@@ -17,6 +17,7 @@ class GroupSerializer(serializers.ModelSerializer):
             'is_my',
             'is_requested',
             'cover',
+            'icon',
             'location_name'
         )
 
@@ -35,6 +36,7 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = (
             'pk',
             'name',
+            'icon',
             'groups'
         )
 
