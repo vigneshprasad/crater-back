@@ -315,6 +315,29 @@ class Profile(models.Model):
         return self.name
 
 
+class Referral(TimeStampedModel):
+    """
+    Set referral relations between Users
+    """
+    user = models.OneToOneField(
+        'users.User',
+        verbose_name=_('Referral'),
+        on_delete=models.CASCADE
+    )
+    amount = models.CharField(
+        _('Total referral subscription amount'),
+        null=True,
+        max_length=100,
+    )
+    is_paid = models.BooleanField(_('Is paid'), default=False)
+    is_rewarded = models.BooleanField(_('Is rewarded'), default=False)
+
+    class Meta:
+        verbose_name = _('Referral')
+        verbose_name_plural = _('Referrals')
+        ordering = ['user__referer__name']
+
+
 class Admin(User):
     proxy = True
 
@@ -359,7 +382,6 @@ class CoverFile(TimeStampedModel):
         null=True,
         blank=True
     )
-
 
 
 @receiver(post_save, sender=CoverFile)

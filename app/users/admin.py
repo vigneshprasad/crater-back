@@ -6,9 +6,9 @@ from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from users.filters import GroupNameAdminFilter, GroupNameUserFilter
+from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
 from users.forms import AdminCreationForm, UserForm
-from users.models import Profile, Admin
+from users.models import Profile, Admin, Referral
 from utils.mixins import ViewActionMixin
 
 admin.site.unregister(Group)
@@ -85,6 +85,28 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(Q(is_superuser=True) | Q(is_staff=True))
+
+
+@admin.register(Referral)
+class ReferralAdmin(admin.ModelAdmin):
+    list_display = ['referer_name', 'referral_name', 'created', 'amount', 'is_paid', 'is_rewarded']
+    list_editable = ['amount', 'is_paid', 'is_rewarded']
+    list_filter = ['is_paid', 'is_rewarded', 'created', RefererFilter]
+    search_fields = ['user__username']
+
+    @staticmethod
+    def referral_name(referral):
+        return referral.user.username
+
+    @staticmethod
+    def referer_name(referral):
+        return referral.user.referer.username
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(Group)

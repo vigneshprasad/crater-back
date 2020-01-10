@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='location',
-            options={'ordering': ['order'], 'verbose_name': 'Community Location', 'verbose_name_plural': 'Community Locations'},
+            options={'ordering': ['order', 'name'], 'verbose_name': 'Community Location', 'verbose_name_plural': 'Community Locations'},
         ),
         migrations.AddField(
             model_name='location',
