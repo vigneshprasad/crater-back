@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.tokens import default_token_generator
+from django.core.files import File
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -407,6 +408,7 @@ class AuthTestCase(TestCase):
             'tag_list': [],
             'tag_line': '',
             'cover': None,
+            'cover_file': None,
             'photo': None,
             'introduction': '',
             'focus': '',
@@ -502,14 +504,19 @@ class AuthTestCase(TestCase):
         self.assertNotEqual(self.user.sms_code, sms_code)
         self.assertTrue(send_sms.called)
 
-    def test_profile_set_success(self):
+    @patch('utils.transcoder_service.TranscoderService.create_file_transcoder_job', autospec=True)
+    def test_profile_set_success(self, create_file_transcoder_job):
         endpoint = self.endpoints.get('user-profile')
         city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.jpg'
+
+        cover_file = models.CoverFile.objects.create(file=file_mock, user=self.user)
         data = {
             'name': 'Test',
             'tags': [self.tag.pk],
             'tag_line': '',
-            'cover': None,
+            'cover': cover_file.pk,
             'photo': None,
             'introduction': '',
             'focus': '',
@@ -521,15 +528,20 @@ class AuthTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.has_profile)
 
-    def test_profile_set_success_full_info(self):
+    @patch('utils.transcoder_service.TranscoderService.create_file_transcoder_job', autospec=True)
+    def test_profile_set_success_full_info(self, create_file_transcoder_job):
         endpoint = self.endpoints.get('user-profile')
         city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.jpg'
+
+        cover_file = models.CoverFile.objects.create(file=file_mock, user=self.user)
         data = {
             'name': 'Test',
             'tags': [self.tag.pk],
             'tag_line': '',
             'photo': None,
-            'cover': None,
+            'cover': cover_file.pk,
             'introduction': 'Introduction',
             'focus': 'Focus',
             'additional_information': 'Information',
@@ -548,16 +560,24 @@ class AuthTestCase(TestCase):
         data['tag_list'] = [{'name': self.tag.name, 'pk': self.tag.pk}]
         result = resp.json()
         result.pop('pk')
+        cover_file_url = result.pop('cover_file')
+        self.assertTrue(cover_file_url)
         data.update({'cover_transcoder': None, 'cover_thumbnail': None})
         self.assertDictEqual(data, result)
 
-    def test_profile_change_success(self):
+
+    @patch('utils.transcoder_service.TranscoderService.create_file_transcoder_job', autospec=True)
+    def test_profile_change_success(self, create_file_transcoder_job):
         endpoint = self.endpoints.get('user-profile')
         models.Profile.objects.create(
             user=self.user,
             name='Testy'
         )
         city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.jpg'
+
+        cover_file = models.CoverFile.objects.create(file=file_mock, user=self.user)
         data = {
             'name': 'Test',
             'introduction': 'Introduction',
@@ -566,7 +586,7 @@ class AuthTestCase(TestCase):
             'work_city': city.pk,
             'tags': [self.tag.pk],
             'photo': get_test_base64_image(),
-            'cover': get_test_base64_image()
+            'cover': cover_file.pk
         }
         resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
