@@ -30,6 +30,9 @@ class Category(TimeStampedModel):
         verbose_name = _('Category')
         verbose_name_plural = _('Categories')
 
+    def __str__(self):
+        return self.name
+
 
 class ProfessionalCategoryProxy(Category):
     """

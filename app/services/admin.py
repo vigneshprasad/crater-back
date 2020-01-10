@@ -17,13 +17,18 @@ class MarketingCategoryAdmin(ViewActionMixin, ModelAdmin):
     Service Category contains service types
     """
     icon_name = 'apps'
-    list_display = ('name', 'action')
+    list_display = ('name', 'services_inside', 'action')
     fields = ['name', 'photo']
     inlines = [ServiceTypeInline]
     search_fields = ['name']
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(direction='marketing')
+
+    def services_inside(self, category):
+        return category.service_types.count()
+    services_inside.allow_tags = True
+    services_inside.short_description = 'services inside'
 
 
 @register(ProfessionalCategoryProxy)
@@ -32,10 +37,15 @@ class ProfessionalCategoryAdmin(ViewActionMixin, ModelAdmin):
     Service Category contains service types
     """
     icon_name = 'apps'
-    list_display = ('name', 'action')
+    list_display = ('name', 'services_inside', 'action')
     fields = ['name', 'photo']
     inlines = [ServiceTypeInline]
     search_fields = ['name']
+
+    def services_inside(self, category):
+        return category.service_types.count()
+    services_inside.allow_tags = True
+    services_inside.short_description = 'services'
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(direction='professional')
@@ -50,6 +60,22 @@ class ServiceAdmin(ViewActionMixin, ModelAdmin):
     list_display = ('service_type', 'status', 'user', 'action')
     list_filter = ['status']
     search_fields = ['user__email', 'service_type__name']
+
+
+@register(ServiceType)
+class ServiceTypeAdmin(ViewActionMixin, ModelAdmin):
+    """
+    User Service Types
+    """
+    icon_name = 'room_service'
+    list_display = ('category', 'group', 'providers', 'action')
+    list_filter = ['group']
+    search_fields = ['category']
+
+    def providers(self, service_type):
+        return service_type.services.count()
+    providers.allow_tags = True
+    providers.short_description = 'providers'
 
 
 @register(UserServiceInfo)
