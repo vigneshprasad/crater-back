@@ -3,11 +3,13 @@ import re
 from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm, UsernameField, AuthenticationForm, \
-    SetPasswordForm
+    SetPasswordForm, PasswordResetForm
 from django.contrib.auth.models import Group
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+
+from users.models import Admin
 
 
 class GroupMixin:
@@ -86,3 +88,18 @@ class AdminSetPasswordForm(SetPasswordForm):
         if not re.search(r'\d', password1) or not re.search(r'\D', password1):
             raise forms.ValidationError(_('Password should contain numbers and letters'))
         return password1
+
+
+class AdminPasswordResetForm(PasswordResetForm):
+    def get_users(self, email):
+        """Given an email, return matching user(s) who should receive a reset.
+
+        This allows subclasses to more easily customize the default policies
+        that prevent inactive users and users with unusable passwords from
+        resetting their password.
+        """
+        active_users = Admin._default_manager.filter(**{
+            '%s__iexact' % Admin.get_email_field_name(): email,
+            'is_active': True,
+        })
+        return (u for u in active_users if u.has_usable_password())
