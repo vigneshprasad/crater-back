@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from community.groups.models import Location, Block, Following
-from community.groups.serializers import UserRequestSerializer, LocationSerializer, BlockSerializer, FollowSerializer
+from community.groups.models import Location, Block, Following, Group
+from community.groups.serializers import UserRequestSerializer, LocationSerializer, BlockSerializer, FollowSerializer, \
+    GroupSerializer
 from community.groups.services import get_blockers, get_blocked_user, get_followers, get_followed_user
 
 
@@ -17,16 +18,21 @@ class UserRequestViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet
     permission_classes = (IsAuthenticated,)
 
     def list(self, request, *args, **kwargs):
-        serializer = LocationSerializer(self.queryset, many=True)
+        serializer = LocationSerializer(self.queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(
         methods=['get'],
         permission_classes=[IsAuthenticated],
+        serializer_class=GroupSerializer,
         detail=False
     )
     def my(self, request):
-        serializer = self.serializer_class(request.user.user_groups.filter(is_approved=True), many=True)
+        serializer = self.serializer_class(
+            Group.objects.filter(
+                group_users__user=self.request.user,
+                group_users__is_approved=True), many=True, context={'request': request}
+        )
         return Response(serializer.data)
 
 

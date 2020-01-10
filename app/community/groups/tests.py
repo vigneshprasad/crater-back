@@ -62,7 +62,7 @@ class TestLocationView(APITestCase):
         response = self.client.get(f'{url}my/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['group_name'], 'Group name')
+        self.assertEqual(response.data[0]['name'], 'Group name')
 
     def test_get_my_groups_not_approved(self):
         url = reverse('v1:community:location-list')

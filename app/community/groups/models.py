@@ -24,6 +24,11 @@ class Group(models.Model):
     """
     name = models.CharField(_('Name'), max_length=255)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='groups')
+    cover = models.ImageField(
+        upload_to='groups/cover/%Y/%m/%d/',
+        verbose_name=_('Cover Image'),
+        null=True
+    )
 
     class Meta:
         verbose_name = _('Group')

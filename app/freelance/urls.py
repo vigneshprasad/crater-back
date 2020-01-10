@@ -27,7 +27,6 @@ from allauth.socialaccount import views as socialaccount_views
 
 from rest_framework import permissions
 
-from users.auth_views import AdminPasswordResetView
 from users.forms import FreelanceAdminAuthenticationForm
 from users.views import PasswordResetConfirmView
 
@@ -53,7 +52,7 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ] + i18n_patterns(
     path('admin/', admin.site.urls, name='admin'),
-    path('admin/password_reset/', AdminPasswordResetView.as_view(), name='admin_password_reset'),
+    path('admin/password_reset/', auth_views.PasswordResetView.as_view(), name='admin_password_reset'),
     path('admin/password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('admin/reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(),
          name='password_reset_confirm'),

@@ -11,17 +11,6 @@ class ServiceTypeInline(admin.TabularInline):
     extra = 0
 
 
-# @register(Category)
-# class CategoryAdmin(ViewActionMixin, ModelAdmin):
-#     """
-#     Service Category contains service types
-#     """
-#     icon_name = 'apps'
-#     list_display = ('name', 'action')
-#     inlines = [ServiceTypeInline]
-#     search_fields = ['name']
-
-
 @register(MarketingCategoryProxy)
 class MarketingCategoryAdmin(ViewActionMixin, ModelAdmin):
     """
