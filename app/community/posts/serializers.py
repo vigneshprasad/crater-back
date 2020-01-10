@@ -20,6 +20,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     creator_name = serializers.CharField(read_only=True, source='creator.name')
     files_urls = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
+    my_like = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
@@ -38,6 +39,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'creator_photo',
             'created',
             'likes',
+            'my_like',
             'comments',
             'latest_comments'
         )
@@ -54,6 +56,9 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
     def get_files_urls(self, post):
         return [self.context['request'].build_absolute_uri(file.object.url) for file in get_post_files(post)]
+
+    def get_my_like(self, post):
+        return post.likes.filter(user=self.context['request'].user).exists()
 
     @staticmethod
     def _create_post_files(files, post):

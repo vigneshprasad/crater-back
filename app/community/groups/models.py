@@ -8,6 +8,11 @@ class Location(models.Model):
     User's community group location
     """
     name = models.CharField(_('City Name'), max_length=255)
+    icon = models.ImageField(
+        upload_to='locations/icons/%Y/%m/%d/',
+        verbose_name=_('Location Icon'),
+        null=True
+    )
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
@@ -29,6 +34,11 @@ class Group(models.Model):
     cover = models.ImageField(
         upload_to='groups/cover/%Y/%m/%d/',
         verbose_name=_('Cover Image'),
+        null=True
+    )
+    icon = models.ImageField(
+        upload_to='groups/icons/%Y/%m/%d/',
+        verbose_name=_('Group Icon'),
         null=True
     )
 
