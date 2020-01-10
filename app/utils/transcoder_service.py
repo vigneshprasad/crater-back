@@ -11,7 +11,7 @@ class TranscoderService:
             'elastictranscoder',
             region_name=region_name,
             aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key
+            aws_secret_access_key=aws_secret_access_key,
         )
         self.pipeline_id = pipeline_id
         self.presets = {
@@ -46,6 +46,34 @@ class TranscoderService:
                         return job_info['Id'], output_file
             return None, None
         except Profile.DoesNotExist:
+            return None, None
+
+    def create_file_transcoder_job(self, cover_file_pk):
+        from users.models import CoverFile
+        try:
+            cover_file = CoverFile.objects.get(pk=cover_file_pk)
+            cover_name = cover_file.file.name
+            ext = cover_name.split('.')[1]
+            if ext.lower() in ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']:
+                input_file = f'media/{cover_name}'
+                output_file = str(uuid.uuid4())
+                while CoverFile.objects.filter(transcoder_uuid=output_file).exists():
+                    output_file = str(uuid.uuid4())
+                outputs = [
+                    {
+                        'Key': f'mp4/{output_file}.mp4',
+                        'PresetId': self.presets.get('mp4'),
+                        'ThumbnailPattern': f'thumbnail/{output_file}'+'-{count}',
+                    },
+                ]
+                job_info = self.create_elastic_transcoder_hls_job(
+                    input_file=input_file, outputs=outputs, output_file_prefix=self.output_file_prefix
+                )
+                print(job_info)
+                if job_info:
+                    return job_info['Id'], output_file
+            return None, None
+        except CoverFile.DoesNotExist:
             return None, None
 
     def create_elastic_transcoder_hls_job(self,

@@ -358,3 +358,14 @@ class VerifyEmailView(DefaultVerifyEmailView):
 
     def get_serializer(self, *args, **kwargs):
         return serializers.VerifyEmailSerializer(*args, **kwargs)
+
+
+class CoverFileViewSet(mixins.CreateModelMixin,
+                       viewsets.GenericViewSet):
+    queryset = models.CoverFile.objects.none()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.CoverFileSerializer
+
+    def perform_create(self, serializer):
+        serializer.validated_data['user'] = self.request.user
+        serializer.save()

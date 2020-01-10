@@ -10,6 +10,7 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_auth import serializers as rest_auth_serializers
@@ -369,12 +370,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_blank=True
     )
     photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
-    cover = Base64FileField(
-        file_formats=['.jpg', '.png', '.tiff', '.bmp',  '.mov', '.mpeg', '.avi', '.mp4', '.3gp', '.mwv', '.flv'],
-        allow_null=True
-    )
+    cover = serializers.PrimaryKeyRelatedField(queryset=models.CoverFile.objects.all(), allow_null=True, required=False)
     tag_list = TagSerializer(source='tags', many=True, read_only=True)
     work_city_name = serializers.CharField(source='work_city.name', read_only=True)
+    cover_thumbnail = serializers.CharField(source='cover.cover_thumbnail', read_only=True, allow_null=True)
+    cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
+    cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
 
     class Meta:
         model = models.Profile
@@ -384,6 +385,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'tag_line',
             'photo',
             'cover',
+            'cover_file',
             'introduction',
             'focus',
             'additional_information',
@@ -404,6 +406,12 @@ class ProfileSerializer(serializers.ModelSerializer):
             'cover_thumbnail',
             'cover_transcoder'
         )
+
+    def validate_cover(self, cover):
+        user = self.context['request'].user
+        if cover not in user.cover_files.all():
+            raise serializers.ValidationError(_('Please use your cover file'))
+        return cover
 
 
 class LogoutSerializer(serializers.Serializer):
@@ -464,3 +472,50 @@ class VerifyEmailSerializer(register_serializers.VerifyEmailSerializer):
                     messages.WRONG_VALIDATE_KEY
                 )
         return key
+
+
+class CoverFileSerializer(serializers.ModelSerializer):
+    file_base64 = Base64FileField(
+        file_formats=['.jpg', '.png', '.tiff', '.bmp',  '.mov', '.mpeg', '.avi', '.mp4', '.3gp', '.mwv', '.flv'],
+        allow_null=True,
+        required=False,
+        write_only=True
+    )
+    file = serializers.FileField(allow_null=True, required=False)
+
+    class Meta:
+        model = models.CoverFile
+        fields = [
+            'pk',
+            'file',
+            'file_base64',
+        ]
+
+    def validate(self, attrs):
+        file = attrs.get('file')
+        file_base64 = attrs.get('file_base64')
+        if not (file or file_base64):
+            raise serializers.ValidationError(
+                {
+                    'file': _('This field is required')
+                }
+            )
+        user = self.context['request'].user
+        cover_files = user.cover_files.filter(created__date=timezone.now().date())
+        if cover_files.count() > 20:
+            raise serializers.ValidationError(
+                {
+                    'file': _('You have to many uploaded files today')
+                }
+            )
+        return attrs
+
+    def create(self, validated_data):
+        file_base64 = validated_data.pop('file_base64', [])
+        file = validated_data.pop('file', None)
+        if file:
+            validated_data['file'] = file
+        else:
+            validated_data['file'] = file_base64
+        obj = super().create(validated_data)
+        return obj

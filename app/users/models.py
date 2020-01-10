@@ -19,7 +19,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from users.managers import UserManager
 from utils.validators import SizeValidator
 from . import choices
-from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_profile
+from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
 
 
 class User(AbstractUser):
@@ -261,38 +261,12 @@ class Profile(models.Model):
         null=True,
         validators=[SizeValidator(size=30)]
     )
-    cover = models.FileField(
-        upload_to='profile/cover/%Y/%m/%d',
-        verbose_name=_('Cover'),
+    cover = models.ForeignKey(
+        'users.CoverFile',
         null=True,
-        validators=[SizeValidator(size=512)]
-    )
-    _old_cover = models.URLField(
-        null=True,
-        blank=True
-    )
-    cover_thumbnail = models.URLField(
-        null=True,
-        blank=True,
-        verbose_name=_('Cover thumbnail')
-    )
-    cover_transcoder = models.URLField(
-        null=True,
-        blank=True,
-        verbose_name=_('Cover transcoder')
-    )
-    transcoder_job_id = models.CharField(
-        max_length=255,
-        verbose_name=_('Transcoder job id'),
-        null=True,
-        blank=True
-    )
-    transcoder_job_success = models.BooleanField(
-        default=False
-    )
-    transcoder_uuid = models.UUIDField(
-        null=True,
-        blank=True
+        verbose_name=_('Cover File'),
+        related_name='profiles',
+        on_delete=models.SET_NULL
     )
     introduction = models.CharField(
         max_length=800,
@@ -349,11 +323,46 @@ class Admin(User):
         verbose_name_plural = _('Admins')
 
 
-@receiver(post_save, sender=Profile)
-def profile_post_save(sender, instance, created,  *args, **kwargs):
-    if instance.cover:
-        if instance.cover.url != instance._old_cover:
-            transaction.on_commit(lambda: start_transcoding_for_profile.delay(instance.pk))
-    elif not instance.transcoder_job_success and not instance.transcoder_job_id:
-        transaction.on_commit(lambda: start_transcoding_for_profile.delay(instance.pk))
+class CoverFile(TimeStampedModel):
+    file = models.FileField(
+        upload_to='profile/cover/%Y/%m/%d',
+        verbose_name=_('Cover'),
+        null=True,
+        validators=[SizeValidator(size=512)]
+    )
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        verbose_name=_('User'),
+        related_name='cover_files'
+    )
+    cover_thumbnail = models.URLField(
+        null=True,
+        blank=True,
+        verbose_name=_('Cover thumbnail')
+    )
+    cover_transcoder = models.URLField(
+        null=True,
+        blank=True,
+        verbose_name=_('Cover transcoder')
+    )
+    transcoder_job_id = models.CharField(
+        max_length=255,
+        verbose_name=_('Transcoder job id'),
+        null=True,
+        blank=True
+    )
+    transcoder_job_success = models.BooleanField(
+        default=False
+    )
+    transcoder_uuid = models.UUIDField(
+        null=True,
+        blank=True
+    )
 
+
+
+@receiver(post_save, sender=CoverFile)
+def profile_post_save(sender, instance, created,  *args, **kwargs):
+    if created:
+        transaction.on_commit(lambda: start_transcoding_for_cover_file.delay(instance.pk))

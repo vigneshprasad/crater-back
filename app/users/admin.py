@@ -17,14 +17,6 @@ admin.site.unregister(Group)
 class ProfileAdmin(admin.StackedInline):
     model = Profile
     autocomplete_fields = ['work_city']
-    readonly_fields = [
-        '_old_cover',
-        'cover_thumbnail',
-        'cover_transcoder',
-        'transcoder_job_id',
-        'transcoder_job_success',
-        'transcoder_uuid',
-    ]
 
 
 @admin.register(get_user_model())

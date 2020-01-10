@@ -19,4 +19,12 @@ app.conf.beat_schedule = {
         'task': 'check_transcoding_for_profile',
         'schedule': crontab(minute='*/1')
     },
+    'check-transcoder-file-jobs': {
+        'task': 'check_transcoding_for_cover_file',
+        'schedule': crontab(minute='*/1')
+    },
+    'auto-remove-not-used-cover-files': {
+        'task': 'auto_remove_not_used_cover_files',
+        'schedule': crontab(hour=23, minute=59)
+    }
 }
