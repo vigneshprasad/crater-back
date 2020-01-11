@@ -47,6 +47,5 @@ class RefererFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            print(self.value())
             return queryset.filter(user__referer__email=self.value())
         return queryset
