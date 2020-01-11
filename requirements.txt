@@ -1,4 +1,4 @@
-Django==3.0
+Django==3.0.2
 psycopg2-binary==2.8.4
 django-material-admin==1.6.27
 django-admin-sortable2==0.7.5
@@ -27,3 +27,5 @@ phonenumbers==8.11.1
 exrex==0.10.5
 stripe==2.41.0
 cryptography==2.8
+channels==2.4.0
+channels-redis==2.4.1

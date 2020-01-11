@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from utils.mixins import ViewActionMixin
 from . import models
+from .filters import BuyerFilter
 
 
 @register(models.ExchangeRequest)
@@ -11,7 +12,7 @@ class ExchangeAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = 'track_changes'
     list_display = ['job_name', 'buyer', 'service_type', 'created', 'extended_price', 'applied', 'is_deleted', 'action']
     list_editable = ['is_deleted']
-    list_filter = ['user__username', 'created']
+    list_filter = [BuyerFilter, 'created']
     search_fields = ['category__name']
     actions = ['mark_as_deleted']
 
@@ -33,7 +34,7 @@ class ExchangeAdmin(ViewActionMixin, admin.ModelAdmin):
 
     def mark_as_deleted(self, request, queryset):
         queryset.update(is_deleted=True)
-    mark_as_deleted.short_description = "Mark selected items as deleted"
+    mark_as_deleted.short_description = _('Mark selected items as deleted')
 
 
 @register(models.ExchangeCategory)

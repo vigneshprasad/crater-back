@@ -13,7 +13,7 @@ from community.posts.models import Like, Report
 from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
 from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer, LimitedPostSerializer
-from community.posts.services import get_posts, get_likes, get_post, get_posts_count
+from community.posts.services import get_posts, get_likes, get_post, get_posts_count, get_community_posts
 from resources.curated_articles.services import get_company_curated_articles_data
 from resources.events.services import get_first_event_data
 from resources.masterclasses.services import get_first_masterclass_data
@@ -21,7 +21,7 @@ from resources.masterclasses.services import get_first_masterclass_data
 
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
-    queryset = get_posts()
+    queryset = get_community_posts()
     pagination_class = PostPagination
     permission_classes = (IsAuthenticated, PostPermission)
     filter_backends = (FollowingFilterBackend, BlockersFilterBackend)
@@ -50,7 +50,7 @@ class PostViewSet(ModelViewSet):
         })
 
     @action(methods=['get'], permission_classes=[IsAuthenticated], detail=False, filter_backends=None,
-            serializer_class=LimitedPostSerializer)
+            serializer_class=LimitedPostSerializer, queryset=get_posts())
     def all(self, request):
         context = self.get_serializer_context()
         return Response({
