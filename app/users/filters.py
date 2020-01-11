@@ -43,7 +43,7 @@ class RefererFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         referers = get_user_model().objects.filter(referrals__isnull=False)
-        return [(referer.email, referer.username) for referer in referers]
+        return [(referer.email, referer.name) for referer in referers]
 
     def queryset(self, request, queryset):
         if self.value():

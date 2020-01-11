@@ -94,12 +94,12 @@ class ReferralAdmin(admin.ModelAdmin):
     list_editable = ['amount', 'is_paid', 'is_rewarded']
     readonly_fields = ['user']
     list_filter = ['is_paid', 'is_rewarded', 'created', RefererFilter]
-    search_fields = ['user__username']
+    search_fields = ['user__name']
 
     @staticmethod
     def referral_name(referral):
         href = reverse("admin:users_user_change", args=(referral.user.pk,))
-        link = f'<a href="{href}">{referral.user.username}</a>'
+        link = f'<a href="{href}">{referral.user.name}</a>'
         return mark_safe(link)
 
     @staticmethod
@@ -111,7 +111,7 @@ class ReferralAdmin(admin.ModelAdmin):
             href = reverse("admin:users_user_change", args=(referral.user.referer.pk,))
         else:
             href = reverse("admin:users_admin_change", args=(referral.user.referer.pk,))
-        link = f'<a href="{href}">{referral.user.referer.username}</a>'
+        link = f'<a href="{href}">{referral.user.referer.name}</a>'
         return mark_safe(link)
 
     def has_delete_permission(self, request, obj=None):
