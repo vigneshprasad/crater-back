@@ -21,6 +21,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     files_urls = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     my_like = serializers.SerializerMethodField()
+    is_followed = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
@@ -40,6 +41,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'created',
             'likes',
             'my_like',
+            'is_followed',
             'comments',
             'latest_comments'
         )
@@ -77,6 +79,9 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     @staticmethod
     def get_comments(post):
         return post.comments.count()
+
+    def get_is_followed(self, post):
+        return post.creator.follows.filter(follower=self.context['request'].user).exists()
 
     @staticmethod
     def get_latest_comments(post):
