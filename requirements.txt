@@ -27,3 +27,5 @@ phonenumbers==8.11.1
 exrex==0.10.5
 stripe==2.41.0
 cryptography==2.8
+channels==2.4.0
+channels-redis==2.4.1
