@@ -1,6 +1,10 @@
 from community.posts.models import Post, File, Like
 
 
+def get_community_posts():
+    return Post.objects.filter(group__isnull=True).all()
+
+
 def get_posts():
     return Post.objects.all()
 
