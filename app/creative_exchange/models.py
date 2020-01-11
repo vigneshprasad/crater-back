@@ -19,6 +19,9 @@ class ExchangeCategory(models.Model):
         verbose_name = _('Exchange Category')
         ordering = ['is_active', 'name']
 
+    def __str__(self):
+        return self.name
+
 
 class ExchangeRequest(TimeStampedModel):
     category = models.ForeignKey(
@@ -72,10 +75,17 @@ class ExchangeRequest(TimeStampedModel):
     extended_price = models.PositiveIntegerField(
         verbose_name=_('Extended Price')
     )
+    is_deleted = models.BooleanField(
+        verbose_name=_('Is Deleted'),
+        default=False
+    )
 
     class Meta:
         verbose_name = _('Exchange Request')
         verbose_name_plural = _('Exchange Requests')
+
+    def __str__(self):
+        return self.category.name
 
 
 class RequestImage(models.Model):

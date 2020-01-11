@@ -115,7 +115,7 @@ MATERIAL_ADMIN_SITE = {
     'TITLE':  _('Marketplace'),
     'FAVICON':  'admin/favicon.ico',
     'MAIN_BG_COLOR':  '#41adda',
-    'MAIN_HOVER_COLOR':  '#969999',
+    'MAIN_HOVER_COLOR':  '#747777',
     'PROFILE_PICTURE':  'admin/logo.jpg',
     'PROFILE_BG':  'admin/profile_bg.png',
     'LOGIN_LOGO':  'admin/logo.jpg',
