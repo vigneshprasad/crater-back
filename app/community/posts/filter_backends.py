@@ -8,19 +8,22 @@ class FollowingFilterBackend(BaseFilterBackend):
     def get_schema_fields(self, view):
         return [
             coreapi.Field(
-                name='type',
+                name='tag',
                 location='query',
                 required=False,
                 type='string',
-                description='Filter by following'
+                description='Filter Posts'
             )
         ]
 
     def filter_queryset(self, request, queryset, *args, **kwargs):
-        if 'following' in request.query_params:
+        if not request.query_params.get('tag'):
+            return queryset
+
+        if 'following' == request.query_params['tag']:
             following = Following.objects.filter(follower=request.user).values_list('followed', flat=True)
             return queryset.filter(creator__in=following)
-        return queryset
+        return queryset.filter(creator__profile__tags=request.query_params['tag'])
 
 
 class BlockersFilterBackend(BaseFilterBackend):
