@@ -14,7 +14,7 @@
     var token = {{ token }};
 
     var chatSocket = new WebSocket(
-        'ws{% if not request.is_secure %}s{% endif %}://' + window.location.host +
+        'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
         '/ws/chat/' + token + '/'
        );
 
