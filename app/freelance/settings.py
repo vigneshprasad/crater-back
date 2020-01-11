@@ -44,6 +44,8 @@ import django.core.mail.backends.smtp
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+    'chat',
     'material.admin',
     'material.admin.default',
     'django.contrib.auth',
@@ -110,6 +112,18 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=8),
 }
 
+ASGI_APPLICATION = 'freelance.routing.application'
+DJANGO_ALLOW_ASYNC_UNSAFE = True
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
+
 MATERIAL_ADMIN_SITE = {
     'HEADER':  _('Administration'),
     'TITLE':  _('Marketplace'),
@@ -134,7 +148,6 @@ MATERIAL_ADMIN_SITE = {
         'socialapp': 'settings_applications',
     }
 }
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
