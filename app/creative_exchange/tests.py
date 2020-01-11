@@ -9,6 +9,7 @@ from creative_exchange import models
 from locations.models import Country
 from tags.models import CityProxy
 from users import models as user_models
+from utils.file_test_service import get_test_base64_image
 
 
 class ExchangeCategoryTestCase(TestCase):
@@ -71,7 +72,8 @@ class ExchangeRequestTestCase(TestCase):
         self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
         self.endpoints = {
             'request-list': reverse('v1:creative-exchange:request-list'),
-            'request-detail': lambda x: reverse('v1:creative-exchange:request-detail', kwargs={'pk': x})
+            'request-detail': lambda x: reverse('v1:creative-exchange:request-detail', kwargs={'pk': x}),
+            'response-list': reverse('v1:creative-exchange:my-response-list')
         }
         self.category = models.ExchangeCategory.objects.create(name='Category')
         self.category2 = models.ExchangeCategory.objects.create(name='Category', is_active=False)
@@ -91,6 +93,7 @@ class ExchangeRequestTestCase(TestCase):
                 extended_price=i * 100
             )
             self.requests.append(request)
+
 
     def test_success_setup(self):
         self.assertEqual(1, 1)
@@ -149,6 +152,11 @@ class ExchangeRequestTestCase(TestCase):
         request = self.requests[0]
         cover_image = d.pop('cover_image')
         self.assertTrue(cover_image)
+        historcial_bids = d.pop('historical_bids')
+        graph_data = d.pop('graph_data')
+        self.assertFalse(historcial_bids)
+        self.assertFalse(graph_data['half_year_avf'])
+        self.assertEqual(180, len(graph_data['data'].values()))
         data = {
             'pk': request.pk,
             'title': request.title,
@@ -169,3 +177,38 @@ class ExchangeRequestTestCase(TestCase):
         }
         self.assertDictEqual(d, data)
 
+    def test_post_success(self):
+        endpoint = self.endpoints.get('request-list')
+        data = {
+            'category': self.category.pk,
+            'title': 'string',
+            'city': self.city.pk,
+            'days': 0,
+            'require': True,
+            'description': 'string',
+            'special_requirement': 'string',
+            'additional_information': 'string',
+            'extended_price': 100,
+            'cover_image_base64': get_test_base64_image(),
+            'files_base64': [get_test_base64_image(), get_test_base64_image()]
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(201, resp.status_code)
+        self.assertEqual(len(resp.json()['files_urls']), 2)
+        self.assertTrue(resp.json()['cover_image'])
+
+    def test_post_response_for_request(self):
+        endpoint = self.endpoints.get('response-list')
+        data = {
+            'request': self.requests[0].pk,
+            'price': 100,
+            'timeline': 20,
+            'revisions': 5,
+            'year_of_experience': 10,
+            'followers': 100,
+            'includes': "Text",
+            'additional_text': 'text',
+            'require': 'text',
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(201, resp.status_code)

@@ -101,7 +101,7 @@ class RequestImage(models.Model):
     )
 
 
-class ExchangeResponse(models.Model):
+class ExchangeResponse(TimeStampedModel):
     request = models.ForeignKey(
         'creative_exchange.ExchangeRequest',
         on_delete=models.CASCADE,
@@ -122,7 +122,6 @@ class ExchangeResponse(models.Model):
         verbose_name=_('Timeline'),
         validators=[MaxValueValidator(99), MinValueValidator(1)]
     )
-
     revisions = models.PositiveIntegerField(
         verbose_name=_('Revisions'),
         validators=[MaxValueValidator(10), MinValueValidator(1)]

@@ -8,6 +8,7 @@ app_name = 'creative_exchange'
 router = routers.SimpleRouter()
 router.register('categories', views.ExchangeCategoryViewSet, base_name='category')
 router.register('request', views.ExchangeRequestViewSet, base_name='request')
+router.register('response', views.ExchangeResponseViewSet, base_name='my-response')
 
 urlpatterns = [
     path('', include(router.urls))

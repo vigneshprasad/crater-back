@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 from django.utils import translation
 
 
@@ -17,3 +18,8 @@ def translate(language, text):
     text = translation.ugettext(text)
     translation.activate(lang)
     return text
+
+
+def date_range(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timezone.timedelta(n)

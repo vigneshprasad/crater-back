@@ -1,7 +1,9 @@
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from utils.fields import Base64FileField
+from utils.utils import date_range
 from . import models
 
 
@@ -12,6 +14,18 @@ class ExchangeCategorySerializer(serializers.ModelSerializer):
         fields = [
             'pk',
             'name'
+        ]
+
+
+class HistoricalBidResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ExchangeResponse
+        fields = [
+            'created',
+            'price',
+            'year_of_experience',
+            'followers'
         ]
 
 
@@ -43,7 +57,6 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
             'title',
             'city',
             'city_name',
-            'user',
             'user_name',
             'user_logo',
             'days',
@@ -57,13 +70,10 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
             'files',
             'files_base64',
             'files_urls',
-            'created'
+            'created',
         ]
-        extra_kwargs = {
-            'user': {'write_only': True},
-        }
         read_only_fields = [
-            'created'
+            'created',
         ]
 
     def create(self, validated_data):
@@ -115,3 +125,83 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
         return None
 
 
+class DetailExchangeRequestSerializer(ExchangeRequestSerializer):
+    historical_bids = serializers.SerializerMethodField()
+    graph_data = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.ExchangeRequest
+        fields = [
+            'pk',
+            'category',
+            'category_name',
+            'title',
+            'city',
+            'city_name',
+            'user_name',
+            'user_logo',
+            'days',
+            'require',
+            'cover_image',
+            'cover_image_base64',
+            'description',
+            'special_requirement',
+            'additional_information',
+            'extended_price',
+            'files',
+            'files_base64',
+            'files_urls',
+            'created',
+            'historical_bids',
+            'graph_data'
+
+        ]
+        read_only_fields = [
+            'created',
+            'historical_bids',
+            'graph_data'
+        ]
+
+    @staticmethod
+    def get_historical_bids(obj):
+        responses = models.ExchangeResponse.objects.filter(request__category=obj.category)
+        return HistoricalBidResponseSerializer(responses, many=True).data
+
+    @staticmethod
+    def get_graph_data(obj):
+        six_month_ago = timezone.now() - timezone.timedelta(days=180)
+        responses = models.ExchangeResponse.objects.filter(request__category=obj.category, created__gte=six_month_ago)
+        graph_data = {}
+        day_average = 0
+        for single_date in date_range(six_month_ago, timezone.now()):
+            resps = responses.filter(created=single_date)
+            if resps:
+                day_average = round(sum(list(resps.values_list('price', flat=True))) / resps.count())
+            graph_data[single_date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')] = day_average
+        half_year_avg = sum(graph_data.values())/len(graph_data.values())
+        return {
+            'half_year_avf': half_year_avg,
+            'data': graph_data
+        }
+
+
+class ExchangeResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ExchangeResponse
+        fields = [
+            'pk',
+            'request',
+            'price',
+            'timeline',
+            'revisions',
+            'year_of_experience',
+            'followers',
+            'includes',
+            'additional_text',
+            'require',
+            'status',
+        ]
+        read_only_fields = [
+            'status'
+        ]
