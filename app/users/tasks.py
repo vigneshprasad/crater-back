@@ -43,44 +43,6 @@ def send_email(self,
 
 
 @shared_task(bind=True)
-def start_transcoding_for_profile(self, profile_pk):
-    from .models import Profile
-    logging.info(f'Start transcoding {profile_pk}')
-    try:
-        profile = Profile.objects.get(pk=profile_pk)
-        job_id, uuid = transcoder_service.create_transcoder_job(profile_pk=profile_pk)
-        print(job_id, uuid)
-        if job_id and uuid:
-            profile.transcoder_job_id = job_id
-            profile.transcoder_uuid = uuid
-            profile._old_cover = profile.cover.url
-            profile.transcoder_job_success = False
-            profile.cover_thumbnail = ''
-            profile.cover_transcoder = ''
-            profile.save()
-    except Profile.DoesNotExist:
-        print(f'Profile does not exist')
-        pass
-
-
-@shared_task(bind=True, name='check_transcoding_for_profile')
-def check_transcoding_for_profile(self):
-    from .models import Profile
-    profiles = Profile.objects.filter(transcoder_job_id__isnull=False, transcoder_job_success=False)
-    prefix = f'https://{settings.AWS_S3_CUSTOM_DOMAIN}/elastic-transcoder/output/'
-    for profile in profiles:
-        result = transcoder_service.job_success(profile.transcoder_job_id)
-        if result:
-            profile.transcoder_job_success = True
-            mp4 = f'{prefix}mp4/{profile.transcoder_uuid}.mp4'
-            png = f'{prefix}thumbnail/{profile.transcoder_uuid}-00001.png'
-            profile.cover_transcoder = mp4
-            profile.cover_thumbnail = png
-            profile.transcoder_job_id = None
-            profile.save()
-
-
-@shared_task(bind=True)
 def start_transcoding_for_cover_file(self, cover_file_pk):
     from .models import CoverFile
     logging.info(f'Start transcoding file {cover_file_pk}')
@@ -114,7 +76,7 @@ def check_transcoding_for_cover_file(self):
 
 
 @shared_task(bind=True, name='auto_remove_not_used_cover_files')
-def check_transcoding_for_cover_file(self):
+def auto_remove_not_used_cover_files(self):
     from .models import CoverFile
     one_day_ago = timezone.now() - timezone.timedelta(days=1)
     files = CoverFile.objects.filter(profiles__isnull=True, created__lte=one_day_ago)

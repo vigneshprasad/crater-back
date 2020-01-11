@@ -15,10 +15,6 @@ app.conf.update(
     worker_pool_restarts=True,
 )
 app.conf.beat_schedule = {
-    'check-transcoder-jobs': {
-        'task': 'check_transcoding_for_profile',
-        'schedule': crontab(minute='*/1')
-    },
     'check-transcoder-file-jobs': {
         'task': 'check_transcoding_for_cover_file',
         'schedule': crontab(minute='*/1')
