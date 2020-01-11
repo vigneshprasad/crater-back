@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import GroupAdmin
 from django.contrib.auth.models import Group
 from django.db.models import Q
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
@@ -91,16 +92,27 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
 class ReferralAdmin(admin.ModelAdmin):
     list_display = ['referer_name', 'referral_name', 'created', 'amount', 'is_paid', 'is_rewarded']
     list_editable = ['amount', 'is_paid', 'is_rewarded']
+    readonly_fields = ['user']
     list_filter = ['is_paid', 'is_rewarded', 'created', RefererFilter]
     search_fields = ['user__username']
 
     @staticmethod
     def referral_name(referral):
-        return referral.user.username
+        href = reverse("admin:users_user_change", args=(referral.user.pk,))
+        link = f'<a href="{href}">{referral.user.username}</a>'
+        return mark_safe(link)
 
     @staticmethod
     def referer_name(referral):
-        return referral.user.referer.username
+        if not referral.user.referer or referral.user.referer.is_superuser:
+            return referral.user.referer
+
+        if get_user_model().objects.filter(pk=referral.user.referer.pk).exists():
+            href = reverse("admin:users_user_change", args=(referral.user.referer.pk,))
+        else:
+            href = reverse("admin:users_admin_change", args=(referral.user.referer.pk,))
+        link = f'<a href="{href}">{referral.user.referer.username}</a>'
+        return mark_safe(link)
 
     def has_delete_permission(self, request, obj=None):
         return False
