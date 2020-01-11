@@ -89,8 +89,8 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
 
 
 @admin.register(Referral)
-class ReferralAdmin(admin.ModelAdmin):
-    list_display = ['referer_name', 'referral_name', 'created', 'amount', 'is_paid', 'is_rewarded']
+class ReferralAdmin(ViewActionMixin, admin.ModelAdmin):
+    list_display = ['referer_name', 'referral_name', 'created', 'amount', 'is_paid', 'is_rewarded', 'action']
     list_editable = ['amount', 'is_paid', 'is_rewarded']
     readonly_fields = ['user']
     list_filter = ['is_paid', 'is_rewarded', 'created', RefererFilter]
