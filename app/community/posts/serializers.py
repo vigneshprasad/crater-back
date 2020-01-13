@@ -17,7 +17,6 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     files_formdata = serializers.ListField(
         required=False, child=FileField(max_length=None, use_url=True)
     )
-    creator_name = serializers.CharField(read_only=True, source='creator.name')
     files_urls = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     my_like = serializers.SerializerMethodField()
@@ -25,6 +24,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     is_reported = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
+    creator_name = serializers.CharField(read_only=True, source='creator.name')
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
 
     class Meta:
@@ -102,6 +102,7 @@ class LimitedPostSerializer(PostSerializer):
             'files',
             'creator',
             'creator_name',
+            'creator_photo',
             'created',
             'likes',
             'comments',
