@@ -45,9 +45,6 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'comments',
             'latest_comments'
         )
-        extra_kwargs = {
-            'creator': {'write_only': True}
-        }
 
     def create(self, validated_data):
         files_json = validated_data.pop('files_base64', [])
