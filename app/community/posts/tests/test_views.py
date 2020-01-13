@@ -292,6 +292,16 @@ class TestReportView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertFalse(report.is_reviewed)
 
+    def test_create_report_unique_set(self):
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(self.token))
+        post = Post.objects.create(message='Test message', creator=self.user)
+
+        report_url = reverse('v1:community:report-list')
+        response = self.client.post(report_url, data={'post': post.pk})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post(report_url, data={'post': post.pk})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_create_report_forbidden_group(self):
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(self.token))
         post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)

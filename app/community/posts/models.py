@@ -68,3 +68,4 @@ class Report(models.Model):
         verbose_name = _('Reported Post')
         verbose_name_plural = _('Reports')
         db_table = 'post report'
+        unique_together = ['user', 'post']

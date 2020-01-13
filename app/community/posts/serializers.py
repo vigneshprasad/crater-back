@@ -22,6 +22,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     my_like = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField()
+    is_reported = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
@@ -42,6 +43,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'likes',
             'my_like',
             'is_followed',
+            'is_reported',
             'comments',
             'latest_comments'
         )
@@ -83,6 +85,9 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     @staticmethod
     def get_latest_comments(post):
         return CommentSerializer(post.comments.all()[:2], many=True).data
+
+    def get_is_reported(self, post):
+        return post.reports.filter(user=self.context['request'].user).exists()
 
 
 class LimitedPostSerializer(PostSerializer):
