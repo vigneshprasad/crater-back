@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -50,7 +51,7 @@ class BlockViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericVie
         try:
             blocked = get_blocked_user(kwargs['pk'])
             Block.objects.get(blocked=blocked, blocker=request.user).delete()
-        except Block.DoesNotExist:
+        except (Block.DoesNotExist, ValidationError):
             raise NotFound
         return Response(status=status.HTTP_204_NO_CONTENT)
 
