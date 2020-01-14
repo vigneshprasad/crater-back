@@ -44,6 +44,9 @@ class ExchangeResponseViewSet(mixins.CreateModelMixin,
     pagination_class = Pagination
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            # queryset just for schema generation metadata
+            return models.ExchangeResponse.objects.none()
         return self.request.user.exchange_responses.all()
 
     def perform_create(self, serializer):
@@ -60,4 +63,7 @@ class MyRequestsExchangeResponseViewSet(mixins.ListModelMixin,
     pagination_class = Pagination
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            # queryset just for schema generation metadata
+            return models.ExchangeResponse.objects.none()
         return models.ExchangeResponse.objects.filter(request__user=self.request.user)

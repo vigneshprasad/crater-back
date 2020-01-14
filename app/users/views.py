@@ -145,6 +145,7 @@ class LogoutView(RestLogoutView):
 
 class VerificationView(viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.NewPhoneNumberSerializer
 
     @action(methods=['post'], detail=False, serializer_class=serializers.NewPhoneNumberSerializer)
     def new_phone_number(self, request):

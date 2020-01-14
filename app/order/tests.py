@@ -13,7 +13,7 @@ from users import models as user_models
 from utils import file_test_service
 
 
-class OrderTestCase(TestCase):
+class QuoteTestCase(TestCase):
     def setUp(self):
         self.category = services_models.ProfessionalCategoryProxy.objects.create(name='Category')
         self.service_type = services_models.ServiceType.objects.create(
@@ -65,33 +65,33 @@ class OrderTestCase(TestCase):
         self.user2.save()
         self.token = jwt_encode(self.user2)
         self.client = Client()
-        self.auth_client = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
+        self.auth_buyer = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
+        seller_token = jwt_encode(self.user)
+        self.auth_seller = Client(HTTP_AUTHORIZATION=f'JWT {seller_token}')
         self.endpoints = {
-            'order-list': reverse('v1:orders:buyer-list'),
-            'order-detail': lambda x: reverse('v1:orders:buyer-detail', kwargs={'pk': x})
+            'quote-buyer-list': reverse('v1:orders:quote-buyer-list'),
+            'quote-buyer-detail': lambda x: reverse('v1:orders:quote-buyer-detail', kwargs={'pk': x}),
+            'quote-seller-list': reverse('v1:orders:quote-seller-list'),
+            'quote-seller-detail': lambda x: reverse('v1:orders:quote-seller-detail', kwargs={'pk': x})
         }
-
-        self.order = models.Order.objects.create(
+        self.quote = models.Quote.objects.create(
             buyer=self.user2,
-            seller=self.user
-        )
-        self.order_service = models.OrderService.objects.create(
-            order=self.order,
-            service=self.service,
+            seller=self.user,
+            service=self.service
         )
         self.attachment = models.Attachment.objects.create(
             name='Attachment',
-            order_service=self.order_service
+            quote=self.quote
         )
         self.answer2 = models.Answer.objects.create(
             question='1',
             text='1-text',
-            order_service=self.order_service
+            quote=self.quote
         )
         self.answer1 = models.Answer.objects.create(
             question='2',
             text='2-text',
-            order_service=self.order_service
+            quote=self.quote
         )
         file_mock = mock.MagicMock(spec=File)
         file_mock.name = 'test.jpg'
@@ -104,45 +104,65 @@ class OrderTestCase(TestCase):
         self.assertEqual(1, 1)
 
     def test_get_list_fail_unauth(self):
-        endpoint = self.endpoints.get('order-list')
+        endpoint = self.endpoints.get('quote-buyer-list')
         resp = self.client.get(endpoint, content_type='application/json')
         self.assertEqual(401, resp.status_code)
 
-    def test_get_list_success(self):
-        endpoint = self.endpoints.get('order-list')
-        resp = self.auth_client.get(endpoint, content_type='application/json')
+    def test_get_quote_buyer_list_success_buyer(self):
+        endpoint = self.endpoints.get('quote-buyer-list')
+        resp = self.auth_buyer.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(1, len(resp.json()['results']))
+
+    def test_get_quote_buyer_list_success_seller(self):
+        endpoint = self.endpoints.get('quote-buyer-list')
+        resp = self.auth_seller.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(0, len(resp.json()['results']))
+
+    def test_get_quote_seller_list_success_buyer(self):
+        endpoint = self.endpoints.get('quote-seller-list')
+        resp = self.auth_buyer.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(0, len(resp.json()['results']))
+
+    def test_get_quote_seller_list_success_seller(self):
+        endpoint = self.endpoints.get('quote-seller-list')
+        resp = self.auth_seller.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
 
     def test_post_success(self):
-        endpoint = self.endpoints.get('order-list')
+        endpoint = self.endpoints.get('quote-buyer-list')
         data = {
             'seller': self.user.pk,
-            'services': [
+            'service': self.service.pk,
+            'answers': [
+                {'question': '1', 'text': '213'}
+            ],
+            'attachments': [
                 {
-                    'service_pk': self.service.pk,
-                    'answers': [
-                        {'question': '1', 'text': '213'}
-                    ],
-                    'attachments': [
-                        {
-                            'name': '1',
-                            'files_base64': [
-                                file_test_service.get_test_base64_image(),
-                                file_test_service.get_test_base64_image()
-                            ]
-                        }
+                    'name': '1',
+                    'files_base64': [
+                        file_test_service.get_test_base64_image(),
+                        file_test_service.get_test_base64_image()
                     ]
+                }
+            ],
+            'date_preferences': [
+                {
+                    'date': '2020-11-11',
+                    'time_start': '11:00',
+                    'time_end': '15:00'
                 }
             ]
         }
-        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        resp = self.auth_buyer.post(endpoint, data, content_type='application/json')
         self.assertEqual(201, resp.status_code)
-        self.assertEqual(1, len(resp.json()['services']))
-        self.assertEqual(1, len(resp.json()['services'][0]['attachments']))
-        self.assertEqual(1, len(resp.json()['services'][0]['answers']))
-
-
+        self.assertTrue(resp.json()['service'])
+        self.assertEqual(1, len(resp.json()['attachments']))
+        self.assertEqual(1, len(resp.json()['answers']))
+        self.assertEqual(1, len(resp.json()['date_preferences']))
 
 
 class FundingRequestTestCase(TestCase):
@@ -201,7 +221,13 @@ class FundingRequestTestCase(TestCase):
         self.endpoints = {
             'funding-request-list': reverse('v1:orders:funding-request-buyer-list'),
             'funding-request-detail': lambda x: reverse('v1:orders:funding-request-buyer-detail', kwargs={'pk': x}),
+            'funding-investor-list': reverse('v1:orders:funding-request-investor-list'),
+            'funding-investor-detail': lambda x: reverse('v1:orders:funding-request-investor-detail', kwargs={'pk': x}),
+            'funding-accept': lambda x: reverse('v1:orders:funding-request-investor-accept', kwargs={'pk': x}),
+            'funding-cancel': lambda x: reverse('v1:orders:funding-request-investor-cancel', kwargs={'pk': x}),
         }
+        investor_token = jwt_encode(self.user)
+        self.auth_investor = Client(HTTP_AUTHORIZATION=f'JWT {investor_token}')
 
         self.funding_request = models.FundingRequest.objects.create(
             buyer=self.user2,
@@ -263,3 +289,215 @@ class FundingRequestTestCase(TestCase):
         self.assertEqual(201, resp.status_code)
         self.assertTrue(resp.json()['attachments'])
         self.assertTrue(resp.json()['answers'])
+
+    def test_get_investor_list_empty(self):
+        endpoint = self.endpoints.get('funding-investor-list')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual([], resp.json()['results'])
+
+    def test_get_investor_list(self):
+        endpoint = self.endpoints.get('funding-investor-list')
+        resp = self.auth_investor.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(1, len(resp.json()['results']))
+
+    def test_get_investor_detail_success(self):
+        endpoint = self.endpoints.get('funding-investor-detail')(self.funding_request.pk)
+        resp = self.auth_investor.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+
+    def test_get_detail_success(self):
+        endpoint = self.endpoints.get('funding-request-detail')(self.funding_request.pk)
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+
+    def test_post_cancel_request_fail_wrong_user(self):
+        endpoint = self.endpoints.get('funding-cancel')(self.funding_request.pk)
+        resp = self.auth_client.post(endpoint, content_type='application/json')
+        self.assertEqual(404, resp.status_code)
+
+    def test_post_cancel_request_success(self):
+        endpoint = self.endpoints.get('funding-cancel')(self.funding_request.pk)
+        resp = self.auth_investor.post(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.funding_request.refresh_from_db()
+        self.assertEqual('canceled', self.funding_request.status)
+
+    def test_post_accept_request_fail_wrong_user(self):
+        endpoint = self.endpoints.get('funding-accept')(self.funding_request.pk)
+        resp = self.auth_client.post(endpoint, content_type='application/json')
+        self.assertEqual(404, resp.status_code)
+
+    def test_post_accept_request_success(self):
+        endpoint = self.endpoints.get('funding-accept')(self.funding_request.pk)
+        resp = self.auth_investor.post(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.funding_request.refresh_from_db()
+        self.assertEqual('accepted', self.funding_request.status)
+
+
+class OrderTestCase(TestCase):
+    def setUp(self):
+        self.category = services_models.ProfessionalCategoryProxy.objects.create(name='Category')
+        self.service_type = services_models.ServiceType.objects.create(
+            name='Type', category=self.category, description='Description', group='service'
+        )
+        self.industry1 = Industry.objects.create(name='Industry')
+        self.industry2 = Industry.objects.create(name='Industry2')
+        self.country = Country.objects.create(name='Country')
+        self.work_city = WorkCityProxy.objects.create(
+            name='WorkCity1',
+            country=self.country
+        )
+        self.user = user_models.User.objects.create(
+            email='test@email.com',
+            name='ftest ltest',
+            is_approved=True
+        )
+        self.user_service_info = services_models.UserServiceInfo.objects.create(
+            user=self.user,
+            professional_service_provider=True,
+            generate_business=True,
+            followers=1000
+        )
+        user_models.Profile.objects.create(
+            user=self.user,
+            name='Profile',
+            work_city=self.work_city
+        )
+        self.user_service_info.industries.add(self.industry1)
+        self.service = services_models.Service.objects.create(
+            service_type=self.service_type,
+            user=self.user,
+            status='approved',
+            price_type='price',
+            price=200,
+            rating=3.0,
+            timeline=60,
+            attachments=['1', '2'],
+            questions=['1', '2']
+        )
+
+        self.user_service_info.services.add(self.service)
+        self.user2 = user_models.User.objects.create(
+            email='test1@email.com',
+            name='ftest ltest',
+            is_approved=True
+        )
+        self.user2.set_password('Qwer1234!')
+        self.user2.save()
+        self.token = jwt_encode(self.user2)
+        self.client = Client()
+        self.auth_buyer = Client(HTTP_AUTHORIZATION=f'JWT {self.token}')
+        self.endpoints = {
+            'order-buyer-list': reverse('v1:orders:order-buyer-list'),
+            'order-buyer-detail': lambda x: reverse('v1:orders:order-buyer-detail', kwargs={'pk': x}),
+            'order-seller-list': reverse('v1:orders:order-seller-list'),
+            'order-seller-detail': lambda x: reverse('v1:orders:order-seller-detail', kwargs={'pk': x}),
+            'order-cart-list': reverse('v1:orders:order-cart-list'),
+            'order-cart-detail': lambda x: reverse('v1:orders:order-cart-detail', kwargs={'pk': x}),
+        }
+        seller_token = jwt_encode(self.user)
+        self.auth_seller = Client(HTTP_AUTHORIZATION=f'JWT {seller_token}')
+        self.order = models.Order.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='pending'
+        )
+        self.order2 = models.Order.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service
+        )
+        self.attachment = models.Attachment.objects.create(
+            name='Attachment',
+            order=self.order
+        )
+        self.answer2 = models.Answer.objects.create(
+            question='1',
+            text='1-text',
+            order=self.order
+        )
+        self.answer1 = models.Answer.objects.create(
+            question='2',
+            text='2-text',
+            order=self.order
+        )
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.jpg'
+        self.attachment_file = models.AttachmentFile(
+            attachment=self.attachment,
+            file=file_mock
+        )
+
+    def test_success_setup(self):
+        self.assertEqual(1, 1)
+
+    def test_get_order_list_fail_unauth(self):
+        endpoint = self.endpoints.get('order-buyer-list')
+        resp = self.client.get(endpoint, content_type='application/json')
+        self.assertEqual(401, resp.status_code)
+
+    def test_get_order_buyer_list_success_buyer(self):
+        endpoint = self.endpoints.get('order-buyer-list')
+        resp = self.auth_buyer.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(1, len(resp.json()['results']))
+
+    def test_get_order_buyer_list_success_seller(self):
+        endpoint = self.endpoints.get('order-buyer-list')
+        resp = self.auth_seller.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(0, len(resp.json()['results']))
+
+    def test_get_order_seller_list_success_buyer(self):
+        endpoint = self.endpoints.get('order-seller-list')
+        resp = self.auth_buyer.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(0, len(resp.json()['results']))
+
+    def test_get_order_seller_list_success_seller(self):
+        endpoint = self.endpoints.get('order-seller-list')
+        resp = self.auth_seller.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(1, len(resp.json()['results']))
+
+    def test_get_order_cart_list_success_buyer(self):
+        endpoint = self.endpoints.get('order-cart-list')
+        resp = self.auth_buyer.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(1, len(resp.json()['results']))
+
+    def test_get_order_cart_list_success_seller(self):
+        endpoint = self.endpoints.get('order-cart-list')
+        resp = self.auth_seller.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(0, len(resp.json()['results']))
+
+    def test_post_order_success(self):
+        endpoint = self.endpoints.get('order-buyer-list')
+        data = {
+            'seller': self.user.pk,
+            'service': self.service.pk,
+            'answers': [
+                {'question': '1',  'text': '213'}
+            ],
+            'attachments': [
+                {
+                    'name': '1',
+                    'files_base64': [
+                        file_test_service.get_test_base64_image(),
+                        file_test_service.get_test_base64_image()
+                    ]
+                 }
+            ]
+        }
+        resp = self.auth_buyer.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(201, resp.status_code)
+        self.assertTrue(resp.json()['attachments'])
+        self.assertTrue(resp.json()['answers'])
+        self.assertIn('pk', resp.json())
+        order = models.Order.objects.get(pk=resp.json()['pk'])
+        self.assertEqual('created', order.status)
