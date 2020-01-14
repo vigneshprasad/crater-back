@@ -27,7 +27,8 @@ class ProfessionalsViewSet(mixins.ListModelMixin,
         user_services_info__generate_business=True,
         bank_details__membership='premium',
         services__isnull=False,
-        services__status='approved'
+        services__status='approved',
+        profile__public_profile=True
     )
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = Pagination
@@ -48,7 +49,8 @@ class UserServicesViewSet(mixins.RetrieveModelMixin,
         user_services_info__generate_business=True,
         bank_details__membership='premium',
         services__isnull=False,
-        services__status='approved'
+        services__status='approved',
+        profile__public_profile=True
     ).distinct()
 
     def get_object(self):
@@ -72,7 +74,8 @@ class InvestorServicesViewSet(mixins.ListModelMixin,
         groups__name='Investor',
         bank_details__isnull=False,
         investor_services_info__isnull=False,
-        investor_services_info__reach_out=True
+        investor_services_info__reach_out=True,
+        profile__public_profile=True
     )
 
     def get_object(self):

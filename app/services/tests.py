@@ -103,7 +103,7 @@ class ProfessionalTestCase(TestCase):
             name='WorkCity2',
             country=self.country
         )
-        for i in range(1,21):
+        for i in range(1, 21):
             user = user_models.User.objects.create(
                 email=f'test{i}@email.com',
                 name='ftest ltest',
@@ -342,7 +342,8 @@ class ServicesTestCase(TestCase):
                 user_models.Profile.objects.create(
                     user=user,
                     name='Profile',
-                    work_city=self.work_city2
+                    work_city=self.work_city2,
+                    public_profile=True
                 )
                 user_service_info.industries.add(self.industry1)
                 s1 = models.Service.objects.create(
@@ -381,6 +382,12 @@ class ServicesTestCase(TestCase):
                 email=f'test{i+20}@email.com',
                 name='ftest ltest',
                 is_approved=True
+            )
+            user_models.Profile.objects.create(
+                user=user,
+                name='Profile',
+                work_city=self.work_city2,
+                public_profile=True
             )
             self.users.append(user)
             BankDetails.objects.create(
