@@ -8,7 +8,6 @@
     <textarea id="chat-log" cols="100" rows="20" disabled></textarea><br/>
     <input id="chat-message-input" type="text" size="100"/><br/>
     <input id="chat-message-submit" type="button" value="Send"/>
-<!--    <input id="chat-message-get" type="button" value="Get messages"/>-->
 </body>
 <script>
     var token = {{ token }};
@@ -21,7 +20,6 @@
     chatSocket.onmessage = function(e) {
         var data = JSON.parse(e.data);
         var message = data['message'];
-        document.querySelector('#chat-log').value += (message + '\n');
     };
 
     chatSocket.onclose = function(e) {
@@ -40,12 +38,11 @@
         var message = messageInputDom.value;
         chatSocket.send(JSON.stringify({
             'message': message,
-            'type': 'send_support_message',
+            'type': 'send_user_message_to_admin',
         }));
 
         messageInputDom.value = '';
     };
-//    setTimeout(chatSocket.send(JSON.stringify({'type': 'get_chat_messages'})), 3000);
 
 </script>
 </html>

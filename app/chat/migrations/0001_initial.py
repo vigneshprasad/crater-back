@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Chat Message',
                 'verbose_name_plural': 'Chat Messages',
                 'db_table': 'chat_messages',
-                'ordering': ('-created',),
+                'ordering': ('created',),
             },
         ),
     ]

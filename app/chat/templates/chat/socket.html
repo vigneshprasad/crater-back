@@ -1,0 +1,55 @@
+<script>
+    let token = '{{ token }}';
+    let uuid = '{{ uuid }}';
+    let $messages_block = $('#messages__block');
+    let objDiv = document.getElementById('messages__block');
+
+    var chatSocket = new WebSocket(
+      'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
+      '/ws/chat/' + uuid + '/' + token + '/'
+    );
+
+    let send_icon_template = '<div class="is-read"><i class="material-icons">done</i></div>';
+
+    chatSocket.onmessage = function(e) {
+      var data = JSON.parse(e.data);
+      if (data['type'] === 'admin_message') {
+        let template = `<div class="message__block admin"><div class="message">${data['message']}${send_icon_template}</div><div class="chat__message-sender">${data['name']}, ${data['created']}</div></div>`
+        $messages_block.append(template);
+        objDiv.scrollTop = objDiv.scrollHeight;
+      } else if (data['type'] === 'user_message') {
+        let template = `<div class="message__block user"><div class="message">${data['message']}</div><div class="chat__message-sender">${data['name']}, ${data['created']}</div></div>`
+        $messages_block.append(template);
+        objDiv.scrollTop = objDiv.scrollHeight;
+      } else if (data['type'] === 'user_notification') {
+        let $unread_notifications = $('#user-' + data['sender_id'] + ' .unread');
+        if ($unread_notifications) {
+          $('#user-' + data['sender_id'] + ' .unread').remove();
+        }
+        $('#user-' + data['sender_id'] + ' a').append(`<span class="unread">${data['unread_count']}</span>`);
+        $('#user-' + data['sender_id'] + ' .message').text(data['message']);
+      }
+    };
+
+    chatSocket.onclose = function(e) {
+      console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+      if (e.keyCode === 13) {
+        document.querySelector('#chat-message-submit').click();
+      }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+      var messageInputDom = document.querySelector('#chat-message-input');
+      var message = messageInputDom.value;
+      chatSocket.send(JSON.stringify({
+          'message': message,
+          'type': 'send_admin_message_to_user',
+      }));
+      messageInputDom.value = '';
+    };
+
+</script>
