@@ -1,0 +1,64 @@
+.users {
+    height: calc(100vh - 115px);
+    max-width: 300px;
+}
+
+.users .card-content {
+    padding: 5px;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+hr {
+    border-top: 1px solid lightgrey;
+}
+
+a .username {
+    height: 60px;
+    overflow: hidden;
+    min-width: 150px;
+}
+
+a .username .name {
+    color: black;
+    margin-left: 10px;
+}
+
+a .username .message {
+    color: grey;
+    font-size: 12px;
+}
+
+.chat__user-photo {
+    margin: 5px;
+    border-radius: 100%;
+}
+
+.selected {
+    background: lightgrey;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.unread {
+    min-width: 22px;
+    text-align: center;
+    margin: 20px;
+    background: red;
+    color: white;
+    font-size: 12px;
+    padding: 3px;
+    border-radius: 100%;
+}
+
+@media (max-width: 767px) {
+  .app.user-chat {
+    display: none;
+  }
+}
