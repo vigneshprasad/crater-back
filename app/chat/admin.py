@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.template.response import TemplateResponse
 from django.urls import path
 from django.core.exceptions import PermissionDenied
+from django.templatetags.static import static as staticfiles
 from rest_framework_jwt.utils import jwt_payload_handler, jwt_encode_handler
 
 from chat.models import Chat, Message
@@ -85,4 +86,4 @@ class ChatAdmin(ModelAdmin):
     def _get_photo(request, user):
         if hasattr(user, 'profile') and user.profile.photo:
             return request.build_absolute_uri(user.profile.photo.url)
-        return request.build_absolute_uri('/static/admin/logo.jpg')
+        return staticfiles('admin/logo.jpg')
