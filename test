@@ -1,0 +1,2 @@
+docker-compose exec app ./manage.py test
+docker-compose exec app bash -c "DJANGO_SETTINGS_MODULE='freelance.settings' pytest chat/tests.py"
