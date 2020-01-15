@@ -73,7 +73,7 @@ class ExchangeRequestTestCase(TestCase):
         self.endpoints = {
             'request-list': reverse('v1:creative-exchange:request-list'),
             'request-detail': lambda x: reverse('v1:creative-exchange:request-detail', kwargs={'pk': x}),
-            'response-list': reverse('v1:creative-exchange:my-response-list')
+            'quote-list': reverse('v1:creative-exchange:quote-list')
         }
         self.category = models.ExchangeCategory.objects.create(name='Category')
         self.category2 = models.ExchangeCategory.objects.create(name='Category', is_active=False)
@@ -93,7 +93,6 @@ class ExchangeRequestTestCase(TestCase):
                 extended_price=i * 100
             )
             self.requests.append(request)
-
 
     def test_success_setup(self):
         self.assertEqual(1, 1)
@@ -141,6 +140,7 @@ class ExchangeRequestTestCase(TestCase):
             'special_requirement': request.special_requirement,
             'additional_information': request.additional_information,
             'files_urls': [],
+            'quotes_count': 0
         }
         self.assertDictEqual(d, data)
 
@@ -174,6 +174,7 @@ class ExchangeRequestTestCase(TestCase):
             'special_requirement': request.special_requirement,
             'additional_information': request.additional_information,
             'files_urls': [],
+            'quotes_count': 0
         }
         self.assertDictEqual(d, data)
 
@@ -197,10 +198,10 @@ class ExchangeRequestTestCase(TestCase):
         self.assertEqual(len(resp.json()['files_urls']), 2)
         self.assertTrue(resp.json()['cover_image'])
 
-    def test_post_response_for_request(self):
-        endpoint = self.endpoints.get('response-list')
+    def test_post_quote_for_request(self):
+        endpoint = self.endpoints.get('quote-list')
         data = {
-            'request': self.requests[0].pk,
+            'exchange_request': self.requests[0].pk,
             'price': 100,
             'timeline': 20,
             'revisions': 5,

@@ -27,13 +27,6 @@ class Order(TimeStampedModel):
         choices=ORDER_STATUS_CHOICES,
         default='created'
     )
-    creative_exchange_response = models.OneToOneField(
-        'creative_exchange.ExchangeResponse',
-        on_delete=models.CASCADE,
-        verbose_name=_('Creative exchange response'),
-        null=True,
-        related_name='order'
-    )
     quote = models.OneToOneField(
         'order.Quote',
         on_delete=models.CASCADE,
@@ -104,7 +97,39 @@ class Quote(TimeStampedModel):
         'services.Service',
         related_name='quotes',
         verbose_name=_('Service'),
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
+    )
+    exchange_request = models.ForeignKey(
+        'creative_exchange.ExchangeRequest',
+        related_name='quotes',
+        verbose_name=_('Exchange Request'),
+        on_delete=models.CASCADE,
+        null=True
+    )
+    year_of_experience = models.PositiveIntegerField(
+        verbose_name=_('Years of experience'),
+        validators=[MaxValueValidator(50), MinValueValidator(1)],
+        null=True
+    )
+    followers = models.PositiveIntegerField(
+        verbose_name=_('Followers'),
+        null=True
+    )
+    includes = models.TextField(
+        max_length=800,
+        verbose_name=_('Includes and Process'),
+        blank=True
+    )
+    additional_text = models.TextField(
+        max_length=800,
+        verbose_name=_('Additional text'),
+        blank=True
+    )
+    require = models.TextField(
+        max_length=800,
+        verbose_name=_('I require'),
+        blank=True
     )
     note = models.TextField(
         max_length=800,

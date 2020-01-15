@@ -1,6 +1,8 @@
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.response import Response
 
+from order.models import Quote
+from order.serializers import QuoteSerializer
 from users.paginators import Pagination
 from . import models, serializers
 
@@ -17,7 +19,7 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
                              mixins.ListModelMixin,
                              mixins.CreateModelMixin,
                              viewsets.GenericViewSet):
-    queryset = models.ExchangeRequest.objects.filter(is_deleted=False).order_by('-id')
+    queryset = models.ExchangeRequest.objects.filter(is_deleted=False).exclude(quotes__status='approved').order_by('-id')
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ExchangeRequestSerializer
     pagination_class = Pagination
@@ -34,36 +36,39 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
         return Response(serializer.data)
 
 
-class ExchangeResponseViewSet(mixins.CreateModelMixin,
-                              mixins.ListModelMixin,
-                              mixins.RetrieveModelMixin,
-                              viewsets.GenericViewSet):
-    queryset = models.ExchangeResponse.objects.none()
+class ExchangeQuoteViewSet(mixins.CreateModelMixin,
+                           mixins.ListModelMixin,
+                           mixins.RetrieveModelMixin,
+                           viewsets.GenericViewSet):
+    queryset = Quote.objects.none()
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.ExchangeResponseSerializer
+    serializer_class = serializers.ExchangeQuoteSerializer
     pagination_class = Pagination
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             # queryset just for schema generation metadata
-            return models.ExchangeResponse.objects.none()
-        return self.request.user.exchange_responses.all()
+            return Quote.objects.none()
+        return self.request.user.seller_quotes.filter(exchange_request__isnull=False)
 
     def perform_create(self, serializer):
-        serializer.validated_data['user'] = self.request.user
+        serializer.validated_data['seller'] = self.request.user
+        serializer.validated_data['buyer'] = serializer.validated_data['exchange_request'].user
+        serializer.validated_data['status'] = 'provided'
         serializer.save()
 
 
-class MyRequestsExchangeResponseViewSet(mixins.ListModelMixin,
-                                        mixins.RetrieveModelMixin,
-                                        viewsets.GenericViewSet):
-    queryset = models.ExchangeResponse.objects.none()
+class MyRequestsQuotesViewSet(mixins.ListModelMixin,
+                              mixins.RetrieveModelMixin,
+                              viewsets.GenericViewSet):
+    queryset = Quote.objects.none()
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.ExchangeResponseSerializer
+    serializer_class = QuoteSerializer
     pagination_class = Pagination
+    filterset_fields = ['exchange_request']
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             # queryset just for schema generation metadata
-            return models.ExchangeResponse.objects.none()
-        return models.ExchangeResponse.objects.filter(request__user=self.request.user)
+            return Quote.objects.none()
+        return Quote.objects.filter(exchange_request__user=self.request.user, buyer=self.request.user)

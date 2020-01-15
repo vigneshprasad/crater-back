@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
+from order.models import Quote
 from utils.fields import Base64FileField
 from utils.utils import date_range
 from . import models
@@ -20,7 +21,7 @@ class ExchangeCategorySerializer(serializers.ModelSerializer):
 class HistoricalBidResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = models.ExchangeResponse
+        model = Quote
         fields = [
             'created',
             'price',
@@ -47,6 +48,7 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
     cover_image = serializers.ImageField(required=False)
     user_name = serializers.SerializerMethodField()
     user_logo = serializers.SerializerMethodField()
+    quotes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = models.ExchangeRequest
@@ -71,6 +73,7 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
             'files_base64',
             'files_urls',
             'created',
+            'quotes_count'
         ]
         read_only_fields = [
             'created',
@@ -124,6 +127,10 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
                 return obj.user.profile.photo
         return None
 
+    @staticmethod
+    def get_quotes_count(obj):
+        return obj.quotes.count()
+
 
 class DetailExchangeRequestSerializer(ExchangeRequestSerializer):
     historical_bids = serializers.SerializerMethodField()
@@ -153,7 +160,8 @@ class DetailExchangeRequestSerializer(ExchangeRequestSerializer):
             'files_urls',
             'created',
             'historical_bids',
-            'graph_data'
+            'graph_data',
+            'quotes_count'
 
         ]
         read_only_fields = [
@@ -164,13 +172,13 @@ class DetailExchangeRequestSerializer(ExchangeRequestSerializer):
 
     @staticmethod
     def get_historical_bids(obj):
-        responses = models.ExchangeResponse.objects.filter(request__category=obj.category)
-        return HistoricalBidResponseSerializer(responses, many=True).data
+        quotes = Quote.objects.filter(exchange_request__category=obj.category)
+        return HistoricalBidResponseSerializer(quotes[:5], many=True).data
 
     @staticmethod
     def get_graph_data(obj):
         six_month_ago = timezone.now() - timezone.timedelta(days=180)
-        responses = models.ExchangeResponse.objects.filter(request__category=obj.category, created__gte=six_month_ago)
+        responses = Quote.objects.filter(exchange_request__category=obj.category, created__gte=six_month_ago)
         graph_data = {}
         day_average = 0
         for single_date in date_range(six_month_ago, timezone.now()):
@@ -185,13 +193,21 @@ class DetailExchangeRequestSerializer(ExchangeRequestSerializer):
         }
 
 
-class ExchangeResponseSerializer(serializers.ModelSerializer):
+class ExchangeQuoteSerializer(serializers.ModelSerializer):
+    price = serializers.IntegerField(min_value=1, max_value=999999)
+    timeline = serializers.IntegerField(min_value=1, max_value=99)
+    revisions = serializers.IntegerField(min_value=1, max_value=10)
+    year_of_experience =  serializers.IntegerField(min_value=1, max_value=50)
+    includes = serializers.CharField(max_length=800)
+    additional_text = serializers.CharField(max_length=800)
+    require = serializers.CharField(max_length=800)
+    exchange_request = serializers.PrimaryKeyRelatedField(queryset=models.ExchangeRequest.objects.all())
 
     class Meta:
-        model = models.ExchangeResponse
+        model = Quote
         fields = [
             'pk',
-            'request',
+            'exchange_request',
             'price',
             'timeline',
             'revisions',
@@ -200,8 +216,4 @@ class ExchangeResponseSerializer(serializers.ModelSerializer):
             'includes',
             'additional_text',
             'require',
-            'status',
-        ]
-        read_only_fields = [
-            'status'
         ]

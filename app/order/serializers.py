@@ -60,6 +60,8 @@ class QuoteSerializer(serializers.ModelSerializer):
     attachments = AttachmentSerializer(many=True)
     answers = AnswerSerializer(many=True)
     date_preferences = QuotePreferenceSerializer(many=True)
+    title = serializers.SerializerMethodField()
+    order_pk = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Quote
@@ -75,19 +77,34 @@ class QuoteSerializer(serializers.ModelSerializer):
             'answers',
             'date_preferences',
             'comment',
+            'note',
+            'exchange_request',
             'price',
             'timeline',
             'revisions',
-            'note',
+            'year_of_experience',
+            'followers',
+            'includes',
+            'additional_text',
+            'require',
+            'title',
+            'status',
+            'order_pk'
         ]
         read_only_fields = [
             'buyer',
             'price',
             'comment',
+            'note',
+            'exchange_request',
             'price',
             'timeline',
             'revisions',
-            'note',
+            'year_of_experience',
+            'followers',
+            'includes',
+            'additional_text',
+            'require',
         ]
 
     @staticmethod
@@ -140,6 +157,14 @@ class QuoteSerializer(serializers.ModelSerializer):
             )
 
     @staticmethod
+    def get_title(obj):
+        if obj.service:
+            return obj.service.service_type.name
+        if obj.exchange_request:
+            return obj.exchange_request.title
+        return ''
+
+    @staticmethod
     def update_preferences(instance, preferences):
         instance.date_preferences.all().delete()
         for preference in preferences:
@@ -149,6 +174,12 @@ class QuoteSerializer(serializers.ModelSerializer):
                 time_start=preference['time_start'],
                 time_end=preference['time_end']
             )
+
+    @staticmethod
+    def get_order_pk(obj):
+        if hasattr(obj, 'order') and obj.order:
+            return obj.order.pk
+        return None
 
 
 class FundingRequestSerializer(serializers.ModelSerializer):
@@ -275,10 +306,14 @@ class OrderSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_price(obj):
+        price = 0
         if obj.quote:
-            price = obj.quote.service.price
-        elif obj.creative_exchange_response:
-            price = obj.creative_exchange_response.price
+            if obj.quote.price:
+                price = obj.quote.price
+            elif obj.quote.service:
+                price = obj.quote.service.price
+            elif obj.quote.exchange_request:
+                price = obj.quote.exchange_request.extended_price
         else:
             price = obj.service.price
         return price
@@ -333,9 +368,8 @@ class ProvideQuoteSerializer(serializers.ModelSerializer):
     revisions = serializers.IntegerField(max_value=10, min_value=1)
 
     class Meta:
-        modes = models.Quote
+        model = models.Quote
         fields = [
-            'price',
             'comment',
             'price',
             'timeline',

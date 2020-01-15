@@ -61,6 +61,15 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
             if note:
                 instance.note = note
             instance.save()
+            if instance.quote:
+                instance.quote.status = 'accepted'
+                instance.quote.save()
+            other_quotes = (
+                models.Quote.objects
+                .filter(exchange_request=instance.quote.exchange_request)
+                .exlude(pk=instance.pk)
+            )
+            other_quotes.update(status='canceled')
         except models.Order.DoesNotExist:
             raise Http404
         return Response(
@@ -103,8 +112,7 @@ class CartOrderViewSet(mixins.RetrieveModelMixin,
             return models.Order.objects.none()
         return self.request.user.buyer_orders.filter(
             status='created',
-            quote__isnull=True,
-            creative_exchange_response__isnull=True
+            quote__isnull=True
         )
 
 
@@ -122,7 +130,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
         if getattr(self, 'swagger_fake_view', False):
             # queryset just for schema generation metadata
             return models.Quote.objects.none()
-        return self.request.user.buyer_quotes.all()
+        return self.request.user.buyer_quotes.exclude(exchange_request__isnull=False)
 
     def perform_create(self, serializer):
         serializer.validated_data['buyer'] = self.request.user
@@ -130,19 +138,29 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=serializers.ProvideQuoteSerializer,
+        serializer_class=None,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
     def accept(self, request, pk):
+        """
+        Create order for quote if order does not exists
+        Order pk user for payment
+        After successfully payment status changed to accepted
+        """
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raize_exception=True)
-        queryset = self.get_queryset().filter(status='pending')
+        queryset = self.get_queryset().filter(status='provided')
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
-            instance.status = 'provided'
-            instance.save()
+            if not (hasattr(instance, 'order') and instance.order):
+                models.Order.objects.create(
+                    buyer=instance.buyer,
+                    seller=instance.seller,
+                    quote=instance
+                )
         except models.Quote.DoesNotExist:
             raise Http404
         return Response(
@@ -156,7 +174,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
         detail=True
     )
     def cancel(self, request, pk):
-        queryset = self.get_queryset().filter(status='pending')
+        queryset = self.get_queryset().filter(status='provided')
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
@@ -198,6 +216,11 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
         try:
             instance = queryset.get(pk=pk)
             instance.status = 'provided'
+            instance.price = serializer.validated_data['price']
+            instance.comment = serializer.validated_data['comment']
+            instance.timeline = serializer.validated_data['timeline']
+            instance.revisions = serializer.validated_data['revisions']
+            instance.note = serializer.validated_data['note']
             instance.save()
         except models.Quote.DoesNotExist:
             raise Http404
