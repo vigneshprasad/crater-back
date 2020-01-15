@@ -20,10 +20,18 @@ class Message(TimeStampedModel):
         on_delete=models.CASCADE,
         null=True
     )
-    is_superuser = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False)
+    is_support = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _('Chat Message')
         verbose_name_plural = _('Chat Messages')
         db_table = 'chat_messages'
-        ordering = ('-created',)
+        ordering = ('created',)
+
+    def __str__(self):
+        return self.message
+
+
+class Chat(models.Model):
+    proxy = True
