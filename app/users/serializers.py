@@ -370,7 +370,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_blank=True
     )
     photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
-    cover = serializers.PrimaryKeyRelatedField(queryset=models.CoverFile.objects.all(), allow_null=True, required=False)
+    cover = serializers.PrimaryKeyRelatedField(
+        queryset=models.CoverFile.objects.all(), allow_null=True, required=False
+    )
     tag_list = TagSerializer(source='tags', many=True, read_only=True)
     work_city_name = serializers.CharField(source='work_city.name', read_only=True)
     cover_thumbnail = serializers.CharField(source='cover.cover_thumbnail', read_only=True, allow_null=True)
@@ -404,7 +406,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         }
         read_only_fields = (
             'cover_thumbnail',
-            'cover_transcoder'
+            'cover_transcoder',
+            'cover_file'
         )
 
     def validate_cover(self, cover):

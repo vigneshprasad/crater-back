@@ -276,10 +276,12 @@ class OrderSerializer(serializers.ModelSerializer):
             'price',
             'attachments',
             'answers',
-            'note'
+            'note',
+            'status'
         ]
         read_only_fields = [
-            'buyer'
+            'buyer',
+            'status'
         ]
 
     @staticmethod

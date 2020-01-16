@@ -5,6 +5,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from rest_auth.utils import jwt_encode
 
+from creative_exchange.models import ExchangeRequest, ExchangeCategory
 from locations.models import Country
 from order import models
 from services import models as services_models
@@ -71,8 +72,12 @@ class QuoteTestCase(TestCase):
         self.endpoints = {
             'quote-buyer-list': reverse('v1:orders:quote-buyer-list'),
             'quote-buyer-detail': lambda x: reverse('v1:orders:quote-buyer-detail', kwargs={'pk': x}),
+            'quote-buyer-accept': lambda x: reverse('v1:orders:quote-buyer-accept', kwargs={'pk': x}),
+            'quote-buyer-cancel': lambda x: reverse('v1:orders:quote-buyer-cancel', kwargs={'pk': x}),
             'quote-seller-list': reverse('v1:orders:quote-seller-list'),
-            'quote-seller-detail': lambda x: reverse('v1:orders:quote-seller-detail', kwargs={'pk': x})
+            'quote-seller-detail': lambda x: reverse('v1:orders:quote-seller-detail', kwargs={'pk': x}),
+            'quote-seller-cancel': lambda x: reverse('v1:orders:quote-seller-cancel', kwargs={'pk': x}),
+            'quote-seller-provide': lambda x: reverse('v1:orders:quote-seller-provide', kwargs={'pk': x})
         }
         self.quote = models.Quote.objects.create(
             buyer=self.user2,
@@ -113,27 +118,6 @@ class QuoteTestCase(TestCase):
         resp = self.auth_buyer.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
-
-    def test_get_quote_buyer_list_success_buyer_ordering(self):
-        endpoint = self.endpoints.get('quote-buyer-list')
-        quote = models.Quote.objects.create(
-            buyer=self.user2,
-            seller=self.user,
-            service=self.service,
-            status='canceled'
-        )
-        quote_provided = models.Quote.objects.create(
-            buyer=self.user2,
-            seller=self.user,
-            service=self.service,
-            status='provided'
-        )
-        resp = self.auth_buyer.get(endpoint, content_type='application/json')
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual(3, len(resp.json()['results']))
-        self.assertEqual('provided', resp.json()['results'][0]['status'])
-        self.assertEqual('pending', resp.json()['results'][1]['status'])
-        self.assertEqual('canceled', resp.json()['results'][2]['status'])
 
     def test_get_quote_buyer_list_success_seller(self):
         endpoint = self.endpoints.get('quote-buyer-list')
@@ -184,6 +168,94 @@ class QuoteTestCase(TestCase):
         self.assertEqual(1, len(resp.json()['attachments']))
         self.assertEqual(1, len(resp.json()['answers']))
         self.assertEqual(1, len(resp.json()['date_preferences']))
+
+    def test_get_quote_buyer_list_success_buyer_ordering(self):
+        endpoint = self.endpoints.get('quote-buyer-list')
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='canceled'
+        )
+        quote_provided = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='provided'
+        )
+        resp = self.auth_buyer.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(3, len(resp.json()['results']))
+        self.assertEqual('provided', resp.json()['results'][0]['status'])
+        self.assertEqual('pending', resp.json()['results'][1]['status'])
+        self.assertEqual('canceled', resp.json()['results'][2]['status'])
+
+    def test_post_quote_buyer_accept(self):
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='provided'
+        )
+        endpoint = self.endpoints.get('quote-buyer-accept')(quote.pk)
+        data = {}
+        resp = self.auth_buyer.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertIn('order_pk', resp.json())
+        self.assertTrue(resp.json()['order_pk'])
+
+    def test_post_quote_buyer_cancel(self):
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='provided'
+        )
+        endpoint = self.endpoints.get('quote-buyer-cancel')(quote.pk)
+        data = {}
+        resp = self.auth_buyer.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        quote.refresh_from_db()
+        self.assertEqual('canceled', quote.status)
+
+    def test_post_quote_seller_cancel(self):
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='pending'
+        )
+        endpoint = self.endpoints.get('quote-seller-cancel')(quote.pk)
+        data = {}
+        resp = self.auth_seller.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        quote.refresh_from_db()
+        self.assertEqual('canceled', quote.status)
+
+    def test_post_quote_seller_provide(self):
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='pending'
+        )
+        endpoint = self.endpoints.get('quote-seller-provide')(quote.pk)
+        data = {
+            'comment': 'Comment',
+            'price': 1000,
+            'timeline': 10,
+            'revisions': 5,
+            'note': 'NoteText',
+        }
+        resp = self.auth_seller.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        quote.refresh_from_db()
+        self.assertEqual('provided', quote.status)
+        self.assertEqual('Comment', quote.comment)
+        self.assertEqual(1000, quote.price)
+        self.assertEqual(10, quote.timeline)
+        self.assertEqual(5, quote.revisions)
+        self.assertEqual('NoteText', quote.note)
 
 
 class FundingRequestTestCase(TestCase):
@@ -416,6 +488,8 @@ class OrderTestCase(TestCase):
             'order-buyer-detail': lambda x: reverse('v1:orders:order-buyer-detail', kwargs={'pk': x}),
             'order-seller-list': reverse('v1:orders:order-seller-list'),
             'order-seller-detail': lambda x: reverse('v1:orders:order-seller-detail', kwargs={'pk': x}),
+            'order-seller-accept': lambda x: reverse('v1:orders:order-seller-accept', kwargs={'pk': x}),
+            'order-seller-cancel': lambda x: reverse('v1:orders:order-seller-cancel', kwargs={'pk': x}),
             'order-cart-list': reverse('v1:orders:order-cart-list'),
             'order-cart-detail': lambda x: reverse('v1:orders:order-cart-detail', kwargs={'pk': x}),
         }
@@ -484,6 +558,92 @@ class OrderTestCase(TestCase):
         resp = self.auth_seller.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
+
+    def test_post_order_seller_accept(self):
+        endpoint = self.endpoints.get('order-seller-accept')(self.order.pk)
+        data = {}
+        resp = self.auth_seller.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual('accepted', resp.json()['status'])
+
+    def test_post_order_seller_cancel(self):
+        endpoint = self.endpoints.get('order-seller-cancel')(self.order.pk)
+        data = {}
+        resp = self.auth_seller.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual('canceled', resp.json()['status'])
+
+    def test_post_order_seller_accept_with_quotes(self):
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service
+        )
+        order = models.Order.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='pending',
+            quote=quote
+        )
+        endpoint = self.endpoints.get('order-seller-accept')(order.pk)
+        data = {}
+        resp = self.auth_seller.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual('accepted', resp.json()['status'])
+        quote.refresh_from_db()
+        self.assertEqual('accepted', quote.status)
+
+    def test_post_order_seller_accept_with_creative_quotes(self):
+        category = ExchangeCategory.objects.create(name='Category')
+        file_mock = mock.MagicMock(spec=File)
+        file_mock.name = 'test.jpg'
+        creative_request = ExchangeRequest.objects.create(
+            category=category,
+            user=self.user2,
+            title='Title',
+            cover_image=file_mock,
+            description='Text',
+            special_requirement='Text',
+            additional_information='Text',
+            extended_price=1000,
+        )
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            exchange_request=creative_request
+        )
+        quote2 = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            exchange_request=creative_request
+        )
+        quote3 = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            exchange_request=creative_request
+        )
+        order = models.Order.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='pending',
+            quote=quote
+        )
+        endpoint = self.endpoints.get('order-seller-accept')(order.pk)
+        data = {}
+        resp = self.auth_seller.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual('accepted', resp.json()['status'])
+        quote.refresh_from_db()
+        self.assertEqual('accepted', quote.status)
+        quote2.refresh_from_db()
+        self.assertEqual('canceled', quote2.status)
+        quote3.refresh_from_db()
+        self.assertEqual('canceled', quote3.status)
 
     def test_get_order_cart_list_success_buyer(self):
         endpoint = self.endpoints.get('order-cart-list')

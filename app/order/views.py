@@ -51,7 +51,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
     )
     def accept(self, request, pk):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raize_exception=True)
+        serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset().filter(status='pending')
         context = self.get_serializer_context()
         try:
@@ -64,12 +64,13 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
             if instance.quote:
                 instance.quote.status = 'accepted'
                 instance.quote.save()
-            other_quotes = (
-                models.Quote.objects
-                .filter(exchange_request=instance.quote.exchange_request)
-                .exlude(pk=instance.pk)
-            )
-            other_quotes.update(status='canceled')
+                if instance.quote.exchange_request:
+                    other_quotes = (
+                        models.Quote.objects
+                        .filter(exchange_request=instance.quote.exchange_request)
+                        .exclude(pk=instance.quote.pk)
+                    )
+                    other_quotes.update(status='canceled')
         except models.Order.DoesNotExist:
             raise Http404
         return Response(
@@ -148,9 +149,6 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
         Order pk user for payment
         After successfully payment status changed to accepted
         """
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raize_exception=True)
         queryset = self.get_queryset().filter(status='provided')
         context = self.get_serializer_context()
         try:
@@ -210,7 +208,7 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
     )
     def provide(self, request, pk):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raize_exception=True)
+        serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset().filter(status='pending')
         context = self.get_serializer_context()
         try:
