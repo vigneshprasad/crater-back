@@ -41,7 +41,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             'classes': ['collapse in']
         }),
         ('User Data', {
-            'fields': (('name', 'email'), ('city', 'phone_number', 'phone_number_verified', 'referer')),
+            'fields': (('name', 'email'), ('city', 'phone_number'), ('referer', 'phone_number_verified')),
             'classes': ['collapse in']
         }),
     )
