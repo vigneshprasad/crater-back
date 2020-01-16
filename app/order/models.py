@@ -70,7 +70,7 @@ class Quote(TimeStampedModel):
     status = models.CharField(
         max_length=100,
         choices=QUOTE_STATUS_CHOICES,
-        default='quote_pending'
+        default='pending'
     )
     comment = models.TextField(
         max_length=800,

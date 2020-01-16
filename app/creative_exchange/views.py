@@ -71,4 +71,8 @@ class MyRequestsQuotesViewSet(mixins.ListModelMixin,
         if getattr(self, 'swagger_fake_view', False):
             # queryset just for schema generation metadata
             return Quote.objects.none()
-        return Quote.objects.filter(exchange_request__user=self.request.user, buyer=self.request.user)
+        return (
+            Quote.objects
+            .filter(exchange_request__user=self.request.user, buyer=self.request.user)
+            .order_by('-status')
+        )

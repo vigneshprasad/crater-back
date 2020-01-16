@@ -130,7 +130,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
         if getattr(self, 'swagger_fake_view', False):
             # queryset just for schema generation metadata
             return models.Quote.objects.none()
-        return self.request.user.buyer_quotes.exclude(exchange_request__isnull=False)
+        return self.request.user.buyer_quotes.exclude(exchange_request__isnull=False).order_by('-status')
 
     def perform_create(self, serializer):
         serializer.validated_data['buyer'] = self.request.user

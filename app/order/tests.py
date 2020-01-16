@@ -114,6 +114,27 @@ class QuoteTestCase(TestCase):
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
 
+    def test_get_quote_buyer_list_success_buyer_ordering(self):
+        endpoint = self.endpoints.get('quote-buyer-list')
+        quote = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='canceled'
+        )
+        quote_provided = models.Quote.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='provided'
+        )
+        resp = self.auth_buyer.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(3, len(resp.json()['results']))
+        self.assertEqual('provided', resp.json()['results'][0]['status'])
+        self.assertEqual('pending', resp.json()['results'][1]['status'])
+        self.assertEqual('canceled', resp.json()['results'][2]['status'])
+
     def test_get_quote_buyer_list_success_seller(self):
         endpoint = self.endpoints.get('quote-buyer-list')
         resp = self.auth_seller.get(endpoint, content_type='application/json')
