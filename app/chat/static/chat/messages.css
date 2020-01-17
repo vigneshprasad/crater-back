@@ -35,6 +35,7 @@
 .app.messages .user .message {
     background-color: #448AFF;
     color: #fff;
+    word-break: break-all;
 }
 
 .app.messages .actions {
