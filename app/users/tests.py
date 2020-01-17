@@ -668,14 +668,16 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertDictEqual(data, resp.json())
 
+    @patch('utils.stripe_service.stripe_service.create_token_charge', autospec=True, return_value='Charge')
     @patch('utils.stripe_service.stripe_service.get_customer_id', autospec=True, return_value='customer_id')
     @patch('utils.stripe_service.stripe_service.get_customer_card_data', autospec=True, return_value={'a': 'a'})
-    def test_bank_details_post_success(self, get_customer_id, get_customer_card_data):
+    def test_bank_details_post_success(self, create_token_charge, get_customer_id, get_customer_card_data):
         endpoint = self.endpoints.get('user-bank-details')
         data = {
             'membership': 'basic',
             'terms_and_condition': True,
-            'stripe_token': 'fake_token'
+            'stripe_token': 'fake_token',
+            'remember_card': True
         }
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)

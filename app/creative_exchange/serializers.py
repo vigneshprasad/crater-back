@@ -120,11 +120,10 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
             return obj.user.name
         return ''
 
-    @staticmethod
-    def get_user_logo(obj):
+    def get_user_logo(self, obj):
         if hasattr(obj, 'user') and obj.user:
-            if hasattr(obj.user, 'profile') and obj.user.profile:
-                return obj.user.profile.photo
+            if hasattr(obj.user, 'profile') and obj.user.profile and obj.user.profile.photo:
+                return self.context['request'].build_absolute_uri(obj.user.profile.photo)
         return None
 
     @staticmethod

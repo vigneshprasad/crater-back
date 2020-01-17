@@ -83,7 +83,7 @@ class BankDetailViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['user'] = request.user
         stripe_token = serializer.validated_data.pop('stripe_token', None)
-        remember_card = serializer.validated_data.pop('remember_card')
+        remember_card = serializer.validated_data.pop('remember_card', False)
         if stripe_token:
             amount = 350 if serializer.validated_data['membership'] == 'premium' else 250
             description = f'Initial membership payment for user: {str(self.request.user.pk)}'
