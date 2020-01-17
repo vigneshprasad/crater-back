@@ -38,11 +38,9 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     fieldsets = (
         ('Approvals', {
             'fields': (('is_active', 'groups'), ('is_approved', 'is_service_approved'),),
-            'classes': ['collapse in']
         }),
         ('User Data', {
             'fields': (('name', 'email'), ('city', 'phone_number'), ('referer', 'phone_number_verified')),
-            'classes': ['collapse in']
         }),
     )
     autocomplete_fields = ['city']
