@@ -4,7 +4,7 @@
     let $messages_block = $('#messages__block');
     let objDiv = document.getElementById('messages__block');
 
-    var chatSocket = new WebSocket(
+    let chatSocket = new WebSocket(
       'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
       '/ws/chat/' + uuid + '/' + token + '/'
     );
@@ -12,13 +12,13 @@
     let send_icon_template = '<div class="is-read"><i class="material-icons">done</i></div>';
 
     chatSocket.onmessage = function(e) {
-      var data = JSON.parse(e.data);
+      let data = JSON.parse(e.data);
       if (data['type'] === 'admin_message') {
-        let template = `<div class="message__block admin"><div class="message">${data['message']}${send_icon_template}</div><div class="chat__message-sender">${data['name']}, ${data['created']}</div></div>`
+        let template = `<div class="message__block admin"><div class="message message-id-${data['message_id']}">${data['message']}${send_icon_template}</div><div class="chat__message-sender">${data['sender']}, ${data['created']}</div></div>`
         $messages_block.append(template);
         objDiv.scrollTop = objDiv.scrollHeight;
       } else if (data['type'] === 'user_message') {
-        let template = `<div class="message__block user"><div class="message">${data['message']}</div><div class="chat__message-sender">${data['name']}, ${data['created']}</div></div>`
+        let template = `<div class="message__block user"><div class="message">${data['message']}</div><div class="chat__message-sender">${data['sender']}, ${data['created']}</div></div>`
         $messages_block.append(template);
         objDiv.scrollTop = objDiv.scrollHeight;
       } else if (data['type'] === 'user_notification') {
@@ -28,6 +28,14 @@
         }
         $('#user-' + data['sender_id'] + ' a').append(`<span class="unread">${data['unread_count']}</span>`);
         $('#user-' + data['sender_id'] + ' .message').text(data['message']);
+      } else if (data['type'] === 'user_read_messages') {
+        for (let messageId of data['messages']) {
+          $('.message-id-' + messageId).find('.is-read').html('<i class="material-icons done-all">done_all</i>')
+        }
+      } else if (data['type'] === 'user_is_typing') {
+        let $isTyping = $('.is-typing');
+        $isTyping.show();
+        setTimeout(() => $isTyping.hide(), 2000);
       }
     };
 
@@ -35,21 +43,24 @@
       console.error('Chat socket closed unexpectedly');
     };
 
-    document.querySelector('#chat-message-input').focus();
-    document.querySelector('#chat-message-input').onkeyup = function(e) {
+    let $input = $('#chat-message-input');
+    $input.focus();
+    $input.keyup(function(e) {
       if (e.keyCode === 13) {
         document.querySelector('#chat-message-submit').click();
       }
-    };
+    });
 
-    document.querySelector('#chat-message-submit').onclick = function(e) {
-      var messageInputDom = document.querySelector('#chat-message-input');
-      var message = messageInputDom.value;
-      chatSocket.send(JSON.stringify({
+    $('#chat-message-submit').click(function(e) {
+      let messageInputDom = document.querySelector('#chat-message-input');
+      let message = messageInputDom.value;
+      if (message) {
+        chatSocket.send(JSON.stringify({
           'message': message,
           'type': 'send_admin_message_to_user',
-      }));
-      messageInputDom.value = '';
-    };
+        }));
+        messageInputDom.value = '';
+      }
+    });
 
 </script>
