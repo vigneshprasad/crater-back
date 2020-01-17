@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from . import models
 
 
@@ -9,6 +10,10 @@ class BankDetailsSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
+    remember_card = serializers.BooleanField(
+        default=False,
+        write_only=True
+    )
 
     class Meta:
         model = models.BankDetails
@@ -16,7 +21,8 @@ class BankDetailsSerializer(serializers.ModelSerializer):
             'membership',
             'terms_and_condition',
             'card_data',
-            'stripe_token'
+            'stripe_token',
+            'remember_card'
         ]
         read_only_fields = [
             'card_data'

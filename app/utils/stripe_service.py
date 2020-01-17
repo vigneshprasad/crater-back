@@ -35,12 +35,21 @@ class StripeService:
             source=token
         )
 
-    def create_charge(self, token, amount, description, currency='usd'):
+    def create_token_charge(self, token, amount, description, currency='usd'):
         charge = self.stripe.Charge.create(
             amount=amount,
             currency=currency,
             description=description,
             source=token,
+        )
+        return charge
+
+    def create_customer_charge(self, customer_id, amount, description, currency='usd'):
+        charge = self.stripe.Charge.create(
+            amount=amount,
+            currency=currency,
+            description=description,
+            customer=customer_id,
         )
         return charge
 

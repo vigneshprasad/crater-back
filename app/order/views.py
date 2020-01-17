@@ -1,8 +1,10 @@
 from django.http import Http404
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from utils.stripe_service import stripe_service
 from . import models, paginators, serializers
 
 
@@ -25,6 +27,56 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
     def perform_create(self, serializer):
         serializer.validated_data['buyer'] = self.request.user
         serializer.save()
+
+    @action(
+        methods=['post'],
+        serializer_class=serializers.PaymentOrdersSerialier,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=False
+    )
+    def pay(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        orders = serializer.validated_data['orders']
+        amount = sum([order.price for order in orders])
+        # TODO: Calculate amount with promo code discount
+        orders_id = ', '.join([order.pk for order in orders])
+        description = f'Payment for {orders_id}'
+        charge = None
+        if serializer.validated_data['stripe_token']:
+            charge = stripe_service.create_token_charge(
+                token=serializer.validated_data['stripe_token'],
+                amount=amount,
+                description=description
+            )
+        elif serializer.validated_data['pay_saved_card']:
+            charge = stripe_service.create_customer_charge(
+                customer_id=self.request.user.bank_details.stripe_customer_id,
+                amount=amount,
+                description=description
+            )
+        if charge and charge.paid:
+            orders.update(status='pending')
+        else:
+            raise serializers.serializers.ValidationError(
+                {'message': _('Create payment error. Connect with support')}
+            )
+        # TODO: Create Transaction
+        if serializer.validated_data['remember_card']:
+            if request.user.bank_details and request.user.bank_details.stripe_customer_id:
+                stripe_service.update_customer_source(
+                    request.user.bank_details.stripe_customer_id,
+                    serializer.validated_data['stripe_token']
+                )
+            else:
+                stripe_customer_id = stripe_service.get_customer_id(
+                    request.user,
+                    serializer.validated_data['stripe_token']
+                )
+                request.user.bank_details.stripe_customer_id = stripe_customer_id
+                request.user.bank_details.card_data = stripe_service.get_customer_card_data(stripe_customer_id)
+                request.user.save()
+        return Response({'message': _('Successfully paid')})
 
 
 class SellerOrderViewSet(mixins.RetrieveModelMixin,
