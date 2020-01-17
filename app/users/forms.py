@@ -14,23 +14,25 @@ from users.models import Admin
 
 class GroupMixin:
     def clean_groups(self):
-        groups = self.cleaned_data.get('groups')
-        if groups.count() > 1:
-            raise forms.ValidationError(
-                _('Admin must be related to only one role.'),
-                code='one_role',
-            )
-        return groups
+        return [self.cleaned_data.get('groups')]
+
+
+class GroupModelChoiceField(forms.ModelChoiceField):
+    def prepare_value(self, value):
+        return super().prepare_value(value[0] if isinstance(value, list) else value)
 
 
 class AdminCreationForm(GroupMixin, UserCreationForm):
 
-    groups = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(name__in=['Admin', 'Support']))
+    groups = GroupModelChoiceField(queryset=Group.objects.filter(name__in=['Admin', 'Support']))
     is_staff = forms.BooleanField(initial=True)
 
     class Meta:
         model = get_user_model()
         fields = ('name', 'email', 'is_staff', 'groups', 'is_superuser')
+        widgets = {
+            'groups': forms.Select(),
+        }
 
     @staticmethod
     def clean_is_staff():
@@ -38,7 +40,7 @@ class AdminCreationForm(GroupMixin, UserCreationForm):
 
 
 class UserForm(GroupMixin, UserChangeForm):
-    groups = forms.ModelMultipleChoiceField(queryset=Group.objects.filter(name__in=['User', 'Investor']))
+    groups = GroupModelChoiceField(queryset=Group.objects.filter(name__in=['User', 'Investor']))
 
     class Meta:
         model = get_user_model()
