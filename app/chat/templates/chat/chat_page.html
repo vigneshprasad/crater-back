@@ -63,7 +63,7 @@
           <div class="card-content" id="messages__block">
             {% for message in messages %}
               <div class="message__block {% if message.sender.pk|stringformat:'s' == uuid %}user{% else %}admin{% endif %}">
-                <div class="message">
+                <div class="message message-id-{{ message.pk }}">
                   {{ message }}
                   {% if message.sender.pk|stringformat:'s' != uuid %}
                     <div class="is-read">
@@ -79,12 +79,13 @@
               </div>
             {% endfor %}
           </div>
+          <div class="is-typing">{% trans 'User is typing...' %}</div>
           <div class="actions flex">
             <div class="input-field flex">
               <i class="material-icons prefix">chat_bubble</i>
               <input id="chat-message-input" type="text" class="validate">
               <label for="chat-message-input">{% trans 'Text Message' %}</label>
-              <button id="chat-message-submit" type="submit" class="default waves-effect waves-light btn" name="_save">
+              <button id="chat-message-submit" type="submit" class="default waves-effect waves-light btn">
                 <i class="material-icons right">send</i>
               </button>
             </div>

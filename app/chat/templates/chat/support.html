@@ -5,22 +5,25 @@
     <title>Chat Room</title>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20" disabled></textarea><br/>
+    <textarea id="chat-log" cols="100" rows="20" disabled style="resize: none"></textarea><br/>
     <input id="chat-message-input" type="text" size="100"/><br/>
-    <input id="chat-message-submit" type="button" value="Send"/>
+    <div>
+        <input id="chat-message-submit" type="button" value="Send"/>
+        <br>
+        <br>
+        Page <span id="page">1</span>
+        <input id="paginate" type="button" value="Next"/>
+        <input id="read-messages" type="button" value="Read messages"/>
+    </div>
 </body>
 <script>
     var token = {{ token }};
+    var user_id = '{{ request.user.pk }}';
 
     var chatSocket = new WebSocket(
         'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
         '/ws/chat/' + token + '/'
        );
-
-    chatSocket.onmessage = function(e) {
-        var data = JSON.parse(e.data);
-        var message = data['message'];
-    };
 
     chatSocket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
@@ -33,6 +36,32 @@
         }
     };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Get messages from socket
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    chatSocket.onmessage = function(e) {
+        let $chat = document.querySelector('#chat-log');
+        let data = JSON.parse(e.data);
+        if (data['type'] === 'get_messages') {
+            for (let result of data.results) {
+               $chat.value += (JSON.stringify(result) + '\n\n');
+            }
+        } else if (data['type'] === 'user_message') {
+            $chat.value += (JSON.stringify(data) + '\n\n');
+        } else if (data['type'] === 'admin_message') {
+            $chat.value += (JSON.stringify(data) + '\n\n');
+        } else if (data['type'] === 'admin_read_messages') {
+            $chat.value += 'Admin read messages: ' + JSON.stringify(data['messages']) + '\n\n';
+        }
+        $chat.value += ('-----------------------------\n\n');
+        $chat.scrollTop = $chat.scrollHeight;
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Send message to admin
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     document.querySelector('#chat-message-submit').onclick = function(e) {
         var messageInputDom = document.querySelector('#chat-message-input');
         var message = messageInputDom.value;
@@ -43,6 +72,61 @@
 
         messageInputDom.value = '';
     };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Paginate messages
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.querySelector('#paginate').onclick = function(e) {
+        var pageBlock = document.querySelector('#page');
+        var page = parseInt(pageBlock.innerText);
+        page++;
+        chatSocket.send(JSON.stringify({
+            'message': {page: page},
+            'type': 'get_support_chat_messages',
+        }));
+        pageBlock.innerText = page;
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Read all messages by current user
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.querySelector('#read-messages').onclick = function(e) {
+        chatSocket.send(JSON.stringify({
+            'type': 'user_read_support_messages',
+        }));
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Get messages after page loaded
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.addEventListener('DOMContentLoaded', function(e) {
+       function getMessages() {
+           chatSocket.send(JSON.stringify({
+              'message': {page: 1},
+              'type': 'get_support_chat_messages',
+           }));
+       }
+       setTimeout(getMessages, 500);
+    });
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Define if user is typing
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.querySelector('#chat-message-input').oninput = function() {
+        chatSocket.send(JSON.stringify({
+              'message': {},
+              'type': 'user_is_typing',
+           }));
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 </script>
 </html>

@@ -57,3 +57,11 @@
 .is-read .done-all {
     color: green;
 }
+
+.is-typing {
+    margin-top: -18px;
+    font-size: 12px;
+    color: gray;
+    text-align: center;
+    display: none;
+}
