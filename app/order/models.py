@@ -2,6 +2,8 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
@@ -51,6 +53,32 @@ class Order(TimeStampedModel):
         verbose_name_plural = _('Orders')
         verbose_name = _('Order')
         ordering = ['-created']
+
+    @property
+    def price(self):
+        price = 0
+        if self.quote:
+            if self.quote.price:
+                price = self.quote.price
+            elif self.quote.service:
+                price = self.quote.service.price
+            elif self.quote.exchange_request:
+                price = self.quote.exchange_request.extended_price
+        else:
+            price = self.service.price
+        return price
+
+    @property
+    def title(self):
+        title = "Non Titled Order"
+        if self.quote:
+            if self.quote.service:
+                title = self.quote.service.service_type.name
+            elif self.quote.exchange_request:
+                title = self.quote.exchange_request.title
+        else:
+            title = self.service.service_type.name
+        return title
 
 
 class Quote(TimeStampedModel):
@@ -267,8 +295,22 @@ class FundingRequest(TimeStampedModel):
         choices=FUNDING_REQUEST_CHOICES,
         default='pending'
     )
+    order_field = models.IntegerField(
+        default=1
+    )
 
     class Meta:
         verbose_name = _('Funding Request')
         verbose_name_plural = _('Funding Requests')
-        ordering = ['-created']
+        ordering = ['order_field', '-created']
+
+
+@receiver(pre_save, sender=FundingRequest)
+def funding_request_pre_save(sender, instance,  *args, **kwargs):
+    order_dict = {
+        'pending': 1,
+        'accepted': 2,
+        'canceled': 3
+    }
+    instance.order_field = order_dict.get(instance.status)
+    return instance

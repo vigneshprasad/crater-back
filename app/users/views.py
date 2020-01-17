@@ -83,8 +83,18 @@ class BankDetailViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['user'] = request.user
         stripe_token = serializer.validated_data.pop('stripe_token', None)
+        remember_card = serializer.validated_data.pop('remember_card')
         if stripe_token:
-            self.get_stripe_customer_id(serializer)
+            amount = 350 if serializer.validated_data['membership'] == 'premium' else 250
+            description = f'Initial membership payment for user: {str(self.request.user.pk)}'
+            charge = stripe_service.create_token_charge(
+                token=stripe_token,
+                amount=amount,
+                description=description
+            )
+            # TODO: Create Transaction
+            if remember_card:
+                self.get_stripe_customer_id(serializer)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)

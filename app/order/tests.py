@@ -430,6 +430,27 @@ class FundingRequestTestCase(TestCase):
         self.assertEqual('accepted', self.funding_request.status)
 
 
+    def test_list_ordering(self):
+        funding_request_canceled = models.FundingRequest.objects.create(
+            buyer=self.user2,
+            investor=self.user,
+            status='canceled'
+        )
+        funding_request_accepted = models.FundingRequest.objects.create(
+            buyer=self.user2,
+            investor=self.user,
+            status='accepted'
+        )
+        endpoint = self.endpoints.get('funding-request-list')
+        resp = self.auth_client.get(endpoint, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(3, len(resp.json()['results']))
+        self.assertEqual('pending', resp.json()['results'][0]['status'])
+        self.assertEqual('accepted', resp.json()['results'][1]['status'])
+        self.assertEqual('canceled', resp.json()['results'][2]['status'])
+
+
+
 class OrderTestCase(TestCase):
     def setUp(self):
         self.category = services_models.ProfessionalCategoryProxy.objects.create(name='Category')

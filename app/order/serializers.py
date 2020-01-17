@@ -1,3 +1,4 @@
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from services.serializers import ServiceSerializer
@@ -197,10 +198,12 @@ class FundingRequestSerializer(serializers.ModelSerializer):
             'buyer',
             'buyer_name',
             'attachments',
-            'answers'
+            'answers',
+            'status'
         ]
         read_only_fields = [
-            'buyer'
+            'buyer',
+            'status'
         ]
 
     @staticmethod
@@ -255,7 +258,6 @@ class OrderSerializer(serializers.ModelSerializer):
     buyer_photo = serializers.SerializerMethodField()
     seller_name = serializers.SerializerMethodField()
     seller_photo = serializers.SerializerMethodField()
-    price = serializers.SerializerMethodField()
     service_data = ServiceSerializer(read_only=True, source='service')
     attachments = AttachmentSerializer(many=True)
     answers = AnswerSerializer(many=True)
@@ -277,11 +279,14 @@ class OrderSerializer(serializers.ModelSerializer):
             'attachments',
             'answers',
             'note',
-            'status'
+            'status',
+            'title'
         ]
         read_only_fields = [
             'buyer',
-            'status'
+            'status',
+            'price',
+            'title'
         ]
 
     @staticmethod
@@ -305,20 +310,6 @@ class OrderSerializer(serializers.ModelSerializer):
         if hasattr(obj.buyer, 'profile') and obj.buyer.profile and obj.buyer.profile.photo:
             return self.context['request'].build_absolute_uri(obj.buyer.profile.photo.url)
         return None
-
-    @staticmethod
-    def get_price(obj):
-        price = 0
-        if obj.quote:
-            if obj.quote.price:
-                price = obj.quote.price
-            elif obj.quote.service:
-                price = obj.quote.service.price
-            elif obj.quote.exchange_request:
-                price = obj.quote.exchange_request.extended_price
-        else:
-            price = obj.service.price
-        return price
 
     def create(self, validated_data):
         attachments = validated_data.pop('attachments')
@@ -378,3 +369,34 @@ class ProvideQuoteSerializer(serializers.ModelSerializer):
             'revisions',
             'note',
         ]
+
+
+class PaymentOrdersSerialier(serializers.Serializer):
+    orders = serializers.PrimaryKeyRelatedField(queryset=models.Order.objects.filter(status='created'), many=True)
+    stripe_token = serializers.CharField(
+        max_length=400,
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    remember_card = serializers.BooleanField(default=False)
+    promo_code = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, required=True)
+    pay_saved_card = serializers.BooleanField(default=False)
+
+    def validate(self, attrs):
+        token = attrs.get('stripe_token')
+        saved_card = attrs.get('pay_saved_card')
+        if not (token or saved_card):
+            raise serializers.ValidationError({
+                'stripe_token': _('This field is required'),
+                'pay_saved_card': _('This field mast be true if stripe toke is empty')
+            })
+
+    def validate_pay_saved_card(self, value):
+        user = self.context['request'].user
+        if value:
+            if not (user.bank_details and user.bank_details.stripe_customer_id):
+                raise serializers.ValidationError(
+                    _('You do not have saved cards')
+                )
+        return value
