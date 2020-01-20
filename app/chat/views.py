@@ -1,6 +1,11 @@
+import copy
 import json
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
+from django.views.generic import CreateView
+
+from chat.models import Message
 
 
 def index(request):
@@ -18,3 +23,23 @@ def support(request, token):
     return render(request, 'chat/support.html', {
         'token': mark_safe(json.dumps(token)),
     })
+
+
+class AdminChatFileView(CreateView):
+    models = Message
+    template_name = 'chat/chat_page.html'
+    fields = ['sender', 'receiver', 'file', 'is_support']
+    queryset = Message.objects.all()
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        data = copy.copy(kwargs['data'])
+        files = copy.copy(kwargs['files'])
+        data.update({'is_support': True, 'sender': self.request.user.pk})
+        return {
+            'data': data,
+            'files': files
+        }
+
+    def get_success_url(self):
+        return reverse_lazy('admin:chat_chat_result', args=(self.object.receiver.pk,))
