@@ -165,6 +165,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
     )
     password1 = None
     password2 = None
+    os_id = serializers.CharField(required=False, allow_blank=False)
 
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
@@ -198,6 +199,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         self.custom_signup(request, user)
         user.save()
         self.add_to_group(user)
+        self.check_device(user)
         setup_user_email(request, user, [])
         user.send_verify_email()
         return user
@@ -221,6 +223,14 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
             return get_user_model().objects.get(uuid=uuid)
         except (cryptography.fernet.InvalidToken, AttributeError):
             return None
+
+    def check_device(self, user):
+        os_id = self.validated_data.get('os_id', '')
+        if user and os_id:
+            device, created = models.Device.objects.get_or_create(user=user, os_id=os_id)
+            if not created:
+                device.is_active = True
+                device.save()
 
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
