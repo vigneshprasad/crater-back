@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from timezone_field import TimeZoneField
@@ -31,6 +32,10 @@ class Event(models.Model):
         related_name='events',
         null=True
     )
+
+    def clean(self):
+        if self.start > self.end:
+            raise ValidationError({'end': _('Should be later than the "Start Time"')})
 
     class Meta:
         verbose_name = _('Event')
