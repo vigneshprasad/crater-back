@@ -29,7 +29,7 @@ class ExchangeAdmin(ViewActionMixin, admin.ModelAdmin):
     service_type.short_description = _('Service Type')
 
     def applied(self, exchange):
-        return exchange.responses.count()
+        return exchange.responses.count() if hasattr(exchange, 'responses') else 0
     applied.short_description = _('Sellers Applied')
 
     def mark_as_deleted(self, request, queryset):
