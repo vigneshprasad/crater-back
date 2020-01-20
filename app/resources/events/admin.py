@@ -1,4 +1,6 @@
 from django.contrib.admin import ModelAdmin, register, TabularInline, DateFieldListFilter
+
+from resources.events.forms import EventForm
 from resources.events.models import Event, RSVPD
 from utils.mixins import ViewActionMixin
 
@@ -25,6 +27,7 @@ class RSVPDAdmin(TabularInline):
 @register(Event)
 class EventAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'event'
+    form = EventForm
     list_display = ('title', 'date', 'start', 'end', 'state', 'action')
     list_filter = ('state', ('date', DateFieldListFilter))
     search_fields = ('title',)

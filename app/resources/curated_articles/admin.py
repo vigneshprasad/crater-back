@@ -2,6 +2,7 @@ from django.contrib.admin import ModelAdmin, register
 from django.utils.safestring import mark_safe
 from django.conf import settings
 
+from resources.curated_articles.forms import CuratedArticleForm
 from resources.curated_articles.models import CuratedArticle
 from utils.mixins import ViewActionMixin
 
@@ -12,6 +13,7 @@ class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
     list_display = ('title', 'created', 'tags', 'website', 'image', 'action')
     list_filter = ('created', 'tag__name')
     search_fields = ('title', 'website_tag__name', 'website_tag__url')
+    form = CuratedArticleForm
 
     @staticmethod
     def tags(curated_article):

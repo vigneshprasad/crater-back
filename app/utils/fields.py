@@ -6,6 +6,7 @@ import six
 from django.core.files.base import ContentFile
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
+from filefield_cache.widgets import CachedAdminFileWidget
 
 
 class Base64FileField(serializers.FileField):
@@ -43,3 +44,7 @@ class Base64FileField(serializers.FileField):
             except IndexError:
                 data = None
             return super().to_internal_value(data)
+
+
+class CachedMaterialAdminFileWidget(CachedAdminFileWidget):
+    template_name = 'admin/widgets/clearable_file_input.html'
