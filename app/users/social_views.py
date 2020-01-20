@@ -1,15 +1,17 @@
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.linkedin_oauth2.views import LinkedInOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client, OAuth2Error
 from rest_auth.registration.views import SocialLoginView, SocialConnectView, \
     SocialAccountDisconnectView as DisconnectView, SocialAccountListView as AccountListView
+from rest_framework import status
+from rest_framework.response import Response
 
-from .mixins import CheckDeviceMixin, CheckGroupMixin
+from .mixins import CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin
 from .serializers import SocialLoginSerializer
 
 
-class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
+class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
     """
     https://accounts.google.com/o/oauth2/auth?&client_id=468382212295-5e5ti698mjf4oruhneavnob13r58b80e.apps.googleusercontent.com&redirect_uri=http://127.0.0.1:8001/oauth/complete/google-oauth2&response_type=token&scope=https://www.googleapis.com/auth/userinfo.email
     """
@@ -19,13 +21,14 @@ class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
     callback_url = 'http://localhost:5000'
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+        super().post(request, *args, **kwargs)
         self.check_device()
         self.check_group()
-        return response
+        self.check_email()
+        return self.get_response()
 
 
-class FacebookLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
+class FacebookLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
     """
     https://www.facebook.com/v2.2/dialog/oauth?client_id=1866118480133387&redirect_uri=https://www.domain.com/login&display=popup&response_type=code%20token
     """
@@ -33,25 +36,32 @@ class FacebookLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
     serializer_class = SocialLoginSerializer
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+        super().post(request, *args, **kwargs)
         self.check_device()
         self.check_group()
-        return response
+        self.check_email()
+        return self.get_response()
 
 
-class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin):
+class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
     """
     https://www.facebook.com/v2.2/dialog/oauth?client_id=1866118480133387&redirect_uri=https://www.domain.com/login&display=popup&response_type=code%20token
     """
     # adapter_class = CustomFacebookOAuth2Adapter
     adapter_class = LinkedInOAuth2Adapter
     serializer_class = SocialLoginSerializer
+    callback_url = 'https://example.com/'
+    client_class = OAuth2Client
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+        try:
+            super().post(request, *args, **kwargs)
+        except OAuth2Error:
+            return Response({'code': 'Code is wrong or expired'}, status=status.HTTP_400_BAD_REQUEST)
         self.check_device()
         self.check_group()
-        return response
+        self.check_email()
+        return self.get_response()
 
 
 class GoogleConnect(SocialConnectView):

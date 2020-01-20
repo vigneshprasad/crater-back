@@ -1,6 +1,7 @@
-from . import models
-
+from allauth.account.models import EmailAddress
 from django.contrib.auth import models as auth_models
+
+from . import models
 
 
 class CheckDeviceMixin:
@@ -28,3 +29,17 @@ class CheckGroupMixin:
                 self.user.groups.add(group)
             except auth_models.Group.DoesNotExist:
                 pass
+
+
+class CheckEmailMixin:
+    serializer = None
+
+    def check_email(self):
+        email = self.serializer.validated_data.get('email', '')
+        if self.user.email:
+            address, created = EmailAddress.objects.get_or_create(user=self.user, email=self.user.email)
+            address.verified = True
+            address.save()
+        if email and not self.user.email:
+            self.user.email = email
+            self.user.save()

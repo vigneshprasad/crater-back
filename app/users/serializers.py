@@ -243,7 +243,6 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'has_services'
         )
         read_only_fields = (
-            'email',
             'full_registered',
             'has_profile',
             'has_bank_details',
@@ -298,7 +297,6 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
 
     def validate_email(self, email):
         return email.strip().lower()
-
 
     def save(self):
         email = self.validated_data.get('email')
@@ -430,6 +428,19 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
         ),
         default='user'
     )
+    email = serializers.EmailField(
+        required=False,
+        allow_null=True,
+        allow_blank=True
+    )
+
+    @staticmethod
+    def validate_email(email):
+        if UserModel.objects.filter(email=email):
+            raise serializers.ValidationError(
+                _('This email is registered')
+            )
+        return email.lower()
 
 
 class NewPhoneNumberSerializer(serializers.ModelSerializer):

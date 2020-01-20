@@ -351,7 +351,7 @@ class CoverFile(TimeStampedModel):
         upload_to='profile/cover/%Y/%m/%d',
         verbose_name=_('Cover'),
         null=True,
-        validators=[SizeValidator(size=512)]
+        validators=[SizeValidator(size=512)],
     )
     user = models.ForeignKey(
         'users.User',
