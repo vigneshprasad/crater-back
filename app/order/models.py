@@ -48,11 +48,14 @@ class Order(TimeStampedModel):
         verbose_name=_('Note from Provider'),
         blank='True'
     )
+    order_field = models.IntegerField(
+        default=1
+    )
 
     class Meta:
         verbose_name_plural = _('Orders')
         verbose_name = _('Order')
-        ordering = ['-created']
+        ordering = ['order_field', '-created']
 
     @property
     def price(self):
@@ -164,11 +167,14 @@ class Quote(TimeStampedModel):
         verbose_name=_('Note from Provider'),
         blank=True
     )
+    order_field = models.IntegerField(
+        default=1
+    )
 
     class Meta:
         verbose_name = _('Quote')
         verbose_name_plural = _('Quotes')
-        ordering = ['-created']
+        ordering = ['order_field', '-created']
 
 
 class Answer(models.Model):
@@ -311,6 +317,31 @@ def funding_request_pre_save(sender, instance,  *args, **kwargs):
         'pending': 1,
         'accepted': 2,
         'canceled': 3
+    }
+    instance.order_field = order_dict.get(instance.status)
+    return instance
+
+
+@receiver(pre_save, sender=Order)
+def order_pre_save(sender, instance,  *args, **kwargs):
+    order_dict = {
+        'pending': 1,
+        'accepted': 2,
+        'complete': 3,
+        'canceled': 4,
+        'created': 1
+    }
+    instance.order_field = order_dict.get(instance.status)
+    return instance
+
+
+@receiver(pre_save, sender=Quote)
+def quote_pre_save(sender, instance,  *args, **kwargs):
+    order_dict = {
+        'pending': 1,
+        'provided': 2,
+        'accepted': 3,
+        'canceled': 4
     }
     instance.order_field = order_dict.get(instance.status)
     return instance

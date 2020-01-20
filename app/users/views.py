@@ -90,7 +90,8 @@ class BankDetailViewSet(mixins.CreateModelMixin,
             charge = stripe_service.create_token_charge(
                 token=stripe_token,
                 amount=amount,
-                description=description
+                description=description,
+                user=request.user
             )
             # TODO: Create Transaction
             if remember_card:

@@ -289,7 +289,7 @@ ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', 'example')
 
 ACCOUNT_LOGOUT_ON_GET = False
 
-STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'example')
+STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'sk_test_AwTUfAFu61uxi8uGLm5FSEJE00idcE0OEk')
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 

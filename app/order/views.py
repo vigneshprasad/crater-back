@@ -47,7 +47,8 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             charge = stripe_service.create_token_charge(
                 token=serializer.validated_data['stripe_token'],
                 amount=amount,
-                description=description
+                description=description,
+                user=request.user
             )
         elif serializer.validated_data['pay_saved_card']:
             charge = stripe_service.create_customer_charge(
@@ -183,7 +184,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
         if getattr(self, 'swagger_fake_view', False):
             # queryset just for schema generation metadata
             return models.Quote.objects.none()
-        return self.request.user.buyer_quotes.exclude(exchange_request__isnull=False).order_by('-status')
+        return self.request.user.buyer_quotes.exclude(exchange_request__isnull=False)
 
     def perform_create(self, serializer):
         serializer.validated_data['buyer'] = self.request.user

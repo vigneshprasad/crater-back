@@ -186,8 +186,8 @@ class QuoteTestCase(TestCase):
         resp = self.auth_buyer.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(3, len(resp.json()['results']))
-        self.assertEqual('provided', resp.json()['results'][0]['status'])
-        self.assertEqual('pending', resp.json()['results'][1]['status'])
+        self.assertEqual('pending', resp.json()['results'][0]['status'])
+        self.assertEqual('provided', resp.json()['results'][1]['status'])
         self.assertEqual('canceled', resp.json()['results'][2]['status'])
 
     def test_post_quote_buyer_accept(self):
