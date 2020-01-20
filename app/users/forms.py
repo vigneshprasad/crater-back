@@ -9,7 +9,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from users.models import Admin
+from users.models import Admin, Profile
+from utils.fields import CachedMaterialAdminFileWidget
 
 
 class GroupMixin:
@@ -105,3 +106,11 @@ class AdminPasswordResetForm(PasswordResetForm):
             'is_active': True,
         })
         return (u for u in active_users if u.has_usable_password())
+
+
+class ProfileForm(forms.ModelForm):
+    photo = forms.ImageField(widget=CachedMaterialAdminFileWidget)
+
+    class Meta:
+        model = Profile
+        fields = '__all__'

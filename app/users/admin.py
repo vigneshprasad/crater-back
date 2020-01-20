@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
-from users.forms import AdminCreationForm, UserForm
+from users.forms import AdminCreationForm, UserForm, ProfileForm
 from users.models import Profile, Admin, Referral
 from utils.mixins import ViewActionMixin
 
@@ -17,6 +17,7 @@ admin.site.unregister(Group)
 
 class ProfileAdmin(admin.StackedInline):
     model = Profile
+    form = ProfileForm
     autocomplete_fields = ['work_city']
 
 
