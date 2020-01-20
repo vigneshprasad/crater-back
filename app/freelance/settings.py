@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'djrill',
     'adminsortable2',
+    'filefield_cache',
 
     'users',
     'locations',
