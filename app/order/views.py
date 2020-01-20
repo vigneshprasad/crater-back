@@ -47,7 +47,8 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             charge = stripe_service.create_token_charge(
                 token=serializer.validated_data['stripe_token'],
                 amount=amount,
-                description=description
+                description=description,
+                user=request.user
             )
         elif serializer.validated_data['pay_saved_card']:
             charge = stripe_service.create_customer_charge(

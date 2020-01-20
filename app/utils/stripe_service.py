@@ -11,10 +11,22 @@ class StripeService:
         self.stripe.api_key = api_key
 
     def get_customer_id(self, user: User, token) -> str:
+        name = user.email
+        if hasattr(user, 'profile') and user.profile:
+            name = user.profile.name
+        data = {
+            'name': name,
+            'address': {
+                'line1': 'Non Address Payment',
+                'city': 'Non City Payment',
+                'country': 'US',
+            }
+        }
         customer = self.stripe.Customer.create(
             source=token,
             email=user.email,
-            name=user.name
+            name=user.name,
+            **data
         )
         return customer.stripe_id
 
@@ -35,12 +47,24 @@ class StripeService:
             source=token
         )
 
-    def create_token_charge(self, token, amount, description, currency='usd'):
+    def create_token_charge(self, token, amount, description, user, currency='usd'):
+        name = user.email
+        if hasattr(user, 'profile') and user.profile:
+            name = user.profile.name
+        shipping = {
+            'name': name,
+            'address': {
+                'line1': 'Non Address Payment',
+                'city': 'Non City Payment',
+                'country': 'US',
+            }
+        }
         charge = self.stripe.Charge.create(
             amount=amount,
             currency=currency,
             description=description,
             source=token,
+            shipping=shipping
         )
         return charge
 
@@ -49,7 +73,7 @@ class StripeService:
             amount=amount,
             currency=currency,
             description=description,
-            customer=customer_id,
+            customer=customer_id
         )
         return charge
 

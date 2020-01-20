@@ -515,6 +515,16 @@ class CoverFileSerializer(serializers.ModelSerializer):
             'file_base64',
         ]
 
+    @staticmethod
+    def validate_file(file):
+        ext = file.name.split(".")[-1]
+        ext_list = ['jpg', 'png', 'tiff', 'bmp',  'mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']
+        if ext not in ext_list:
+            raise serializers.ValidationError(
+                _(f'File extension not valid. Valid extensions: {ext_list}')
+            )
+        return file
+
     def validate(self, attrs):
         file = attrs.get('file')
         file_base64 = attrs.get('file_base64')
