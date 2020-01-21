@@ -15,7 +15,6 @@ class StripeService:
         if hasattr(user, 'profile') and user.profile:
             name = user.profile.name
         data = {
-            'name': name,
             'address': {
                 'line1': 'Non Address Payment',
                 'city': 'Non City Payment',
@@ -25,7 +24,7 @@ class StripeService:
         customer = self.stripe.Customer.create(
             source=token,
             email=user.email,
-            name=user.name,
+            name=name,
             **data
         )
         return customer.stripe_id
@@ -34,7 +33,7 @@ class StripeService:
         if customer_id:
             cards = self.stripe.Customer.list_sources(
                 customer_id,
-                object='bank_account',
+                # object='bank_account',
                 limit=1,
             )
             if cards.data:
