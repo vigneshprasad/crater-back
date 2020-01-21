@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from phonenumber_field.modelfields import PhoneNumberField
 
+from notifications.models import UserNotificationsSettings
 from users.managers import UserManager
 from utils.validators import SizeValidator
 from . import choices
@@ -388,3 +389,9 @@ class CoverFile(TimeStampedModel):
 def profile_post_save(sender, instance, created,  *args, **kwargs):
     if created:
         transaction.on_commit(lambda: start_transcoding_for_cover_file.delay(instance.pk))
+
+
+@receiver(post_save, sender=User)
+def profile_post_save(sender, instance, created,  *args, **kwargs):
+    if created:
+        UserNotificationsSettings.objects.create(user=instance)
