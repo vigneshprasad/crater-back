@@ -74,6 +74,7 @@ class TestArticleView(APITestCase):
         )
         token = response.data['token']
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
+        print(self.website.pk)
         response = self.client.get(f'{url}?website_tags={self.website.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']

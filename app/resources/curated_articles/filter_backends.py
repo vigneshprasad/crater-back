@@ -28,7 +28,7 @@ class TagFilterBackend(BaseFilterBackend):
             if tags:
                 queryset = queryset.filter(tag__in=tags.split(','))
             if website_tags:
-                queryset = queryset.filter(website_tag__in=tags.split(','))
+                queryset = queryset.filter(website_tag__in=website_tags.split(','))
         except (ValueError, TypeError):
             return queryset.none()
         return queryset
