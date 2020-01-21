@@ -33,7 +33,7 @@ class StripeService:
         if customer_id:
             cards = self.stripe.Customer.list_sources(
                 customer_id,
-                object='bank_account',
+                # object='bank_account',
                 limit=1,
             )
             if cards.data:
