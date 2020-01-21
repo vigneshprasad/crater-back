@@ -24,7 +24,7 @@ class StripeService:
         customer = self.stripe.Customer.create(
             source=token,
             email=user.email,
-            name=user.name,
+            name=name,
             **data
         )
         return customer.stripe_id
