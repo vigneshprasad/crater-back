@@ -34,7 +34,7 @@ class Event(models.Model):
     )
 
     def clean(self):
-        if self.start and self.end and self.start > self.end:
+        if self.start and self.end and self.start >= self.end:
             raise ValidationError({'end': _('Should be later than the "Start Time"')})
 
     class Meta:
