@@ -46,6 +46,9 @@
                       {{ user.message.sender.name }}:
                     {% endif %}
                     {{ user.message.message }}
+                    {% if user.message.file %}
+                      <i class="material-icons attached-file">cloud_download</i>
+                    {% endif %}
                   </span>
                 </span>
                 {% if user.unread %}

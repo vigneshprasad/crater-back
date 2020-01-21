@@ -60,7 +60,7 @@ class TestArticleView(APITestCase):
         )
         token = response.data['token']
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
-        response = self.client.get(f'{url}?tag={self.tag1.pk}')
+        response = self.client.get(f'{url}?tags={self.tag1.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
         self.assertEqual(len(results), 2)
@@ -74,7 +74,7 @@ class TestArticleView(APITestCase):
         )
         token = response.data['token']
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
-        response = self.client.get(f'{url}?website_tag={self.website.pk}')
+        response = self.client.get(f'{url}?website_tags={self.website.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
         self.assertEqual(len(results), 2)
@@ -88,7 +88,7 @@ class TestArticleView(APITestCase):
         )
         token = response.data['token']
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
-        response = self.client.get(f'{url}?website_tag={self.website.pk}&tag={self.tag1.pk}')
+        response = self.client.get(f'{url}?website_tags={self.website.pk}&tag={self.tag1.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
         self.assertEqual(len(results), 1)
@@ -101,7 +101,7 @@ class TestArticleView(APITestCase):
         )
         token = response.data['token']
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
-        response = self.client.get(f'{url}?website_tag={self.website.pk}&tag={self.tag3.pk}')
+        response = self.client.get(f'{url}?website_tags={self.website.pk}&tags={self.tag3.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data['results']
         self.assertEqual(len(results), 0)
