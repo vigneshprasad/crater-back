@@ -27,6 +27,12 @@ a .username .name {
 a .username .message {
     color: grey;
     font-size: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.attached-file {
+    margin-left: 5px;
 }
 
 .chat__user-photo {

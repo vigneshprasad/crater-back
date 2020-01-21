@@ -40,12 +40,17 @@
                 <span class="username flex flex-column">
                   <span class="name">{{ user.name }}</span>
                   <span class="message">
-                    {% if user.message.sender.pk == request.user.pk %}
-                      {% trans 'You' %}:
-                    {% elif user.message.sender.pk|stringformat:'s' != user.pk %}
-                      {{ user.message.sender.name }}:
+                    <span>
+                      {% if user.message.sender.pk == request.user.pk %}
+                        {% trans 'You' %}:
+                      {% elif user.message.sender.pk|stringformat:'s' != user.pk %}
+                        {{ user.message.sender.name }}:
+                      {% endif %}
+                      {{ user.message.message }}
+                    </span>
+                    {% if user.message.file %}
+                      <i class="material-icons attached-file">cloud_download</i>
                     {% endif %}
-                    {{ user.message.message }}
                   </span>
                 </span>
                 {% if user.unread %}
