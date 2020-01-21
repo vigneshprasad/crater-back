@@ -103,6 +103,7 @@ class ChatConsumer(ChatAuthConsumer):
             await self.send(text_data=json.dumps({
                 'type': 'admin_message',
                 'message': event['message'],
+                'file': event['file'],
                 'message_id': event['message_id'],
                 'created': event['created'],
                 'sender': event['sender'],
@@ -129,6 +130,7 @@ class ChatConsumer(ChatAuthConsumer):
             await self.send(text_data=json.dumps({
                 'type': 'user_message',
                 'message': event['message'],
+                'file': event['file'],
                 'message_id': event['message_id'],
                 'created': event['created'],
                 'sender': event['sender'],

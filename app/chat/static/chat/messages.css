@@ -38,6 +38,14 @@
     word-break: break-all;
 }
 
+.app.messages .user .attached-file {
+    color: #fff;
+}
+
+.app.messages .admin .attached-file {
+    color: #448AFF;
+}
+
 .app.messages .actions {
     padding: 8px;
     border-top: 1px solid lightgrey;
@@ -65,4 +73,20 @@
     color: gray;
     text-align: center;
     display: none;
+}
+
+.attach-file {
+    position: absolute;
+    top: -20px;
+    left: -3px;
+    cursor: pointer;
+}
+
+.file-submit-block {
+    position: relative;
+    display: none;
+    width: 100%;
+    text-align: center;
+    padding-right: 35px;
+    margin-top: 20px;
 }

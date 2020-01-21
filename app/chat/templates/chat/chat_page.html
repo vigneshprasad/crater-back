@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{% static 'chat/users.css' %}">
   <link rel="stylesheet" href="{% static 'chat/messages.css' %}">
   <script src="{% static 'chat/search-users.js' %}"></script>
+  <script src="{% static 'chat/upload-file.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -65,6 +66,11 @@
               <div class="message__block {% if message.sender.pk|stringformat:'s' == uuid %}user{% else %}admin{% endif %}">
                 <div class="message message-id-{{ message.pk }}">
                   {{ message }}
+                  {% if message.file %}
+                    <a href="{{ message.file.url }}" target="_blank" class="flex" title="{{ message.filename }}">
+                      <i class="material-icons attached-file">cloud_download</i>
+                    </a>
+                  {% endif %}
                   {% if message.sender.pk|stringformat:'s' != uuid %}
                     <div class="is-read">
                       {% if message.is_read %}
@@ -80,8 +86,19 @@
             {% endfor %}
           </div>
           <div class="is-typing">{% trans 'User is typing...' %}</div>
+
           <div class="actions flex">
-            <div class="input-field flex">
+            <form class="file-submit-block" method="POST" enctype="multipart/form-data" action="{% url 'chat:chat-file' %}">
+              {% csrf_token %}
+              <i class="material-icons attach-file">attachment</i>
+              <input type="file" name="file" id="file" class="chat-input-file"/>
+              <input type="hidden" name="receiver" value="{{ uuid }}"/>
+              <button type="submit" class="default waves-effect waves-light btn">
+                <i class="material-icons right">send</i>
+              </button>
+            </form>
+            <div class="input-field message-submit-block flex">
+              <i class="material-icons attach-file">attach_file</i>
               <i class="material-icons prefix">chat_bubble</i>
               <input id="chat-message-input" type="text" class="validate" maxlength="1006">
               <label for="chat-message-input">{% trans 'Text Message' %}</label>

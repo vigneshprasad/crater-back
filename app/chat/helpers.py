@@ -67,6 +67,7 @@ class MessageHelper:
         return {
             'type': _type,
             'message': message.message,
+            'file': message.file.url if message.file else None,
             'message_id': message.pk,
             'created': message.created.strftime("%d %b, %H:%M"),
             'sender': message.sender.name,
