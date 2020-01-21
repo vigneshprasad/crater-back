@@ -36,9 +36,9 @@ class EventAdmin(ViewActionMixin, ModelAdmin):
     inlines = [RSVPDAdmin]
 
     def start_time(self, event):
-        return event.start.strftime('%H:%m:%S')
+        return event.start.strftime('%H:%M:%S')
     start_time.short_description = _('Start Time')
 
     def end_time(self, event):
-        return event.end.strftime('%H:%m:%S')
+        return event.end.strftime('%H:%M:%S')
     end_time.short_description = _('End Time')
