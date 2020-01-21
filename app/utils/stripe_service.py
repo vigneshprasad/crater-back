@@ -15,7 +15,6 @@ class StripeService:
         if hasattr(user, 'profile') and user.profile:
             name = user.profile.name
         data = {
-            'name': name,
             'address': {
                 'line1': 'Non Address Payment',
                 'city': 'Non City Payment',

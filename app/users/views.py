@@ -87,12 +87,17 @@ class BankDetailViewSet(mixins.CreateModelMixin,
         if stripe_token:
             amount = 350 if serializer.validated_data['membership'] == 'premium' else 250
             description = f'Initial membership payment for user: {str(self.request.user.pk)}'
-            charge = stripe_service.create_token_charge(
-                token=stripe_token,
-                amount=amount,
-                description=description,
-                user=request.user
-            )
+            try:
+                charge = stripe_service.create_token_charge(
+                    token=stripe_token,
+                    amount=amount,
+                    description=description,
+                    user=request.user
+                )
+            except:
+                raise serializers.serializers.ValidationError(
+                    {'stripe_token': _('Stripe token is not valid')}
+                )
             # TODO: Create Transaction
             if remember_card:
                 self.get_stripe_customer_id(serializer)
@@ -120,7 +125,7 @@ class BankDetailViewSet(mixins.CreateModelMixin,
         stripe_token = serializer.validated_data.pop('stripe_token', None)
         if serializer.instance:
             stripe_service.update_customer_source(
-                serializer.instance.stripe_custome_id,
+                serializer.instance.stripe_customer_id,
                 stripe_token
             )
         else:
