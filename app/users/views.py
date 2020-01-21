@@ -371,6 +371,12 @@ class InvestorsViewSet(mixins.ListModelMixin,
         'profile__work_city'
     ]
 
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            # queryset just for schema generation metadata
+            return models.User.objects.none()
+        return self.queryset.exclude(pk=self.request.user.pk)
+
 
 class VerifyEmailView(DefaultVerifyEmailView):
 
