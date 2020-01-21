@@ -8,7 +8,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from community.groups.models import Group
 from community.groups.permissions import GroupPermission, GroupPostPermission
 from community.groups.services import get_group, get_followers_count
-from community.posts.filter_backends import FollowingFilterBackend, BlockersFilterBackend
+from community.posts.filter_backends import FollowingFilterBackend, BlockersFilterBackend, UserTagFilterBackend
 from community.posts.models import Like, Report
 from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
@@ -24,7 +24,7 @@ class PostViewSet(ModelViewSet):
     queryset = get_community_posts()
     pagination_class = PostPagination
     permission_classes = (IsAuthenticated, PostPermission)
-    filter_backends = (FollowingFilterBackend, BlockersFilterBackend)
+    filter_backends = (FollowingFilterBackend, BlockersFilterBackend, UserTagFilterBackend)
 
     @action(
         methods=['get'],

@@ -31,3 +31,25 @@ class BlockersFilterBackend(BaseFilterBackend):
     def filter_queryset(self, request, queryset, *args, **kwargs):
         blocking = Block.objects.filter(blocker=request.user).values_list('blocked', flat=True)
         return queryset.exclude(creator__in=blocking)
+
+
+class UserTagFilterBackend(BaseFilterBackend):
+    def get_schema_fields(self, view):
+        return [
+            coreapi.Field(
+                name='tags',
+                location='query',
+                required=False,
+                type='string',
+                description='Filter by user tag'
+            ),
+        ]
+
+    def filter_queryset(self, request, queryset, *args, **kwargs):
+        tags = request.query_params.get('tags')
+        try:
+            if tags:
+                queryset = queryset.filter(creator__profile__tags__in=tags.split(','))
+        except (ValueError, TypeError):
+            return queryset.none()
+        return queryset
