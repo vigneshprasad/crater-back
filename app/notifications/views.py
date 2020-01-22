@@ -1,12 +1,14 @@
 from rest_framework import viewsets, permissions, mixins
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from . import models, serializers
+from . import models, serializers, paginators
 
 
-class UserNotificationSettings(mixins.ListModelMixin,
-                               mixins.CreateModelMixin,
-                               viewsets.GenericViewSet):
+class UserNotificationSettingsViesSet(mixins.ListModelMixin,
+                                      mixins.CreateModelMixin,
+                                      viewsets.GenericViewSet):
     queryset = models.UserNotificationsSettings
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.UserNotificationsSettingsSerializer
@@ -26,3 +28,37 @@ class UserNotificationSettings(mixins.ListModelMixin,
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, headers=headers)
+
+
+class NotificationViewSet(mixins.ListModelMixin,
+                          mixins.RetrieveModelMixin,
+                          viewsets.GenericViewSet):
+    queryset = models.UserNotification.objects.none()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.NotificationSerializer
+    pagination_class = paginators.Pagination
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            # queryset just for schema generation metadata
+            return models.UserNotification.objects.none()
+        return self.request.user.notifications.filter(is_read=False)
+
+    @action(
+        methods=['post'],
+        serializer_class=None,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=True
+    )
+    def read(self, request, pk):
+        queryset = self.get_queryset()
+        context = self.get_serializer_context()
+        try:
+            instance = queryset.get(pk=pk)
+            instance.is_read = True
+            instance.save()
+        except models.UserNotification.DoesNotExist:
+            raise NotFound
+        return Response(
+            serializers.NotificationSerializer(instance, **{'context': context}).data
+        )

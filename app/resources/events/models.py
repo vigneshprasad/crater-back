@@ -1,12 +1,16 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from timezone_field import TimeZoneField
 
 from locations.models import City
+from notifications.models import Notification, UserNotification
 from resources.events.choices import EVENT_STATE
 from tags.models import EventTag
+from users.models import User
 
 
 class Event(models.Model):
@@ -59,3 +63,12 @@ class RSVPD(models.Model):
         verbose_name_plural = _('Participants')
         db_table = 'resources_participants'
         unique_together = ['event', 'user']
+
+
+@receiver(post_save, sender=Event)
+def event_post_save(sender, instance,  created, *args, **kwargs):
+    if created:
+        notification = Notification.objects.create(event=instance)
+        users = User.objects.filter(profile__isnull=False)
+        for user in users:
+            UserNotification.objects.create(user=user, notification=notification)

@@ -1,8 +1,12 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
+from notifications.models import Notification, UserNotification
 from tags.models import ArticleTag
+from users.models import User
 
 
 class CuratedArticle(TimeStampedModel):
@@ -36,3 +40,11 @@ class CuratedArticle(TimeStampedModel):
     def __str__(self):
         return self.title
 
+
+@receiver(post_save, sender=CuratedArticle)
+def article_post_save(sender, instance,  created, *args, **kwargs):
+    if created:
+        notification = Notification.objects.create(article=instance)
+        users = User.objects.filter(profile__isnull=False)
+        for user in users:
+            UserNotification.objects.create(user=user, notification=notification)

@@ -1,7 +1,7 @@
-from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from utils.stripe_service import stripe_service
@@ -125,7 +125,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
                     )
                     other_quotes.update(status='canceled')
         except models.Order.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.OrderSerializer(instance, **{'context': context}).data
         )
@@ -144,7 +144,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
             instance.status = 'canceled'
             instance.save()
         except models.Order.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.OrderSerializer(instance, **{'context': context}).data
         )
@@ -213,7 +213,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
                     quote=instance
                 )
         except models.Quote.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.QuoteSerializer(instance, **{'context': context}).data
         )
@@ -232,7 +232,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
             instance.status = 'canceled'
             instance.save()
         except models.Quote.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.QuoteSerializer(instance, **{'context': context}).data
         )
@@ -274,7 +274,7 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
             instance.note = serializer.validated_data['note']
             instance.save()
         except models.Quote.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.QuoteSerializer(instance, **{'context': context}).data
         )
@@ -293,7 +293,7 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
             instance.status = 'canceled'
             instance.save()
         except models.Quote.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.QuoteSerializer(instance, **{'context': context}).data
         )
@@ -347,7 +347,7 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
             instance.status = 'accepted'
             instance.save()
         except models.FundingRequest.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.FundingRequestSerializer(instance, **{'context': context}).data
         )
@@ -366,7 +366,7 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
             instance.status = 'canceled'
             instance.save()
         except models.FundingRequest.DoesNotExist:
-            raise Http404
+            raise NotFound
         return Response(
             serializers.FundingRequestSerializer(instance, **{'context': context}).data
         )
