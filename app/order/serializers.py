@@ -280,13 +280,15 @@ class OrderSerializer(serializers.ModelSerializer):
             'answers',
             'note',
             'status',
-            'title'
+            'title',
+            'completed_file'
         ]
         read_only_fields = [
             'buyer',
             'status',
             'price',
-            'title'
+            'title',
+            'completed_file'
         ]
 
     @staticmethod
@@ -345,6 +347,44 @@ class OrderSerializer(serializers.ModelSerializer):
                 text=answer['text']
             )
 
+
+class AttachCompletedFileSerializer(serializers.ModelSerializer):
+    completed_file = serializers.FileField()
+    completed_file_base64 = Base64FileField()
+
+    class Meta:
+        model = models.Order
+        fields = [
+            'completed_file',
+            'completed_file_base64'
+        ]
+
+    @staticmethod
+    def validate(attrs):
+        if not (attrs.get('completed_file', None) and attrs.get('completed_file', None)):
+            raise serializers.ValidationError(
+                {'completed_file': _('This field is required')}
+            )
+        return attrs
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    rate = serializers.IntegerField(max_value=5, min_value=1)
+
+    class Meta:
+        model = models.Order
+        fields = [
+            'rate',
+            'review'
+        ]
+
+    @staticmethod
+    def validate(attrs):
+        if not (attrs.get('completed_file', None) and attrs.get('completed_file', None)):
+            raise serializers.ValidationError(
+                {'completed_file': _('This field is required')}
+            )
+        return attrs
 
 class AcceptOrderSerializer(serializers.ModelSerializer):
 

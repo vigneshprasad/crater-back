@@ -79,6 +79,32 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
                 request.user.save()
         return Response({'message': _('Successfully paid')})
 
+    @action(
+        methods=['post'],
+        serializer_class=serializers.ReviewSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=True
+    )
+    def add_review(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        queryset = self.get_queryset().filter(status='accepted')
+        context = self.get_serializer_context()
+        try:
+            instance = queryset.get(pk=pk)
+            instance.rate = serializer.validated_data['rate']
+            instance.review = serializer.validated_data['review']
+            instance.status = 'completed'
+            instance.save()
+            if instance.service:
+                instance.service.recalculate_rating()
+            instance.seller.recalculate_rating()
+        except models.Order.DoesNotExist:
+            raise NotFound
+        return Response(
+            serializers.OrderSerializer(instance, **{'context': context}).data
+        )
+
 
 class SellerOrderViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
@@ -148,6 +174,30 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
             serializers.OrderSerializer(instance, **{'context': context}).data
         )
 
+    @action(
+        methods=['post'],
+        serializer_class=serializers.AttachCompletedFileSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=True
+    )
+    def attach(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        queryset = self.get_queryset().filter(status='accepted')
+        context = self.get_serializer_context()
+        try:
+            instance = queryset.get(pk=pk)
+            file = serializer.validated_data.get('completed_file', None)
+            if not file:
+                file = serializer.validated_data.get('completed_file_base64', None)
+            instance.completed_file = file
+            instance.save()
+        except models.Order.DoesNotExist:
+            raise NotFound
+        return Response(
+            serializers.OrderSerializer(instance, **{'context': context}).data
+        )
+
 
 class CartOrderViewSet(mixins.RetrieveModelMixin,
                        mixins.ListModelMixin,
@@ -209,7 +259,8 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
                 models.Order.objects.create(
                     buyer=instance.buyer,
                     seller=instance.seller,
-                    quote=instance
+                    quote=instance,
+                    service=instance.service
                 )
         except models.Quote.DoesNotExist:
             raise NotFound

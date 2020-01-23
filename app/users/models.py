@@ -90,6 +90,10 @@ class User(AbstractUser):
             'User Service Approval.'
         ),
     )
+    rating = models.FloatField(
+        verbose_name=_('Rating'),
+        null=True
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -214,6 +218,19 @@ class User(AbstractUser):
         self.sms_code = code
         if commit:
             self.save()
+
+    @property
+    def rating_count(self):
+        return self.seller_orders.filter(status='completed', rate__isnull=False).count()
+
+    def recalculate_rating(self):
+        rates = list(self.seller_orders.filter(status='completed', rate__isnull=False).values_list('rate', flat=True))
+        rate = 0
+        if rates:
+            rate = sum(filter(lambda x: x, rates)) / len(rates)
+            return round(rate, 2)
+        self.rating = rate
+        self.save()
 
 
 class Device(TimeStampedModel):

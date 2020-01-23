@@ -149,7 +149,6 @@ class ProfessionalServiceSerializer(serializers.ModelSerializer):
 class ProfessionalSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
     rating = serializers.SerializerMethodField()
-    rating_count = serializers.SerializerMethodField()
     price_start = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
 
@@ -166,11 +165,6 @@ class ProfessionalSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_rating(obj):
-        # TODO
-        return 5.0
-
-    @staticmethod
-    def get_rating_count(obj):
         # TODO
         return 5.0
 

@@ -51,6 +51,23 @@ class Order(TimeStampedModel):
     order_field = models.IntegerField(
         default=1
     )
+    completed_file = models.FileField(
+        upload_to='order/completed_file/%Y/%m/%d',
+        verbose_name=_('Completed File'),
+        null=True
+    )
+    rate = models.PositiveIntegerField(
+        default=5,
+        verbose_name=_('Rate'),
+        null=True,
+        validators=[MaxValueValidator(5), MinValueValidator(1)]
+    )
+    text = models.TextField(
+        max_length=800,
+        verbose_name=_('Text'),
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name_plural = _('Orders')

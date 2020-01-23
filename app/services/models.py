@@ -148,7 +148,7 @@ class Service(TimeStampedModel):
     )
     rating = models.FloatField(
         verbose_name=_('Rating'),
-        default=5.0
+        null=True
     )
 
     class Meta:
@@ -162,12 +162,16 @@ class Service(TimeStampedModel):
 
     @property
     def rating_count(self):
-        # TODO: after rate logic improve
-        return 10
+        return self.orders.filter(status='completed', rate__isnull=False).count()
 
     def recalculate_rating(self):
-        # TODO: after rate logic improve
-        pass
+        rates = list(self.orders.filter(status='completed', rate__isnull=False).values_list('rate', flat=True))
+        rate = 0
+        if rates:
+            rate = sum(filter(lambda x: x, rates)) / len(rates)
+            return round(rate, 2)
+        self.rating = rate
+        self.save()
 
 
 class UserServiceInfo(models.Model):
