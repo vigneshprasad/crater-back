@@ -393,5 +393,5 @@ def profile_post_save(sender, instance, created,  *args, **kwargs):
 
 @receiver(post_save, sender=User)
 def profile_post_save(sender, instance, created,  *args, **kwargs):
-    if created:
+    if not instance.notification:
         UserNotificationsSettings.objects.create(user=instance)
