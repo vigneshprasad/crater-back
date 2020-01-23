@@ -386,6 +386,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return attrs
 
+
 class AcceptOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
