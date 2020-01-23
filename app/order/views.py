@@ -82,7 +82,6 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
 
 class SellerOrderViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
-                         mixins.CreateModelMixin,
                          viewsets.GenericViewSet):
     queryset = models.Order.objects.all()
     permission_classes = [permissions.IsAuthenticated]
