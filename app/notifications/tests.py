@@ -145,8 +145,6 @@ class NotificationTestCase(TestCase):
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(1, len(resp.json()['results']))
 
-        print(resp.json())
-
     def test_article_created(self):
         website = SourceWebsite.objects.create(name='Website 1', url='http://test.com')
         CuratedArticle.objects.create(title='Article 1', text='Text 1', tag=self.tag1, website_tag=website)
