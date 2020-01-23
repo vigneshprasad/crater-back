@@ -185,7 +185,8 @@ class UserServiceInfo(models.Model):
     bar_council = models.CharField(
         max_length=100,
         verbose_name=_('Bar council / CA identification'),
-        null=True
+        null=True,
+        blank=True
     )
     followers = models.PositiveIntegerField(
         null=True,
