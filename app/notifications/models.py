@@ -104,52 +104,53 @@ class Notification(TimeStampedModel):
         if not self.obj_type:
             return None
         text_data = {
-            'post': 'post.message',
-            'comment': 'comment.message',
-            'event': 'event.text',
-            'article': 'article.text',
-            'master_class': 'master_class.description'
+            'post': self.post.message if self.post else None,
+            'comment': self.comment.message if self.comment else None,
+            'event': self.event.text if self.event else None,
+            'article': self.article.text if self.article else None,
+            'master_class': self.master_class.description if self.master_class else None
         }
-        return getattr(self, text_data.get(self.obj_type))
+        return text_data.get(self.obj_type, None)
 
     @property
     def author_name(self):
         if not self.obj_type:
             return None
         name_data = {
-            'post': 'post.creator.name',
-            'comment': 'comment.creator.name',
-            'event': 'event.title',
-            'article': 'article.website_tag.name',
-            'master_class': 'master_class.author'
+            'post': self.post.creator.name if self.post else None,
+            'comment': self.comment.creator.name if self.comment else None,
+            'event': self.event.title if self.event else None,
+            'article': self.article.website_tag.name if self.article else None,
+            'master_class': self.master_class.author if self.master_class else None
         }
-        return getattr(self, name_data.get(self.obj_type))
+        return name_data.get(self.obj_type, None)
 
     @property
     def author_avatar(self):
         if not self.obj_type:
             return None
         avatar_data = {
-            'post': 'post.creator.profile.photo',
-            'comment': 'comment.creator.profile.photo',
-            'event': 'event.picture',
-            'article': 'article.picture',
-            'master_class': 'master_class.cover'
+            'post': self.post.creator.profile.photo if self.post else None,
+            'comment': self.comment.creator.profile.photo if self.comment else None,
+            'event': self.event.picture if self.event else None,
+            'article': self.article.picture if self.article else None,
+            'master_class': self.master_class.cover if self.master_class else None
         }
-        return getattr(self, avatar_data.get(self.obj_type))
+        return avatar_data.get(self.obj_type, None)
 
     @property
     def obj_pk(self):
         if not self.obj_type:
             return None
+
         pk_data = {
-            'post': 'post.pk',
-            'comment': 'comment.pk',
-            'event': 'event.pk',
-            'article': 'article.pk',
-            'master_class': 'master_class.pk'
+            'post': self.post_id if self.post else None,
+            'comment': self.comment_id if self.comment else None,
+            'event': self.event_id if self.event else None,
+            'article': self.article_id if self.article else None,
+            'master_class': self.master_class_id if self.master_class else None
         }
-        return getattr(self, pk_data.get(self.obj_type))
+        return pk_data.get(self.obj_type, None)
 
     def message(self):
         if not self.obj_type:

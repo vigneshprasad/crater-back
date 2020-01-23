@@ -20,7 +20,7 @@ class PushNotificationSerializer(serializers.ModelSerializer):
     obj_type = serializers.CharField(source='notification.obj_type', read_only=True)
     text = serializers.CharField(source='notification.text', read_only=True)
     author_name = serializers.CharField(source='notification.author_name', read_only=True)
-    obj_pk = serializers.CharField(source='notification.obj_pk', read_only=True)
+    obj_pk = serializers.IntegerField(source='notification.obj_pk', read_only=True)
 
     class Meta:
         model = models.UserNotification
@@ -37,6 +37,7 @@ class PushNotificationSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(PushNotificationSerializer):
     author_avatar = serializers.FileField(source='notification.author_avatar', read_only=True)
+    event_created = serializers.DateField(source='notification.event.date', allow_null=True)
 
     class Meta:
         model = models.UserNotification
@@ -48,5 +49,6 @@ class NotificationSerializer(PushNotificationSerializer):
             'author_name',
             'author_avatar',
             'text',
-            'created'
+            'created',
+            'event_created'
         ]
