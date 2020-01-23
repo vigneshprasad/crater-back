@@ -375,7 +375,7 @@ class CompanyPostView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=city,
             capacity=10,
             state='upcoming'
@@ -387,7 +387,7 @@ class CompanyPostView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=city,
             capacity=10,
             state='upcoming'

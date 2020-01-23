@@ -55,7 +55,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -81,7 +81,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -93,7 +93,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=False,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -120,7 +120,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -132,7 +132,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=False,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='past'
@@ -159,7 +159,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -171,7 +171,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='past'
@@ -183,7 +183,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=False,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -209,7 +209,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -237,7 +237,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -267,7 +267,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
@@ -298,7 +298,7 @@ class TestEventView(APITestCase):
             start='11:20',
             end='12:00',
             is_free=True,
-            is_rsvp=True,
+            is_rsvp_required=True,
             location=self.test_city,
             capacity=10,
             state='upcoming'
