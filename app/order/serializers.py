@@ -375,7 +375,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = models.Order
         fields = [
             'rate',
-            'review'
+            # 'review'
         ]
 
     @staticmethod
@@ -385,6 +385,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 {'completed_file': _('This field is required')}
             )
         return attrs
+
 
 class AcceptOrderSerializer(serializers.ModelSerializer):
 
