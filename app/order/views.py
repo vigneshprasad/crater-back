@@ -93,7 +93,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
         try:
             instance = queryset.get(pk=pk)
             instance.rate = serializer.validated_data['rate']
-            instance.review = serializer.validated_data['review']
+            instance.review_text = serializer.validated_data['review_text']
             instance.status = 'completed'
             instance.save()
             if instance.service:

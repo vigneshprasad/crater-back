@@ -62,7 +62,7 @@ class Order(TimeStampedModel):
         null=True,
         validators=[MaxValueValidator(5), MinValueValidator(1)]
     )
-    text = models.TextField(
+    review_text = models.TextField(
         max_length=800,
         verbose_name=_('Text'),
         null=True,

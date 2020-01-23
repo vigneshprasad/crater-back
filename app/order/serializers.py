@@ -375,7 +375,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = models.Order
         fields = [
             'rate',
-            'review'
+            'review_text'
         ]
 
     @staticmethod
