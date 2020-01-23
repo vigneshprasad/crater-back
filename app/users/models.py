@@ -392,6 +392,6 @@ def profile_post_save(sender, instance, created,  *args, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def profile_post_save(sender, instance, created,  *args, **kwargs):
+def user_post_save(sender, instance, created,  *args, **kwargs):
     if not (hasattr(instance, 'notification_settings') and instance.notification_settings):
         UserNotificationsSettings.objects.create(user=instance)
