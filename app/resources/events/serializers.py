@@ -8,33 +8,42 @@ from resources.events.models import Event, RSVPD
 class EventSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
-    participants = serializers.SerializerMethodField()
+    is_participate = serializers.SerializerMethodField()
+    count_of_participants = serializers.SerializerMethodField()
     timezone = serializers.CharField(read_only=True)
+    location_name = serializers.CharField(source='location.name')
 
     class Meta:
         model = Event
         fields = (
             'pk',
             'title',
+            'address',
             'text',
             'picture',
             'date',
             'start',
             'end',
             'is_free',
-            'is_rsvp',
+            'is_rsvp_required',
             'location',
+            'location_name',
             'capacity',
             'state',
             'timezone',
             'comments',
             'latest_comments',
-            'participants'
+            'is_participate',
+            'count_of_participants',
         )
 
-    def get_participants(self, event):
+    def get_is_participate(self, event):
         if 'request' in self.context:
             return event.participants.filter(user=self.context['request'].user).exists()
+
+    @staticmethod
+    def get_count_of_participants(event):
+        return event.participants.count()
 
     @staticmethod
     def get_comments(event):

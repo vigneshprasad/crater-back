@@ -20,13 +20,14 @@ class Event(models.Model):
     Resources events created by admins
     """
     title = models.CharField(_('Title'), max_length=255)
+    address = models.CharField(_('Event Address'), max_length=255)
     text = models.TextField(_('Text'))
     picture = models.ImageField(_('Cover photo'), upload_to='events/%Y/%m/%d', null=True)
     date = models.DateField(_('Date'))
     start = models.TimeField(_('Start Time'))
     end = models.TimeField(_('End Time'))
     is_free = models.BooleanField(_('Free'))
-    is_rsvp = models.BooleanField(_('RSVP Required'))
+    is_rsvp_required = models.BooleanField(_('RSVP Required'))
     location = models.ForeignKey(City, on_delete=models.CASCADE, related_name='events')
     capacity = models.PositiveIntegerField(_('Venue capacity'), null=True)
     state = models.CharField(_('State'), choices=EVENT_STATE, default='upcoming', max_length=16)
