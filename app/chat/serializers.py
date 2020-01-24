@@ -34,3 +34,7 @@ class UserChatSerializer(serializers.ModelSerializer):
             instance=Message.objects.filter(
                 Q(receiver=user, sender=request_user) | Q(receiver=request_user, sender=user), is_support=False).last()
         ).data
+
+    def get_photo(self, user):
+        if hasattr(user, 'profile') and hasattr(user.profile, 'photo'):
+            return user.profile.photo.url
