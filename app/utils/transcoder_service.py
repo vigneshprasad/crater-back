@@ -15,7 +15,8 @@ class TranscoderService:
         )
         self.pipeline_id = pipeline_id
         self.presets = {
-            'mp4': '1351620000001-000010'
+            # 'mp4': '1351620000001-000010'
+            'mp4': settings.MP4_TRANSCODER_PRESET_ID
         }
         self.output_file_prefix = 'elastic-transcoder/output/'
 

@@ -296,3 +296,4 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 FRONT_URL = os.getenv('FRONT_URL', 'front-dev-freelance.scenario-projects.com')
 
 MP4_PIPELINE_ID = os.getenv('MP4_PIPELINE_ID', '1577369677921-qwavil')
+MP4_TRANSCODER_PRESET_ID = os.getenv('MP4_TRANSCODER_PRESET_ID', '1351620000001-000010')
