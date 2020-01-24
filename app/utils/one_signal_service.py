@@ -5,7 +5,8 @@ from django.conf import settings
 class OneSignalService:
     API_BASE_URL = 'https://onesignal.com'
     API_URL = {
-        'players': '/api/v1/players/'
+        'players': '/api/v1/players/',
+        'notifications': '/api/v1/notifications/'
     }
 
     def __init__(self, app_id: str, apikey: str):
@@ -30,7 +31,7 @@ class OneSignalService:
         if content_available:
             payload['content-available'] = True
         response = requests.post(
-            self.get_api_endpoint('players'),
+            self.get_api_endpoint('notifications'),
             json=payload,
             headers=self.get_headers()
         ).json()
