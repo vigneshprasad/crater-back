@@ -10,7 +10,6 @@ class EventSerializer(serializers.ModelSerializer):
     latest_comments = serializers.SerializerMethodField()
     is_participate = serializers.SerializerMethodField()
     count_of_participants = serializers.SerializerMethodField()
-    timezone = serializers.CharField(read_only=True)
     location_name = serializers.CharField(source='location.name')
 
     class Meta:
@@ -30,7 +29,6 @@ class EventSerializer(serializers.ModelSerializer):
             'location_name',
             'capacity',
             'state',
-            'timezone',
             'comments',
             'latest_comments',
             'is_participate',
