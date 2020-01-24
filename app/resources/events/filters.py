@@ -12,7 +12,7 @@ class EventFilter(filters.FilterSet):
         model = Event
         fields = ['participated', 'is_free', 'state', 'location']
 
-    def filter_participanted(self, queryset, name, value):
+    def filter_participated(self, queryset, name, value):
         if value:
             return queryset.filter(participants__user=self.request.user, state='upcoming')
         return queryset

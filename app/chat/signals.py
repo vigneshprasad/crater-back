@@ -16,3 +16,5 @@ def send_messages(sender, instance, **kwargs):
             read_admin_messages_for_user.delay(uuid=instance.receiver.pk)
         else:
             MessageHelper.send_user_message_to_admin(admins, instance)
+    else:
+        MessageHelper.send_user_message_to_user(instance)

@@ -18,7 +18,11 @@
         $messages_block.append(template);
         objDiv.scrollTop = objDiv.scrollHeight;
       } else if (data['type'] === 'user_message') {
-        let template = `<div class="message__block user"><div class="message">${data['message']}</div><div class="chat__message-sender">${data['sender']}, ${data['created']}</div></div>`
+        let template = `<div class="message__block user"><div class="message">${data['message']}`;
+        if (data['file']) {
+          template += `<a href="${ data['file'] }" target="_blank" class="flex"><i class="material-icons attached-file">cloud_download</i></a>`;
+        }
+        template += `</div><div class="chat__message-sender">${data['sender']}, ${data['created']}</div></div>`;
         $messages_block.append(template);
         objDiv.scrollTop = objDiv.scrollHeight;
       } else if (data['type'] === 'user_notification') {

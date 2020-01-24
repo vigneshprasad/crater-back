@@ -19,4 +19,4 @@ if settings.AWS_ACCESS_KEY_ID:
         file_overwrite = False
         custom_domain = False
 else:
-    PrivateMediaStorage = lambda: None
+   PrivateMediaStorage = lambda: None

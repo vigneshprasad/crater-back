@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+</head>
+<body>
+    <div style="display: flex;">
+      <div id="chat-users" style="min-width:200px;height:80vh; border: 1px solid gray;">
+        <button id="get-all-users">Get users</button>Page: <input style="width: 30px" id="users-page" type="text" value="1" maxlength="3"/>
+        Search<input type="text" id="users-search" style="width: 80px">
+        <br>
+        <br>
+        <select id="users-filter">
+            <option value="all">All</option>
+            <option value="read">Read</option>
+            <option value="unread">Unread</option>
+            <option value="starred">Starred</option>
+        </select>
+          <div id="users-block" style="y-overflow: scroll;">
+          </div>
+      </div>
+      <div>
+        <div id="chat-log" style="width: 800px; height: 300px;border: 1px solid gray;overflow-y: scroll;"></div><br/>
+        <div>
+          <input id="chat-message-input" type="text"  maxlength="1006" size="100"/><br/>
+          <input id="chat-message-file-input" type="file"  maxlength="1006" size="100"/>
+          <input id="chat-message-submit" type="button" value="Send >>"/>
+          <br>
+          <br>
+          Page <span id="page">1</span>
+          <input id="paginate" type="button" value="Next"/>
+          <input id="read-messages" type="button" value="Read messages"/>
+        </div>
+      </div>
+    </div>
+</body>
+
+<script>
+  var token = {{ token }};
+
+  var chatSocket = new WebSocket(
+      'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
+      '/ws/chat/user/' + token + '/'
+     );
+
+  var $getAllUsers = document.getElementById('get-all-users');
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Get messages from socket
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     chatSocket.onmessage = function(e) {
+        let $users = document.querySelector('#users-block');
+        let $chat = document.querySelector('#chat-log');
+        let data = JSON.parse(e.data);
+        if (data['type'] === 'all_users') {
+            $users.innerHTML = ''
+            for (let result of data.results) {
+              $users.innerHTML += `<hr><div id="${result.pk}" class="user-block" onclick='openUserChat("${result.pk}")' style="cursor:pointer;">${result.name} starred=${result.is_starred}</div>
+              <button onclick='starUser("${result.pk}")'>Star</button><button onclick='unStarUser("${result.pk}")'>Unstar</button><hr>`
+            }
+        } else if (data['type'] === 'get_messages') {
+          let data = JSON.parse(e.data);
+          $chat.innerHTML = '';
+          for (let result of data.results) {
+            $chat.innerHTML +=`<div><strong style="background:yellow; cursor:pointer">${result.message}</strong> by ${result.sender} to ${result.receiver} created: ${result.created} | File: ${result.file}</div>`
+
+          }
+          $userBlock = document.getElementById(data.user);
+          $userBlocks = document.querySelectorAll('.user-block');
+          for(let block of $userBlocks) {
+            block.style.backgroundColor = 'white';
+          }
+          $userBlock.style.backgroundColor = 'gray';
+        } else if (data['type'] === 'user_message') {
+          let result = JSON.parse(e.data);
+          $chat.innerHTML +=`<div><strong style="background:yellow; cursor:pointer">${result.message}</strong> by ${result.sender} to ${result.receiver} created: ${result.created}</div>`
+        }
+        $chat.scrollTop = $chat.scrollHeight;
+        $users.scrollTop = $users.scrollHeight;
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Get all users
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  $getAllUsers.onclick = function() {
+      var page = document.getElementById('users-page').value;
+      var search = document.getElementById('users-search').value;
+      var filter = document.getElementById('users-filter').value;
+      chatSocket.send(JSON.stringify({
+          'message': {
+            'page': page,
+            'search': search,
+            'filter': filter,
+          },
+          'type': 'get_all_users',
+      }));
+  }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Star User
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function starUser (pk) {
+      chatSocket.send(JSON.stringify({
+          'message': {user: pk},
+          'type': 'star_user',
+      }));
+  }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Unstar User
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function unStarUser (pk) {
+      chatSocket.send(JSON.stringify({
+          'message': {user: pk},
+          'type': 'unstar_user',
+      }));
+  }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Set receiver
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  function openUserChat (pk) {
+      chatSocket.send(JSON.stringify({
+          'message': {
+              user: pk,
+              page: 1
+          },
+          'type': 'set_user_chat',
+      }));
+  }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Paginate messages
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.querySelector('#paginate').onclick = function(e) {
+        var pageBlock = document.querySelector('#page');
+        var page = parseInt(pageBlock.innerText);
+        page++;
+        chatSocket.send(JSON.stringify({
+            'message': {page: page},
+            'type': 'get_user_chat_messages',
+        }));
+        pageBlock.innerText = page;
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Send message to user
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        var messageInputDom = document.querySelector('#chat-message-input');
+        var message = messageInputDom.value;
+        var file = document.getElementById('chat-message-file-input').files[0];
+
+        if (file) {
+           var reader = new FileReader();
+           reader.readAsDataURL(file);
+           reader.onload = function () {
+             chatSocket.send(JSON.stringify({
+              'file': reader.result,
+              'message': message,
+              'type': 'send_user_message_to_user',
+            }));
+           };
+           reader.onerror = function (error) {
+             console.log('Error: ', error);
+           };
+
+        } else {
+            chatSocket.send(JSON.stringify({
+              'message': message,
+              'type': 'send_user_message_to_user',
+            }));
+        }
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Read all messages by current user
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.querySelector('#read-messages').onclick = function(e) {
+        chatSocket.send(JSON.stringify({
+            'type': 'user_read_user_messages',
+        }));
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Define if user is typing
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    document.querySelector('#chat-message-input').oninput = function() {
+        console.log('typing')
+        chatSocket.send(JSON.stringify({
+            'message': {},
+            'type': 'user_is_typing',
+        }));
+    };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+</script>

@@ -94,6 +94,7 @@ class ReferralAdmin(ViewActionMixin, admin.ModelAdmin):
     readonly_fields = ['user']
     list_filter = ['is_paid', 'is_rewarded', 'created', RefererFilter]
     search_fields = ['user__name']
+    icon_name = 'nature_people'
 
     @staticmethod
     def referral_name(referral):
@@ -123,6 +124,7 @@ class ReferralAdmin(ViewActionMixin, admin.ModelAdmin):
 @admin.register(Group)
 class GroupAdmin(GroupAdmin):
     list_display = ('name', 'count')
+    readonly_fields = ['name']
 
     @staticmethod
     def count(group):
@@ -130,3 +132,9 @@ class GroupAdmin(GroupAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(name__in=['Admin', 'Support'])
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

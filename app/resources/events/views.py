@@ -12,7 +12,7 @@ from resources.events.filters import EventFilter
 from resources.events.models import RSVPD, Event
 from resources.events.paginators import EventPagination
 from resources.events.serializers import EventSerializer, RSVPDSerializer
-from resources.events.services import get_events, get_event
+from resources.events.services import get_events, get_event, get_event_pk_by_participant
 
 
 class EventViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -23,10 +23,15 @@ class EventViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericView
     filterset_class = EventFilter
 
 
-class RSVPDViewSet(mixins.CreateModelMixin, GenericViewSet):
+class RSVPDViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     serializer_class = RSVPDSerializer
     queryset = RSVPD.objects.all()
     permission_classes = (IsAuthenticated,)
+
+    def destroy(self, request, *args, **kwargs):
+        self.kwargs['pk'] = get_event_pk_by_participant(kwargs['pk'], request.user.pk)
+        print(self.kwargs['pk'])
+        return super().destroy(request, *args, **kwargs)
 
 
 class CommentViewSet(mixins.CreateModelMixin, DestroyModelMixin, GenericViewSet):
