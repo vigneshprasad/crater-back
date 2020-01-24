@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from resources.events.models import Event
+from resources.events.models import Event, RSVPD
 from resources.events.serializers import EventSerializer
 
 
@@ -30,6 +30,15 @@ def set_past_events():
 
 def get_events():
     return Event.objects.all()
+
+
+def get_event_pk_by_participant(event_pk, user_pk):
+    try:
+        participant = Event.objects.get(pk=event_pk).participants.get(user=user_pk)
+        if participant:
+            return participant.pk
+    except (Event.DoesNotExist, RSVPD.DoesNotExist):
+        return event_pk
 
 
 def get_event(pk):
