@@ -1,7 +1,7 @@
-from django.db import models
-from model_utils.models import TimeStampedModel
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.postgres.fields import JSONField
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
+from model_utils.models import TimeStampedModel
 
 
 class BankDetails(TimeStampedModel):
@@ -31,3 +31,31 @@ class BankDetails(TimeStampedModel):
         verbose_name=_('Stripe card data'),
         null=True
     )
+
+
+class Transaction(TimeStampedModel):
+    user = models.ForeignKey(
+        'users.User',
+        related_name='transaction',
+        verbose_name=_('User'),
+        on_delete=models.CASCADE
+    )
+    amount = models.PositiveIntegerField(
+        verbose_name=_('Amount')
+    )
+    # Direction of transaction for system
+    # IN - charge money from user
+    # OUT - send money to user
+    direction = models.CharField(
+        max_length=100,
+        choices=(
+            ('in', _('Income')),
+            ('out', _('Outcome'))
+        )
+    )
+    charge_stripe_id = models.CharField(
+        max_length=400,
+        verbose_name=_('Charge Stripe Id'),
+        null=True
+    )
+    status = models.CharField()
