@@ -1,5 +1,6 @@
 from unittest import mock
 
+import pytz
 from django.core.files import File
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -55,6 +56,8 @@ class ExchangeCategoryTestCase(TestCase):
 class ExchangeRequestTestCase(TestCase):
 
     def setUp(self):
+        self.local_tz = pytz.timezone('Asia/Calcutta')
+        self.dt_fmt = '%Y-%m-%dT%H:%M:%S.%fZ'
         self.country = Country.objects.create(name='Test')
         self.city = CityProxy.objects.create(
             name='City',
@@ -129,7 +132,7 @@ class ExchangeRequestTestCase(TestCase):
             'extended_price': request.extended_price,
             'city': self.city.pk,
             'city_name': self.city.name,
-            'created': request.created.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            'created': request.created.replace(tzinfo=pytz.utc).astimezone(self.local_tz).strftime(self.dt_fmt),
             'user_name': self.user.name,
             'user_logo': None,
             'category': request.category.pk,
@@ -163,7 +166,7 @@ class ExchangeRequestTestCase(TestCase):
             'extended_price': request.extended_price,
             'city': self.city.pk,
             'city_name': self.city.name,
-            'created': request.created.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            'created': request.created.replace(tzinfo=pytz.utc).astimezone(self.local_tz).strftime(self.dt_fmt),
             'user_name': self.user.name,
             'user_logo': None,
             'category': request.category.pk,
