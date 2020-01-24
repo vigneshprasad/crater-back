@@ -36,5 +36,7 @@ class UserChatSerializer(serializers.ModelSerializer):
         ).data
 
     def get_photo(self, user):
-        if hasattr(user, 'profile') and hasattr(user.profile, 'photo'):
+        try:
             return user.profile.photo.url
+        except ValueError:
+            return
