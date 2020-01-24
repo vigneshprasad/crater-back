@@ -22,6 +22,12 @@ class EventViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericView
     permission_classes = (IsAuthenticated,)
     filterset_class = EventFilter
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, * args, **kwargs)
+        notifications = self.request.user.notifications.filter(notification__event__isnull=False, is_read=False)
+        notifications.update(is_read=True)
+        return response
+
 
 class RSVPDViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     serializer_class = RSVPDSerializer

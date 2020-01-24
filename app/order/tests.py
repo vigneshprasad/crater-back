@@ -450,7 +450,6 @@ class FundingRequestTestCase(TestCase):
         self.assertEqual('canceled', resp.json()['results'][2]['status'])
 
 
-
 class OrderTestCase(TestCase):
     def setUp(self):
         self.category = services_models.ProfessionalCategoryProxy.objects.create(name='Category')
@@ -507,6 +506,7 @@ class OrderTestCase(TestCase):
         self.endpoints = {
             'order-buyer-list': reverse('v1:orders:order-buyer-list'),
             'order-buyer-detail': lambda x: reverse('v1:orders:order-buyer-detail', kwargs={'pk': x}),
+            'order-buyer-add-review': lambda x: reverse('v1:orders:order-buyer-add-review', kwargs={'pk': x}),
             'order-seller-list': reverse('v1:orders:order-seller-list'),
             'order-seller-detail': lambda x: reverse('v1:orders:order-seller-detail', kwargs={'pk': x}),
             'order-seller-accept': lambda x: reverse('v1:orders:order-seller-accept', kwargs={'pk': x}),
@@ -703,3 +703,19 @@ class OrderTestCase(TestCase):
         self.assertIn('pk', resp.json())
         order = models.Order.objects.get(pk=resp.json()['pk'])
         self.assertEqual('created', order.status)
+
+    def test_add_review(self):
+        order = models.Order.objects.create(
+            buyer=self.user2,
+            seller=self.user,
+            service=self.service,
+            status='accepted'
+        )
+        endpoint = self.endpoints.get('order-buyer-add-review')(order.pk)
+        data = {
+            'rate': 5,
+            'review_text': 'Review text'
+        }
+        resp = self.auth_buyer.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual('complete', resp.json()['status'])

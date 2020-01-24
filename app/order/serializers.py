@@ -378,14 +378,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             'review_text'
         ]
 
-    @staticmethod
-    def validate(attrs):
-        if not (attrs.get('completed_file', None) and attrs.get('completed_file', None)):
-            raise serializers.ValidationError(
-                {'completed_file': _('This field is required')}
-            )
-        return attrs
-
 
 class AcceptOrderSerializer(serializers.ModelSerializer):
 
