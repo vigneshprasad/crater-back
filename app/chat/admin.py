@@ -70,7 +70,7 @@ class ChatAdmin(ModelAdmin):
 
     @staticmethod
     def _get_unread_messages_count(user):
-        return Message.objects.filter(sender=user, is_read=False).count()
+        return Message.objects.filter(sender=user, is_read=False, is_support=True).count()
 
     @classmethod
     def _get_active_user(cls, request, uuid):

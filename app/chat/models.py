@@ -41,5 +41,27 @@ class Message(TimeStampedModel):
         return self.message
 
 
+class ChatStarredUser(models.Model):
+    """
+    Star relation between users
+    """
+    creator = models.ForeignKey(
+        get_user_model(),
+        related_name='creator_stars',
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        related_name='user_stars',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = _('Chat Star')
+        verbose_name_plural = _('Chat Stars')
+        db_table = 'chat_stars'
+        unique_together = ['creator', 'user']
+
+
 class Chat(models.Model):
     proxy = True

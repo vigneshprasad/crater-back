@@ -25,6 +25,12 @@ def support(request, token):
     })
 
 
+def user_chat_page(request, token):
+    return render(request, 'chat/user_chat_page.html', {
+        'token': mark_safe(json.dumps(token)),
+    })
+
+
 class AdminChatFileView(CreateView):
     models = Message
     template_name = 'chat/chat_page.html'

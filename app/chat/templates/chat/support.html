@@ -7,6 +7,7 @@
 <body>
     <textarea id="chat-log" cols="100" rows="20" disabled style="resize: none"></textarea><br/>
     <input id="chat-message-input" type="text"  maxlength="1006" size="100"/><br/>
+    <input id="chat-message-file-input" type="file"/>
     <div>
         <input id="chat-message-submit" type="button" value="Send""/>
         <br>
@@ -65,10 +66,26 @@
     document.querySelector('#chat-message-submit').onclick = function(e) {
         var messageInputDom = document.querySelector('#chat-message-input');
         var message = messageInputDom.value;
-        chatSocket.send(JSON.stringify({
-            'message': message,
-            'type': 'send_user_message_to_admin',
-        }));
+        var file = document.getElementById('chat-message-file-input').files[0];
+        if (file) {
+           var reader = new FileReader();
+           reader.readAsDataURL(file);
+           reader.onload = function () {
+              chatSocket.send(JSON.stringify({
+                'message': message,
+                'file': reader.result,
+                'type': 'send_user_message_to_admin',
+              }));
+           };
+           reader.onerror = function (error) {
+             console.log('Error: ', error);
+           };
+        } else {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'type': 'send_user_message_to_admin',
+            }));
+        }
 
         messageInputDom.value = '';
     };

@@ -3,7 +3,8 @@ from rest_framework.renderers import JSONRenderer
 
 from chat.connect import ChatAuthConsumer
 from chat.services import create_message, get_paginated_support_messages, get_read_support_messages_ids_by_user, \
-    get_support_admin_ids
+    get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, unstar_user, get_paginated_user_messages, \
+    get_read_user_messages_ids_by_user, get_users_ids
 
 
 class ChatConsumer(ChatAuthConsumer):
@@ -15,21 +16,21 @@ class ChatConsumer(ChatAuthConsumer):
         :param bytes_data: bytes data
         """
         data = json.loads(text_data)
-        await getattr(self, data['type'])(data.get('message'))
+        await getattr(self, data['type'])(data.get('message'), data.get('file'), data.get('filename'))
 
-    async def user_is_typing(self, message):
+    async def user_is_typing(self, message, *args, **kwargs):
         """
         Send message event to admin if user is typing
         :param message: message string
         """
-        admins = await get_support_admin_ids()
-        for admin in admins:
-            await self.channel_layer.group_send(str(admin), {
-                'type': 'user_is_typing_to_admin',
+        user_ids = await get_users_ids()
+        for user_id in user_ids:
+            await self.channel_layer.group_send(str(user_id), {
+                'type': 'user_is_typing_to_user',
                 'receiver_id': self.user_id
             })
 
-    async def user_is_typing_to_admin(self, event):
+    async def user_is_typing_to_user(self, event, *args, **kwargs):
         """
         Send message event to admin if user is typing
         :param message: message string
@@ -40,21 +41,39 @@ class ChatConsumer(ChatAuthConsumer):
                 'receiver_id': event['receiver_id']
             }))
 
-    async def send_admin_message_to_user(self, message):
+    async def send_admin_message_to_user(self, message, *args, **kwargs):
         """
         Send message event from admin and save this message into database
         :param message: message string
         """
-        await create_message(message=message, sender=self.user_id, receiver=self.receiver_id, is_support=True)
+        is_admin = await is_admin_by_pk(self.user_id)
+        if is_admin:
+            await create_message(message=message, sender=self.user_id, receiver=self.receiver_id, is_support=True)
 
-    async def send_user_message_to_admin(self, message):
+    async def send_user_message_to_user(self, message, _file=None, filename=None, *args, **kwargs):
+        """
+        Send message event from user and save this message into database
+        :param message: message string
+        :param _file: message file
+        """
+        if self.receiver_id:
+            await create_message(
+                message=message,
+                sender=self.user_id,
+                _file=_file,
+                receiver=self.receiver_id,
+                is_support=False,
+                filename=filename
+            )
+
+    async def send_user_message_to_admin(self, message, _file=None, *args, **kwargs):
         """
         Send message event from user and save this message into database
         :param message: message string
         """
-        await create_message(message=message, sender=self.user_id, is_support=True)
+        await create_message(message=message, sender=self.user_id, _file=_file, is_support=True)
 
-    async def user_read_support_messages(self, message):
+    async def user_read_support_messages(self, message, *args, **kwargs):
         """
         Send message event user read the messages from admin
         :param message: message string
@@ -69,7 +88,20 @@ class ChatConsumer(ChatAuthConsumer):
         for admin in admins:
             await self.channel_layer.group_send(str(admin), message_fmt)
 
-    async def admin_read_messages_to_user(self, event):
+    async def user_read_user_messages(self, message, *args, **kwargs):
+        """
+        Send message event user read the messages from user
+        :param message: message string
+        """
+        messages = await get_read_user_messages_ids_by_user(user=self.user_id, sender=self.receiver_id)
+        message_fmt = {
+            'type': 'user_read_messages_to_user',
+            'messages': messages,
+            'receiver_id': self.user_id
+        }
+        await self.channel_layer.group_send(self.receiver_id, message_fmt)
+
+    async def admin_read_messages_to_user(self, event, *args, **kwargs):
         """
         Send event to admins that user read the messages
         :param event: read messages by user
@@ -81,7 +113,7 @@ class ChatConsumer(ChatAuthConsumer):
                 'user_id': event['user_id']
             }))
 
-    async def user_read_messages_to_admin(self, event):
+    async def user_read_messages_to_admin(self, event, *args, **kwargs):
         """
         Send event to admins that user read the messages
         :param event: read messages by user
@@ -93,7 +125,19 @@ class ChatConsumer(ChatAuthConsumer):
                 'receiver_id': event['receiver_id']
             }))
 
-    async def admin_message_to_user(self, event):
+    async def user_read_messages_to_user(self, event, *args, **kwargs):
+        """
+        Send event to admins that user read the messages
+        :param event: read messages by user
+        """
+        if self.receiver_id == event['receiver_id']:
+            await self.send(text_data=json.dumps({
+                'type': 'user_read_messages',
+                'messages': event['messages'],
+                'receiver_id': event['receiver_id']
+            }))
+
+    async def admin_message_to_user(self, event, *args, **kwargs):
         """
         Layer to send all messages to specific users about case if admin sent message to user
         :param event: message event data
@@ -109,7 +153,26 @@ class ChatConsumer(ChatAuthConsumer):
                 'sender': event['sender'],
             }))
 
-    async def get_support_chat_messages(self, event):
+    async def user_message_to_user(self, event, *args, **kwargs):
+        """
+        Layer to send all messages to specific users about case if admin sent message to user
+        :param event: message event data
+        """
+
+        if (self.receiver_id == event['receiver_id'] and self.user_id == event['sender_id'])\
+                or (self.receiver_id == event['sender_id'] and self.user_id == event['receiver_id']):
+            await self.send(text_data=json.dumps({
+                'type': 'user_message',
+                'message': event['message'],
+                'file': event['file'],
+                'message_id': event['message_id'],
+                'created': event['created'],
+                'sender': event['sender'],
+                'receiver': event['receiver'],
+                'is_read': event['is_read'],
+            }))
+
+    async def get_support_chat_messages(self, event, *args, **kwargs):
         """
         Send paginated support messages to user
         :param event: message event data
@@ -121,7 +184,7 @@ class ChatConsumer(ChatAuthConsumer):
             'results': results
         }))
 
-    async def user_message_to_admin(self, event):
+    async def user_message_to_admin(self, event, *args, **kwargs):
         """
         Send message to admin chat and get help after is_support message creation(signal)
         :param event: message event data
@@ -139,7 +202,7 @@ class ChatConsumer(ChatAuthConsumer):
                 'receiver_id': event['receiver_id']
             }))
 
-    async def admin_user_notifications(self, event):
+    async def user_notifications(self, event, *args, **kwargs):
         """
         Send notification to admin UI about some message was sent by user, with the latest message
         :param event: message event data
@@ -154,4 +217,69 @@ class ChatConsumer(ChatAuthConsumer):
             'receiver': event['receiver'],
             'receiver_id': event['receiver_id'],
             'unread_count': event['unread_count']
+        }))
+
+    async def get_all_users(self, event, *args, **kwargs):
+        """
+        Get all users to user chat
+        :param event: message event data
+        """
+        try:
+            users = await get_paginated_users(
+                page=int(event['page']), search=event['search'], _filter=event['filter'], uuid=self.user_id
+            )
+            results = json.loads(JSONRenderer().render(users).decode('utf8'))
+        except ValueError:
+            results = []
+        await self.send(text_data=json.dumps({
+            'type': 'all_users',
+            'results': results
+        }))
+
+    async def star_user(self, event, *args, **kwargs):
+        """
+        Star user event
+        :param event: message event data
+        """
+        user = await star_user(self.user_id, event['user'])
+        await self.send(text_data=json.dumps({
+            'type': 'user',
+            'user': user
+        }))
+
+    async def unstar_user(self, event, *args, **kwargs):
+        """
+        Delete Star user event
+        :param event: message event data
+        """
+        user = await unstar_user(self.user_id, event['user'])
+        await self.send(text_data=json.dumps({
+            'type': 'user',
+            'user': user
+        }))
+
+    async def set_user_chat(self, event, *args, **kwargs):
+        """
+        Set chat with user. Retrieve the latest chat messages
+        :param event: message event data
+        """
+        self.receiver_id = event['user']
+        messages = await get_paginated_user_messages(sender=self.user_id, receiver=self.receiver_id, page=event['page'])
+        results = json.loads(JSONRenderer().render(messages).decode('utf8'))
+        await self.send(text_data=json.dumps({
+            'type': 'get_messages',
+            'results': results,
+            'user': self.receiver_id
+        }))
+
+    async def get_user_chat_messages(self, event, *args, **kwargs):
+        """
+        Set chat with user. Retrieve the latest chat messages
+        :param event: message event data
+        """
+        messages = await get_paginated_user_messages(sender=self.user_id, receiver=self.receiver_id, page=event['page'])
+        results = json.loads(JSONRenderer().render(messages).decode('utf8'))
+        await self.send(text_data=json.dumps({
+            'type': 'get_messages',
+            'results': results
         }))

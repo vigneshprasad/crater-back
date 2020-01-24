@@ -6,7 +6,6 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
-from timezone_field import TimeZoneField
 
 from locations.models import City
 from notifications.models import Notification, UserNotification
@@ -31,7 +30,6 @@ class Event(models.Model):
     location = models.ForeignKey(City, on_delete=models.CASCADE, related_name='events')
     capacity = models.PositiveIntegerField(_('Venue capacity'), null=True)
     state = models.CharField(_('State'), choices=EVENT_STATE, default='upcoming', max_length=16)
-    timezone = TimeZoneField(default='Asia/Kolkata')
     tag = models.ForeignKey(
         EventTag,
         verbose_name=_('Event Tag'),
