@@ -17,7 +17,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class UserChatSerializer(serializers.ModelSerializer):
-    photo = serializers.CharField(source='profile.photo.url')
+    photo = serializers.SerializerMethodField()
     is_starred = serializers.SerializerMethodField()
     latest_message = serializers.SerializerMethodField()
 
