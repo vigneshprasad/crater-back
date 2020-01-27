@@ -127,7 +127,7 @@ class TestArticleView(APITestCase):
         )
         token = response.data['token']
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(token))
-        response = self.client.get(f'{url}?tags={self.tag3.pk}&tags={self.tag2.pk}&tags={self.tag1.pk}')
+        response = self.client.get(f'{url}?tags={self.tag3.pk},{self.tag2.pk},{self.tag1.pk}')
         results = response.data['results']
         self.assertEqual(len(results), 3)
         self.assertEqual(results[0]['author'], 'Teacher 3')

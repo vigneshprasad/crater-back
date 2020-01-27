@@ -18,7 +18,7 @@ class TagFilterBackend(BaseFilterBackend):
         tags = request.query_params.get('tags')
         if tags:
             try:
-                queryset = queryset.filter(tags__in=tags.split(','))
+                queryset = queryset.filter(tags__in=tags.split(',')).distinct()
             except (ValueError, TypeError):
                 return queryset.none()
         return queryset
