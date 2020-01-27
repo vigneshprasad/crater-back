@@ -39,12 +39,15 @@ class Event(models.Model):
     )
 
     def clean(self):
+        error_message_past_event = _('Event can\'t be in past')
         if self.start and self.end and self.start >= self.end:
             raise ValidationError({'end': _('Should be later than the "Start Time"')})
         if self.date and self.start:
             start_datetime = datetime.combine(self.date, self.start)
             if start_datetime < datetime.now():
-                raise ValidationError({'start': _('Event can\'t be in past')})
+                if start_datetime.date() == datetime.now().date():
+                    raise ValidationError({'start': error_message_past_event})
+                raise ValidationError({'date': error_message_past_event})
 
     class Meta:
         verbose_name = _('Event')
