@@ -19,6 +19,8 @@ class EventFilter(filters.FilterSet):
 
     @staticmethod
     def filter_states(queryset, name, value):
+        if value == 'upcoming':
+            return queryset.filter(state=value).order_by('date', 'start')
         if value:
             _filters = value.split(',')
             return queryset.filter(state__in=_filters)
