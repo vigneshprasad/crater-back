@@ -2,6 +2,7 @@ from unittest import mock
 
 from django.core.files import File
 from django.test import TestCase, Client
+
 from django.urls import reverse
 from rest_auth.utils import jwt_encode
 

@@ -112,7 +112,6 @@ class TranscoderService:
         return False
 
 
-
 transcoder_service = TranscoderService(
     pipeline_id=settings.MP4_PIPELINE_ID,
     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,

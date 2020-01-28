@@ -6,3 +6,6 @@ class MasterClassConfig(AppConfig):
     name = 'resources.masterclasses'
     icon_name = 'videocam'
     verbose_name = _('Master Classes')
+
+    def ready(self):
+        import resources.masterclasses.signals
