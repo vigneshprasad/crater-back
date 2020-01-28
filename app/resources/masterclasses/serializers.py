@@ -23,7 +23,7 @@ class MasterClassSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_cover(masterclass):
-        if masterclass.file and masterclass.file.file:
-            return masterclass.file.file.url
+        if masterclass.file:
+            return masterclass.file.cover_transcoder
         if masterclass.cover:
             return masterclass.cover.url

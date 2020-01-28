@@ -144,12 +144,13 @@ def get_paginated_user_messages(sender, receiver, page):
 
 
 @database_sync_to_async
-def get_paginated_users(page=1, search=None, _filter=None, uuid=None):
+def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None, uuid=None):
     """
     Returns paginated user data
     :param page: pagination page
     :param search: search users by name
     :param _filter: filter users by all, read messages, unread messages, starred
+    :param latest_messages: show the users with no chat messages
     :param uuid: request user pk
     :return: queryset of users
     """
@@ -160,6 +161,8 @@ def get_paginated_users(page=1, search=None, _filter=None, uuid=None):
     if qs:
         if search:
             qs = qs.filter(name__icontains=search)
+        if latest_messages != 'all':
+            qs = qs.filter(Q(sender_messages__isnull=False) | Q(receiver_messages__isnull=False)).distinct()
         if _filter == 'read':
             """
             Exclude all users with messages to consumer user and do not have and unread message

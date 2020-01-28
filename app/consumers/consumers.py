@@ -225,7 +225,11 @@ class ChatConsumer(ChatAuthConsumer):
         """
         try:
             users = await get_paginated_users(
-                page=int(event.get('page', 1)), search=event.get('search'), _filter=event.get('filter'), uuid=self.user_id
+                page=int(event.get('page', 1)),
+                search=event.get('search'),
+                _filter=event.get('filter'),
+                latest_messages=event.get('latest_messages'),
+                uuid=self.user_id,
             )
             results = json.loads(JSONRenderer().render(users).decode('utf8'))
         except ValueError:
