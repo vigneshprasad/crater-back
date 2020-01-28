@@ -27,3 +27,23 @@ class BankDetailsSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'card_data'
         ]
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    order_name = serializers.CharField(source='order.title', allow_null=True, read_only=True)
+
+    class Meta:
+        model = models.Transaction
+        fields = [
+            'pk',
+            'order_name',
+            'kind',
+            'amount',
+            'created',
+            'status',
+        ]
+
+
+class TransactionStatisticSerializer(serializers.Serializer):
+    received_sum = serializers.IntegerField()
+    paid_sum = serializers.IntegerField()

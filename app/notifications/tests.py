@@ -194,3 +194,12 @@ class NotificationTestCase(TestCase):
         resp = self.auth_client2.get(endpoint, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
+
+    def test_comment_mark_read(self):
+        post = Post.objects.create(message='Test message old', creator=self.user)
+        Comment.objects.create(post=post, message='Message', creator=self.user2)
+        pk = self.user2.notifications.filter(is_read=False).first().pk
+        endpoint = self.endpoints.get('my-read')(pk)
+        resp = self.auth_client2.post(endpoint, {}, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertTrue(self.user2.notifications.filter(is_read=True).exists())

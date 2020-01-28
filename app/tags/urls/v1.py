@@ -11,6 +11,8 @@ router.register('masterclasses', views.MasterClassViewSet)
 router.register('articles', views.ArticleTagViewSet)
 router.register('websites', views.WebsiteViewSet)
 router.register('industries', views.IndustryViewSet)
+router.register('funding', views.FundingViewSet)
+router.register('companies', views.CompanyViewSet)
 
 
 urlpatterns = [

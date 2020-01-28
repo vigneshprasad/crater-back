@@ -17,6 +17,7 @@ from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers, exceptions
 
+from tags.models import CityProxy
 from tags.serializers import TagSerializer
 from utils import messages
 from utils.fields import Base64FileField
@@ -234,6 +235,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
 
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
+    city = serializers.PrimaryKeyRelatedField(queryset=CityProxy.objects.all(), required=False)
 
     class Meta:
         model = UserModel

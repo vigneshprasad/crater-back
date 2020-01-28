@@ -2,11 +2,12 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
+from payment.models import Transaction
 from .choices import ORDER_STATUS_CHOICES, FUNDING_REQUEST_CHOICES, QUOTE_STATUS_CHOICES
 
 
@@ -67,6 +68,9 @@ class Order(TimeStampedModel):
         verbose_name=_('Text'),
         null=True,
         blank=True
+    )
+    is_paid = models.BooleanField(
+        default=False
     )
 
     class Meta:
@@ -362,3 +366,31 @@ def quote_pre_save(sender, instance,  *args, **kwargs):
     }
     instance.order_field = order_dict.get(instance.status)
     return instance
+
+
+@receiver(post_save, sender=Order)
+def order_create_transaction(sender, instance,  created,*args, **kwargs):
+    if instance.status == 'complete':
+        out_transaction = instance.transactions.filter(direction='out').exists()
+        if instance.is_paid:
+            if out_transaction:
+                if out_transaction.status != 'transferred':
+                    out_transaction.status = 'transferred'
+                    out_transaction.save()
+            else:
+                Transaction.objects.create(
+                    user=instance.seller,
+                    amount=instance.price,
+                    order=instance,
+                    direction='out',
+                    status='transferred'
+                )
+        else:
+            Transaction.objects.create(
+                user=instance.seller,
+                amount=instance.price,
+                order=instance,
+                direction='out',
+                status='pending'
+            )
+

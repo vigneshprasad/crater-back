@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
+from payment.models import Transaction
 from utils.stripe_service import stripe_service
 from . import models, paginators, serializers
 
@@ -34,7 +35,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
         permission_classes=[permissions.IsAuthenticated],
         detail=False
     )
-    def pay(self, request, pk):
+    def pay(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         orders = serializer.validated_data['orders']
@@ -58,11 +59,18 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             )
         if charge and charge.paid:
             orders.update(status='pending')
+            for order in orders:
+                Transaction.objects.create(
+                    user=order.seller,
+                    amount=order.price,
+                    order=order,
+                    direction='in',
+                    status='transferred'
+                )
         else:
             raise serializers.serializers.ValidationError(
                 {'message': _('Create payment error. Connect with support')}
             )
-        # TODO: Create Transaction
         if serializer.validated_data['remember_card']:
             if request.user.bank_details and request.user.bank_details.stripe_customer_id:
                 stripe_service.update_customer_source(
