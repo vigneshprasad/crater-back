@@ -165,7 +165,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=None,
+        serializer_class=serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
@@ -249,7 +249,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=None,
+        serializer_class=serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
@@ -278,7 +278,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=None,
+        serializer_class=serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
@@ -339,7 +339,7 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=None,
+        serializer_class=serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
@@ -393,7 +393,7 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=None,
+        serializer_class=serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
@@ -412,7 +412,7 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=None,
+        serializer_class=serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )

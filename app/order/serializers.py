@@ -433,3 +433,7 @@ class PaymentOrdersSerialier(serializers.Serializer):
                     _('You do not have saved cards')
                 )
         return value
+
+
+class EmptySerializer(serializers.Serializer):
+    pass

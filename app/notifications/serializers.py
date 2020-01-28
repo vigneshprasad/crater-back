@@ -52,3 +52,7 @@ class NotificationSerializer(PushNotificationSerializer):
             'created',
             'event_date'
         ]
+
+
+class EmptySerializer(serializers.Serializer):
+    pass

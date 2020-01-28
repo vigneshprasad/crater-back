@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
+from order.serializers import EmptySerializer
 from . import models, serializers, paginators
 
 
@@ -46,7 +47,7 @@ class NotificationViewSet(mixins.ListModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=None,
+        serializer_class=EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
