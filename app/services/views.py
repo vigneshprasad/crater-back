@@ -76,7 +76,7 @@ class InvestorServicesViewSet(mixins.ListModelMixin,
         investor_services_info__isnull=False,
         investor_services_info__reach_out=True,
         profile__public_profile=True
-    )
+    ).distinct()
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
