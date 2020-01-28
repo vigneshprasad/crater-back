@@ -1,13 +1,11 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 
-from chat.models import Message
+from consumers.chat.models import Message
 
 
 class MessageHelper:
-
     @classmethod
     def send_user_message_to_admin(cls, admins, message):
         """
@@ -39,8 +37,7 @@ class MessageHelper:
         message_fmt = cls._get_user_message_data_format(message, 'admin_message_to_user')
         for admin in admins:
             async_to_sync(layer.group_send)(str(admin.uuid), message_fmt)
-        async_to_sync(layer.group_send)(str(message.receiver.uuid), message_fmt)\
-
+        async_to_sync(layer.group_send)(str(message.receiver.uuid), message_fmt)
 
     @classmethod
     def send_user_message_to_user(cls, message):

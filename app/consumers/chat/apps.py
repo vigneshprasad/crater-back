@@ -3,9 +3,9 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class ChatConfig(AppConfig):
-    name = 'chat'
+    name = 'consumers.chat'
     icon_name = 'chat'
     verbose_name = _('Chat')
 
     def ready(self):
-        import chat.signals
+        import consumers.chat.signals

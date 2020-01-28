@@ -17,7 +17,7 @@
 
     var chatSocket = new WebSocket(
         'ws://' + window.location.host +
-        '/ws/chat/' + userId + '/' + token + '/'
+        '/ws/connector/' + userId + '/' + token + '/'
         );
 
     chatSocket.onmessage = function(e) {

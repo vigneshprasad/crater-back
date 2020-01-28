@@ -6,7 +6,7 @@
 
     let chatSocket = new WebSocket(
       'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
-      '/ws/chat/' + uuid + '/' + token + '/'
+      '/ws/connector/' + uuid + '/' + token + '/'
     );
 
     let send_icon_template = '<div class="is-read"><i class="material-icons">done</i></div>';
