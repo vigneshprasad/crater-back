@@ -401,6 +401,9 @@ class CoverFile(TimeStampedModel):
         blank=True
     )
 
+    def __str__(self):
+        return self.file.name if self.file else ' - '
+
 
 @receiver(post_save, sender=CoverFile)
 def profile_post_save(sender, instance, created,  *args, **kwargs):

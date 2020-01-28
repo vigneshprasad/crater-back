@@ -79,5 +79,5 @@ def check_transcoding_for_cover_file(self):
 def auto_remove_not_used_cover_files(self):
     from .models import CoverFile
     one_day_ago = timezone.now() - timezone.timedelta(days=1)
-    files = CoverFile.objects.filter(profiles__isnull=True, created__lte=one_day_ago)
+    files = CoverFile.objects.filter(profiles__isnull=True, masterclasses__isnull=True, created__lte=one_day_ago)
     files.delete()

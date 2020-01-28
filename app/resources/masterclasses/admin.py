@@ -11,7 +11,7 @@ class MasterClassAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'videocam'
     form = MasterClassForm
     list_display = ('description', 'created', 'author', 'count', '_tags', 'action')
-    readonly_fields = ['count']
+    readonly_fields = ['count', 'file']
 
     @staticmethod
     def _tags(masterclass):

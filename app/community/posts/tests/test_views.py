@@ -19,7 +19,6 @@ from utils.file_test_service import get_test_base64_image, get_test_image
 
 
 class TestPostView(APITestCase):
-
     def setUp(self):
         self.user = get_user_model().objects.create(
             email='user@user.com',
