@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from rest_framework import serializers
 
-from chat.models import Message
+from consumers.chat.models import Message
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -13,7 +13,18 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ['message', 'file', 'sender', 'receiver',  'is_read', 'pk', 'created', 'sender_id', 'receiver_id']
+        fields = [
+            'message',
+            'file',
+            'sender',
+            'receiver',
+            'is_read',
+            'pk',
+            'created',
+            'sender_id',
+            'receiver_id',
+            'is_support'
+        ]
 
 
 class UserChatSerializer(serializers.ModelSerializer):

@@ -1,10 +1,10 @@
 import json
 from rest_framework.renderers import JSONRenderer
 
-from chat.connect import ChatAuthConsumer
-from chat.services import create_message, get_paginated_support_messages, get_read_support_messages_ids_by_user, \
-    get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, unstar_user, get_paginated_user_messages, \
-    get_read_user_messages_ids_by_user, get_users_ids
+from consumers.connect import ChatAuthConsumer
+from consumers.chat.services import create_message, get_paginated_support_messages, \
+    get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \
+    unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids
 
 
 class ChatConsumer(ChatAuthConsumer):
@@ -142,7 +142,6 @@ class ChatConsumer(ChatAuthConsumer):
         Layer to send all messages to specific users about case if admin sent message to user
         :param event: message event data
         """
-
         if self.receiver_id == event['receiver_id'] or self.user_id == event['receiver_id']:
             await self.send(text_data=json.dumps({
                 'type': 'admin_message',
@@ -177,7 +176,7 @@ class ChatConsumer(ChatAuthConsumer):
         Send paginated support messages to user
         :param event: message event data
         """
-        messages = await get_paginated_support_messages(self.user_id, page=event['page'])
+        messages = await get_paginated_support_messages(self.user_id, page=event.get('page', 1))
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         await self.send(text_data=json.dumps({
             'type': 'get_messages',
@@ -226,7 +225,7 @@ class ChatConsumer(ChatAuthConsumer):
         """
         try:
             users = await get_paginated_users(
-                page=int(event['page']), search=event['search'], _filter=event['filter'], uuid=self.user_id
+                page=int(event.get('page', 1)), search=event.get('search'), _filter=event.get('filter'), uuid=self.user_id
             )
             results = json.loads(JSONRenderer().render(users).decode('utf8'))
         except ValueError:

@@ -41,7 +41,7 @@
 
   var chatSocket = new WebSocket(
       'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
-      '/ws/chat/user/' + token + '/'
+      '/ws/connector/' + token + '/'
      );
 
   var $getAllUsers = document.getElementById('get-all-users');

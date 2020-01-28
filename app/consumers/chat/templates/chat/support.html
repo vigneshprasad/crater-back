@@ -23,7 +23,7 @@
 
     var chatSocket = new WebSocket(
         'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
-        '/ws/chat/' + token + '/'
+        '/ws/connector/' + token + '/'
        );
 
     chatSocket.onclose = function(e) {

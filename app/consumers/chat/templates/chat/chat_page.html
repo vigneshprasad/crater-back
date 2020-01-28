@@ -46,7 +46,7 @@
                       {% elif user.message.sender.pk|stringformat:'s' != user.pk %}
                         {{ user.message.sender.name }}:
                       {% endif %}
-                      {{ user.message.message }}
+                        {{ user.message.message }}
                     </span>
                     {% if user.message.file %}
                       <i class="material-icons attached-file">cloud_download</i>

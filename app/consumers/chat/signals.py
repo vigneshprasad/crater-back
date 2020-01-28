@@ -2,9 +2,9 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from chat.helpers import MessageHelper
-from chat.models import Message
-from chat.tasks import read_admin_messages_for_user
+from consumers.chat.helpers import MessageHelper
+from consumers.chat.models import Message
+from consumers.chat.tasks import read_admin_messages_for_user
 
 
 @receiver(post_save, sender=Message)

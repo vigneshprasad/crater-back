@@ -10,7 +10,7 @@ class ChatAuthConsumer(AsyncWebsocketConsumer):
     receiver_id = None
 
     async def connect(self):
-        self.receiver_id = self.scope['url_route']['kwargs'].get('user_id')
+        self.receiver_id = self.scope['url_route']['kwargs'].get('receiver_id')
         token = self.scope['url_route']['kwargs']['token']
         try:
             data = {'token': token}

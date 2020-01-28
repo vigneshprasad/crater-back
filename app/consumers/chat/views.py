@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView
 
-from chat.models import Message
+from consumers.chat.models import Message
 
 
 def index(request):

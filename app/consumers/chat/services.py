@@ -5,10 +5,10 @@ from django.core.cache import cache
 
 import base64
 from django.core.files.base import ContentFile
-from chat.models import Message, ChatStarredUser
+from consumers.chat.models import Message, ChatStarredUser
 from channels.db import database_sync_to_async
 
-from chat.serializers import MessageSerializer, UserChatSerializer
+from consumers.chat.serializers import MessageSerializer, UserChatSerializer
 
 
 @database_sync_to_async

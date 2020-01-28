@@ -43,7 +43,7 @@ import django.core.mail.backends.smtp
 
 INSTALLED_APPS = [
     'channels',
-    'chat',
+    'consumers.chat',
     'material.admin',
     'material.admin.default',
     'django.contrib.auth',

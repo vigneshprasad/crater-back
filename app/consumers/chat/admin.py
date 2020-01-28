@@ -6,8 +6,8 @@ from django.core.exceptions import PermissionDenied
 from django.templatetags.static import static as staticfiles
 from rest_framework_jwt.utils import jwt_payload_handler, jwt_encode_handler
 
-from chat.models import Chat, Message
-from chat.tasks import read_admin_messages_for_user
+from consumers.chat.models import Chat, Message
+from consumers.chat.tasks import read_admin_messages_for_user
 
 
 @register(Chat)
@@ -66,7 +66,7 @@ class ChatAdmin(ModelAdmin):
 
     @staticmethod
     def _get_latest_message(user):
-        return Message.objects.filter(Q(sender=user) | Q(receiver=user)).last()
+        return Message.objects.filter(Q(sender=user) | Q(receiver=user), is_support=True).last()
 
     @staticmethod
     def _get_unread_messages_count(user):
