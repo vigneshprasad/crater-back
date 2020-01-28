@@ -25,14 +25,14 @@ class ArticleTagViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class CompanyViewSet(mixins.RetrieveModelMixin,
+class CompanyViewSet(mixins.ListModelMixin,
                      viewsets.GenericViewSet):
     queryset = models.Company.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.CompanySerializer
 
 
-class FundingViewSet(mixins.RetrieveModelMixin,
+class FundingViewSet(mixins.ListModelMixin,
                      viewsets.GenericViewSet):
     queryset = models.Funding.objects.all()
     permission_classes = [permissions.IsAuthenticated]
