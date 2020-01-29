@@ -31,7 +31,7 @@ from .tasks import send_email
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     post_reset_login = True
     form_class = AdminSetPasswordForm
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('admin:dashboard_dashboard_changelist')
 
 
 class ProfileViewSet(mixins.CreateModelMixin,

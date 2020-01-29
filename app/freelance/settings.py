@@ -86,7 +86,8 @@ INSTALLED_APPS = [
     'services',
     'order',
     'creative_exchange',
-    'notifications'
+    'notifications',
+    'dashboard',
 ]
 
 SITE_ID = 1

@@ -58,7 +58,7 @@ class GroupAdmin(ViewActionMixin, ModelAdmin):
 
 @register(UserRequest)
 class UserRequestAdmin(ViewActionMixin, ModelAdmin):
-    icon_name = 'people_outline'
+    icon_name = 'group_add'
     edit_icon = 'launch'
     list_display = ('user', 'group', 'is_approved', 'action')
     readonly_fields = ('user', 'group')
