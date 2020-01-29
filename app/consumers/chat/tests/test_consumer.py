@@ -562,7 +562,7 @@ async def test_consumer_get_in_user_group_users():
     await create_user('user11.3@test.com')
     await create_user('admin11@test.com', is_support=True)
     user_message = {
-        'message': {'page': 1},
+        'message': {'page': 1, 'latest_messages': 'all'},
         'type': 'get_all_users',
     }
 
@@ -615,7 +615,7 @@ async def test_consumer_get_first_page_users():
     await create_user_group(user15, group)
     await create_user('admin12@test.com', is_support=True)
     user_message = {
-        'message': {'page': 1},
+        'message': {'page': 1, 'latest_messages': 'all'},
         'type': 'get_all_users',
     }
     token = jwt_encode_handler(jwt_payload_handler(user1))
@@ -665,7 +665,7 @@ async def test_consumer_get_second_page_users():
     await create_user_group(user15, group)
     await create_user('admin13@test.com', is_support=True)
     user_message = {
-        'message': {'page': 2, 'search': 'john'},
+        'message': {'page': 2, 'search': 'john', 'latest_messages': 'all'},
         'type': 'get_all_users',
     }
     token = jwt_encode_handler(jwt_payload_handler(user1))
@@ -715,7 +715,7 @@ async def test_consumer_get_third_page_is_empty():
     await create_user_group(user15, group)
     await create_user('admin14@test.com', is_support=True, name='Jessica')
     user_message = {
-        'message': {'page': 3, 'search': 'jessica'},
+        'message': {'page': 3, 'search': 'jessica', 'latest_messages': 'all'},
         'type': 'get_all_users',
     }
     token = jwt_encode_handler(jwt_payload_handler(user1))
@@ -731,7 +731,7 @@ async def test_consumer_get_third_page_is_empty():
 
 @pytest.mark.asyncio
 @pytest.mark.django_db
-async def test_consumer_get_third_page_is_empty():
+async def test_consumer_star_unstar_users():
     group = await get_group('User')
     user1 = await create_user('user15.1@test.com', name='Tom')
     await create_user_group(user1, group)
@@ -751,7 +751,7 @@ async def test_consumer_get_third_page_is_empty():
     assert response == {'type': 'star_user', 'user': str(user2.pk)}
 
     starred_message = {
-        'message': {'page': 1, 'search': 'Tom', 'filter': 'starred'},
+        'message': {'page': 1, 'search': 'Tom', 'filter': 'starred', 'latest_messages': 'all'},
         'type': 'get_all_users',
     }
     await communicator.send_json_to(starred_message)
