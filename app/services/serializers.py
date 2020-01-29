@@ -56,8 +56,10 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class UserServicesSerializer(serializers.ModelSerializer):
-    services = ServiceSerializer(many=True)
-    industries = serializers.PrimaryKeyRelatedField(allow_empty=True, many=True, queryset=Industry.objects.all())
+    services = ServiceSerializer(many=True, required=False)
+    industries = serializers.PrimaryKeyRelatedField(
+        allow_empty=True, required=False, many=True, queryset=Industry.objects.all()
+    )
 
     class Meta:
         model = models.UserServiceInfo
@@ -72,14 +74,14 @@ class UserServicesSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        services = validated_data.pop('services')
+        services = validated_data.pop('services') if 'services' in validated_data else None
         instance = super().create(validated_data)
         if services:
             self.update_services(instance, services)
         return instance
 
     def update(self, instance, validated_data):
-        services = validated_data.pop('services')
+        services = validated_data.pop('services') if 'services' in validated_data else None
         instance = super().update(instance, validated_data)
         if services:
             self.update_services(instance, services)

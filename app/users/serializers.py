@@ -252,7 +252,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'full_registered',
             'has_profile',
             'has_bank_details',
-            'has_services'
+            'has_services',
+            'has_active_subscription'
         )
         read_only_fields = (
             'full_registered',

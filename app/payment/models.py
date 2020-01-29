@@ -88,3 +88,37 @@ class Transaction(TimeStampedModel):
             'out': 'received'
         }
         return kind_data.get(self.direction, 'paid')
+
+
+class Subscription(TimeStampedModel):
+    user = models.ForeignKey(
+        'users.User',
+        related_name='subscriptions',
+        verbose_name=_('User'),
+        on_delete=models.CASCADE
+    )
+    date_start = models.DateField(
+        verbose_name=_('Date start')
+    )
+    date_end = models.DateField(
+        verbose_name=_('Date end')
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_('Is active')
+    )
+    google_receipt = JSONField(
+        verbose_name=_('Google market identify'),
+        null=True
+    )
+    apple_receipt = JSONField(
+        verbose_name=_('Apple market identify'),
+        null=True
+    )
+    is_trial = models.BooleanField(
+        default=False
+    )
+
+    class Meta:
+        verbose_name = _('Subscription')
+        verbose_name_plural = _('Subscriptions')

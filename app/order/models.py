@@ -393,4 +393,7 @@ def order_create_transaction(sender, instance,  created,*args, **kwargs):
                 direction='out',
                 status='pending'
             )
+    elif instance.status == 'canceled' and instance.is_paid:
+        t = instance.transaction.filter(direction='in', status='transferred')
+        t.update(status='refund')
 
