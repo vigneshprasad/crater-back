@@ -379,6 +379,7 @@ class AuthTestCase(TestCase):
             'has_profile': False,
             'has_bank_details': False,
             'has_services': False,
+            'has_active_subscription': True,
             'phone_number': '',
             'phone_number_verified': False,
             'role': 'user'
@@ -1116,6 +1117,18 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
         self.assertEqual(200, resp.status_code)
         self.assertEqual(2, len(resp.json()['services']))
+
+    def test_user_services_set_minumum_info(self):
+        endpoint = self.endpoints.get('user-services-details')
+
+        data = {
+            'professional_service_provider': False,
+            'generate_business': False
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.has_services)
 
 
 class RefererTestCase(TestCase):

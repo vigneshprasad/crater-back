@@ -164,6 +164,13 @@ class User(AbstractUser):
         return None
 
     @property
+    def has_active_subscription(self):
+        if bool(hasattr(self, 'user_services_info') and self.user_services_info):
+            if self.user_services_info.professional_service_provider:
+                return self.subscriptions.filter(is_active=True).exists()
+        return True
+
+    @property
     def role(self):
         if self.groups.filter(name='Investor').exists():
             return 'investor'
