@@ -204,8 +204,10 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
         elif _filter == 'starred':
             qs = qs.filter(user_stars__creator__pk=uuid).distinct()
         if latest_messages != 'all':
-            qs = qs.filter(Q(sender_messages__isnull=False) | Q(receiver_messages__isnull=False)).distinct()
-            return UserChatSerializer(instance=qs, many=True, context={'user': uuid}).data
+            qs = qs.filter(
+                Q(sender_messages__isnull=False, sender_messages__is_support=False) |
+                Q(receiver_messages__isnull=False, receiver_messages__is_support=False),
+            ).distinct()
     users = qs[(page-1) * page_size:page * page_size]
     return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
 
