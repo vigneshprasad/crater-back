@@ -60,7 +60,7 @@ class Like(models.Model):
         unique_together = ['user', 'post']
 
 
-class Report(models.Model):
+class Report(TimeStampedModel):
     """
     Report a post for obscene content
     """

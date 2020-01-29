@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from model_utils.models import TimeStampedModel
 
 
 class Location(models.Model):
@@ -51,7 +52,7 @@ class Group(models.Model):
         return self.name
 
 
-class UserRequest(models.Model):
+class UserRequest(TimeStampedModel):
     """
     User's community group relation (requests)
     """

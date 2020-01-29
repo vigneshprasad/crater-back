@@ -1,0 +1,153 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+  <script src="{% static 'dashboard/chart.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+  <div id="content">
+    <div class="app dashboard-chart__card">
+      <div class="card">
+        <div class="card-content">
+          <div class="chart__block">
+            <canvas id="users-chart" class="chart"></canvas>
+          </div>
+          <div class="chart__block">
+            <canvas id="services-chart" class="chart"></canvas>
+          </div>
+          <div class="chart__block">
+            <canvas id="orders-chart" class="chart"></canvas>
+          </div>
+          <div class="chart__block">
+            <canvas id="group-join-chart" class="chart"></canvas>
+          </div>
+          <div class="chart__block">
+            <canvas id="reported-posts" class="chart"></canvas>
+          </div>
+          <script>
+          const options = {
+              responsive: true,
+              maintainAspectRatio: true
+          };
+          let labels = [];
+          let userData = [];
+          let serviceData = [];
+          let orderData = [];
+          let groupJoinData = [];
+          let reportedPostsData = [];
+
+          {% for month in label_months %}
+            labels.push('{{ month }}');
+          {% endfor %}
+
+          {% for value in registered_users %}
+            userData.push({{ value }});
+          {% endfor %}
+
+          {% for value in created_services %}
+            serviceData.push({{ value }});
+          {% endfor %}
+
+          {% for value in created_orders %}
+            orderData.push({{ value }});
+          {% endfor %}
+
+          {% for value in group_joins %}
+            groupJoinData.push({{ value }});
+          {% endfor %}
+
+          {% for value in post_reports %}
+            reportedPostsData.push({{ value }});
+          {% endfor %}
+
+          var ctx = document.getElementById('users-chart');
+          new Chart(ctx, {
+              type: 'line',
+              data: {
+                  labels,
+                  datasets: [{
+                      label: '# registered Users',
+                      data: userData,
+                      backgroundColor: ['rgba(34, 139, 34, 0.2)'],
+                      borderColor: ['rgba(34, 139, 34, 1)'],
+                  }]
+              }, options
+          });
+          var ctx2 = document.getElementById('services-chart');
+          new Chart(ctx2, {
+              type: 'line',
+              data: {
+                  labels,
+                  datasets: [{
+                      label: '# created Services',
+                      data: serviceData,
+                      backgroundColor: ['rgba(0, 0, 255, 0.2)'],
+                      borderColor: ['rgba(0, 0, 255, 1)'],
+                  }]
+              }, options
+          });
+          var ctx3 = document.getElementById('orders-chart');
+          new Chart(ctx3, {
+              type: 'line',
+              data: {
+                  labels,
+                  datasets: [{
+                      label: '# created Jobs',
+                      data: orderData,
+                      backgroundColor: ['rgba(255, 128, 0, 0.2)'],
+                      borderColor: ['rgba(255, 128, 0, 1)'],
+                  }]
+              }, options
+          });
+          var ctx4 = document.getElementById('group-join-chart');
+          new Chart(ctx4, {
+              type: 'line',
+              data: {
+                  labels,
+                  datasets: [{
+                      label: '# Group Joins',
+                      data: groupJoinData,
+                      backgroundColor: ['rgba(255, 0, 128, 0.2)'],
+                      borderColor: ['rgba(255, 0, 128, 1)'],
+                  }]
+              }, options
+          });
+          var ctx5 = document.getElementById('reported-posts');
+          new Chart(ctx5, {
+              type: 'line',
+              data: {
+                  labels,
+                  datasets: [{
+                      label: '# Reported Posts',
+                      data: reportedPostsData,
+                      backgroundColor: [
+                          'rgba(128, 128, 0, 0.2)'
+                      ],
+                      borderColor: [
+                          'rgba(128, 128, 0, 1)'
+                      ],
+                  }]
+              }, options
+          });
+          </script>
+        </div>
+      </div>
+    </div>
+    <div class="app dashboard-stats__card">
+      <div class="card">
+        <div class="card-content">
+          <h6 class="stats"><a href="{% url 'admin:users_user_changelist' %}" target="_blank"><i class="material-icons">person</i></a><span>{% trans 'Pending Users' %}: {{ pending_users }}</span></h6>
+          <h6 class="stats"><a href="{% url 'admin:services_service_changelist' %}" target="_blank"><i class="material-icons">room_service</i></a>{% trans 'Pending Services' %}: {{ pending_services }}</h6>
+          <h6 class="stats"><a href="{% url 'admin:users_user_changelist' %}" target="_blank"><i class="material-icons">monetization_on</i></a>{% trans 'Jobs to be paid' %}: {{ jobs_to_be_paid }}</h6>
+          <h6 class="stats"><a href="{% url 'admin:users_user_changelist' %}" target="_blank"><i class="material-icons">attach_money</i></a>{% trans 'Jobs to be refunded' %}: {{ jobs_to_be_refunded }}</h6>
+          <h6 class="stats"><a href="{% url 'admin:groups_userrequest_changelist' %}" target="_blank"><i class="material-icons">group_add</i></a>{% trans 'Group join requests' %}: {{ group_join }}</h6>
+          <h6 class="stats"><a href="{% url 'admin:posts_report_changelist' %}" target="_blank"><i class="material-icons">person</i></a>{% trans 'Reported Posts' %}: {{ reported_posts }}</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
