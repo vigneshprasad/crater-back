@@ -1,7 +1,7 @@
 import uuid
 
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 from django.conf import settings
 
 
@@ -107,7 +107,7 @@ class TranscoderService:
             job = self.etc_client.read_job(Id=job_id)['Job']
             if job['Status'] == 'Complete':
                 return True
-        except ClientError as e:
+        except (ClientError, NoCredentialsError) as e:
             print(f'ERROR: {e}')
         return False
 
