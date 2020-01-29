@@ -1,7 +1,6 @@
 import json
 from rest_framework.renderers import JSONRenderer
 
-from consumers.chat.serializers import MessageSerializer
 from consumers.connect import ChatAuthConsumer
 from consumers.chat.services import create_message, get_paginated_support_messages, \
     get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \

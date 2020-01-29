@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from pytz import timezone
 from rest_framework import serializers
 
 from consumers.chat.models import Message
@@ -10,6 +12,7 @@ class MessageSerializer(serializers.ModelSerializer):
     receiver = serializers.CharField(source='receiver.name', allow_null=True)
     sender_id = serializers.CharField(source='sender.pk', allow_null=True)
     receiver_id = serializers.CharField(source='receiver.pk', allow_null=True)
+    created = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -25,6 +28,11 @@ class MessageSerializer(serializers.ModelSerializer):
             'receiver_id',
             'is_support'
         ]
+
+    @staticmethod
+    def get_created(message):
+        tz = timezone(settings.TIME_ZONE)
+        return message.created.astimezone(tz)
 
 
 class UserChatSerializer(serializers.ModelSerializer):
