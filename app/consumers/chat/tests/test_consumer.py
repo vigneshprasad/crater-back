@@ -748,7 +748,7 @@ async def test_consumer_get_third_page_is_empty():
     assert connected
     await communicator.send_json_to(user_message)
     response = await communicator.receive_json_from()
-    assert response == {'type': 'user', 'user': str(user2.pk)}
+    assert response == {'type': 'star_user', 'user': str(user2.pk)}
 
     starred_message = {
         'message': {'page': 1, 'search': 'Tom', 'filter': 'starred'},
@@ -765,7 +765,7 @@ async def test_consumer_get_third_page_is_empty():
     }
     await communicator.send_json_to(unstarred_user_message)
     response = await communicator.receive_json_from()
-    assert response == {'type': 'user', 'user': str(user2.pk)}
+    assert response == {'type': 'unstar_user', 'user': str(user2.pk)}
 
     await communicator.send_json_to(starred_message)
     response = await communicator.receive_json_from()

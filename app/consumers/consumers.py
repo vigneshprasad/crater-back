@@ -246,7 +246,7 @@ class ChatConsumer(ChatAuthConsumer):
         """
         user = await star_user(self.user_id, event['user'])
         await self.send(text_data=json.dumps({
-            'type': 'user',
+            'type': 'star_user',
             'user': user
         }))
 
@@ -257,7 +257,7 @@ class ChatConsumer(ChatAuthConsumer):
         """
         user = await unstar_user(self.user_id, event['user'])
         await self.send(text_data=json.dumps({
-            'type': 'user',
+            'type': 'unstar_user',
             'user': user
         }))
 
