@@ -6,6 +6,8 @@ from tags.serializers import MasterClassTagSerializer
 
 class MasterClassSerializer(serializers.ModelSerializer):
     tags = MasterClassTagSerializer(many=True)
+    thumbnail = serializers.CharField(source='file.cover_thumbnail', allow_null=True)
+    cover = serializers.SerializerMethodField()
 
     class Meta:
         model = MasterClass
@@ -13,7 +15,15 @@ class MasterClassSerializer(serializers.ModelSerializer):
             'pk',
             'author',
             'position',
+            'thumbnail',
             'description',
             'cover',
             'tags'
         )
+
+    @staticmethod
+    def get_cover(masterclass):
+        if masterclass.file:
+            return masterclass.file.cover_transcoder
+        if masterclass.cover:
+            return masterclass.cover.url

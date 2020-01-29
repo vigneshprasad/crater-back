@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('users', '0025_referral'),
+        ('notifications', '0002_notification_usernotification'),
     ]
 
     operations = [
