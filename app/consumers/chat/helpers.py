@@ -1,8 +1,11 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.contrib.auth import get_user_model
-
+from pytz import timezone
 from consumers.chat.models import Message
+
+tz = timezone(settings.TIME_ZONE)
 
 
 class MessageHelper:
@@ -47,7 +50,7 @@ class MessageHelper:
         """
         layer = get_channel_layer()
         message_fmt = cls._get_user_message_data_format(message, 'user_message_to_user')
-        message_fmt['created'] = str(message.created.strftime('%Y-%m-%dT%H:%M:%S.%f+05:30'))
+        message_fmt['created'] = str(message.created.astimezone(tz).strftime('%Y-%m-%dT%H:%M:%S.%f+05:30'))
         async_to_sync(layer.group_send)(str(message.sender.uuid), message_fmt)
         async_to_sync(layer.group_send)(str(message.receiver.uuid), message_fmt)
 

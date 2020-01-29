@@ -3,8 +3,9 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from pytz import timezone
 from rest_framework import serializers
-
 from consumers.chat.models import Message
+
+tz = timezone(settings.TIME_ZONE)
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -31,7 +32,6 @@ class MessageSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_created(message):
-        tz = timezone(settings.TIME_ZONE)
         return message.created.astimezone(tz)
 
 
