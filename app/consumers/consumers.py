@@ -1,10 +1,12 @@
 import json
 from rest_framework.renderers import JSONRenderer
 
+from consumers.chat.serializers import MessageSerializer
 from consumers.connect import ChatAuthConsumer
 from consumers.chat.services import create_message, get_paginated_support_messages, \
     get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \
-    unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids
+    unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids, is_starred, \
+    get_latest_message
 
 
 class ChatConsumer(ChatAuthConsumer):
@@ -215,7 +217,12 @@ class ChatConsumer(ChatAuthConsumer):
             'sender_id': event['sender_id'],
             'receiver': event['receiver'],
             'receiver_id': event['receiver_id'],
-            'unread_count': event['unread_count']
+            'unread_count': event['unread_count'],
+            'pk': event['sender_id'],
+            'photo': event['sender_photo'],
+            'name': event['sender'],
+            'is_starred': await is_starred(self.user_id, event['sender_id']),
+            'latest_message': await get_latest_message(event['sender_id'], self.user_id)
         }))
 
     async def get_all_users(self, event, *args, **kwargs):

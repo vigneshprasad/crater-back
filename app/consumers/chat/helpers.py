@@ -92,6 +92,7 @@ class MessageHelper:
             'message_id': message.pk,
             'created': message.created.strftime("%d %b, %H:%M"),
             'sender': message.sender.name,
+            'sender_photo': message.sender.profile.photo if hasattr(message.sender, 'profile') else None,
             'sender_id': str(message.sender.pk),
             'receiver': message.receiver.name if message.receiver else None,
             'receiver_id': str(message.receiver.pk) if message.receiver else None
