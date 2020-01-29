@@ -248,15 +248,19 @@ class InvestorServiceInfo(models.Model):
     )
     process = models.TextField(
         max_length=800,
-        verbose_name=_('Process')
+        verbose_name=_('Process'),
+        null=True,
+        blank=True
     )
     attachments = ArrayField(
         models.CharField(max_length=255),
         size=3,
+        null=True
     )
     questions = ArrayField(
         models.CharField(max_length=255),
         size=3,
+        null=True
     )
     understand = models.BooleanField(
         default=False,

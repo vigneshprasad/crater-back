@@ -1,6 +1,7 @@
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
-from tags.models import Industry
+from tags.models import Industry, Company, Funding
 from users.models import User
 from users.serializers import ProfileSerializer
 from . import models
@@ -112,6 +113,8 @@ class UserServicesSerializer(serializers.ModelSerializer):
 
 
 class InvestorServicesSerializer(serializers.ModelSerializer):
+    kind_of_funding = serializers.PrimaryKeyRelatedField(many=True, queryset=Funding.objects.all(), required=False)
+    companies = serializers.PrimaryKeyRelatedField(many=True, queryset=Company.objects.all(), required=False)
 
     class Meta:
         model = models.InvestorServiceInfo
@@ -128,6 +131,23 @@ class InvestorServicesSerializer(serializers.ModelSerializer):
             'reach_out',
             'pk'
         ]
+
+    def validate(self, attrs):
+        reach_out = attrs.get('reach_out')
+        if reach_out:
+            errors = {}
+            kind_of_funding = attrs.get('kind_of_funding')
+            companies = attrs.get('companies')
+            process = attrs.get('process')
+            if not kind_of_funding:
+                errors.update({'kind_of_funding': _('This field is required')})
+            if not companies:
+                errors.update({'companies': _('This field is required')})
+            if not process:
+                errors.update({'process': _('This field is required')})
+            if errors:
+                raise serializers.ValidationError(errors)
+        return attrs
 
 
 class ProfessionalServiceSerializer(serializers.ModelSerializer):

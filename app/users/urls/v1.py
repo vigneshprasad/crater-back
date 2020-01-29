@@ -36,6 +36,9 @@ auth_urlpatterns = [
     path('social/google/', social_views.GoogleLogin.as_view(), name='google_login'),
     path('social/google/connect/', social_views.GoogleConnect.as_view(), name='google_connect'),
 
+    path('social/apple/', social_views.AppleLogin.as_view(), name='apple_login'),
+    path('social/apple/connect/', social_views.AppleConnect.as_view(), name='apple_connect'),
+
     path('social/accounts/', social_views.SocialAccountListView.as_view(), name='social_account_list'),
     path('social/accounts/<int:pk>/disconnect/',
          social_views.SocialAccountDisconnectView.as_view(),

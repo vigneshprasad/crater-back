@@ -7,6 +7,7 @@ from rest_auth.registration.views import SocialLoginView, SocialConnectView, \
 from rest_framework import status
 from rest_framework.response import Response
 
+from users.appleid.views import AppleOAuth2Adapter
 from .mixins import CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin
 from .serializers import SocialLoginSerializer
 
@@ -64,6 +65,29 @@ class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEma
         return self.get_response()
 
 
+class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
+    adapter_class = AppleOAuth2Adapter
+    serializer_class = SocialLoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        self.check_device()
+        self.check_group()
+        self.check_email()
+        self.set_fullname()
+        return response
+
+    def set_fullname(self):
+        first_name = self.serializer.validated_data.get('first_name', '')
+        last_name = self.serializer.validated_data.get('last_name', '')
+        if first_name:
+            self.user.first_name = first_name
+        if last_name:
+            self.user.last_name = last_name
+        if first_name or last_name:
+            self.user.save()
+
+
 class GoogleConnect(SocialConnectView):
     adapter_class = GoogleOAuth2Adapter
 
@@ -74,6 +98,10 @@ class FacebookConnect(SocialConnectView):
 
 class LinkedinConnect(SocialConnectView):
     adapter_class = LinkedInOAuth2Adapter
+
+
+class AppleConnect(SocialConnectView):
+    adapter_class = AppleOAuth2Adapter
 
 
 class SocialAccountDisconnectView(DisconnectView):

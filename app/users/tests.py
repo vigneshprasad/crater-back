@@ -1037,6 +1037,35 @@ class AuthTestCase(TestCase):
         resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
         self.assertEqual(200, resp.status_code)
 
+    def test_investor_services_set_3(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        self.user.groups.clear()
+        g = auth_models.Group.objects.get(name='Investor')
+        self.user.groups.add(g)
+        funding = Funding.objects.create(name='Funding')
+        company = Company.objects.create(name='Company')
+        data = {
+            'understand': True,
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.has_services)
+
+    def test_investor_services_set_4(self):
+        endpoint = self.endpoints.get('user-investor-details')
+        self.user.groups.clear()
+        g = auth_models.Group.objects.get(name='Investor')
+        self.user.groups.add(g)
+        funding = Funding.objects.create(name='Funding')
+        company = Company.objects.create(name='Company')
+        data = {
+            'understand': True,
+            'reach_out': True
+        }
+        resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(400, resp.status_code)
+
     def test_user_services_set_with_services(self):
         endpoint = self.endpoints.get('user-services-details')
         services = services_models.UserServiceInfo.objects.create(

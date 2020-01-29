@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.linkedin_oauth2',
+    'users.appleid',
 
     'rest_framework',
     'rest_framework.authtoken',
@@ -299,3 +300,16 @@ FRONT_URL = os.getenv('FRONT_URL', 'front-dev-freelance.scenario-projects.com')
 
 MP4_PIPELINE_ID = os.getenv('MP4_PIPELINE_ID', '1577369677921-qwavil')
 MP4_TRANSCODER_PRESET_ID = os.getenv('MP4_TRANSCODER_PRESET_ID', '1351620000001-000010')
+
+
+SOCIAL_AUTH_APPLE_KEY_ID = os.getenv('SOCIAL_AUTH_APPLE_KEY_ID', '6F95F8C497')
+SOCIAL_AUTH_APPLE_TEAM_ID = os.getenv('SOCIAL_AUTH_APPLE_TEAM_ID', '8H6J3U75TG')
+SOCIAL_AUTH_APPLE_CLIENT_ID = os.getenv('SOCIAL_AUTH_APPLE_CLIENT_ID', 'com.gobeauty.app')
+SOCIAL_AUTH_APPLE_PRIVATE_KEY = '''
+-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgsU+oeZ+Ww9J/gbRL
++HxYB04I1oSUjgUZBcLcJ/U5nfigCgYIKoZIzj0DAQehRANCAATYLGL01q9zhxzg
+ApeDU2Nk0hzy3y/WWgyOpRJdvtGIZbDpAxtD4llf1aW+inRozAioinvwz436UjXz
+SdePtNw5
+-----END PRIVATE KEY-----
+'''
