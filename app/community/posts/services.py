@@ -9,6 +9,10 @@ def get_posts():
     return Post.objects.all()
 
 
+def get_my_posts(pk):
+    return Post.objects.filter(creator=pk)
+
+
 def get_posts_count():
     return Post.objects.count()
 

@@ -13,7 +13,7 @@ from community.posts.models import Like, Report
 from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
 from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer, LimitedPostSerializer
-from community.posts.services import get_posts, get_likes, get_post, get_posts_count, get_community_posts
+from community.posts.services import get_posts, get_likes, get_post, get_posts_count, get_community_posts, get_my_posts
 from resources.curated_articles.services import get_company_curated_articles_data
 from resources.events.services import get_first_event_data
 from resources.masterclasses.services import get_first_masterclass_data
@@ -54,9 +54,9 @@ class PostViewSet(ModelViewSet):
     def all(self, request):
         context = self.get_serializer_context()
         return Response({
-            'count': get_posts_count(),
+            'count': get_my_posts(request.user.pk).count(),
             'followers': get_followers_count(),
-            'posts': self.serializer_class(self.get_queryset(), many=True, context=context).data,
+            'posts': self.serializer_class(get_my_posts(request.user.pk), many=True, context=context).data,
         })
 
 

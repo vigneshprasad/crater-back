@@ -91,12 +91,15 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
 
 class LimitedPostSerializer(PostSerializer):
+    is_my_group = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = (
             'pk',
             'message',
+            'group',
+            'is_my_group',
             'files_base64',
             'files_urls',
             'files',
@@ -107,6 +110,11 @@ class LimitedPostSerializer(PostSerializer):
             'likes',
             'comments',
         )
+
+    def get_is_my_group(self, post):
+        if not post.group or self.context['request'].user.is_superuser:
+            return True
+        return post.group.group_users.filter(user=self.context['request'].user, is_approved=True).exists()
 
 
 class LikeSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
