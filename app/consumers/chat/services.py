@@ -208,9 +208,10 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
                 Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
                 Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
             ).distinct()
+            users = qs[:page * page_size]
         else:
             qs = qs.order_by('name')
-        users = qs[(page-1) * page_size:page * page_size]
+            users = qs[(page-1) * page_size:page * page_size]
         return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
 
 
