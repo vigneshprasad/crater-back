@@ -34,7 +34,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     list_display = ('name', 'email', 'group', 'date_joined', 'status', 'is_active', 'action')
     list_editable = ['is_active']
     search_fields = ('name', 'email')
-    list_filter = ('is_active', GroupNameUserFilter)
+    list_filter = ('is_active', GroupNameUserFilter, 'is_approved')
     form = UserForm
     fieldsets = (
         ('Approvals', {

@@ -102,6 +102,31 @@ def is_admin_by_pk(uuid):
 
 
 @database_sync_to_async
+def is_starred(creator_id, user_id):
+    """
+    Check if user is admin
+    :param creator_id: User who created star
+    :param user_id User who was starred
+    :return Boolean
+    """
+    return ChatStarredUser.objects.filter(creator=creator_id, user=user_id).exists()
+
+
+@database_sync_to_async
+def get_latest_message(sender_id, receiver_id):
+    """
+    Check if user is admin
+    :param sender_id: user who sent message
+    :param receiver_id ser who received message
+    :return Message instance
+    """
+    return MessageSerializer(Message.objects.filter(
+        Q(receiver_id=receiver_id, sender_id=sender_id) | Q(receiver_id=sender_id, sender_id=receiver_id),
+        is_support=False
+    ).last()).data
+
+
+@database_sync_to_async
 def get_paginated_support_messages(receiver, page):
     """
     Returns paginated messages for user get help page
@@ -161,8 +186,6 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
     if qs:
         if search:
             qs = qs.filter(name__icontains=search)
-        if latest_messages != 'all':
-            qs = qs.filter(Q(sender_messages__isnull=False) | Q(receiver_messages__isnull=False)).distinct()
         if _filter == 'read':
             """
             Exclude all users with messages to consumer user and do not have and unread message
@@ -180,8 +203,15 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             qs = qs.filter(sender_messages__is_read=False, sender_messages__receiver_id=uuid).distinct()
         elif _filter == 'starred':
             qs = qs.filter(user_stars__creator__pk=uuid).distinct()
-    users = qs[(page-1) * page_size:page * page_size]
-    return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
+        if latest_messages != 'all':
+            qs = qs.filter(
+                Q(sender_messages__isnull=False, sender_messages__is_support=False) |
+                Q(receiver_messages__isnull=False, receiver_messages__is_support=False),
+            ).distinct()
+        else:
+            qs = qs.order_by('name')
+        users = qs[(page-1) * page_size:page * page_size]
+        return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
 
 
 @database_sync_to_async

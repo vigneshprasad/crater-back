@@ -1,8 +1,11 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.contrib.auth import get_user_model
-
+from pytz import timezone
 from consumers.chat.models import Message
+
+tz = timezone(settings.TIME_ZONE)
 
 
 class MessageHelper:
@@ -47,7 +50,7 @@ class MessageHelper:
         """
         layer = get_channel_layer()
         message_fmt = cls._get_user_message_data_format(message, 'user_message_to_user')
-        message_fmt['created'] = str(message.created.strftime('%Y-%m-%dT%H:%M:%S.%fZ'))
+        message_fmt['created'] = str(message.created.astimezone(tz).strftime('%Y-%m-%dT%H:%M:%S.%f+05:30'))
         async_to_sync(layer.group_send)(str(message.sender.uuid), message_fmt)
         async_to_sync(layer.group_send)(str(message.receiver.uuid), message_fmt)
 
@@ -76,8 +79,8 @@ class MessageHelper:
         for admin in admins:
             async_to_sync(layer.group_send)(str(admin.uuid), message_fmt)
 
-    @staticmethod
-    def _get_user_message_data_format(message, _type):
+    @classmethod
+    def _get_user_message_data_format(cls, message, _type):
         """
         Common message format for sending data in sockets (event)
         :param message: message instance from database
@@ -92,10 +95,15 @@ class MessageHelper:
             'message_id': message.pk,
             'created': message.created.strftime("%d %b, %H:%M"),
             'sender': message.sender.name,
+            'sender_photo': message.sender.profile.photo.url if cls._has_profile_photo(message) else None,
             'sender_id': str(message.sender.pk),
             'receiver': message.receiver.name if message.receiver else None,
             'receiver_id': str(message.receiver.pk) if message.receiver else None
         }
+
+    @staticmethod
+    def _has_profile_photo(message):
+        return hasattr(message.sender, 'profile') and hasattr(message.sender.profile, 'photo')
 
     @staticmethod
     def _get_user_ids(uuid):
