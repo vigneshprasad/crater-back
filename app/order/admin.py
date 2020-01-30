@@ -24,7 +24,9 @@ class OrderAdmin(ModelAdmin):
 
     @staticmethod
     def sum(order):
-        return order.quote.price
+        if hasattr(order, 'quote'):
+            return order.quote.price
+        return '-'
 
     @staticmethod
     def job_state(order):

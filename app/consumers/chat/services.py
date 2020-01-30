@@ -205,8 +205,8 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             qs = qs.filter(user_stars__creator__pk=uuid).distinct()
         if latest_messages != 'all':
             qs = qs.filter(
-                Q(sender_messages__isnull=False, sender_messages__is_support=False) |
-                Q(receiver_messages__isnull=False, receiver_messages__is_support=False),
+                Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
+                Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
             ).distinct()
         else:
             qs = qs.order_by('name')
