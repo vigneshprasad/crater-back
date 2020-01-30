@@ -20,7 +20,8 @@ class OrderAdmin(ModelAdmin):
 
     @staticmethod
     def job_order(order):
-        return order.service.service_type.name
+        if order.service and order.service.service_type:
+            return order.service.service_type.name
 
     @staticmethod
     def sum(order):
