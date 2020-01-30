@@ -9,8 +9,8 @@ class BuyerFilter(SimpleListFilter):
     parameter_name = 'buyer'
 
     def lookups(self, request, model_admin):
-        buyers = ExchangeRequest.objects.values('user', 'user__username').distinct()
-        return [(buyer['user'], buyer['user__username']) for buyer in buyers]
+        buyers = ExchangeRequest.objects.values('user', 'user__name').distinct()
+        return [(buyer['user'], buyer['user__name']) for buyer in buyers]
 
     def queryset(self, request, queryset):
         if self.value():

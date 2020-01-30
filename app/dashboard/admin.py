@@ -34,7 +34,7 @@ class ChatAdmin(ModelAdmin):
         ).count()
         context['pending_services'] = Service.objects.filter(status='unknown').count()
         context['jobs_to_be_paid'] = Order.objects.filter(status='complete', is_paid=False).count()
-        context['jobs_to_be_refunded'] = Order.objects.filter(status='cancelled', is_paid=False).count()
+        context['jobs_to_be_refunded'] = Order.objects.filter(status='canceled', is_paid=False).count()
         context['group_join'] = UserRequest.objects.filter(is_approved=False).count()
         context['reported_posts'] = Report.objects.count()
         context['registered_users'] = self._get_registered_users_timedelta(now)

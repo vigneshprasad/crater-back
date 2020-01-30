@@ -21,7 +21,7 @@ class ExchangeAdmin(ViewActionMixin, admin.ModelAdmin):
     job_name.short_description = _('Job Name')
 
     def buyer(self, exchange):
-        return exchange.user.username
+        return exchange.user.name
     buyer.short_description = _('Buyer')
 
     def service_type(self, exchange):

@@ -369,7 +369,7 @@ def quote_pre_save(sender, instance,  *args, **kwargs):
 
 
 @receiver(post_save, sender=Order)
-def order_create_transaction(sender, instance,  created,*args, **kwargs):
+def order_create_transaction(sender, instance,  created, *args, **kwargs):
     if instance.status == 'complete':
         out_transaction = instance.transactions.filter(direction='out').first()
         if instance.is_paid:
@@ -393,7 +393,7 @@ def order_create_transaction(sender, instance,  created,*args, **kwargs):
                 direction='out',
                 status='pending'
             )
-    elif instance.status == 'canceled' and instance.is_paid:
+    elif instance.status == 'canceled' and instance.is_paid and hasattr(instance, 'transaction'):
         t = instance.transaction.filter(direction='in', status='transferred')
         t.update(status='refund')
 

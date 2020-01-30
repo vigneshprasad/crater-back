@@ -142,8 +142,8 @@
         <div class="card-content">
           <h6 class="stats"><a href="{% url 'admin:users_user_changelist' %}?is_approved__exact=0" target="_blank"><i class="material-icons">person</i></a><span>{% trans 'Pending Users' %}: {{ pending_users }}</span></h6>
           <h6 class="stats"><a href="{% url 'admin:services_service_changelist' %}?status__exact=unknown" target="_blank"><i class="material-icons">room_service</i></a>{% trans 'Pending Services' %}: {{ pending_services }}</h6>
-          <h6 class="stats"><a href="{% url 'admin:users_user_changelist' %}" target="_blank"><i class="material-icons">monetization_on</i></a>{% trans 'Jobs to be paid' %}: {{ jobs_to_be_paid }}</h6>
-          <h6 class="stats"><a href="{% url 'admin:users_user_changelist' %}" target="_blank"><i class="material-icons">attach_money</i></a>{% trans 'Jobs to be refunded' %}: {{ jobs_to_be_refunded }}</h6>
+          <h6 class="stats"><a href="{% url 'admin:order_order_changelist' %}?is_paid__exact=0&status__exact=complete" target="_blank"><i class="material-icons">monetization_on</i></a>{% trans 'Jobs to be paid' %}: {{ jobs_to_be_paid }}</h6>
+          <h6 class="stats"><a href="{% url 'admin:order_order_changelist' %}?is_paid__exact=0&status__exact=canceled" target="_blank"><i class="material-icons">attach_money</i></a>{% trans 'Jobs to be refunded' %}: {{ jobs_to_be_refunded }}</h6>
           <h6 class="stats"><a href="{% url 'admin:groups_userrequest_changelist' %}" target="_blank"><i class="material-icons">group_add</i></a>{% trans 'Group join requests' %}: {{ group_join }}</h6>
           <h6 class="stats"><a href="{% url 'admin:posts_report_changelist' %}" target="_blank"><i class="material-icons">person</i></a>{% trans 'Reported Posts' %}: {{ reported_posts }}</h6>
         </div>
