@@ -26,8 +26,9 @@ class MessageHelper:
                 sender=message.sender, is_support=True, is_read=False
             ).count()
             async_to_sync(layer.group_send)(str(admin.uuid), notification_fmt)
-        message_fmt = cls._get_user_message_data_format(message, 'user_message_to_admin')
-        async_to_sync(layer.group_send)(str(message.sender.uuid), message_fmt)
+        if message.sender not in admins:
+            message_fmt = cls._get_user_message_data_format(message, 'user_message_to_admin')
+            async_to_sync(layer.group_send)(str(message.sender.uuid), message_fmt)
 
     @classmethod
     def send_admin_message_to_user(cls, admins, message):

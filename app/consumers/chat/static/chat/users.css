@@ -63,6 +63,10 @@ a .username .message {
     border-radius: 100%;
 }
 
+.notification-active {
+    display: none;
+}
+
 @media (max-width: 767px) {
   .app.user-chat {
     display: none;
