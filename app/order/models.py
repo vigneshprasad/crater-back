@@ -371,9 +371,9 @@ def quote_pre_save(sender, instance,  *args, **kwargs):
 @receiver(post_save, sender=Order)
 def order_create_transaction(sender, instance,  created,*args, **kwargs):
     if instance.status == 'complete':
-        out_transaction = instance.transactions.filter(direction='out').exists()
+        out_transaction = instance.transactions.filter(direction='out')
         if instance.is_paid:
-            if out_transaction:
+            if out_transaction.exists():
                 if out_transaction.status != 'transferred':
                     out_transaction.status = 'transferred'
                     out_transaction.save()
