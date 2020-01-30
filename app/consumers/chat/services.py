@@ -165,7 +165,22 @@ def get_paginated_user_messages(sender, receiver, page):
         cache.set(qs_key, qs.reverse(), 86400)
     messages = cache.get(qs_key, Message.objects.none())[(page-1) * page_size:page * page_size]
     messages.reverse()
-    return MessageSerializer(instance=messages, many=True).data
+    message_photos = get_message_ids_with_photo(messages, page_size)
+    return MessageSerializer(instance=messages, many=True, context={'message_photos': message_photos}).data
+
+
+def get_message_ids_with_photo(messages, page_size):
+    """
+    Get message ids where should be shown profile image
+    :param messages: list of cached messages
+    :param page_size: page message size
+    :return: list of message ids
+    """
+    message_photos = []
+    for index, message in enumerate(messages):
+        if index == page_size - 1 or message.sender_id != messages[index + 1].sender_id:
+            message_photos.append(message.id)
+    return message_photos
 
 
 @database_sync_to_async
@@ -179,7 +194,8 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
     :param uuid: request user pk
     :return: queryset of users
     """
-    page_size = 10
+    users_page_size = 20
+    messages_page_size = 10
     qs = get_user_model().objects.filter(
         is_active=True, is_staff=False, is_superuser=False, groups__name__in=['User', 'Investor']
     ).exclude(pk=uuid)
@@ -208,10 +224,10 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
                 Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
                 Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
             ).distinct()
-            users = qs[:page * page_size]
+            users = qs[:page * users_page_size]
         else:
             qs = qs.order_by('name')
-            users = qs[(page-1) * page_size:page * page_size]
+            users = qs[(page-1) * messages_page_size:page * messages_page_size]
         return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
 
 

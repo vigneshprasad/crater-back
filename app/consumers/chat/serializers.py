@@ -14,6 +14,7 @@ class MessageSerializer(serializers.ModelSerializer):
     sender_id = serializers.CharField(source='sender.pk', allow_null=True)
     receiver_id = serializers.CharField(source='receiver.pk', allow_null=True)
     created = serializers.SerializerMethodField()
+    photo = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -24,6 +25,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'receiver',
             'is_read',
             'pk',
+            'photo',
             'created',
             'sender_id',
             'receiver_id',
@@ -33,6 +35,12 @@ class MessageSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_created(message):
         return message.created.astimezone(tz)
+
+    def get_photo(self, message):
+        message_photo_ids = self.context.get('message_photos', [])
+        if hasattr(message.sender, 'profile'):
+            if not message_photo_ids or message.pk in message_photo_ids:
+                return message.sender.profile.photo.url
 
 
 class UserChatSerializer(serializers.ModelSerializer):
