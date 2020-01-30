@@ -1,3 +1,5 @@
+import mimetypes
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.conf import settings
@@ -93,6 +95,7 @@ class MessageHelper:
             'is_read': message.is_read,
             'message': message.message,
             'file': message.file.url if message.file else None,
+            'file_format': mimetypes.guess_type(message.file.name)[0] if message.file else None,
             'message_id': message.pk,
             'created': message.created.strftime("%d %b, %H:%M"),
             'sender': message.sender.name,

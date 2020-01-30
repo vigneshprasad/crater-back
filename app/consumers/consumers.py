@@ -165,6 +165,7 @@ class ChatConsumer(ChatAuthConsumer):
                 'type': 'user_message',
                 'message': event['message'],
                 'file': event['file'],
+                'file_format': event['file_format'],
                 'message_id': event['message_id'],
                 'created': event['created'],
                 'sender': event['sender'],
