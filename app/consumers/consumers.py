@@ -207,6 +207,8 @@ class ChatConsumer(ChatAuthConsumer):
         Send notification to admin UI about some message was sent by user, with the latest message
         :param event: message event data
         """
+        latest_message = await get_latest_message(event['sender_id'], self.user_id)
+        latest_message_json = json.loads(JSONRenderer().render(latest_message).decode('utf8'))
         await self.send(text_data=json.dumps({
             'type': 'user_notification',
             'message': event['message'],
@@ -221,7 +223,7 @@ class ChatConsumer(ChatAuthConsumer):
             'photo': event['sender_photo'],
             'name': event['sender'],
             'is_starred': await is_starred(self.user_id, event['sender_id']),
-            'latest_message': await get_latest_message(event['sender_id'], self.user_id)
+            'latest_message': latest_message_json
         }))
 
     async def get_all_users(self, event, *args, **kwargs):

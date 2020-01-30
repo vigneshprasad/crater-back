@@ -177,8 +177,9 @@ def get_message_ids_with_photo(messages, page_size):
     :return: list of message ids
     """
     message_photos = []
+    message_len = len(messages)
     for index, message in enumerate(messages):
-        if index == page_size - 1 or message.sender_id != messages[index + 1].sender_id:
+        if index == message_len - 1 or message.sender_id != messages[index + 1].sender_id:
             message_photos.append(message.id)
     return message_photos
 
@@ -196,7 +197,7 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
     """
     users_page_size = 20
     messages_page_size = 10
-    qs = get_user_model().objects.filter(
+    qs = get_user_model().objects.prefetch_related('sender_messages', 'receiver_messages').filter(
         is_active=True, is_staff=False, is_superuser=False, groups__name__in=['User', 'Investor']
     ).exclude(pk=uuid)
     if qs:
@@ -224,7 +225,9 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
                 Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
                 Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
             ).distinct()
-            users = qs[:page * users_page_size]
+            users_data = UserChatSerializer(instance=qs, many=True, context={'user': uuid}).data
+            users = [u for u in sorted(users_data, key=lambda item: item['latest_message']['created'], reverse=True)]
+            return users[:page * users_page_size]
         else:
             qs = qs.order_by('name')
             users = qs[(page-1) * messages_page_size:page * messages_page_size]
