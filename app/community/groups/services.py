@@ -21,5 +21,5 @@ def get_followers():
     return Following.objects.all()
 
 
-def get_followers_count():
-    return Following.objects.count()
+def get_followers_count(pk):
+    return Following.objects.filter(followed=pk).count()
