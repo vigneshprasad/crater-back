@@ -49,14 +49,14 @@ class PostViewSet(ModelViewSet):
             'articles': get_company_curated_articles_data(),
         })
 
-    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=False, filter_backends=None,
+    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
             serializer_class=LimitedPostSerializer, queryset=get_posts())
-    def all(self, request):
+    def all(self, request, pk):
         context = self.get_serializer_context()
         return Response({
-            'count': get_my_posts(request.user.pk).count(),
+            'count': get_my_posts(pk).count(),
             'followers': get_followers_count(),
-            'posts': self.serializer_class(get_my_posts(request.user.pk), many=True, context=context).data,
+            'posts': self.serializer_class(get_my_posts(pk), many=True, context=context).data,
         })
 
 
