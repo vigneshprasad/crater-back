@@ -361,7 +361,7 @@ class AttachCompletedFileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate(attrs):
-        if not (attrs.get('completed_file', None) and attrs.get('completed_file', None)):
+        if not (attrs.get('completed_file', None) or attrs.get('completed_file_base64', None)):
             raise serializers.ValidationError(
                 {'completed_file': _('This field is required')}
             )
