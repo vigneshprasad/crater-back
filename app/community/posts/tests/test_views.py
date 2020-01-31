@@ -130,7 +130,7 @@ class TestPostView(APITestCase):
     def test_limited_empty_posts_read_only(self):
         url = reverse('v1:community:post-list')
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(self.token))
-        response = self.client.get(f'{url}all/', format='json')
+        response = self.client.get(f'{url}{self.user.pk}/all/', format='json')
         self.assertDictEqual(response.data, {'count': 0, 'followers': 0, 'posts': []})
 
     def test_limited_all_posts_read_only(self):
@@ -138,7 +138,7 @@ class TestPostView(APITestCase):
         Post.objects.create(message='Test message 2', creator=self.user)
         url = reverse('v1:community:post-list')
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(self.token))
-        response = self.client.get(f'{url}all/', format='json')
+        response = self.client.get(f'{url}{self.user.pk}/all/', format='json')
         self.assertEqual(response.data['count'], 2)
         self.assertEqual(response.data['posts'][0]['message'], 'Test message 2')
         self.assertEqual(response.data['posts'][0]['creator'], self.user.pk)
@@ -154,7 +154,7 @@ class TestPostView(APITestCase):
         file = File.objects.create(post=post2, object=file_mock)
         url = reverse('v1:community:post-list')
         self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(self.token))
-        response = self.client.get(f'{url}all/', format='json')
+        response = self.client.get(f'{url}{self.user.pk}/all/', format='json')
         self.assertEqual(200, response.status_code)
 
 
