@@ -251,14 +251,14 @@ class ProfessionalTestCase(TestCase):
 
     def test_list_price_ordering(self):
         endpoint = self.endpoints.get('list')
-        resp = self.auth_client.get(f'{endpoint}?ordering=services__price', content_type='application/json')
+        resp = self.auth_client.get(f'{endpoint}?ordering=price_start', content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.json()['results'][0]['price_start'] <= resp.json()['results'][1]['price_start'])
         self.assertTrue(resp.json()['results'][0]['price_start'] <= resp.json()['results'][19]['price_start'])
 
     def test_list_desc_price_ordering(self):
         endpoint = self.endpoints.get('list')
-        resp = self.auth_client.get(f'{endpoint}?ordering=-services__price', content_type='application/json')
+        resp = self.auth_client.get(f'{endpoint}?ordering=-price_start', content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.json()['results'][0]['price_start'] >= resp.json()['results'][1]['price_start'])
         self.assertTrue(resp.json()['results'][0]['price_start'] >= resp.json()['results'][19]['price_start'])

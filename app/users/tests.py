@@ -386,6 +386,30 @@ class AuthTestCase(TestCase):
         }
         self.assertDictEqual(data, resp.json())
 
+    def test_user_patch_details_fail(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'city': ''
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+
+    def test_user_patch_details_fail_2(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'city': None
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+
+    def test_user_patch_details_success_3(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'name': 'New Name'
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+
     def test_profile_get_fail_unauth(self):
         endpoint = self.endpoints.get('user-profile')
         resp = self.client.get(endpoint, content_type='application/json')

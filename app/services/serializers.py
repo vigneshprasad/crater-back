@@ -170,8 +170,6 @@ class ProfessionalServiceSerializer(serializers.ModelSerializer):
 
 class ProfessionalSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
-    rating = serializers.SerializerMethodField()
-    price_start = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
 
     class Meta:
@@ -184,20 +182,6 @@ class ProfessionalSerializer(serializers.ModelSerializer):
             'price_start',
             'followers'
         )
-
-    @staticmethod
-    def get_rating(obj):
-        # TODO
-        return 5.0
-
-    def get_price_start(self, obj):
-        price_from = self.context['request'].query_params.get('price_from')
-        services = obj.services.filter(status='approved')
-        if price_from:
-            services = services.filter(price__gte=price_from)
-        if services:
-            return services.order_by('price')[0].price
-        return None
 
     @staticmethod
     def get_followers(obj):

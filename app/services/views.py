@@ -33,7 +33,7 @@ class ProfessionalsViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = Pagination
     serializer_class = serializers.ProfessionalSerializer
-    ordering_fields = ['services__price', 'user_services_info__followers', 'rating']
+    ordering_fields = ['user_services_info__followers', 'rating', 'price_start']
     filter_backends = (filters.DjangoFilterBackend, OrderingFilter)
     filterset_class = ProfessionalFilter
 
