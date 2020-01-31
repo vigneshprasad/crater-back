@@ -187,7 +187,7 @@ class ExchangeRequestTestCase(TestCase):
             'category': self.category.pk,
             'title': 'string',
             'city': self.city.pk,
-            'days': 0,
+            'days': 1,
             'require': True,
             'description': 'string',
             'special_requirement': 'string',

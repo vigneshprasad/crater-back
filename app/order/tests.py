@@ -138,7 +138,7 @@ class QuoteTestCase(TestCase):
         self.assertEqual(200, resp.status_code)
         self.assertEqual(1, len(resp.json()['results']))
 
-    def test_post_success(self):
+    def test_post_successful(self):
         endpoint = self.endpoints.get('quote-buyer-list')
         data = {
             'seller': self.user.pk,
