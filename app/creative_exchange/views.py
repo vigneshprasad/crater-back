@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from order.models import Quote
 from order.serializers import QuoteSerializer
 from users.paginators import Pagination
-from . import models, serializers
+from . import models, serializers, filters
 
 
 class ExchangeCategoryViewSet(mixins.RetrieveModelMixin,
@@ -24,7 +24,7 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
     serializer_class = serializers.ExchangeRequestSerializer
     pagination_class = Pagination
     detail_serializer_class = serializers.DetailExchangeRequestSerializer
-    filterset_fields = ['category', 'extended_price', 'user__city']
+    filterset_class = filters.RequestFilter
 
     def perform_create(self, serializer):
         serializer.validated_data['user'] = self.request.user

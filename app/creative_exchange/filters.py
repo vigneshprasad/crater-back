@@ -1,5 +1,6 @@
 from django.contrib.admin import SimpleListFilter
 from django.utils.translation import ugettext_lazy as _
+from django_filters import rest_framework as filters
 
 from creative_exchange.models import ExchangeRequest
 
@@ -16,3 +17,19 @@ class BuyerFilter(SimpleListFilter):
         if self.value():
             return queryset.filter(user=self.value())
         return queryset
+
+
+class RequestFilter(filters.FilterSet):
+    days_from = filters.NumberFilter(field_name='days', lookup_expr='gte')
+    days_to = filters.NumberFilter(field_name='days', lookup_expr='lte')
+
+    class Meta:
+        model = ExchangeRequest
+        fields = [
+            'days_from',
+            'days_to',
+            'category',
+            'extended_price',
+            'user__city'
+        ]
+
