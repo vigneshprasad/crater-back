@@ -1,7 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
@@ -280,3 +280,12 @@ class InvestorServiceInfo(models.Model):
 def marketing_pre_save(sender, instance, *args, **kwargs):
     instance.direction = 'marketing'
     return instance
+
+
+@receiver(post_save, sender=Service)
+def update_price_start(sender , instance, created, *args, **kwargs):
+    if instance.status == 'approved' and instance.price:
+        if not instance.user.price_start or instance.user.price_start > instance.price:
+            instance.user.price_start = instance.price
+            instance.user.save()
+

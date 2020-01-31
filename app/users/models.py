@@ -94,6 +94,10 @@ class User(AbstractUser):
         verbose_name=_('Rating'),
         null=True
     )
+    price_start = models.PositiveIntegerField(
+        null=True,
+        verbose_name=_('Price start')
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

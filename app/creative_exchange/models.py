@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
@@ -49,7 +50,8 @@ class ExchangeRequest(TimeStampedModel):
     )
     days = models.PositiveIntegerField(
         verbose_name=_('Days'),
-        null=True
+        null=True,
+        validators=[MaxValueValidator(99), MinValueValidator(1)]
     )
     require = models.BooleanField(
         default=False,
@@ -73,7 +75,8 @@ class ExchangeRequest(TimeStampedModel):
         verbose_name=_('Additional Information')
     )
     extended_price = models.PositiveIntegerField(
-        verbose_name=_('Extended Price')
+        verbose_name=_('Extended Price'),
+        validators=[MaxValueValidator(999999), MinValueValidator(1)]
     )
     is_deleted = models.BooleanField(
         verbose_name=_('Is Deleted'),
