@@ -54,7 +54,7 @@ class ChatAdmin(ModelAdmin):
         qs = Message.objects.filter(
                 is_support=True, receiver__isnull=True
             ).exclude(sender_id=uuid).order_by('sender_id', '-created').distinct('sender')
-        return [
+        messages = [
             {
                 'name': message.sender.name,
                 'photo': cls._get_photo(request, message.sender),
@@ -63,6 +63,7 @@ class ChatAdmin(ModelAdmin):
                 'message': cls._get_latest_message(message.sender),
             } for message in qs.exclude(sender_id=uuid)
         ]
+        return [u for u in sorted(messages, key=lambda item: item['message'].created, reverse=True)]
 
     @staticmethod
     def _get_latest_message(user):
