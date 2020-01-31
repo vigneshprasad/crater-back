@@ -5,7 +5,7 @@ from consumers.connect import ChatAuthConsumer
 from consumers.chat.services import create_message, get_paginated_support_messages, \
     get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \
     unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids, is_starred, \
-    get_latest_message
+    get_latest_message, get_user_data
 
 
 class ChatConsumer(ChatAuthConsumer):
@@ -278,10 +278,14 @@ class ChatConsumer(ChatAuthConsumer):
         self.receiver_id = event['user']
         messages = await get_paginated_user_messages(sender=self.user_id, receiver=self.receiver_id, page=event['page'])
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
+        user_data = await get_user_data(self.receiver_id)
         await self.send(text_data=json.dumps({
             'type': 'get_messages',
             'results': results,
-            'user': self.receiver_id
+            'user': self.receiver_id,
+            'photo': user_data.get('photo'),
+            'introduction': user_data.get('introduction'),
+            'additional_information': user_data.get('additional_information'),
         }))
 
     async def get_user_chat_messages(self, event, *args, **kwargs):

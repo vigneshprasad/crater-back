@@ -59,6 +59,26 @@ def get_read_support_messages_ids_by_user(user):
 
 
 @database_sync_to_async
+def get_user_data(user_id):
+    """
+    Read user data as photo, introduction
+    :param user_id: receiver user
+    return user data dict
+    """
+    try:
+        user = get_user_model().objects.get(pk=user_id)
+        if hasattr(user, 'profile'):
+            return {
+                'photo': user.profile.photo.url,
+                'introduction': user.profile.introduction,
+                'additional_information': user.profile.additional_information,
+            }
+    except get_user_model().DoesNotExist:
+        pass
+    return {}
+
+
+@database_sync_to_async
 def get_read_user_messages_ids_by_user(user, sender):
     """
     Read all messages sent to user
