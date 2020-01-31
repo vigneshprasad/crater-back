@@ -53,10 +53,14 @@ class PostViewSet(ModelViewSet):
             serializer_class=LimitedPostSerializer, queryset=get_posts())
     def all(self, request, pk):
         context = self.get_serializer_context()
+        profile_posts = get_my_posts(pk)
+        page = self.paginate_queryset(profile_posts)
+        serializer = self.get_serializer(page, many=True, context=context)
+
         return Response({
-            'count': get_my_posts(pk).count(),
+            'count': profile_posts.count(),
             'followers': get_followers_count(pk),
-            'posts': self.serializer_class(get_my_posts(pk), many=True, context=context).data,
+            'posts': serializer.data,
         })
 
 
