@@ -349,8 +349,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class AttachCompletedFileSerializer(serializers.ModelSerializer):
-    completed_file = serializers.FileField()
-    completed_file_base64 = Base64FileField()
+    completed_file = serializers.FileField(required=False)
+    completed_file_base64 = Base64FileField(required=False)
 
     class Meta:
         model = models.Order
