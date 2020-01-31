@@ -14,7 +14,7 @@ class OrderAdmin(ModelAdmin):
     list_editable = ['is_paid']
     readonly_fields = [
         'uuid', 'buyer', 'seller', 'quote', 'service', 'note', 'order_field', 'completed_file',  'rate', 'review_text',
-        # 'status'
+        'status'
     ]
     list_filter = ['created', 'is_paid', 'status', BuyerFilter, SellerFilter]
 
