@@ -349,8 +349,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class AttachCompletedFileSerializer(serializers.ModelSerializer):
-    completed_file = serializers.FileField()
-    completed_file_base64 = Base64FileField()
+    completed_file = serializers.FileField(required=False)
+    completed_file_base64 = Base64FileField(required=False)
 
     class Meta:
         model = models.Order
@@ -361,7 +361,7 @@ class AttachCompletedFileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate(attrs):
-        if not (attrs.get('completed_file', None) and attrs.get('completed_file', None)):
+        if not (attrs.get('completed_file', None) or attrs.get('completed_file_base64', None)):
             raise serializers.ValidationError(
                 {'completed_file': _('This field is required')}
             )
