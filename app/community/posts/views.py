@@ -55,7 +55,7 @@ class PostViewSet(ModelViewSet):
         context = self.get_serializer_context()
         return Response({
             'count': get_my_posts(pk).count(),
-            'followers': get_followers_count(),
+            'followers': get_followers_count(pk),
             'posts': self.serializer_class(get_my_posts(pk), many=True, context=context).data,
         })
 
