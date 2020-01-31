@@ -24,6 +24,7 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
     serializer_class = serializers.ExchangeRequestSerializer
     pagination_class = Pagination
     detail_serializer_class = serializers.DetailExchangeRequestSerializer
+    filterset_fields = ['category', 'extended_price', 'user__city']
 
     def perform_create(self, serializer):
         serializer.validated_data['user'] = self.request.user
@@ -34,6 +35,28 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
         context = self.get_serializer_context()
         serializer = self.detail_serializer_class(instance, **{'context': context})
         return Response(serializer.data)
+
+
+class MyExchangeRequestViewSet(mixins.RetrieveModelMixin,
+                               mixins.ListModelMixin,
+                               viewsets.GenericViewSet):
+    queryset = models.ExchangeRequest.objects.none()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.ExchangeRequestSerializer
+    pagination_class = Pagination
+    detail_serializer_class = serializers.DetailExchangeRequestSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        context = self.get_serializer_context()
+        serializer = self.detail_serializer_class(instance, **{'context': context})
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            # queryset just for schema generation metadata
+            return models.ExchangeRequest.objects.none()
+        return self.request.user.exchange_requests.all()
 
 
 class ExchangeQuoteViewSet(mixins.CreateModelMixin,
