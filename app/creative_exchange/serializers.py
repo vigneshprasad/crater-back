@@ -82,7 +82,7 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         files_json = validated_data.pop('files_base64', [])
         files = validated_data.pop('files', [])
-        cover = validated_data.pop('cover_image_base64')
+        cover = validated_data.pop('cover_image_base64',None)
         if cover:
             validated_data['cover_image'] = cover
         obj = super().create(validated_data)
@@ -103,14 +103,6 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
             models.RequestImage.objects.create(request=obj, image=file)
         for file in files_base64:
             models.RequestImage.objects.create(request=obj, image=file)
-
-    @staticmethod
-    def validate(attrs):
-        cover = attrs.get('cover_image')
-        cover_base64 = attrs.get('cover_image_base64')
-        if not (cover or cover_base64):
-            raise serializers.ValidationError({'cover_image': _('This field is required')})
-        return attrs
 
     @staticmethod
     def get_user_name(obj):

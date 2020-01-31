@@ -314,3 +314,7 @@ ApeDU2Nk0hzy3y/WWgyOpRJdvtGIZbDpAxtD4llf1aW+inRozAioinvwz436UjXz
 SdePtNw5
 -----END PRIVATE KEY-----
 '''
+
+GOOGLE_BUNDLE_ID = os.getenv('GOOGLE_BUNDLE_ID', 'example.bundle')
+GOOGLE_SERVICE_ACCOUNT_KEY_FILE = os.getenv('GOOGLE_SERVICE_ACCOUNT_KEY_FILE', 'example.bundle')
+APPLE_BUNDLE_ID = os.getenv('APPLE_BUNDLE_ID', 'example.bundle')

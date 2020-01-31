@@ -57,7 +57,8 @@ class ExchangeRequest(TimeStampedModel):
     )
     cover_image = models.ImageField(
         upload_to='exchange_request/cover/%Y/%m/%d/',
-        verbose_name=_('Cover')
+        verbose_name=_('Cover'),
+        null=True
     )
     description = models.TextField(
         max_length=800,
