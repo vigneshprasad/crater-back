@@ -138,10 +138,10 @@ class ChatAdmin(ModelAdmin):
 
     @staticmethod
     def _month_points(now):
-        month1 = now - dateutil.relativedelta.relativedelta(months=1)
-        month2 = now - dateutil.relativedelta.relativedelta(months=2)
-        month3 = now - dateutil.relativedelta.relativedelta(months=3)
-        month4 = now - dateutil.relativedelta.relativedelta(months=4)
-        month5 = now - dateutil.relativedelta.relativedelta(months=5)
-        month6 = now - dateutil.relativedelta.relativedelta(months=6)
+        month1 = now.replace(day=1)
+        month2 = month1 - dateutil.relativedelta.relativedelta(months=1)
+        month3 = month2 - dateutil.relativedelta.relativedelta(months=1)
+        month4 = month3 - dateutil.relativedelta.relativedelta(months=1)
+        month5 = month4 - dateutil.relativedelta.relativedelta(months=1)
+        month6 = month5 - dateutil.relativedelta.relativedelta(months=1)
         return month1, month2, month3, month4, month5, month6
