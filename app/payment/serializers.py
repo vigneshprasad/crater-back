@@ -30,7 +30,14 @@ class BankDetailsSerializer(serializers.ModelSerializer):
             'terms_and_condition',
             'card_data',
             'stripe_token',
-            'remember_card'
+            'remember_card',
+            'funds_recipient',
+            'pan_card_number',
+            'bank_account_number',
+            'bank_account_name',
+            'bank_ifsc_code',
+            'bank_name',
+            'branch_name',
         ]
         read_only_fields = [
             'card_data'

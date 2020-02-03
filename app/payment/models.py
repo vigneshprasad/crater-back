@@ -33,6 +33,52 @@ class BankDetails(TimeStampedModel):
         verbose_name=_('Stripe card data'),
         null=True
     )
+    funds_recipient = models.CharField(
+        verbose_name=_('Funds Recipient'),
+        choices=(
+            ('individual', _('Individual')),
+            ('organization', _('Organization'))
+        ),
+        default='individual',
+        max_length=255
+    )
+    pan_card_number = models.CharField(
+        null=True,
+        blank=True,
+        verbose_name=_('Pan card number'),
+        max_length=255
+    )
+    bank_account_number = models.CharField(
+        null=True,
+        blank=True,
+        verbose_name=_('Bank account number'),
+        max_length=255
+    )
+    bank_account_name = models.CharField(
+        null=True,
+        blank=True,
+        verbose_name=_('Bank account name'),
+        max_length=255
+    )
+    bank_ifsc_code = models.CharField(
+        null=True,
+        blank=True,
+        verbose_name=_('Bank ifsc code'),
+        max_length=255
+    )
+    bank_name = models.CharField(
+        null=True,
+        blank=True,
+        verbose_name=_('Bank name'),
+        max_length=255
+    )
+    branch_name = models.CharField(
+        null=True,
+        blank=True,
+        verbose_name=_('Branch name'),
+        max_length=255
+    )
+
 
 
 class Transaction(TimeStampedModel):

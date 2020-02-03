@@ -100,6 +100,11 @@ class User(AbstractUser):
         null=True,
         verbose_name=_('Price start')
     )
+    pan_card = models.ImageField(
+        null=True,
+        verbose_name=_('Pan card'),
+        upload_to='user/pan_card/%Y/%m/%d'
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
