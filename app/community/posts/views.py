@@ -80,7 +80,7 @@ class PostViewSet(ModelViewSet):
                     pass
         except User.DoesNotExist:
             raise NotFound()
-        return Response(data=data)
+        return Response(data=[d._json for d in data])
 
 
 class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
