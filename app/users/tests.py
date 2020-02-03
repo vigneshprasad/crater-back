@@ -450,6 +450,7 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         result = resp.json()
         result.pop('pk')
+        result.pop('uuid')
         self.assertDictEqual(data, result)
 
     @patch('users.models.User.send_sms', autospec=True)
@@ -585,6 +586,7 @@ class AuthTestCase(TestCase):
         data['tag_list'] = [{'name': self.tag.name, 'pk': self.tag.pk}]
         result = resp.json()
         result.pop('pk')
+        result.pop('uuid')
         cover_file_url = result.pop('cover_file')
         self.assertTrue(cover_file_url)
         data.update({'cover_transcoder': None, 'cover_thumbnail': None})
@@ -744,8 +746,8 @@ class AuthTestCase(TestCase):
         url = reverse('v1:users:network')
         response = self.auth_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        person = response.data[0]
+        self.assertEqual(response.data['count'], 1)
+        person = response.data['results'][0]
         self.assertEqual(person['name'], 'Testy')
         self.assertEqual(person['introduction'], 'Introduction')
 
@@ -774,8 +776,8 @@ class AuthTestCase(TestCase):
         url = reverse('v1:users:network')
         response = self.auth_client.get(f'{url}?tags={self.tag.pk}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        person = response.data[0]
+        self.assertEqual(response.data['count'], 1)
+        person = response.data['results'][0]
         self.assertEqual(person['name'], 'Test 2')
         self.assertEqual(person['introduction'], 'Introduction 2')
 
@@ -804,8 +806,8 @@ class AuthTestCase(TestCase):
         url = reverse('v1:users:network')
         response = self.auth_client.get(f'{url}?tags={self.tag.pk}&search=test 2')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        person = response.data[0]
+        self.assertEqual(response.data['count'], 1)
+        person = response.data['results'][0]
         self.assertEqual(person['name'], 'Test 2')
         self.assertEqual(person['introduction'], 'Introduction 2')
 
@@ -834,7 +836,7 @@ class AuthTestCase(TestCase):
         url = reverse('v1:users:network')
         response = self.auth_client.get(f'{url}?tags={self.tag.pk}&search=wrong')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data['count'], 0)
 
     def test_other_profile_authentication_required(self):
         url = reverse('v1:users:other-profile', args=(1,))
@@ -862,7 +864,7 @@ class AuthTestCase(TestCase):
             work_city=city,
             introduction='Introduction 2',
         )
-        url = reverse('v1:users:other-profile', args=(profile2.pk,))
+        url = reverse('v1:users:other-profile', args=(user2.pk,))
         response = self.auth_client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Test 2')

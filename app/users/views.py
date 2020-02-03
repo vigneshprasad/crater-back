@@ -305,6 +305,7 @@ class NetworkView(mixins.RetrieveModelMixin,
                   mixins.ListModelMixin,
                   GenericAPIView):
     serializer_class = serializers.ProfileSerializer
+    pagination_class = Pagination
     queryset = models.Profile.objects.filter(
         user__is_approved=True,
         user__is_active=True,
@@ -317,8 +318,13 @@ class NetworkView(mixins.RetrieveModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        if kwargs.get('pk'):
-            return self.retrieve(request, *args, **kwargs)
+        pk = kwargs.get('pk')
+        if pk:
+            try:
+                self.kwargs['pk'] = get_user_model().objects.get(pk=pk).profile.pk
+                return self.retrieve(request, *args, **kwargs)
+            except (get_user_model().DoesNotExist, ValidationError):
+                raise NotFound()
         return self.list(request, *args, **kwargs)
 
 

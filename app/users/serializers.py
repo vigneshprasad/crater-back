@@ -345,6 +345,7 @@ class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmS
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source='user.uuid', required=False)
     name = serializers.CharField(
         error_messages={
             'blank': _('Please enter your name'),
@@ -394,6 +395,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = models.Profile
         fields = (
             'pk',
+            'uuid',
             'name',
             'tag_line',
             'photo',
