@@ -141,10 +141,12 @@ class Service(TimeStampedModel):
     attachments = ArrayField(
         models.CharField(max_length=255),
         size=3,
+        blank=True
     )
     questions = ArrayField(
         models.CharField(max_length=255),
         size=3,
+        blank=True
     )
     rating = models.FloatField(
         verbose_name=_('Rating'),

@@ -1170,6 +1170,58 @@ class AuthTestCase(TestCase):
         self.assertEqual(200, resp.status_code)
         self.assertEqual(2, len(resp.json()['services']))
 
+
+    def test_user_services_set_with_services_2(self):
+        endpoint = self.endpoints.get('user-services-details')
+        services = services_models.UserServiceInfo.objects.create(
+            user=self.user
+        )
+        category = services_models.Category.objects.create(
+            name='Test'
+        )
+        service_type = services_models.ServiceType.objects.create(
+            category=category,
+            name='Type',
+            description='Description',
+            group='service'
+        )
+        industry = Industry.objects.create(name='Industry')
+        industry2 = Industry.objects.create(name='Industry2')
+        data = {
+            'years_of_experience': 'less_1_year',
+            'bar_council': 'text',
+            'followers': 100,
+            'industries': [industry.pk, industry2.pk],
+            'services': [
+                {
+                    'pk': 1,
+                    'service_type': service_type.pk,
+                    'price_type': 'price',
+                    'price': 100,
+                    'timeline': 60,
+                    'revision': 5,
+                    'includes': 'test',
+                    'attachments': [],
+                    'questions': []
+
+                },
+                {
+                    'service_type': service_type.pk,
+                    'price_type': 'price',
+                    'price': 100,
+                    'timeline': 60,
+                    'revision': 5,
+                    'includes': 'test',
+                    'attachments': [],
+                    'questions': []
+
+                }
+            ],
+        }
+        resp = self.auth_client.post(endpoint, data, content_type='application/json')
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(2, len(resp.json()['services']))
+
     def test_user_services_set_minumum_info(self):
         endpoint = self.endpoints.get('user-services-details')
 
