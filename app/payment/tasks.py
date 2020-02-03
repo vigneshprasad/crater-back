@@ -1,5 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
+import datetime
+
 from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
@@ -16,14 +18,17 @@ def charge_subscription_payment(self, user_pk):
         date = timezone.now().date()
         if not user.has_active_subscription:
             customer_id = None
+            membership = 'basic'
             if hasattr(user, 'bank_details') and user.bank_details:
                 customer_id = user.bank_details.stripe_customer_id
+                membership = user.bank_details.membership
             if customer_id:
                 charge = None
+                amount = 350 if membership == 'premium' else 250
                 try:
                     charge = stripe_service.create_customer_charge(
                         customer_id=customer_id,
-                        amount=350,
+                        amount=amount,
                         description='New Subscription payment'
                     )
                 except:
@@ -32,7 +37,8 @@ def charge_subscription_payment(self, user_pk):
                     Subscription.objects.create(
                         user=user,
                         date_start=date,
-                        date_end=date + relativedelta(years=1)
+                        date_end=date + relativedelta(years=1),
+                        membership=membership
                     )
     except User.DoesNotExist:
         pass
@@ -41,7 +47,7 @@ def charge_subscription_payment(self, user_pk):
 @shared_task(name="check_subscription")
 def check_subscription(self):
     date = timezone.now().date()
-    subs = Subscription.objects.filtre(date_end__lt=date, is_active=True)
+    subs = Subscription.objects.filter(date_end__lt=date, is_active=True, is_trial=True)
     subs.update(is_active=False)
     for sub in subs:
         sub.is_active = False
@@ -50,6 +56,7 @@ def check_subscription(self):
             Subscription.objects.create(
                 user=sub.user,
                 is_trial=True,
+                membership='premium',
                 date_start=date,
                 date_end=date + relativedelta(months=31)
             )
@@ -57,3 +64,17 @@ def check_subscription(self):
             charge_subscription_payment.delay(sub.user.pk)
 
 
+@shared_task(name="send_subs_warning_email")
+def send_subs_email(self):
+    month_date = timezone.now() + relativedelta(months=1)
+    two_weeks_date = timezone.now() + relativedelta(weeks=2)
+    month_subs = Subscription.objects.filter(
+        date_end=month_date.date(), is_active=True, date_end__gt=datetime.date(2020, 12, 1)
+    )
+    two_weeks_subs = Subscription.objects.filter(
+        date_end=two_weeks_date.date(), is_active=True, date_end__gt=datetime.date(2020, 12, 1)
+    )
+    for sub in month_subs:
+        sub.send_month_warning()
+    for sub in two_weeks_subs:
+        sub.send_two_weeks_warning()

@@ -18,5 +18,7 @@ template_names = {
     'password_reset': 'Password reset',
     'verify_email': 'Verify email',
     'invite_friend': 'Invite Friend',
-    'participate_event': 'Participate in Event'
+    'participate_event': 'Participate in Event',
+    'two_weeks_subs_warning': 'Two weeks subs warning',
+    'one_month_subs_warning': 'One month subs warning'
 }
