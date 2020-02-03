@@ -14,7 +14,7 @@ class MessageSerializer(serializers.ModelSerializer):
     sender_id = serializers.CharField(source='sender.pk', allow_null=True)
     receiver_id = serializers.CharField(source='receiver.pk', allow_null=True)
     created = serializers.SerializerMethodField()
-    photo = serializers.CharField(source='sender.profile.photo', allow_null=True)
+    photo = serializers.CharField(source='sender.profile.photo.url', allow_null=True)
 
     class Meta:
         model = Message
