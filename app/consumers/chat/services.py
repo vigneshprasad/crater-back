@@ -184,26 +184,10 @@ def get_paginated_user_messages(sender, receiver, page):
     if page == 1:
         cache.set(qs_key, qs.reverse(), 86400)
     messages = cache.get(qs_key, Message.objects.none())
-    message_photos = get_message_ids_with_photo(messages)
     return MessageSerializer(
         instance=messages[(page-1) * page_size:page * page_size],
         many=True,
-        context={'message_photos': message_photos}
     ).data
-
-
-def get_message_ids_with_photo(messages):
-    """
-    Get message ids where should be shown profile image
-    :param messages: list of cached messages
-    :param page_size: page message size
-    :return: list of message ids
-    """
-    message_photos = []
-    for index, message in enumerate(messages):
-        if index == 0 or message.sender_id != messages[index - 1].sender_id:
-            message_photos.append(message.id)
-    return message_photos
 
 
 @database_sync_to_async
