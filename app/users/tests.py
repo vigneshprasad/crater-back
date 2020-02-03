@@ -383,9 +383,11 @@ class AuthTestCase(TestCase):
             'active_subscription_membership': 'basic',
             'phone_number': '',
             'phone_number_verified': False,
-            'role': 'user'
+            'role': 'user',
+            'pan_card': None
         }
         self.assertDictEqual(data, resp.json())
+
 
     def test_user_patch_details_fail(self):
         endpoint = self.endpoints.get('user-details')
@@ -410,6 +412,15 @@ class AuthTestCase(TestCase):
         }
         resp = self.auth_client.patch(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
+
+    def test_user_patch_details_success_4(self):
+        endpoint = self.endpoints.get('user-details')
+        data = {
+            'pan_card_base64': get_test_base64_image()
+        }
+        resp = self.auth_client.patch(endpoint, data, content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()['pan_card'])
 
     def test_profile_get_fail_unauth(self):
         endpoint = self.endpoints.get('user-profile')
@@ -690,7 +701,14 @@ class AuthTestCase(TestCase):
         data = {
             'membership': 'basic',
             'terms_and_condition': True,
-            'card_data': None
+            'card_data': None,
+            'bank_account_name': None,
+            'bank_account_number': None,
+            'bank_ifsc_code': None,
+            'bank_name': None,
+            'branch_name': None,
+            'funds_recipient': 'individual',
+            'pan_card_number': None,
         }
         resp = self.auth_client.get(endpoint, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
@@ -705,7 +723,14 @@ class AuthTestCase(TestCase):
             'membership': 'basic',
             'terms_and_condition': True,
             'stripe_token': 'fake_token',
-            'remember_card': True
+            'remember_card': True,
+            'bank_account_name': 'Acc name',
+            'bank_account_number': 'number',
+            'bank_ifsc_code': 'code',
+            'bank_name': 'Bank Name',
+            'branch_name': 'Branch Name',
+            'funds_recipient': 'individual',
+            'pan_card_number': 'card number',
         }
         resp = self.auth_client.post(endpoint, data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
