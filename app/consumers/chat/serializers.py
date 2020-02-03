@@ -1,3 +1,5 @@
+import mimetypes
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -14,13 +16,15 @@ class MessageSerializer(serializers.ModelSerializer):
     sender_id = serializers.CharField(source='sender.pk', allow_null=True)
     receiver_id = serializers.CharField(source='receiver.pk', allow_null=True)
     created = serializers.SerializerMethodField()
-    photo = serializers.SerializerMethodField()
+    file_format = serializers.SerializerMethodField()
+    photo = serializers.CharField(source='sender.profile.photo.url', allow_null=True)
 
     class Meta:
         model = Message
         fields = [
             'message',
             'file',
+            'file_format',
             'sender',
             'receiver',
             'is_read',
@@ -36,11 +40,9 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_created(message):
         return message.created.astimezone(tz)
 
-    def get_photo(self, message):
-        message_photo_ids = self.context.get('message_photos', [])
-        if hasattr(message.sender, 'profile'):
-            if not message_photo_ids or message.pk in message_photo_ids:
-                return message.sender.profile.photo.url
+    @staticmethod
+    def get_file_format(message):
+        return mimetypes.guess_type(message.file.name)[0] if message.file else None
 
 
 class UserChatSerializer(serializers.ModelSerializer):

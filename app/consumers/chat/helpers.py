@@ -93,6 +93,7 @@ class MessageHelper:
         return {
             'type': _type,
             'is_read': message.is_read,
+            'is_support': message.is_support,
             'message': message.message,
             'file': message.file.url if message.file else None,
             'file_format': mimetypes.guess_type(message.file.name)[0] if message.file else None,

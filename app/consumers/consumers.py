@@ -166,11 +166,15 @@ class ChatConsumer(ChatAuthConsumer):
                 'message': event['message'],
                 'file': event['file'],
                 'file_format': event['file_format'],
-                'message_id': event['message_id'],
+                'pk': event['message_id'],
                 'created': event['created'],
+                'photo': event['sender_photo'],
                 'sender': event['sender'],
+                'sender_id': event['sender_id'],
                 'receiver': event['receiver'],
+                'receiver_id': event['receiver_id'],
                 'is_read': event['is_read'],
+                'is_support': event['is_support'],
             }))
 
     async def get_support_chat_messages(self, event, *args, **kwargs):
