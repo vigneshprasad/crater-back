@@ -327,9 +327,10 @@ class Profile(models.Model):
         verbose_name=_('Instagram'),
         blank=True
     )
-    twitter = models.URLField(
+    twitter = models.CharField(
         verbose_name=_('Twitter'),
-        blank=True
+        blank=True,
+        max_length=255
     )
     work_city = models.ForeignKey(
         'tags.WorkCityProxy',

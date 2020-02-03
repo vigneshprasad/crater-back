@@ -4,6 +4,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from twitter.error import TwitterError
 
 from community.groups.models import Group
 from community.groups.permissions import GroupPermission, GroupPostPermission
@@ -13,10 +14,12 @@ from community.posts.models import Like, Report
 from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
 from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer, LimitedPostSerializer
-from community.posts.services import get_posts, get_likes, get_post, get_posts_count, get_community_posts, get_my_posts
+from community.posts.services import get_posts, get_likes, get_post, get_community_posts, get_my_posts
 from resources.curated_articles.services import get_company_curated_articles_data
 from resources.events.services import get_first_event_data
 from resources.masterclasses.services import get_first_masterclass_data
+from users.models import User
+from utils.twitter_service import api as twitter_api
 
 
 class PostViewSet(ModelViewSet):
@@ -62,6 +65,21 @@ class PostViewSet(ModelViewSet):
             'followers': get_followers_count(pk),
             'posts': serializer.data,
         })
+
+    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
+            serializer_class=LimitedPostSerializer, queryset=get_posts())
+    def twitter(self, request, pk):
+        data = []
+        try:
+            u = User.objects.get(pk=pk)
+            if u.has_profile and u.profile.twitter:
+                try:
+                    data = twitter_api.GetUserTimeline(screen_name=u.profile.twitter, count=20)
+                except TwitterError:
+                    pass
+        except User.DoesNotExist:
+            raise NotFound()
+        return Response(data=data)
 
 
 class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
