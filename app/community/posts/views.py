@@ -15,6 +15,7 @@ from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
 from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer, LimitedPostSerializer
 from community.posts.services import get_posts, get_likes, get_post, get_community_posts, get_my_posts
+from order.serializers import EmptySerializer
 from resources.curated_articles.services import get_company_curated_articles_data
 from resources.events.services import get_first_event_data
 from resources.masterclasses.services import get_first_masterclass_data
@@ -67,7 +68,7 @@ class PostViewSet(ModelViewSet):
         })
 
     @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
-            serializer_class=LimitedPostSerializer, queryset=get_posts())
+            serializer_class=EmptySerializer, queryset=User.objects.all())
     def twitter(self, request, pk):
         data = []
         try:
