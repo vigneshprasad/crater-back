@@ -184,7 +184,6 @@ def get_paginated_user_messages(sender, receiver, page):
     if page == 1:
         cache.set(qs_key, qs.reverse(), 86400)
     messages = cache.get(qs_key, Message.objects.none())[(page-1) * page_size:page * page_size]
-    messages.reverse()
     message_photos = get_message_ids_with_photo(messages, page_size)
     return MessageSerializer(instance=messages, many=True, context={'message_photos': message_photos}).data
 

@@ -1,5 +1,6 @@
 from django.contrib.admin import register, ModelAdmin
 from django.db.models import Q
+from django.http import Http404
 from django.template.response import TemplateResponse
 from django.urls import path
 from django.core.exceptions import PermissionDenied
@@ -76,6 +77,8 @@ class ChatAdmin(ModelAdmin):
     @classmethod
     def _get_active_user(cls, request, uuid):
         message = Message.objects.filter(sender_id=uuid).last()
+        if not message:
+            raise Http404()
         return {
             'name': message.sender.name,
             'photo': cls._get_photo(request, message.sender),
