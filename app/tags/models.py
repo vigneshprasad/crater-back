@@ -24,7 +24,7 @@ class MasterClassTag(models.Model):
     """
     Tag for Master Class created by admin
     """
-    name = models.CharField(_('Name'), max_length=20)
+    name = models.CharField(_('Name'), max_length=255)
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
