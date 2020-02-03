@@ -1,3 +1,6 @@
+from django.core.exceptions import ValidationError
+from rest_framework.exceptions import NotFound
+
 from community.posts.models import Post, File, Like
 
 
@@ -10,7 +13,10 @@ def get_posts():
 
 
 def get_my_posts(pk):
-    return Post.objects.filter(creator=pk)
+    try:
+        return Post.objects.filter(creator=pk)
+    except ValidationError:
+        raise NotFound()
 
 
 def get_posts_count():
