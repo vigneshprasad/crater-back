@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 import exrex
@@ -17,6 +18,7 @@ from model_utils.models import TimeStampedModel
 from phonenumber_field.modelfields import PhoneNumberField
 
 from notifications.models import UserNotificationsSettings
+from payment.models import Subscription
 from users.managers import UserManager
 from utils.validators import SizeValidator
 from . import choices
@@ -169,10 +171,14 @@ class User(AbstractUser):
 
     @property
     def has_active_subscription(self):
-        if bool(hasattr(self, 'user_services_info') and self.user_services_info):
-            if self.user_services_info.professional_service_provider:
-                return self.subscriptions.filter(is_active=True).exists()
-        return True
+        return self.subscriptions.filter(is_active=True).exists()
+
+    @property
+    def active_subscription_membership(self):
+        active_subscription = self.subscriptions.filter(is_active=True).first()
+        if active_subscription:
+            return active_subscription.membership
+        return None
 
     @property
     def role(self):
@@ -426,3 +432,9 @@ def profile_post_save(sender, instance, created,  *args, **kwargs):
 def user_post_save(sender, instance, created,  *args, **kwargs):
     if not (hasattr(instance, 'notification_settings') and instance.notification_settings):
         UserNotificationsSettings.objects.create(user=instance)
+    if created and not instance.subscriptions.filter(is_active=True):
+        Subscription.objects.create(
+            user=instance,
+            date_start=timezone.now().date(),
+            date_end=datetime.date(2020, 12, 1),
+        )

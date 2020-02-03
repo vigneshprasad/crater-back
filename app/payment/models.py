@@ -3,6 +3,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
+from users import choices
+
 
 class BankDetails(TimeStampedModel):
     user = models.OneToOneField(
@@ -118,7 +120,44 @@ class Subscription(TimeStampedModel):
     is_trial = models.BooleanField(
         default=False
     )
+    membership = models.CharField(
+        max_length=255,
+        verbose_name=_('Membership'),
+        choices=(
+            ('basic', _('Basic')),
+            ('premium', _('Premium'))
+        ),
+        default='basic'
+    )
 
     class Meta:
         verbose_name = _('Subscription')
         verbose_name_plural = _('Subscriptions')
+
+    def send_month_warning(self):
+        data = {
+            self.user.email: {
+                'name': self.user.name
+            }
+        }
+        self.user.send_email(
+            'One month subscription warning',
+            to=[self.user.email],
+            template_name=choices.template_names.get('one_month_subs_warning'),
+            content={},
+            merge_vars=data
+        )
+
+    def send_two_weeks_warning(self):
+        data = {
+            self.user.email: {
+                'name': self.user.name
+            }
+        }
+        self.user.send_email(
+            'Two weeks subscription warning',
+            to=[self.user.email],
+            template_name=choices.template_names.get('two_weeks_subs_warning'),
+            content={},
+            merge_vars=data
+        )

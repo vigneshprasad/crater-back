@@ -380,6 +380,7 @@ class AuthTestCase(TestCase):
             'has_bank_details': False,
             'has_services': False,
             'has_active_subscription': True,
+            'active_subscription_membership': 'basic',
             'phone_number': '',
             'phone_number_verified': False,
             'role': 'user'

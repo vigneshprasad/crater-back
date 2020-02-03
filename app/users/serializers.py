@@ -253,7 +253,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'has_profile',
             'has_bank_details',
             'has_services',
-            'has_active_subscription'
+            'has_active_subscription',
+            'active_subscription_membership'
         )
         read_only_fields = (
             'full_registered',
@@ -263,7 +264,9 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'phone_number_verified',
             'email_verified',
             'phone_number',
-            'role'
+            'role',
+            'has_active_subscription',
+            'active_subscription_membership'
         )
 
 
