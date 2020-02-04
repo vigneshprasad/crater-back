@@ -455,6 +455,7 @@ class ProfileSerializer(serializers.ModelSerializer):
                     _('Instagram code is not valid')
                 )
             return instagram_long_access_token
+        return ''
 
 
 class LogoutSerializer(serializers.Serializer):
