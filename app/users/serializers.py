@@ -448,12 +448,13 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_instagram(instagram_code):
-        instagram_long_access_token = instagram_service.convert_code_to_long_access_token(instagram_code)
-        if not instagram_long_access_token:
-            raise serializers.ValidationError(
-                _('Instagram code is not valid')
-            )
-        return instagram_long_access_token
+        if instagram_code:
+            instagram_long_access_token = instagram_service.convert_code_to_long_access_token(instagram_code)
+            if not instagram_long_access_token:
+                raise serializers.ValidationError(
+                    _('Instagram code is not valid')
+                )
+            return instagram_long_access_token
 
 
 class LogoutSerializer(serializers.Serializer):
