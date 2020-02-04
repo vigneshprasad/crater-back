@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
+from utils.instagram_service import instagram_service
 from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
@@ -81,3 +82,14 @@ def auto_remove_not_used_cover_files(self):
     one_day_ago = timezone.now() - timezone.timedelta(days=1)
     files = CoverFile.objects.filter(profiles__isnull=True, masterclasses__isnull=True, created__lte=one_day_ago)
     files.delete()
+
+
+@shared_task(bind=True, name='auto_refresh_instagram_long_access_token')
+def auto_refresh_instagram_long_access_token(self):
+    from .models import Profile
+    profiles = Profile.objects.filter(instagram__isnull=False)
+    for profile in profiles:
+        new_token = instagram_service.refresh_long_access_token(profile.instagram)
+        if new_token:
+            profile.instagram = new_token
+            profile.save()

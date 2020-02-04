@@ -31,4 +31,8 @@ app.conf.beat_schedule = {
         'task': 'send_subs_warning_email',
         'schedule': crontab(hour=0, minute=1)
     },
+    'auto-refresh-instagram-long-access-token': {
+        'task': 'auto_refresh_instagram_long_access_token',
+        'schedule': crontab(hour=0, minute=5)
+    }
 }

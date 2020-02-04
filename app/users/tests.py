@@ -449,7 +449,7 @@ class AuthTestCase(TestCase):
             'photo': None,
             'introduction': '',
             'focus': '',
-            'instagram': '',
+            'is_instagram_set': False,
             'twitter': '',
             'additional_information': '',
             'work_city': city.pk,
@@ -566,8 +566,9 @@ class AuthTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.has_profile)
 
+    @patch('utils.instagram_service.InstagramService.convert_code_to_long_access_token', autospec=True, return_value='Token')
     @patch('utils.transcoder_service.TranscoderService.create_file_transcoder_job', autospec=True)
-    def test_profile_set_success_full_info(self, create_file_transcoder_job):
+    def test_profile_set_success_full_info(self, create_file_transcoder_job, convert):
         endpoint = self.endpoints.get('user-profile')
         city = WorkCityProxy.objects.create(name='Work City', is_work=True, country=self.country)
         file_mock = mock.MagicMock(spec=File)
@@ -585,16 +586,17 @@ class AuthTestCase(TestCase):
             'additional_information': 'Information',
             'work_city': city.pk,
             'work_city_name': city.name,
-            'instagram': 'https://instagram.com/',
+            'is_instagram_set': True,
+            'instagram': 'fake_code',
             'twitter': 'https://twitter.com/',
             'public_profile': True,
-
         }
         resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.has_profile)
         data.pop('tags')
+        data.pop('instagram')
         data['tag_list'] = [{'name': self.tag.name, 'pk': self.tag.pk}]
         result = resp.json()
         result.pop('pk')
@@ -603,7 +605,6 @@ class AuthTestCase(TestCase):
         self.assertTrue(cover_file_url)
         data.update({'cover_transcoder': None, 'cover_thumbnail': None})
         self.assertDictEqual(data, result)
-
 
     @patch('utils.transcoder_service.TranscoderService.create_file_transcoder_job', autospec=True)
     def test_profile_change_success(self, create_file_transcoder_job):

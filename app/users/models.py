@@ -323,9 +323,10 @@ class Profile(models.Model):
         verbose_name=_('Additional Information'),
         blank=True
     )
-    instagram = models.URLField(
+    instagram = models.CharField(
         verbose_name=_('Instagram'),
-        blank=True
+        blank=True,
+        max_length=800
     )
     twitter = models.CharField(
         verbose_name=_('Twitter'),
@@ -354,6 +355,10 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_instagram_set(self):
+        return bool(self.instagram)
 
 
 class Referral(TimeStampedModel):

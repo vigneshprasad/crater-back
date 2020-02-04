@@ -21,6 +21,7 @@ from tags.models import CityProxy
 from tags.serializers import TagSerializer
 from utils import messages
 from utils.fields import Base64FileField
+from utils.instagram_service import instagram_service
 from . import models
 from .validators import password_validate_symbols
 
@@ -403,6 +404,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
 
+
     class Meta:
         model = models.Profile
         fields = (
@@ -417,6 +419,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'focus',
             'additional_information',
             'instagram',
+            'is_instagram_set',
             'twitter',
             'work_city',
             'work_city_name',
@@ -428,11 +431,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'tags': {'write_only': True},
+            'instagram': {'write_only': True},
         }
         read_only_fields = (
             'cover_thumbnail',
             'cover_transcoder',
-            'cover_file'
+            'cover_file',
+            'is_instagram_set'
         )
 
     def validate_cover(self, cover):
@@ -440,6 +445,15 @@ class ProfileSerializer(serializers.ModelSerializer):
         if cover not in user.cover_files.all():
             raise serializers.ValidationError(_('Please use your cover file'))
         return cover
+
+    @staticmethod
+    def validate_instagram(instagram_code):
+        instagram_long_access_token = instagram_service.convert_code_to_long_access_token(instagram_code)
+        if not instagram_long_access_token:
+            raise serializers.ValidationError(
+                _('Instagram code is not valid')
+            )
+        return instagram_long_access_token
 
 
 class LogoutSerializer(serializers.Serializer):

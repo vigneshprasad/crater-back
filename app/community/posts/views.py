@@ -20,6 +20,7 @@ from resources.curated_articles.services import get_company_curated_articles_dat
 from resources.events.services import get_first_event_data
 from resources.masterclasses.services import get_first_masterclass_data
 from users.models import User
+from utils.instagram_service import instagram_service
 from utils.twitter_service import api as twitter_api
 
 
@@ -81,6 +82,21 @@ class PostViewSet(ModelViewSet):
         except User.DoesNotExist:
             raise NotFound()
         return Response(data=[d._json for d in data])
+
+    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
+            serializer_class=EmptySerializer, queryset=User.objects.all())
+    def instagram(self, request, pk):
+        data = []
+        try:
+            u = User.objects.get(pk=pk)
+            if u.has_profile and u.profile.instagram:
+                try:
+                    data = instagram_service.get_medias(u.profile.instagram)
+                except Exception:
+                    pass
+        except User.DoesNotExist:
+            raise NotFound()
+        return Response(data=data)
 
 
 class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
