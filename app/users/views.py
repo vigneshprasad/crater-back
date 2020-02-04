@@ -23,6 +23,7 @@ from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, choices
 from .forms import AdminSetPasswordForm
+from .models import Profile
 from .paginators import Pagination
 from .swagger_schemas import referer_email
 from .tasks import send_email
@@ -307,8 +308,6 @@ class NetworkView(mixins.RetrieveModelMixin,
     serializer_class = serializers.ProfileSerializer
     pagination_class = Pagination
     queryset = models.Profile.objects.filter(
-        user__is_approved=True,
-        user__is_active=True,
         user__is_staff=False,
         user__is_superuser=False
     ).order_by('name')
@@ -323,7 +322,7 @@ class NetworkView(mixins.RetrieveModelMixin,
             try:
                 self.kwargs['pk'] = get_user_model().objects.get(pk=pk).profile.pk
                 return self.retrieve(request, *args, **kwargs)
-            except (get_user_model().DoesNotExist, ValidationError):
+            except (get_user_model().DoesNotExist, ValidationError, Profile.DoesNotExist):
                 raise NotFound()
         return self.list(request, *args, **kwargs)
 
