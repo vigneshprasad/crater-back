@@ -306,12 +306,7 @@ class NetworkView(mixins.RetrieveModelMixin,
                   GenericAPIView):
     serializer_class = serializers.ProfileSerializer
     pagination_class = Pagination
-    queryset = models.Profile.objects.filter(
-        user__is_approved=True,
-        user__is_active=True,
-        user__is_staff=False,
-        user__is_superuser=False
-    ).order_by('name')
+    queryset = models.Profile.objects.all().order_by('name')
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     filterset_fields = ['tags']
     search_fields = ['name']
