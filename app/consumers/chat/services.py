@@ -174,7 +174,7 @@ def get_paginated_user_messages(sender, receiver, page):
     :param page: page
     :return: queryset of messages
     """
-    page_size = 10
+    page_size = 20
     qs_key = receiver + '_user_messages'
 
     qs = Message.objects.filter(
