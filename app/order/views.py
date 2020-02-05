@@ -41,7 +41,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
         orders = serializer.validated_data['orders']
         amount = sum([order.price for order in orders])
         # TODO: Calculate amount with promo code discount
-        orders_id = ', '.join([order.pk for order in orders])
+        orders_id = ', '.join([str(order.pk) for order in orders])
         description = f'Payment for {orders_id}'
         charge = None
         if serializer.validated_data['stripe_token']:
@@ -209,7 +209,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
 
 class CartOrderViewSet(mixins.RetrieveModelMixin,
                        mixins.ListModelMixin,
-                       mixins.CreateModelMixin,
+                       # mixins.CreateModelMixin,
                        viewsets.GenericViewSet):
     queryset = models.Order.objects.all()
     permission_classes = [permissions.IsAuthenticated]

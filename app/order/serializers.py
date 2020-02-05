@@ -424,6 +424,7 @@ class PaymentOrdersSerialier(serializers.Serializer):
                 'stripe_token': _('This field is required'),
                 'pay_saved_card': _('This field mast be true if stripe toke is empty')
             })
+        return attrs
 
     def validate_pay_saved_card(self, value):
         user = self.context['request'].user
