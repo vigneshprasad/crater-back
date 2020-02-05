@@ -47,7 +47,7 @@ class InstagramService:
             'grant_type': 'ig_refresh_token',
             'access_token': long_access_token
         }
-        resp = requests.get('https://graph.instagram.com/refresh_access_token', paramsd=data)
+        resp = requests.get('https://graph.instagram.com/refresh_access_token', params=data)
         if 'access_token' in resp.json():
             return resp.json()['access_token']
         else:
