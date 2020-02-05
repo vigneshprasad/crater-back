@@ -95,13 +95,14 @@ class ChatConsumer(ChatAuthConsumer):
         Send message event user read the messages from user
         :param message: message string
         """
-        messages = await get_read_user_messages_ids_by_user(user=self.user_id, sender=self.receiver_id)
-        message_fmt = {
-            'type': 'user_read_messages_to_user',
-            'messages': messages,
-            'receiver_id': self.user_id
-        }
-        await self.channel_layer.group_send(self.receiver_id, message_fmt)
+        if self.receiver_id:
+            messages = await get_read_user_messages_ids_by_user(user=self.user_id, sender=self.receiver_id)
+            message_fmt = {
+                'type': 'user_read_messages_to_user',
+                'messages': messages,
+                'receiver_id': self.user_id
+            }
+            await self.channel_layer.group_send(self.receiver_id, message_fmt)
 
     async def admin_read_messages_to_user(self, event, *args, **kwargs):
         """
