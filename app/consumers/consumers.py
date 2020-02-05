@@ -95,13 +95,14 @@ class ChatConsumer(ChatAuthConsumer):
         Send message event user read the messages from user
         :param message: message string
         """
-        messages = await get_read_user_messages_ids_by_user(user=self.user_id, sender=self.receiver_id)
-        message_fmt = {
-            'type': 'user_read_messages_to_user',
-            'messages': messages,
-            'receiver_id': self.user_id
-        }
-        await self.channel_layer.group_send(self.receiver_id, message_fmt)
+        if self.receiver_id:
+            messages = await get_read_user_messages_ids_by_user(user=self.user_id, sender=self.receiver_id)
+            message_fmt = {
+                'type': 'user_read_messages_to_user',
+                'messages': messages,
+                'receiver_id': self.user_id
+            }
+            await self.channel_layer.group_send(self.receiver_id, message_fmt)
 
     async def admin_read_messages_to_user(self, event, *args, **kwargs):
         """
@@ -302,6 +303,19 @@ class ChatConsumer(ChatAuthConsumer):
             'photo': user_data.get('photo'),
             'introduction': user_data.get('introduction'),
             'additional_information': user_data.get('additional_information'),
+        }))
+
+    async def set_admin_chat(self, event, *args, **kwargs):
+        """
+        Set chat with admin user. Retrieve the latest chat messages
+        :param event: message event data
+        """
+        self.receiver_id = None
+        messages = await get_paginated_support_messages(self.user_id, page=event.get('page', 1))
+        results = json.loads(JSONRenderer().render(messages).decode('utf8'))
+        await self.send(text_data=json.dumps({
+            'type': 'get_messages',
+            'results': results
         }))
 
     async def get_user_chat_messages(self, event, *args, **kwargs):

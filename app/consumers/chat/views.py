@@ -1,11 +1,20 @@
 import copy
 import json
+
+from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView
+from rest_framework import mixins, status
 
 from consumers.chat.models import Message
+from consumers.chat.serializers import MessageSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
+
 
 
 def index(request):
@@ -49,3 +58,20 @@ class AdminChatFileView(CreateView):
 
     def get_success_url(self):
         return reverse_lazy('admin:chat_chat_result', args=(self.object.receiver.pk,))
+
+
+class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
+    serializer_class = MessageSerializer
+    queryset = Message.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            receiver_id = request.data.get('receiver_id')
+            if receiver_id:
+                msg = Message.objects.create(receiver_id=receiver_id, sender=request.user, file=request.data['file'])
+            else:
+                msg = Message.objects.create(sender=request.user, file=request.data['file'], is_support=True)
+        except (MultiValueDictKeyError, ValidationError, KeyError) as err:
+            return Response({'error': str(err)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)

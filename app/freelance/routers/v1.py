@@ -13,4 +13,5 @@ urlpatterns = [
     path('creative-exchange/', include('creative_exchange.urls.v1', namespace='creative-exchange')),
     path('notifications/', include('notifications.urls.v1', namespace='notifications')),
     path('payments/', include('payment.urls.v1', namespace='payments')),
+    path('chat/', include('consumers.chat.api_urls.v1', namespace='chat')),
 ]
