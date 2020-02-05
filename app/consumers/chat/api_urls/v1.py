@@ -6,7 +6,7 @@ from consumers.chat.views import MessageViewSet
 app_name = 'chat'
 
 router = DefaultRouter()
-router.register('posts', MessageViewSet)
+router.register('message', MessageViewSet)
 
 
 urlpatterns = [
