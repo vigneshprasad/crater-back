@@ -98,7 +98,7 @@ class MessageHelper:
             'file': message.file.url if message.file else None,
             'file_format': mimetypes.guess_type(message.file.name)[0] if message.file else None,
             'message_id': message.pk,
-            'created': message.created.strftime("%d %b, %H:%M"),
+            'created': str(message.created.astimezone(tz).strftime('%Y-%m-%dT%H:%M:%S.%f+05:30')),
             'sender': message.sender.name,
             'sender_photo': message.sender.profile.photo.url if cls._has_profile_photo(message) else None,
             'sender_id': str(message.sender.pk),

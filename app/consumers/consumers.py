@@ -35,7 +35,6 @@ class ChatConsumer(ChatAuthConsumer):
     async def user_is_typing_to_user(self, event, *args, **kwargs):
         """
         Send message event to admin if user is typing
-        :param message: message string
         """
         if self.receiver_id == event['receiver_id'] or self.user_id == event['admin_receiver_id']:
             await self.send(text_data=json.dumps({
