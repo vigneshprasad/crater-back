@@ -58,8 +58,9 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
                 description=description
             )
         if charge and charge.paid:
-            orders.update(status='pending')
             for order in orders:
+                order.status = 'pending'
+                order.save()
                 Transaction.objects.create(
                     user=order.seller,
                     amount=order.price,
