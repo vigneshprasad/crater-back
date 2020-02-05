@@ -14,7 +14,7 @@
     chatSocket.onmessage = function(e) {
       let data = JSON.parse(e.data);
       if (data['type'] === 'admin_message') {
-        let template = `<div class="message__block admin"><div class="message message-id-${data['message_id']}">${data['message']}${send_icon_template}</div><div class="chat__message-sender">${data['sender']}, ${data['created']}</div></div>`
+        let template = `<div class="message__block admin"><div class="message message-id-${data['pk']}">${data['message']}${send_icon_template}</div><div class="chat__message-sender">${data['sender']}, ${data['created']}</div></div>`
         $messages_block.append(template);
         objDiv.scrollTop = objDiv.scrollHeight;
       } else if (data['type'] === 'user_message') {
@@ -38,8 +38,10 @@
         }
       } else if (data['type'] === 'user_is_typing') {
         let $isTyping = $('.is-typing');
-        $isTyping.show();
-        setTimeout(() => $isTyping.hide(), 2000);
+        if ($isTyping.is(':hidden')) {
+          $isTyping.show();
+          setTimeout(() => $isTyping.hide(), 5000);
+        }
       }
     };
 
@@ -64,6 +66,18 @@
           'type': 'send_admin_message_to_user',
         }));
         messageInputDom.value = '';
+      }
+    });
+
+    $('#chat-message-input').on('input', function() {
+      var self = this;
+      if (this.active !== false ) {
+        setTimeout(() => {self.active = true}, 5000);
+        this.active = false;
+        chatSocket.send(JSON.stringify({
+         'message': {'admin_receiver_id': uuid},
+         'type': 'user_is_typing',
+        }));
       }
     });
 

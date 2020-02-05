@@ -28,7 +28,8 @@ class ChatConsumer(ChatAuthConsumer):
         for user_id in user_ids:
             await self.channel_layer.group_send(str(user_id), {
                 'type': 'user_is_typing_to_user',
-                'receiver_id': self.user_id
+                'receiver_id': self.user_id,
+                'admin_receiver_id': message.get('admin_receiver_id')
             })
 
     async def user_is_typing_to_user(self, event, *args, **kwargs):
@@ -36,7 +37,7 @@ class ChatConsumer(ChatAuthConsumer):
         Send message event to admin if user is typing
         :param message: message string
         """
-        if self.receiver_id == event['receiver_id']:
+        if self.receiver_id == event['receiver_id'] or self.user_id == event['admin_receiver_id']:
             await self.send(text_data=json.dumps({
                 'type': 'user_is_typing',
                 'receiver_id': event['receiver_id']
@@ -148,9 +149,16 @@ class ChatConsumer(ChatAuthConsumer):
                 'type': 'admin_message',
                 'message': event['message'],
                 'file': event['file'],
-                'message_id': event['message_id'],
+                'file_format': event['file_format'],
+                'pk': event['message_id'],
                 'created': event['created'],
+                'photo': event['sender_photo'],
                 'sender': event['sender'],
+                'sender_id': event['sender_id'],
+                'receiver': event['receiver'],
+                'receiver_id': event['receiver_id'],
+                'is_read': event['is_read'],
+                'is_support': event['is_support'],
             }))
 
     async def user_message_to_user(self, event, *args, **kwargs):
@@ -199,12 +207,16 @@ class ChatConsumer(ChatAuthConsumer):
                 'type': 'user_message',
                 'message': event['message'],
                 'file': event['file'],
-                'message_id': event['message_id'],
+                'file_format': event['file_format'],
+                'pk': event['message_id'],
                 'created': event['created'],
+                'photo': event['sender_photo'],
                 'sender': event['sender'],
                 'sender_id': event['sender_id'],
                 'receiver': event['receiver'],
-                'receiver_id': event['receiver_id']
+                'receiver_id': event['receiver_id'],
+                'is_read': event['is_read'],
+                'is_support': event['is_support'],
             }))
 
     async def user_notifications(self, event, *args, **kwargs):
