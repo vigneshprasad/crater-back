@@ -103,8 +103,8 @@ def get_support_admin_ids():
 @database_sync_to_async
 def get_users_ids():
     """
-    Get all support admins
-    :return list of admin ids
+    Get all users
+    :return list of user ids
     """
     return list(get_user_model().objects.filter(is_active=True).values_list('pk', flat=True))
 

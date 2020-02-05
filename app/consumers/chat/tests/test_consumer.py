@@ -92,12 +92,12 @@ async def test_consumer_admin_send_empty_message():
 @pytest.mark.django_db
 async def test_consumer_user_is_typing():
     read_admin_messages_for_user.delay = mock.MagicMock()
-    message = {
-        'message': '',
-        'type': 'user_is_typing',
-    }
     user = await create_user('user3@test.com')
     admin = await create_user('admin3@test.com', is_support=True)
+    message = {
+        'message': {'admin_receiver_id': str(user.pk)},
+        'type': 'user_is_typing',
+    }
     token = jwt_encode_handler(jwt_payload_handler(admin))
     communicator = TestWebsocketCommunicator(ChatConsumer, f'{SOCKET_URL}{user.pk}/{token}/', receiver_id=user.pk, token=token)
     connected, subprotocol = await communicator.connect()
@@ -625,7 +625,7 @@ async def test_consumer_get_first_page_users():
     assert connected
     await communicator.send_json_to(user_message)
     response = await communicator.receive_json_from()
-    assert len(response['results']) == 10
+    assert len(response['results']) == 16
     await communicator.disconnect()
 
 
@@ -653,7 +653,7 @@ async def test_consumer_get_second_page_users():
     await create_user_group(user9, group)
     user10 = await create_user('user13.10@test.com', name='John')
     await create_user_group(user10, group)
-    user11 = await create_user('user13@test.com', name='John')
+    user11 = await create_user('user13.11@test.com', name='John')
     await create_user_group(user11, group)
     user12 = await create_user('user13.12@test.com', name='John')
     await create_user_group(user12, group)
@@ -663,6 +663,26 @@ async def test_consumer_get_second_page_users():
     await create_user_group(user14, group)
     user15 = await create_user('user13.15@test.com', name='John')
     await create_user_group(user15, group)
+    user16 = await create_user('user13.16@test.com', name='John')
+    await create_user_group(user16, group)
+    user17 = await create_user('user13.17@test.com', name='John')
+    await create_user_group(user17, group)
+    user18 = await create_user('user13.18@test.com', name='John')
+    await create_user_group(user18, group)
+    user19 = await create_user('user13.19@test.com', name='John')
+    await create_user_group(user19, group)
+    user20 = await create_user('user13.20@test.com', name='John')
+    await create_user_group(user20, group)
+    user21 = await create_user('user13.21@test.com', name='John')
+    await create_user_group(user21, group)
+    user22 = await create_user('user13.22@test.com', name='John')
+    await create_user_group(user22, group)
+    user23 = await create_user('user13.23@test.com', name='John')
+    await create_user_group(user23, group)
+    user24 = await create_user('user13.24@test.com', name='John')
+    await create_user_group(user24, group)
+    user25 = await create_user('user13.25@test.com', name='John')
+    await create_user_group(user25, group)
     await create_user('admin13@test.com', is_support=True)
     user_message = {
         'message': {'page': 2, 'search': 'john', 'latest_messages': 'all'},
