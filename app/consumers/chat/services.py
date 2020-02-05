@@ -202,7 +202,7 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
     :return: queryset of users
     """
     users_page_size = 20
-    messages_page_size = 10
+    messages_page_size = 20
     qs = get_user_model().objects.prefetch_related('sender_messages', 'receiver_messages').filter(
         is_active=True, is_staff=False, is_superuser=False, groups__name__in=['User', 'Investor']
     ).exclude(pk=uuid)
