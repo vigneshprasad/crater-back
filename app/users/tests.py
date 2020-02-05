@@ -1,3 +1,4 @@
+import datetime
 from unittest import mock
 from unittest.mock import patch
 
@@ -9,6 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.files import File
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_auth.utils import jwt_encode
@@ -140,6 +142,15 @@ class AuthTestCase(TestCase):
         self.assertIn('token', resp.json())
         user = models.User.objects.get(email='test1@email.com')
         self.assertIn('User', list(user.groups.values_list('name', flat=True)))
+
+    @mock.patch('users.models.User.send_verify_email', return_value=None)
+    def test_success_register_subs(self, send_verify_email):
+        endpoint = self.endpoints.get('register')
+        data = {'email': 'test1@email.com', 'password': 'Qwer1234!', 'name': 'Testy User'}
+        resp = self.client.post(endpoint, data=data, content_type='application/json')
+        self.assertEqual(resp.status_code, 201)
+        if timezone.now().date() < datetime.date(2020, 12, 1):
+            self.assertTrue(resp.json()['user']['has_active_subscription'])
 
     @mock.patch('users.models.User.send_email', return_value=None)
     def test_success_send_verify_email(self, send_email):

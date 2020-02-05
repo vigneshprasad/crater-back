@@ -51,7 +51,7 @@ class ProfileViewSet(mixins.CreateModelMixin,
         serializer.validated_data['user'] = request.user
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+        return Response(serializers.ProfileSerializer(request.user.profile))
 
     def get_object(self):
         if hasattr(self.request.user, 'profile') and self.request.user.profile:
@@ -104,7 +104,7 @@ class BankDetailViewSet(mixins.CreateModelMixin,
                 self.get_stripe_customer_id(serializer)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+        return Response(payment_serializers.BankDetailsSerializer(request.user.bank_details))
 
     def get_object(self):
         if hasattr(self.request.user, 'bank_details') and self.request.user.bank_details:
@@ -246,7 +246,7 @@ class UserServicesViewSet(mixins.CreateModelMixin,
         serializer.validated_data['user'] = request.user
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+        return Response(service_serializers.UserServicesSerializer(request.user.user_services_info))
 
     def get_object(self):
         if self.request.user.role == 'user':
@@ -283,7 +283,7 @@ class InvestorServicesViewSet(mixins.CreateModelMixin,
         serializer.validated_data['user'] = request.user
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+        return Response(service_serializers.InvestorServicesSerializer(request.user.investor_services_info))
 
     def get_object(self):
         if self.request.user.role == 'investor':
