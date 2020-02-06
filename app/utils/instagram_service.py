@@ -29,7 +29,7 @@ class InstagramService:
             'grant_type': 'ig_exchange_token',
             'access_token': short_access_token
         }
-        resp = requests.get('https://graph.instagram.com/access_token', paramsd=data)
+        resp = requests.get('https://graph.instagram.com/access_token', params=data)
         if 'access_token' in resp.json():
             return resp.json()['access_token']
         else:
@@ -60,7 +60,7 @@ class InstagramService:
             'access_token': long_access_token,
             'limit': limit
         }
-        resp = requests.get('https://graph.instagram.com/me/media', paramsd=data)
+        resp = requests.get('https://graph.instagram.com/me/media', params=data)
         return resp.json()['data']
 
 
