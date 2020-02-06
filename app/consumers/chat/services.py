@@ -226,7 +226,11 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             qs = qs.filter(sender_messages__is_read=False, sender_messages__receiver_id=uuid).distinct()
         elif _filter == 'starred':
             qs = qs.filter(user_stars__creator__pk=uuid).distinct()
-        if latest_messages != 'all':
+        if latest_messages == 'all':
+            qs = qs.order_by(Lower('name'))
+            users = qs[(page - 1) * messages_page_size:page * messages_page_size]
+            return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
+        else:
             qs = qs.filter(
                 Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
                 Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
@@ -234,10 +238,6 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             users_data = UserChatSerializer(instance=qs, many=True, context={'user': uuid}).data
             users = [u for u in sorted(users_data, key=lambda item: item['latest_message']['created'], reverse=True)]
             return users[:page * users_page_size]
-        else:
-            qs = qs.order_by(Lower('name'))
-            users = qs[(page-1) * messages_page_size:page * messages_page_size]
-        return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
 
 
 @database_sync_to_async
