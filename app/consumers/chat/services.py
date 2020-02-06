@@ -9,6 +9,7 @@ from consumers.chat.models import Message, ChatStarredUser
 from channels.db import database_sync_to_async
 
 from consumers.chat.serializers import MessageSerializer, UserChatSerializer
+from django.db.models.functions import Lower
 
 
 @database_sync_to_async
@@ -154,14 +155,13 @@ def get_paginated_support_messages(receiver, page):
     :param page: pagination page
     :return: queryset of messages
     """
-    page_size = 10
+    page_size = 20
     qs_key = receiver + '_support_messages'
 
     qs = Message.objects.filter(Q(receiver_id=receiver) | Q(sender_id=receiver), is_support=True)
     if page == 1:
         cache.set(qs_key, qs.reverse(), 86400)
     messages = cache.get(qs_key, Message.objects.none())[(page-1) * page_size:page * page_size]
-    messages.reverse()
     return MessageSerializer(instance=messages, many=True).data
 
 
@@ -226,7 +226,14 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             qs = qs.filter(sender_messages__is_read=False, sender_messages__receiver_id=uuid).distinct()
         elif _filter == 'starred':
             qs = qs.filter(user_stars__creator__pk=uuid).distinct()
-        if latest_messages != 'all':
+        if latest_messages == 'all':
+            """
+            Search user from all users
+            """
+            qs = qs.order_by(Lower('name'))
+            users = qs[(page - 1) * messages_page_size:page * messages_page_size]
+            return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
+        else:
             qs = qs.filter(
                 Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
                 Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
@@ -234,10 +241,6 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             users_data = UserChatSerializer(instance=qs, many=True, context={'user': uuid}).data
             users = [u for u in sorted(users_data, key=lambda item: item['latest_message']['created'], reverse=True)]
             return users[:page * users_page_size]
-        else:
-            qs = qs.order_by('name')
-            users = qs[(page-1) * messages_page_size:page * messages_page_size]
-        return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
 
 
 @database_sync_to_async

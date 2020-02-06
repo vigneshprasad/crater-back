@@ -535,8 +535,8 @@ async def test_consumer_get_support_chat_messages():
     response = await communicator.receive_json_from()
 
     assert len(response['results']) == 2
-    assert response['results'][0]['message'] == admin_message1['message']
-    assert response['results'][1]['message'] == admin_message2['message']
+    assert response['results'][0]['message'] == admin_message2['message']
+    assert response['results'][1]['message'] == admin_message1['message']
     await communicator.wait()
 
     user_message_data = await get_message_data(message=user_message['message'])
