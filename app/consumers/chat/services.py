@@ -227,6 +227,9 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
         elif _filter == 'starred':
             qs = qs.filter(user_stars__creator__pk=uuid).distinct()
         if latest_messages == 'all':
+            """
+            Search user from all users
+            """
             qs = qs.order_by(Lower('name'))
             users = qs[(page - 1) * messages_page_size:page * messages_page_size]
             return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
