@@ -9,6 +9,7 @@ from consumers.chat.models import Message, ChatStarredUser
 from channels.db import database_sync_to_async
 
 from consumers.chat.serializers import MessageSerializer, UserChatSerializer
+from django.db.models.functions import Lower
 
 
 @database_sync_to_async
@@ -234,7 +235,7 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             users = [u for u in sorted(users_data, key=lambda item: item['latest_message']['created'], reverse=True)]
             return users[:page * users_page_size]
         else:
-            qs = qs.order_by('name')
+            qs = qs.order_by(Lower('name'))
             users = qs[(page-1) * messages_page_size:page * messages_page_size]
         return UserChatSerializer(instance=users, many=True, context={'user': uuid}).data
 
