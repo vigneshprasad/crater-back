@@ -29,7 +29,7 @@ class ChatConsumer(ChatAuthConsumer):
             await self.channel_layer.group_send(str(user_id), {
                 'type': 'user_is_typing_to_user',
                 'receiver_id': self.user_id,
-                'admin_receiver_id': message.get('admin_receiver_id')
+                'admin_receiver_id': message.get('admin_receiver_id') if message else None
             })
 
     async def user_is_typing_to_user(self, event, *args, **kwargs):
