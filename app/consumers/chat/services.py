@@ -154,14 +154,13 @@ def get_paginated_support_messages(receiver, page):
     :param page: pagination page
     :return: queryset of messages
     """
-    page_size = 10
+    page_size = 20
     qs_key = receiver + '_support_messages'
 
     qs = Message.objects.filter(Q(receiver_id=receiver) | Q(sender_id=receiver), is_support=True)
     if page == 1:
         cache.set(qs_key, qs.reverse(), 86400)
     messages = cache.get(qs_key, Message.objects.none())[(page-1) * page_size:page * page_size]
-    messages.reverse()
     return MessageSerializer(instance=messages, many=True).data
 
 
