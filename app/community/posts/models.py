@@ -38,6 +38,13 @@ class File(models.Model):
         upload_to='posts/%Y/%m/%d',
         validators=[SizeValidator(size=512)]
     )
+    file = models.OneToOneField(
+        'users.CoverFile',
+        null=True,
+        verbose_name=_('Cover File'),
+        related_name='post_files',
+        on_delete=models.SET_NULL
+    )
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='files')
 
     class Meta:

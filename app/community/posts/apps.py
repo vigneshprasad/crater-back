@@ -6,3 +6,6 @@ class PostConfig(AppConfig):
     name = 'community.posts'
     icon_name = 'assignment'
     verbose_name = _('Post')
+
+    def ready(self):
+        import community.posts.signals
