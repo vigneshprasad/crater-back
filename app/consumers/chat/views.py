@@ -2,6 +2,7 @@ import copy
 import json
 
 from django.core.exceptions import ValidationError
+from django.db import DataError
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils.datastructures import MultiValueDictKeyError
@@ -82,6 +83,6 @@ class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
                     file=request.data['file'],
                     is_support=True
                 )
-        except (MultiValueDictKeyError, ValidationError, KeyError) as err:
+        except (MultiValueDictKeyError, ValidationError, KeyError, DataError) as err:
             return Response({'error': str(err)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
