@@ -18,6 +18,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
         required=False, child=FileField(max_length=None, use_url=True)
     )
     files_urls = serializers.SerializerMethodField()
+    files_data = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     my_like = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField()
@@ -35,6 +36,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'group',
             'files_base64',
             'files_urls',
+            'files_data',
             'files_formdata',
             'creator',
             'creator_name',
@@ -60,6 +62,16 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
     def get_my_like(self, post):
         return post.likes.filter(user=self.context['request'].user).exists()
+
+    @staticmethod
+    def get_files_data(post):
+        return [
+            {
+                'file': post_file.file.cover_transcoder,
+                'thumbnail': post_file.file.cover_thumbnail
+             }
+            for post_file in get_post_files(post) if post_file.file.file
+        ]
 
     @staticmethod
     def _create_post_files(files, post):
@@ -102,6 +114,7 @@ class LimitedPostSerializer(PostSerializer):
             'is_my_group',
             'files_base64',
             'files_urls',
+            'files_data',
             'files',
             'creator',
             'creator_name',

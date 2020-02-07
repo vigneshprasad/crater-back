@@ -10,11 +10,19 @@ from community.posts.models import Report, Post, File
 class FileAdmin(TabularInline):
     model = File
     extra = 0
-    fields = ('id', 'object')
-    readonly_fields = ('object',)
+    fields = ('id', 'object', 'thumbnail', 'cover')
+    readonly_fields = ('object', 'thumbnail', 'cover')
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def thumbnail(self, file):
+        if file.file:
+            return mark_safe('<a href="{}" target="_blank">{}</a>'.format(file.file.cover_thumbnail, _('Thumbnail')))
+
+    def cover(self, file):
+        if file.file:
+            return mark_safe('<a href="{}" target="_blank">{}</a>'.format(file.file.cover_transcoder, _('Transcoder')))
 
 
 @register(Post)
