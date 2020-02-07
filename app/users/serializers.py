@@ -441,8 +441,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def validate_cover(self, cover):
         user = self.context['request'].user
-        if cover not in user.cover_files.all():
-            raise serializers.ValidationError(_('Please use your cover file'))
+        if cover:
+            if cover not in user.cover_files.all():
+                raise serializers.ValidationError(_('Please use your cover file'))
         return cover
 
     @staticmethod
