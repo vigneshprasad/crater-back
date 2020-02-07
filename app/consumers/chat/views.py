@@ -69,9 +69,19 @@ class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
         try:
             receiver_id = request.data.get('receiver_id')
             if receiver_id:
-                msg = Message.objects.create(receiver_id=receiver_id, sender=request.user, file=request.data['file'])
+                msg = Message.objects.create(
+                    message=request.data.get('message', ''),
+                    receiver_id=receiver_id,
+                    sender=request.user,
+                    file=request.data['file']
+                )
             else:
-                msg = Message.objects.create(sender=request.user, file=request.data['file'], is_support=True)
+                msg = Message.objects.create(
+                    message=request.data('message', ''),
+                    sender=request.user,
+                    file=request.data['file'],
+                    is_support=True
+                )
         except (MultiValueDictKeyError, ValidationError, KeyError) as err:
             return Response({'error': str(err)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
