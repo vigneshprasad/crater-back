@@ -52,7 +52,7 @@
         let $users = document.querySelector('#users-block');
         let $chat = document.querySelector('#chat-log');
         let data = JSON.parse(e.data);
-        if (data['type'] === 'all_users') {
+        if (data['type'] === 'search_all_users') {
             $users.innerHTML = ''
             for (let result of data.results) {
               $users.innerHTML += `<hr><div id="${result.pk}" class="user-block" onclick='openUserChat("${result.pk}")' style="cursor:pointer;">${result.name} starred=${result.is_starred}</div>
