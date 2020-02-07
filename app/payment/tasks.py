@@ -11,7 +11,7 @@ from .models import Subscription
 
 
 @shared_task(name='charge_subscription_payment')
-def charge_subscription_payment(self, user_pk):
+def charge_subscription_payment(user_pk):
     from users.models import User
     try:
         user = User.objects.get(pk=user_pk)
@@ -45,7 +45,7 @@ def charge_subscription_payment(self, user_pk):
 
 
 @shared_task(name="check_subscription")
-def check_subscription(self):
+def check_subscription():
     date = timezone.now().date()
     subs = Subscription.objects.filter(date_end__lt=date, is_active=True, is_trial=True)
     subs.update(is_active=False)
@@ -65,7 +65,7 @@ def check_subscription(self):
 
 
 @shared_task(name="send_subs_warning_email")
-def send_subs_email(self):
+def send_subs_email():
     month_date = timezone.now() + relativedelta(months=1)
     two_weeks_date = timezone.now() + relativedelta(weeks=2)
     month_subs = Subscription.objects.filter(
