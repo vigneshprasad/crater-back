@@ -1,12 +1,13 @@
 import base64
 import binascii
+import uuid
 from mimetypes import guess_extension, guess_type
 
 import six
 from django.core.files.base import ContentFile
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import serializers
 from filefield_cache.widgets import CachedAdminFileWidget
+from rest_framework import serializers
 
 
 class Base64FileField(serializers.FileField):
@@ -38,8 +39,8 @@ class Base64FileField(serializers.FileField):
                     decoded_file = base64.b64decode(data)
                 except (TypeError, binascii.Error):
                     self.fail('invalid_file')
-
-                complete_file_name = f'freelance_file{file_extension}'
+                file_name = str(uuid.uuid4())
+                complete_file_name = f'{file_name}{file_extension}'
                 data = ContentFile(decoded_file, name=complete_file_name)
             except IndexError:
                 data = None

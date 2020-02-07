@@ -404,7 +404,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
 
-
     class Meta:
         model = models.Profile
         fields = (
