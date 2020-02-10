@@ -45,7 +45,8 @@ class MessageSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_filename(message):
-        return os.path.basename(message.file.name)
+        if message.file:
+            return os.path.basename(message.file.name)
 
     @staticmethod
     def get_file_format(message):
