@@ -238,6 +238,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     city = serializers.PrimaryKeyRelatedField(queryset=CityProxy.objects.all(), required=False)
     pan_card_base64 = Base64FileField(required=False, write_only=True)
+    pan_card_size = serializers.SerializerMethodField()
 
     class Meta:
         model = UserModel
@@ -258,7 +259,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'has_active_subscription',
             'active_subscription_membership',
             'pan_card',
-            'pan_card_base64'
+            'pan_card_base64',
+            'pan_card_size'
         )
         read_only_fields = (
             'full_registered',
@@ -270,7 +272,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'phone_number',
             'role',
             'has_active_subscription',
-            'active_subscription_membership'
+            'active_subscription_membership',
+            'pan_card_size'
         )
 
     def validate(self, attrs):
@@ -279,6 +282,11 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             attrs['pan_card'] = pan_card
         return attrs
 
+    @staticmethod
+    def get_pan_card_size(obj):
+        if obj.pan_card:
+            return obj.pan_card.size
+        return None
 
 class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
     new_password = serializers.CharField(
