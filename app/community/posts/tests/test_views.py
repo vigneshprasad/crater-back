@@ -74,8 +74,10 @@ class TestPostView(APITestCase):
         self.assertEqual(results['comments'], 0)
         self.assertEqual(results['latest_comments'], [])
 
-    @freeze_time("2020-01-01")
-    def test_get_post_from_chat(self):
+    @freeze_time('2020-01-01')
+    @mock.patch('utils.fields.uuid')
+    def test_get_post_from_chat(self, uuid):
+        uuid.uuid4.return_value = 'freelance_file'
         url = reverse('v1:community:post-list')
         response = self.client.post(
             reverse('v1:users:rest_login'), {'email': 'user@user.com', 'password': '123qaz123!A'}
@@ -97,7 +99,7 @@ class TestPostView(APITestCase):
         self.assertEqual(response.data['likes'], 0)
         self.assertEqual(response.data['comments'], 0)
         self.assertEqual(response.data['latest_comments'], [])
-        self.assertIn('testserver/media/posts/2020/01/01/freelance_file', response.data['files_urls'][0])
+        self.assertIn(f'testserver/media/posts/2020/01/01/freelance_file', response.data['files_urls'][0])
 
     def test_get_posts_from_closed_group_forbidden(self):
         Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
