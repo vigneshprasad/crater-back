@@ -70,7 +70,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
                 'file': post_file.file.cover_transcoder,
                 'thumbnail': post_file.file.cover_thumbnail
              }
-            for post_file in get_post_files(post) if post_file.file.file
+            for post_file in get_post_files(post) if post_file.file and post_file.file.file
         ]
 
     @staticmethod

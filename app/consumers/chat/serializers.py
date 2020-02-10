@@ -1,4 +1,5 @@
 import mimetypes
+import os
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -17,6 +18,7 @@ class MessageSerializer(serializers.ModelSerializer):
     receiver_id = serializers.CharField(source='receiver.pk', allow_null=True)
     created = serializers.SerializerMethodField()
     file_format = serializers.SerializerMethodField()
+    filename = serializers.SerializerMethodField()
     photo = serializers.CharField(source='sender.profile.photo.url', allow_null=True)
 
     class Meta:
@@ -24,6 +26,7 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = [
             'message',
             'file',
+            'filename',
             'file_format',
             'sender',
             'receiver',
@@ -39,6 +42,10 @@ class MessageSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_created(message):
         return message.created.astimezone(tz)
+
+    @staticmethod
+    def get_filename(message):
+        return os.path.basename(message.file.name)
 
     @staticmethod
     def get_file_format(message):

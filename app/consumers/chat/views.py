@@ -2,6 +2,7 @@ import copy
 import json
 
 from django.core.exceptions import ValidationError
+from django.db import DataError, IntegrityError
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils.datastructures import MultiValueDictKeyError
@@ -14,7 +15,6 @@ from consumers.chat.serializers import MessageSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-
 
 
 def index(request):
@@ -69,9 +69,19 @@ class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
         try:
             receiver_id = request.data.get('receiver_id')
             if receiver_id:
-                msg = Message.objects.create(receiver_id=receiver_id, sender=request.user, file=request.data['file'])
+                msg = Message.objects.create(
+                    message=request.data.get('message', ''),
+                    receiver_id=receiver_id,
+                    sender=request.user,
+                    file=request.data.get('file')
+                )
             else:
-                msg = Message.objects.create(sender=request.user, file=request.data['file'], is_support=True)
-        except (MultiValueDictKeyError, ValidationError, KeyError) as err:
+                msg = Message.objects.create(
+                    message=request.data.get('message', ''),
+                    sender=request.user,
+                    file=request.data.get('file'),
+                    is_support=True
+                )
+        except (MultiValueDictKeyError, ValidationError, KeyError, DataError, IntegrityError) as err:
             return Response({'error': str(err)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
