@@ -78,7 +78,7 @@ class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
                 )
             else:
                 msg = Message.objects.create(
-                    message=request.data('message', ''),
+                    message=request.data.get('message', ''),
                     sender=request.user,
                     file=request.data.get('file'),
                     is_support=True
