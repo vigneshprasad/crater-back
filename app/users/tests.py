@@ -395,7 +395,8 @@ class AuthTestCase(TestCase):
             'phone_number': '',
             'phone_number_verified': False,
             'role': 'user',
-            'pan_card': None
+            'pan_card': None,
+            'pan_card_size': None,
         }
         self.assertDictEqual(data, resp.json())
 
