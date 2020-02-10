@@ -195,7 +195,7 @@ class ChatConsumer(ChatAuthConsumer):
         messages = await get_paginated_support_messages(self.user_id, page=event.get('page', 1))
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         await self.send(text_data=json.dumps({
-            'type': 'get_messages',
+            'type': 'get_support_chat_messages',
             'results': results
         }))
 
@@ -317,7 +317,7 @@ class ChatConsumer(ChatAuthConsumer):
         messages = await get_paginated_support_messages(self.user_id, page=event.get('page', 1))
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         await self.send(text_data=json.dumps({
-            'type': 'get_messages',
+            'type': 'get_support_chat_messages',
             'results': results
         }))
 
