@@ -17,7 +17,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 
-
 def index(request):
     return render(request, 'chat/index.html', {})
 
