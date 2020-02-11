@@ -16,8 +16,11 @@ class ChatConsumer(ChatAuthConsumer):
         :param text_data: sent data by socket
         :param bytes_data: bytes data
         """
-        data = json.loads(text_data)
-        await getattr(self, data['type'])(data.get('message'), data.get('file'), data.get('filename'))
+        if self.user_id:
+            data = json.loads(text_data)
+            await getattr(self, data['type'])(data.get('message'), data.get('file'), data.get('filename'))
+        else:
+            await self.send_no_permissions()
 
     async def user_is_typing(self, message, *args, **kwargs):
         """
