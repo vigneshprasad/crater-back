@@ -40,7 +40,7 @@ class ChatAuthConsumer(AsyncWebsocketConsumer):
             'message': {'status_code': 401},
             'user': 'anonymous'
         }))
-        await self.close(code=401)
+        await self.close(code=1007)
 
     async def disconnect(self, close_code):
         try:
