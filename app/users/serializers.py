@@ -277,8 +277,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         )
 
     def validate(self, attrs):
-        pan_card = attrs.pop('pan_card_base64', None)
-        if pan_card:
+        if 'pan_card_base64' in attrs:
+            pan_card = attrs.pop('pan_card_base64', None)
             attrs['pan_card'] = pan_card
         return attrs
 
