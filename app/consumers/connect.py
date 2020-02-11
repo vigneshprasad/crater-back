@@ -1,5 +1,6 @@
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from jwt import InvalidAlgorithmError
 from kombu.utils import json
 
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
@@ -21,7 +22,7 @@ class ChatAuthConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
             await self.accept()
-        except (ValidationError, AuthenticationFailed) as v:
+        except (ValidationError, AuthenticationFailed, InvalidAlgorithmError) as v:
             await self.channel_layer.group_add('anonymous', 'anonymous')
             await self.accept()
             await self.send_no_permissions()
