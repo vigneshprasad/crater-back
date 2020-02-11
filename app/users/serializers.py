@@ -427,6 +427,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'focus',
             'additional_information',
             'instagram',
+            'instagram_username',
             'is_instagram_set',
             'twitter',
             'work_city',
@@ -456,12 +457,14 @@ class ProfileSerializer(serializers.ModelSerializer):
         return cover
 
     @staticmethod
-    def validate_instagram(instagram_code):
-        if instagram_code:
-            instagram_long_access_token = instagram_service.convert_code_to_long_access_token(instagram_code)
+    def validate_instagram(instagram_token):
+        if instagram_token:
+            instagram_long_access_token = instagram_service.convert_code_to_long_access_token(instagram_token)
+            if not instagram_long_access_token:
+                instagram_long_access_token = instagram_service.get_long_access_token(instagram_token)
             if not instagram_long_access_token:
                 raise serializers.ValidationError(
-                    _('Instagram code is not valid')
+                    _('Instagram token is not valid')
                 )
             return instagram_long_access_token
         return ''
