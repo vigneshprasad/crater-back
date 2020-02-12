@@ -63,6 +63,14 @@ class InstagramService:
         resp = requests.get('https://graph.instagram.com/me/media', params=data)
         return resp.json()['data']
 
+    @staticmethod
+    def get_user_info(long_access_token):
+        data = {
+            'fields': 'id,username,media_count',
+            'access_token': long_access_token
+        }
+        resp = requests.get('https://graph.instagram.com/me', params=data)
+        return resp.json()
 
 
 instagram_service = InstagramService(

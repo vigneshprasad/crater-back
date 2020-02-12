@@ -86,12 +86,17 @@ class PostViewSet(ModelViewSet):
     @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
             serializer_class=EmptySerializer, queryset=User.objects.all())
     def instagram(self, request, pk):
-        data = []
+        data = {}
         try:
             u = User.objects.get(pk=pk)
             if u.has_profile and u.profile.instagram:
                 try:
-                    data = instagram_service.get_medias(u.profile.instagram)
+                    media_data = instagram_service.get_medias(u.profile.instagram)
+                    user_data = instagram_service.get_user_info(u.profile.instagram)
+                    data = {
+                        'user': user_data,
+                        'data': media_data
+                    }
                 except Exception:
                     pass
         except User.DoesNotExist:
