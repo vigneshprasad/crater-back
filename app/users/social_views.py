@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from users.appleid.views import AppleOAuth2Adapter
 from .mixins import CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin
-from .serializers import SocialLoginSerializer
+from .serializers import SocialLoginSerializer, ConnectSerializer
 
 
 class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
@@ -90,18 +90,22 @@ class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailM
 
 class GoogleConnect(SocialConnectView):
     adapter_class = GoogleOAuth2Adapter
+    serializer_class = ConnectSerializer
 
 
 class FacebookConnect(SocialConnectView):
     adapter_class = FacebookOAuth2Adapter
+    serializer_class = ConnectSerializer
 
 
 class LinkedinConnect(SocialConnectView):
     adapter_class = LinkedInOAuth2Adapter
+    serializer_class = ConnectSerializer
 
 
 class AppleConnect(SocialConnectView):
     adapter_class = AppleOAuth2Adapter
+    serializer_class = ConnectSerializer
 
 
 class SocialAccountDisconnectView(DisconnectView):

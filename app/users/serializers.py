@@ -498,6 +498,17 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
         return email.lower()
 
 
+class ConnectSerializer(register_serializers.SocialConnectSerializer):
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        user = self.context['request'].user
+        if attrs['user'] != user:
+            raise serializers.ValidationError(
+                _('User with that social account already registered')
+            )
+        return attrs
+
 class NewPhoneNumberSerializer(serializers.ModelSerializer):
     phone_number = PhoneNumberField(required=False, allow_blank=False, allow_null=False)
 
