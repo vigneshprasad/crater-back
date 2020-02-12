@@ -57,6 +57,7 @@ class QuotePreferenceSerializer(serializers.ModelSerializer):
 class QuoteSerializer(serializers.ModelSerializer):
     buyer_name = serializers.SerializerMethodField()
     seller_name = serializers.SerializerMethodField()
+    seller_photo = serializers.FileField(source='seller.profile.photo', allow_null=True, read_only=True)
     service_data = ServiceSerializer(read_only=True, source='service')
     attachments = AttachmentSerializer(many=True)
     answers = AnswerSerializer(many=True)
@@ -72,6 +73,7 @@ class QuoteSerializer(serializers.ModelSerializer):
             'buyer_name',
             'seller',
             'seller_name',
+            'seller_photo',
             'service',
             'service_data',
             'attachments',
@@ -90,7 +92,8 @@ class QuoteSerializer(serializers.ModelSerializer):
             'require',
             'title',
             'status',
-            'order_pk'
+            'order_pk',
+            'created'
         ]
         read_only_fields = [
             'buyer',
@@ -106,6 +109,7 @@ class QuoteSerializer(serializers.ModelSerializer):
             'includes',
             'additional_text',
             'require',
+            'created'
         ]
 
     @staticmethod
