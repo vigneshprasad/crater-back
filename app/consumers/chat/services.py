@@ -70,7 +70,7 @@ def get_user_data(user_id):
         user = get_user_model().objects.get(pk=user_id)
         if hasattr(user, 'profile'):
             return {
-                'photo': user.profile.photo.url,
+                'photo': user.profile.photo.url if hasattr(user.profile, 'photo') else None,
                 'introduction': user.profile.introduction,
                 'additional_information': user.profile.additional_information,
             }
