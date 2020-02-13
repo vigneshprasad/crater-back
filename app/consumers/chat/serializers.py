@@ -19,7 +19,7 @@ class MessageSerializer(serializers.ModelSerializer):
     created = serializers.SerializerMethodField()
     file_format = serializers.SerializerMethodField()
     filename = serializers.SerializerMethodField()
-    photo = serializers.CharField(source='sender.profile.photo.url', allow_null=True)
+    photo = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -51,6 +51,14 @@ class MessageSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_file_format(message):
         return mimetypes.guess_type(message.file.name)[0] if message.file else None
+
+    @staticmethod
+    def get_photo(message):
+        try:
+            if hasattr(message.sender, 'profile') and hasattr(message.sender.profile, 'photo'):
+                return message.sender.profile.photo.url
+        except ValueError:
+            return
 
 
 class UserChatSerializer(serializers.ModelSerializer):
