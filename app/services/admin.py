@@ -60,6 +60,13 @@ class ServiceAdmin(ViewActionMixin, ModelAdmin):
     list_display = ('service_type', 'status', 'user', 'action')
     list_filter = ['status']
     search_fields = ['user__email', 'service_type__name']
+    readonly_fields = (
+        'user', 'service_type', 'price_type', 'price', 'timeline', 'revision', 'includes', 'attachments', 'questions',
+        'rating'
+    )
+
+    def has_add_permission(self, request):
+        return False
 
 
 @register(ServiceType)
