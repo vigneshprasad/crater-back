@@ -8,12 +8,14 @@ class CommentSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer)
     request_user = 'creator'
     creator_name = serializers.CharField(source='creator.name', read_only=True)
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
+    creator_id = serializers.ImageField(source='creator.pk', read_only=True)
 
     class Meta:
         model = Comment
         fields = (
             'pk',
             'message',
+            'creator_id',
             'creator_name',
             'creator_photo',
             'creator',
