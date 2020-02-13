@@ -23,7 +23,7 @@ class TransactionViewSet(mixins.RetrieveModelMixin,
         return self.request.user.transactions.exclude(order__isnull=True).exclude(status='refund')
 
     @action(
-        methods=['post'],
+        methods=['get'],
         serializer_class=serializers.TransactionStatisticSerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=False
