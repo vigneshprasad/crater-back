@@ -264,8 +264,8 @@ class ChatConsumer(ChatAuthConsumer):
                 uuid=self.user_id,
             )
             results = json.loads(JSONRenderer().render(users).decode('utf8'))
-        except ValueError:
-            results = []
+        except ValueError as error:
+            results = str(error)
         await self.send(text_data=json.dumps({
             'type': 'search_all_users' if latest_message == 'all' else 'all_users',
             'results': results

@@ -34,6 +34,7 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"scenario-projects.com*",
     r"https://[a-zA-Z-]+.scenario-projects.com*",
     r"^https://localhost[:0-9]*",
+    r"^http://*",
 ]
 
 EMAIL_BACKEND = "djrill.mail.backends.djrill.DjrillBackend"
