@@ -205,11 +205,13 @@ class FundingRequestSerializer(serializers.ModelSerializer):
             'buyer_name',
             'attachments',
             'answers',
-            'status'
+            'status',
+            'created'
         ]
         read_only_fields = [
             'buyer',
-            'status'
+            'status',
+            'created'
         ]
 
     @staticmethod
