@@ -56,6 +56,7 @@ class QuotePreferenceSerializer(serializers.ModelSerializer):
 
 class QuoteSerializer(serializers.ModelSerializer):
     buyer_name = serializers.SerializerMethodField()
+    buyer_photo = serializers.FileField(source='buyer.profile.photo', allow_null=True, read_only=True)
     seller_name = serializers.SerializerMethodField()
     seller_photo = serializers.FileField(source='seller.profile.photo', allow_null=True, read_only=True)
     service_data = ServiceSerializer(read_only=True, source='service')
@@ -71,6 +72,7 @@ class QuoteSerializer(serializers.ModelSerializer):
             'pk',
             'buyer',
             'buyer_name',
+            'buyer_photo',
             'seller',
             'seller_name',
             'seller_photo',
