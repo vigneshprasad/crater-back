@@ -9,6 +9,7 @@ from community.comments.paginators import CommentPagination
 from community.comments.serializers import CommentSerializer
 from community.comments.services import get_comments
 from community.comments.models import Comment
+from community.posts.models import Post
 from community.posts.services import get_post
 
 
@@ -26,7 +27,7 @@ class CommentViewSet(mixins.CreateModelMixin, DestroyModelMixin, GenericViewSet)
     def post(self, request, pk):
         try:
             queryset = self.filter_queryset(get_post(pk).comments.all()[2:])
-        except Comment.DoesNotExist:
+        except (Comment.DoesNotExist, Post.DoesNotExist):
             raise NotFound
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
