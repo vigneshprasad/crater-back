@@ -5,9 +5,7 @@ from resources.events.serializers import EventSerializer
 
 
 def get_datetime_now():
-    now = datetime.now()
-    now = now.strftime('%m/%d/%Y, %H:%M:%S')
-    return datetime.strptime(now, '%m/%d/%Y, %H:%M:%S')
+    return datetime.now()
 
 
 def set_going_event():
