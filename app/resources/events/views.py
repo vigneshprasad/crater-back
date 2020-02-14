@@ -36,7 +36,6 @@ class RSVPDViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericVie
 
     def destroy(self, request, *args, **kwargs):
         self.kwargs['pk'] = get_event_pk_by_participant(kwargs['pk'], request.user.pk)
-        print(self.kwargs['pk'])
         return super().destroy(request, *args, **kwargs)
 
 
