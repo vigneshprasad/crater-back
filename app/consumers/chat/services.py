@@ -69,8 +69,13 @@ def get_user_data(user_id):
     try:
         user = get_user_model().objects.get(pk=user_id)
         if hasattr(user, 'profile'):
+            photo = None
+            try:
+                photo = user.profile.photo.url
+            except ValueError:
+                pass
             return {
-                'photo': user.profile.photo.url if hasattr(user.profile, 'photo') else None,
+                'photo': photo,
                 'introduction': user.profile.introduction,
                 'additional_information': user.profile.additional_information,
             }
