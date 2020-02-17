@@ -43,7 +43,7 @@
     chatSocket.onmessage = function(e) {
         let $chat = document.querySelector('#chat-log');
         let data = JSON.parse(e.data);
-        if (data['type'] === 'get_support_chat_messages') {
+        if (data['type'] === 'get_support_chat_messages' || data['type'] === 'get_support_chat_user_messages') {
             for (let result of data.results) {
                $chat.value += (JSON.stringify(result) + '\n\n');
             }
