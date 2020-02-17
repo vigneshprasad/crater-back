@@ -2,9 +2,24 @@
 
 import django.db.models.deletion
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.db import migrations, models
 
 import users.managers
+
+
+def createsuperuser(apps, schema_editor):
+    users = apps.get_model('users', 'Admin')
+    db_alias = schema_editor.connection.alias
+    users.objects.using(db_alias).get_or_create(
+        email='admin@admin.com',
+        username='Admin',
+        is_superuser=True,
+        is_active=True,
+        is_staff=True,
+        name='Super User',
+        password=make_password('123qaz123!A'),
+    )
 
 
 class Migration(migrations.Migration):
@@ -31,5 +46,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='user',
             name='is_support',
-        )
+        ),
+        migrations.RunPython(createsuperuser, reverse_code=migrations.RunPython.noop),
     ]

@@ -75,7 +75,7 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = 'verified_user'
 
     form = AdminCreationForm
-    list_display = ('name', 'email', 'is_superuser', 'group', 'action')
+    list_display = ('name', 'email', 'is_superuser', 'is_active', 'group', 'action')
     list_filter = ('is_superuser', GroupNameAdminFilter)
     search_fields = ('name', 'email')
     list_editable = ('name', 'is_superuser')
