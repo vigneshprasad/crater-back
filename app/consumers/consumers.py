@@ -254,6 +254,7 @@ class ChatConsumer(ChatAuthConsumer):
         Get all users to user chat
         :param event: message event data
         """
+        errors = None
         latest_message = event.get('latest_messages')
         try:
             users = await get_paginated_users(
@@ -265,10 +266,12 @@ class ChatConsumer(ChatAuthConsumer):
             )
             results = json.loads(JSONRenderer().render(users).decode('utf8'))
         except ValueError as error:
-            results = str(error)
+            errors = str(error)
+            results = []
         await self.send(text_data=json.dumps({
             'type': 'search_all_users' if latest_message == 'all' else 'all_users',
-            'results': results
+            'results': results,
+            'errors': errors
         }))
 
     async def star_user(self, event, *args, **kwargs):
@@ -303,12 +306,13 @@ class ChatConsumer(ChatAuthConsumer):
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         user_data = await get_user_data(self.receiver_id)
         await self.send(text_data=json.dumps({
-            'type': 'get_messages',
+            'type': 'get_user_messages',
             'results': results,
             'user': self.receiver_id,
             'photo': user_data.get('photo'),
             'introduction': user_data.get('introduction'),
             'additional_information': user_data.get('additional_information'),
+            'name': user_data.get('name'),
         }))
 
     async def set_admin_chat(self, event, *args, **kwargs):
@@ -320,7 +324,7 @@ class ChatConsumer(ChatAuthConsumer):
         messages = await get_paginated_support_messages(self.user_id, page=event.get('page', 1))
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         await self.send(text_data=json.dumps({
-            'type': 'get_support_chat_messages',
+            'type': 'get_support_chat_user_messages',
             'results': results
         }))
 

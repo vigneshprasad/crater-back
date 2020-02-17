@@ -22,7 +22,6 @@ services:
 
   app:
     container_name: freelance_app
-    restart: on-failure
     build:
       context: .
     ports:
