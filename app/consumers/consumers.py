@@ -309,6 +309,7 @@ class ChatConsumer(ChatAuthConsumer):
             'photo': user_data.get('photo'),
             'introduction': user_data.get('introduction'),
             'additional_information': user_data.get('additional_information'),
+            'name': user_data.get('name'),
         }))
 
     async def set_admin_chat(self, event, *args, **kwargs):
