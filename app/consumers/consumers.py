@@ -303,7 +303,7 @@ class ChatConsumer(ChatAuthConsumer):
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         user_data = await get_user_data(self.receiver_id)
         await self.send(text_data=json.dumps({
-            'type': 'get_messages',
+            'type': 'get_user_messages',
             'results': results,
             'user': self.receiver_id,
             'photo': user_data.get('photo'),
