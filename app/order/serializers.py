@@ -194,6 +194,7 @@ class FundingRequestSerializer(serializers.ModelSerializer):
     investor_name = serializers.SerializerMethodField()
     attachments = AttachmentSerializer(many=True)
     answers = AnswerSerializer(many=True)
+    investor_process = serializers.CharField(source='investor.investor_services_info.process', read_only=True)
 
     class Meta:
         model = models.FundingRequest
@@ -201,12 +202,14 @@ class FundingRequestSerializer(serializers.ModelSerializer):
             'pk',
             'investor',
             'investor_name',
+            'investor_process',
             'buyer',
             'buyer_name',
             'attachments',
             'answers',
             'status',
-            'created'
+            'created',
+            'comments'
         ]
         read_only_fields = [
             'buyer',

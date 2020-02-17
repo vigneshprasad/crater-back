@@ -325,6 +325,11 @@ class FundingRequest(TimeStampedModel):
     order_field = models.IntegerField(
         default=1
     )
+    comments = models.TextField(
+        max_length=800,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = _('Funding Request')
