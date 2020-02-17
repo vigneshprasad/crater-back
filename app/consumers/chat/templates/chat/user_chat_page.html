@@ -58,7 +58,7 @@
               $users.innerHTML += `<hr><div id="${result.pk}" class="user-block" onclick='openUserChat("${result.pk}")' style="cursor:pointer;">${result.name} starred=${result.is_starred}</div>
               <button onclick='starUser("${result.pk}")'>Star</button><button onclick='unStarUser("${result.pk}")'>Unstar</button><hr>`
             }
-        } else if (data['type'] === 'get_messages') {
+        } else if (data['type'] === 'get_messages' || data['type'] === 'get_user_messages') {
           let data = JSON.parse(e.data);
           $chat.innerHTML = '';
           for (let result of data.results) {
