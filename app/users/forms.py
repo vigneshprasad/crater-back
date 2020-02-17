@@ -20,7 +20,7 @@ class GroupMixin:
 
 class GroupModelChoiceField(forms.ModelChoiceField):
     def prepare_value(self, value):
-        return super().prepare_value(value[0] if isinstance(value, list) else value)
+        return super().prepare_value(value[0] if value and isinstance(value, list) else value)
 
 
 class AdminCreationForm(GroupMixin, UserCreationForm):
@@ -30,7 +30,7 @@ class AdminCreationForm(GroupMixin, UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ('name', 'email', 'is_staff', 'groups', 'is_superuser')
+        fields = ('name', 'email', 'is_staff', 'groups', 'is_superuser', 'is_active')
         widgets = {
             'groups': forms.Select(),
         }
