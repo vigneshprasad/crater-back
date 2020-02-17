@@ -28,7 +28,8 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             'all': ('css/stacked-full-width.css',)
         }
 
-    list_action_text = _("View profile")
+    list_action_text = _('View profile')
+    list_display_links = ('action', 'name')
     edit_icon = 'launch'
     icon_name = 'person'
     list_display = ('name', 'email', 'group', 'date_joined', 'status', 'is_active', 'action')
