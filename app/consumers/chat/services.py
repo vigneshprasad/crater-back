@@ -77,6 +77,7 @@ def get_user_data(user_id):
             return {
                 'photo': photo,
                 'introduction': user.profile.introduction,
+                'name': user.name,
                 'additional_information': user.profile.additional_information,
             }
     except get_user_model().DoesNotExist:

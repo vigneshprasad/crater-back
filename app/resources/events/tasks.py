@@ -4,7 +4,7 @@ from datetime import timedelta
 from resources.events.services import set_past_events, set_going_event
 
 
-@periodic_task(run_every=timedelta(minutes=10))
+@periodic_task(run_every=timedelta(minutes=5))
 def expire_events():
     set_going_event()
     set_past_events()

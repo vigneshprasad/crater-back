@@ -412,6 +412,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     cover_thumbnail = serializers.CharField(source='cover.cover_thumbnail', read_only=True, allow_null=True)
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
+    is_cover_video = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Profile
@@ -436,7 +437,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'tag_list',
             'public_profile',
             'cover_thumbnail',
-            'cover_transcoder'
+            'cover_transcoder',
+            'is_cover_video'
         )
         extra_kwargs = {
             'tags': {'write_only': True},
@@ -446,7 +448,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'cover_thumbnail',
             'cover_transcoder',
             'cover_file',
-            'is_instagram_set'
+            'is_instagram_set',
+            'is_cover_video'
         )
 
     def validate_cover(self, cover):
@@ -468,6 +471,15 @@ class ProfileSerializer(serializers.ModelSerializer):
                 )
             return instagram_long_access_token
         return ''
+
+    @staticmethod
+    def get_is_cover_video(obj):
+        if obj.cover:
+            cover_file = obj.cover.file
+            ext = cover_file.url.strip('.')[1]
+            if ext in ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']:
+                return True
+        return False
 
 
 class LogoutSerializer(serializers.Serializer):
