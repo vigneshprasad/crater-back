@@ -254,6 +254,7 @@ class ChatConsumer(ChatAuthConsumer):
         Get all users to user chat
         :param event: message event data
         """
+        errors = None
         latest_message = event.get('latest_messages')
         try:
             users = await get_paginated_users(
@@ -265,10 +266,12 @@ class ChatConsumer(ChatAuthConsumer):
             )
             results = json.loads(JSONRenderer().render(users).decode('utf8'))
         except ValueError as error:
-            results = str(error)
+            errors = str(error)
+            results = []
         await self.send(text_data=json.dumps({
             'type': 'search_all_users' if latest_message == 'all' else 'all_users',
-            'results': results
+            'results': results,
+            'errors': errors
         }))
 
     async def star_user(self, event, *args, **kwargs):
