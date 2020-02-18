@@ -33,7 +33,17 @@ class AttachmentSerializer(serializers.ModelSerializer):
         ]
 
     def get_files_urls(self, obj):
-        return [self.context['request'].build_absolute_uri(file.file.url) for file in obj.files.all()]
+        try:
+            return [
+                {
+                    'url': self.context['request'].build_absolute_uri(file.file.url),
+                    'size': file.file.size
+                }
+
+                for file in obj.files.all()
+            ]
+        except:
+            return []
 
 
 class QuotePreferenceSerializer(serializers.ModelSerializer):
