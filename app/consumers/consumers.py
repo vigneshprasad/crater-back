@@ -256,9 +256,10 @@ class ChatConsumer(ChatAuthConsumer):
         """
         errors = None
         latest_message = event.get('latest_messages')
+        page = int(event.get('page', 1))
         try:
             users = await get_paginated_users(
-                page=int(event.get('page', 1)),
+                page=page,
                 search=event.get('search'),
                 _filter=event.get('filter'),
                 latest_messages=latest_message,
@@ -270,6 +271,7 @@ class ChatConsumer(ChatAuthConsumer):
             results = []
         await self.send(text_data=json.dumps({
             'type': 'search_all_users' if latest_message == 'all' else 'all_users',
+            'page': page,
             'results': results,
             'errors': errors
         }))
