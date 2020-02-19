@@ -12,6 +12,7 @@ ORDER_STATUS_CHOICES = (
     ('pending', _('Pending')),
     ('canceled', _('Canceled')),
     ('accepted', _('Accepted')),
+    ('done', _('Done')),
     ('complete', _('Complete')),
 )
 
