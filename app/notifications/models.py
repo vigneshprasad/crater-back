@@ -142,10 +142,9 @@ class Notification(TimeStampedModel):
     def obj_pk(self):
         if not self.obj_type:
             return None
-
         pk_data = {
             'post': self.post_id if self.post else None,
-            'comment': self.comment_id if self.comment else None,
+            'comment': self.comment.post_id if self.comment else None,
             'event': self.event_id if self.event else None,
             'article': self.article_id if self.article else None,
             'master_class': self.master_class_id if self.master_class else None
