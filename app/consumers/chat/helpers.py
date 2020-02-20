@@ -102,15 +102,19 @@ class MessageHelper:
             'message_id': message.pk,
             'created': str(message.created.astimezone(tz).strftime('%Y-%m-%dT%H:%M:%S.%f+05:30')),
             'sender': message.sender.name,
-            'sender_photo': message.sender.profile.photo.url if cls._has_profile_photo(message) else None,
+            'sender_photo': cls._get_profile_photo(message),
             'sender_id': str(message.sender.pk),
             'receiver': message.receiver.name if message.receiver else None,
             'receiver_id': str(message.receiver.pk) if message.receiver else None
         }
 
     @staticmethod
-    def _has_profile_photo(message):
-        return hasattr(message.sender, 'profile') and hasattr(message.sender.profile, 'photo')
+    def _get_profile_photo(message):
+        try:
+            if hasattr(message.sender, 'profile') and hasattr(message.sender.profile, 'photo'):
+                return message.sender.profile.photo.url
+        except ValueError:
+            return None
 
     @staticmethod
     def _get_user_ids(uuid):
