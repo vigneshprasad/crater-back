@@ -106,8 +106,8 @@ class Notification(TimeStampedModel):
         text_data = {
             'post': self.post.message if self.post else None,
             'comment': self.comment.message if self.comment else None,
-            'event': self.event.text if self.event else None,
-            'article': self.article.text if self.article else None,
+            'event': self.event.title if self.event else None,
+            'article': self.article.title if self.article else None,
             'master_class': self.master_class.description if self.master_class else None
         }
         return text_data.get(self.obj_type, None)
