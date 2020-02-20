@@ -476,7 +476,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_is_cover_video(obj):
         if obj.cover:
             cover_file = obj.cover.file
-            ext = cover_file.url.strip('.')[1]
+            ext = cover_file.url.split('.')[-1]
             if ext in ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']:
                 return True
         return False
