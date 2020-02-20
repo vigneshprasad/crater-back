@@ -88,6 +88,9 @@ class ChatAdmin(ModelAdmin):
 
     @staticmethod
     def _get_photo(request, user):
-        if hasattr(user, 'profile') and user.profile.photo:
-            return request.build_absolute_uri(user.profile.photo.url)
+        try:
+            if hasattr(user, 'profile') and user.profile.photo:
+                return request.build_absolute_uri(user.profile.photo.url)
+        except ValueError:
+            pass
         return staticfiles('admin/logo.jpg')
