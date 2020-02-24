@@ -1,3 +1,4 @@
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.fields import FileField
 
@@ -25,6 +26,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     is_reported = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     latest_comments = serializers.SerializerMethodField()
+    message = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     creator_name = serializers.CharField(read_only=True, source='creator.name')
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
 
@@ -49,6 +51,14 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'comments',
             'latest_comments'
         )
+
+    def validate(self, data):
+        """
+        Check that message or attachment exists in post
+        """
+        if not data.get('message') and not data.get('files_base64') and not data.get('files_formdata'):
+            raise serializers.ValidationError(_('Message or attachment is required'))
+        return data
 
     def create(self, validated_data):
         files_json = validated_data.pop('files_base64', [])
