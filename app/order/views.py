@@ -185,6 +185,25 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
+        serializer_class=serializers.EmptySerializer,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=True
+    )
+    def done(self, request, pk):
+        queryset = self.get_queryset().filter(status='accepted')
+        context = self.get_serializer_context()
+        try:
+            instance = queryset.get(pk=pk)
+            instance.status = 'done'
+            instance.save()
+        except models.Order.DoesNotExist:
+            raise NotFound
+        return Response(
+            serializers.OrderSerializer(instance, **{'context': context}).data
+        )
+
+    @action(
+        methods=['post'],
         serializer_class=serializers.AttachCompletedFileSerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
@@ -192,7 +211,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
     def attach(self, request, pk):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        queryset = self.get_queryset().filter(status='accepted')
+        queryset = self.get_queryset().filter(status__in=['accepted', 'done'])
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
@@ -200,6 +219,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
             if not file:
                 file = serializer.validated_data.get('completed_file_base64', None)
             instance.completed_file = file
+            instance.status = 'done'
             instance.save()
         except models.Order.DoesNotExist:
             raise NotFound

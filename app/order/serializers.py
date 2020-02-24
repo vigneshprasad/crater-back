@@ -33,7 +33,17 @@ class AttachmentSerializer(serializers.ModelSerializer):
         ]
 
     def get_files_urls(self, obj):
-        return [self.context['request'].build_absolute_uri(file.file.url) for file in obj.files.all()]
+        try:
+            return [
+                {
+                    'url': self.context['request'].build_absolute_uri(file.file.url),
+                    'size': file.file.size
+                }
+
+                for file in obj.files.all()
+            ]
+        except:
+            return []
 
 
 class QuotePreferenceSerializer(serializers.ModelSerializer):
@@ -194,6 +204,7 @@ class FundingRequestSerializer(serializers.ModelSerializer):
     investor_name = serializers.SerializerMethodField()
     attachments = AttachmentSerializer(many=True)
     answers = AnswerSerializer(many=True)
+    investor_process = serializers.CharField(source='investor.investor_services_info.process', read_only=True)
 
     class Meta:
         model = models.FundingRequest
@@ -201,12 +212,14 @@ class FundingRequestSerializer(serializers.ModelSerializer):
             'pk',
             'investor',
             'investor_name',
+            'investor_process',
             'buyer',
             'buyer_name',
             'attachments',
             'answers',
             'status',
-            'created'
+            'created',
+            'comments'
         ]
         read_only_fields = [
             'buyer',

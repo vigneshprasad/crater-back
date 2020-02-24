@@ -325,6 +325,11 @@ class FundingRequest(TimeStampedModel):
     order_field = models.IntegerField(
         default=1
     )
+    comments = models.TextField(
+        max_length=800,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = _('Funding Request')
@@ -347,8 +352,9 @@ def funding_request_pre_save(sender, instance,  *args, **kwargs):
 def order_pre_save(sender, instance,  *args, **kwargs):
     order_dict = {
         'pending': 1,
-        'accepted': 2,
+        'accepted': 1,
         'complete': 3,
+        'done': 3,
         'canceled': 4,
         'created': 1
     }

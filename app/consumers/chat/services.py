@@ -219,7 +219,10 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
             """
             Exclude all users with messages to consumer user and do not have and unread message
             """
-            qs = qs.filter(sender_messages__receiver_id=uuid).distinct()
+            qs = qs.filter(
+                Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
+                Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
+            ).distinct()
             for user in qs:
                 for message in user.sender_messages.all():
                     if message.receiver and str(message.receiver.pk) == str(uuid) and not message.is_read:
