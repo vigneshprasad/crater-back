@@ -21,6 +21,7 @@ class CategoryViewSet(mixins.RetrieveModelMixin,
 class ProfessionalsViewSet(mixins.ListModelMixin,
                            mixins.RetrieveModelMixin,
                            viewsets.GenericViewSet):
+    # TODO temporary ignore filter by bank details
     queryset = User.objects.filter(
         is_active=True,
         is_approved=True,
