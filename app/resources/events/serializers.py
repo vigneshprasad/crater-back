@@ -16,6 +16,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = (
             'pk',
+            'created',
             'title',
             'address',
             'text',

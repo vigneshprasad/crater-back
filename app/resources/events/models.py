@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
+from model_utils.models import TimeStampedModel
 
 from locations.models import City
 from notifications.models import Notification, UserNotification
@@ -14,7 +15,7 @@ from tags.models import EventTag
 from users.models import User
 
 
-class Event(models.Model):
+class Event(TimeStampedModel):
     """
     Resources events created by admins
     """
