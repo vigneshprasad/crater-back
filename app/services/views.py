@@ -25,7 +25,7 @@ class ProfessionalsViewSet(mixins.ListModelMixin,
         is_active=True,
         is_approved=True,
         user_services_info__generate_business=True,
-        bank_details__membership='premium',
+        # bank_details__membership='premium',
         services__isnull=False,
         services__status='approved',
         profile__public_profile=True
