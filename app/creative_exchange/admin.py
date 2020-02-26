@@ -36,6 +36,9 @@ class ExchangeAdmin(ViewActionMixin, admin.ModelAdmin):
         queryset.update(is_deleted=True)
     mark_as_deleted.short_description = _('Mark selected items as deleted')
 
+    def get_queryset(self, request):
+        return models.ExchangeRequest.objects.select_related('user', 'category').prefetch_related('quotes').all()
+
 
 @register(models.ExchangeCategory)
 class ExchangeCategoryAdmin(admin.ModelAdmin):
