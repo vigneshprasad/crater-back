@@ -20,4 +20,4 @@ class MasterClassAdmin(ViewActionMixin, ModelAdmin):
         ]))
 
     def get_queryset(self, request):
-        return MasterClass.objects.select_related('tag').all()
+        return MasterClass.objects.prefetch_related('tags').all()
