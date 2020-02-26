@@ -10,9 +10,12 @@ class Pagination(PageNumberPagination):
     page_size_query_param = 'page_size'
 
     def get_paginated_response(self, data):
+        pages = math.ceil(
+            self.page.paginator.count / int(self.request.query_params.get(self.page_size_query_param, self.page_size))
+        )
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
-            ('pages', math.ceil(self.page.paginator.count/self.page_size)),
+            ('pages', pages),
             ('next', self.get_next_link()),
             ('previous', self.get_previous_link()),
             ('results', data)
