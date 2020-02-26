@@ -1,3 +1,5 @@
+from django.core.exceptions import FieldError
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -5,6 +7,7 @@ from rest_framework.response import Response
 
 from order.serializers import EmptySerializer
 from . import models, serializers, paginators
+from .schema import batch_notification_read
 
 
 class UserNotificationSettingsViesSet(mixins.ListModelMixin,
@@ -63,3 +66,19 @@ class NotificationViewSet(mixins.ListModelMixin,
         return Response(
             serializers.NotificationSerializer(instance, **{'context': context}).data
         )
+
+    @swagger_auto_schema(request_body=batch_notification_read)
+    @action(
+        methods=['post'],
+        serializer_class=serializers.NotificationSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=False
+    )
+    def read_all(self, request):
+        queryset = self.get_queryset()
+        try:
+            filter_dict = {f'notification__{request.data["type"]}__isnull': False}
+            instances = queryset.filter(**filter_dict).update(is_read=True)
+        except (FieldError, KeyError):
+            raise NotFound
+        return Response({'updated': instances})
