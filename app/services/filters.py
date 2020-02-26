@@ -10,6 +10,7 @@ class ProfessionalFilter(filters.FilterSet):
     category = filters.NumberFilter(method='category_filter')
     followers_from = filters.NumberFilter(field_name='user_services_info__followers', lookup_expr='gte')
     followers_to = filters.NumberFilter(field_name='user_services_info__followers', lookup_expr='lte')
+    rating = filters.NumberFilter(lookup_expr='gte')
 
     class Meta:
         model = User
