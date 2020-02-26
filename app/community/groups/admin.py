@@ -48,7 +48,7 @@ class LocationAdmin(SortableAdminMixin, ViewActionMixin, ModelAdmin):
 class GroupAdmin(ViewActionMixin, ModelAdmin):
     edit_icon = 'launch'
     list_display = ('name', 'location', 'amount_of_users', 'action')
-    readonly_fields = ('name', 'location')
+    readonly_fields = ('name',)
     inlines = [UserRequestInline]
     list_filter = ('location__name',)
     search_fields = ('name',)
