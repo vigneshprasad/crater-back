@@ -34,7 +34,7 @@ class ChatAdmin(ModelAdmin):
         context = self._get_context(request)
         context['users'] = self._get_users(request, uuid)
         context['active_user'] = self._get_active_user(request, uuid)
-        context['messages'] = Message.objects.filter(is_support=True).filter(Q(sender=uuid) | Q(receiver=uuid))
+        context['messages'] = Message.objects.select_related('sender').filter(is_support=True).filter(Q(sender=uuid) | Q(receiver=uuid))
         context['uuid'] = uuid
         context['token'] = jwt_encode_handler(jwt_payload_handler(request.user))
         read_admin_messages_for_user.delay(uuid)
@@ -52,7 +52,7 @@ class ChatAdmin(ModelAdmin):
 
     @classmethod
     def _get_users(cls, request, uuid=None):
-        qs = Message.objects.filter(
+        qs = Message.objects.select_related('sender').filter(
                 is_support=True, receiver__isnull=True
             ).exclude(sender_id=uuid).order_by('sender_id', '-created').distinct('sender')
         messages = [
@@ -76,7 +76,7 @@ class ChatAdmin(ModelAdmin):
 
     @classmethod
     def _get_active_user(cls, request, uuid):
-        message = Message.objects.filter(sender_id=uuid).last()
+        message = Message.objects.select_related('sender').filter(sender_id=uuid).last()
         if not message:
             raise Http404()
         return {

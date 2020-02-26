@@ -40,6 +40,9 @@ class LocationAdmin(SortableAdminMixin, ViewActionMixin, ModelAdmin):
             return mark_safe('<i class="material-icons red-color medium-icon">highlight_off</i>')
         return ', '.join([group.name for group in location.groups.all()])
 
+    def get_queryset(self, request):
+        return Location.objects.prefetch_related('groups').all()
+
 
 @register(Group)
 class GroupAdmin(ViewActionMixin, ModelAdmin):
@@ -54,6 +57,9 @@ class GroupAdmin(ViewActionMixin, ModelAdmin):
     def amount_of_users(group):
         return f'{group.group_users.count()}({group.group_users.filter(is_approved=True).count()})'
     amount_of_users.short_description = _('Amount of users')
+
+    def get_queryset(self, request):
+        return Group.objects.prefetch_related('group_users').all()
 
 
 @register(UserRequest)
