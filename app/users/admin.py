@@ -42,11 +42,11 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             'fields': (('is_active', 'groups'), ('is_approved', 'is_service_approved'),),
         }),
         ('User Data', {
-            'fields': (('name', 'email'), ('city', 'phone_number'), ('referer', 'phone_number_verified')),
+            'fields': (('name', 'email'), ('city', 'phone_number'), ('referer', 'phone_number_verified'), 'rating'),
         }),
     )
     autocomplete_fields = ['city']
-    readonly_fields = ['referer']
+    readonly_fields = ['referer', 'rating']
     inlines = [ProfileAdmin]
 
     @staticmethod
