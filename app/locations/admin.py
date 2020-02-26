@@ -30,3 +30,6 @@ class CountryAdmin(ModelAdmin):
         if not country.city_set.exists():
             return mark_safe('<i class="material-icons red-color medium-icon">highlight_off</i>')
         return ', '.join([city.name for city in country.city_set.all()])
+
+    def get_queryset(self, request):
+        return Country.objects.prefetch_related('city_set').all()

@@ -18,3 +18,6 @@ class MasterClassAdmin(ViewActionMixin, ModelAdmin):
         return mark_safe(' '.join([
             '<span class="new badge" data-badge-caption="{}"></span>'.format(tag.name) for tag in masterclass.tags.all()
         ]))
+
+    def get_queryset(self, request):
+        return MasterClass.objects.select_related('tag').all()

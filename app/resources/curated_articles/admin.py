@@ -38,4 +38,4 @@ class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
         return mark_safe(f'<a href="{curated_article.website_tag.url}">{curated_article.website_tag.url}</a>')
 
     def get_queryset(self, request):
-        return CuratedArticle.objects.select_related('website_tag').all()
+        return CuratedArticle.objects.select_related('website_tag', 'tag').all()

@@ -24,6 +24,9 @@ class RSVPDAdmin(TabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def get_queryset(self, request):
+        return RSVPD.objects.select_related('user').all()
+
 
 @register(Event)
 class EventAdmin(ViewActionMixin, ModelAdmin):

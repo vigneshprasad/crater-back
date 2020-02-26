@@ -49,3 +49,6 @@ class OrderAdmin(ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+    def get_queryset(self, request):
+        return Order.objects.select_related('service', 'quote', 'buyer', 'seller').all()
