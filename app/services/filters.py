@@ -21,6 +21,7 @@ class ProfessionalFilter(filters.FilterSet):
             'followers_to',
             'category',
             'city',
+            'rating',
             'user_services_info__industries',
             'user_services_info__services__service_type'
 
