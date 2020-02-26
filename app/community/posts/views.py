@@ -41,8 +41,10 @@ class PostViewSet(ModelViewSet):
             group = get_group(pk=pk)
         except Group.DoesNotExist:
             raise NotFound
-        context = self.get_serializer_context()
-        return Response(self.serializer_class(group.posts.all(), many=True, **{'context': context}).data)
+
+        page = self.paginate_queryset(group.posts.all())
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         methods=['get'], permission_classes=[IsAuthenticated], detail=False, pagination_class=None, filter_backends=None

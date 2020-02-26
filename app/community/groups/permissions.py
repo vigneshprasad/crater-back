@@ -9,6 +9,9 @@ class GroupPermission(BasePermission):
     Allows access authorized user to the group.
     """
     def has_permission(self, request, view):
+        if request.user.is_superuser:
+            return True
+
         group_ids = request.user.user_groups.filter(is_approved=True).values_list('group', flat=True)
         return int(view.kwargs['pk']) in group_ids
 
