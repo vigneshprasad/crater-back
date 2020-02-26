@@ -36,3 +36,6 @@ class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
         if not curated_article.website_tag or not curated_article.website_tag.url:
             return mark_safe('<i class="material-icons red-color medium-icon">highlight_off</i>')
         return mark_safe(f'<a href="{curated_article.website_tag.url}">{curated_article.website_tag.url}</a>')
+
+    def get_queryset(self, request):
+        return CuratedArticle.objects.select_related('website_tag').all()
