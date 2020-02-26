@@ -343,7 +343,8 @@ class RefererEmailView(APIView):
                 data = {
                     email: {
                         'key': encrypted_uuid.decode("ascii"),
-                        'user': str(request.user)
+                        'user': str(request.user),
+                        'front_url': settings.FRONT_URL
                     }
                 }
                 send_email.delay(
