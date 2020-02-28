@@ -69,20 +69,24 @@ class InvestorServicesViewSet(mixins.ListModelMixin,
                               mixins.RetrieveModelMixin,
                               viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.InvestorServicesSerializer
-    queryset = InvestorServiceInfo.objects.select_related('user').filter(
-        user__is_active=True,
-        user__is_approved=True,
-        user__groups__name='Investor',
-        # user__bank_details__isnull=False,
-        user__investor_services_info__isnull=False,
-        user__investor_services_info__reach_out=True,
-        user__profile__public_profile=True
+    serializer_class = serializers.ProfessionalSerializer
+    pagination_class = Pagination
+    queryset = User.objects.filter(
+        is_active=True,
+        is_approved=True,
+        groups__name='Investor',
+        # bank_details__isnull=False,
+        investor_services_info__isnull=False,
+        investor_services_info__reach_out=True,
+        profile__public_profile=True
     ).distinct()
 
     def get_object(self):
+        self.serializer_class = serializers.InvestorServicesSerializer
         queryset = self.filter_queryset(self.get_queryset())
         try:
-            return queryset.get(user__pk=self.kwargs['pk'])
+            user = queryset.get(pk=self.kwargs['pk'])
+            if hasattr(user, 'investor_services_info') and user.investor_services_info:
+                return user.investor_services_info
         except User.DoesNotExist:
             raise NotFound
