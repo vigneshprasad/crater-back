@@ -19,6 +19,7 @@ class ProfileAdmin(admin.StackedInline):
     model = Profile
     form = ProfileForm
     autocomplete_fields = ['work_city']
+    readonly_fields = ['cover']
 
 
 @admin.register(get_user_model())
@@ -59,7 +60,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
         return _('Pending')
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(is_superuser=False, is_staff=False)
+        return super().get_queryset(request).prefetch_related('groups').filter(is_superuser=False, is_staff=False)
 
     @staticmethod
     def group(user):
