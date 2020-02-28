@@ -619,7 +619,7 @@ class AuthTestCase(TestCase):
         result.pop('uuid')
         cover_file_url = result.pop('cover_file')
         self.assertTrue(cover_file_url)
-        data.update({'cover_transcoder': None, 'cover_thumbnail': None})
+        data.update({'cover_transcoder': None, 'cover_thumbnail': []})
         self.assertDictEqual(data, result)
 
     @patch('utils.transcoder_service.TranscoderService.create_file_transcoder_job', autospec=True)
