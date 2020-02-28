@@ -75,10 +75,11 @@ class UserChatSerializer(serializers.ModelSerializer):
 
     def get_latest_message(self, user):
         request_user = self.context['user']
-        return MessageSerializer(
-            instance=Message.objects.filter(
-                Q(receiver=user, sender=request_user) | Q(receiver=request_user, sender=user), is_support=False).last()
-        ).data
+        message = Message.objects.filter(
+                Q(receiver=user, sender=request_user) | Q(receiver=request_user, sender=user), is_support=False
+        ).last()
+        if message:
+            return MessageSerializer(instance=message).data
 
     def get_photo(self, user):
         try:
