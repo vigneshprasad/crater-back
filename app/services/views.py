@@ -6,7 +6,6 @@ from rest_framework.filters import OrderingFilter
 from users.models import User
 from . import models, serializers
 from .filters import ProfessionalFilter
-from .models import InvestorServiceInfo
 from .paginators import Pagination
 
 

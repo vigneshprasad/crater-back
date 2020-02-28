@@ -409,7 +409,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     )
     tag_list = TagSerializer(source='tags', many=True, read_only=True)
     work_city_name = serializers.CharField(source='work_city.name', read_only=True)
-    cover_thumbnail = serializers.CharField(source='cover.cover_thumbnail', read_only=True, allow_null=True)
+    cover_thumbnail = serializers.SerializerMethodField()
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
     is_cover_video = serializers.SerializerMethodField()
@@ -480,6 +480,10 @@ class ProfileSerializer(serializers.ModelSerializer):
             if ext in ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']:
                 return True
         return False
+
+    @staticmethod
+    def get_cover_thumbnail(self, profile):
+        return profile.cover_thumbnail or profile.cover_file
 
 
 class LogoutSerializer(serializers.Serializer):
