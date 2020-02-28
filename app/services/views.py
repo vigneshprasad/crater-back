@@ -80,6 +80,8 @@ class InvestorServicesViewSet(mixins.ListModelMixin,
         investor_services_info__reach_out=True,
         profile__public_profile=True
     ).distinct()
+    filter_backends = (filters.DjangoFilterBackend, OrderingFilter)
+    filterset_class = ProfessionalFilter
 
     def get_object(self):
         self.serializer_class = serializers.InvestorServicesSerializer
