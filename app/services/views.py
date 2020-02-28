@@ -6,6 +6,7 @@ from rest_framework.filters import OrderingFilter
 from users.models import User
 from . import models, serializers
 from .filters import ProfessionalFilter
+from .models import InvestorServiceInfo
 from .paginators import Pagination
 
 
@@ -69,21 +70,19 @@ class InvestorServicesViewSet(mixins.ListModelMixin,
                               viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.InvestorServicesSerializer
-    queryset = User.objects.filter(
-        is_active=True,
-        is_approved=True,
-        groups__name='Investor',
-        bank_details__isnull=False,
-        investor_services_info__isnull=False,
-        investor_services_info__reach_out=True,
-        profile__public_profile=True
+    queryset = InvestorServiceInfo.objects.select_related('user').filter(
+        user__is_active=True,
+        user__is_approved=True,
+        user__groups__name='Investor',
+        # user__bank_details__isnull=False,
+        user__investor_services_info__isnull=False,
+        user__investor_services_info__reach_out=True,
+        user__profile__public_profile=True
     ).distinct()
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         try:
-            user = queryset.get(pk=self.kwargs['pk'])
-            if hasattr(user, 'investor_services_info') and user.investor_services_info:
-                return user.investor_services_info
+            return queryset.get(user__pk=self.kwargs['pk'])
         except User.DoesNotExist:
             raise NotFound
