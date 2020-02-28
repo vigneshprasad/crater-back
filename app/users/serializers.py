@@ -409,10 +409,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     )
     tag_list = TagSerializer(source='tags', many=True, read_only=True)
     work_city_name = serializers.CharField(source='work_city.name', read_only=True)
-    cover_thumbnail = serializers.SerializerMethodField()
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
     is_cover_video = serializers.SerializerMethodField()
+    cover_thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Profile
@@ -482,7 +482,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return False
 
     @staticmethod
-    def get_cover_thumbnail(self, profile):
+    def get_cover_thumbnail(profile):
         return profile.cover_thumbnail or profile.cover_file
 
 
