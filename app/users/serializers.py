@@ -484,7 +484,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_cover_thumbnail(profile):
         if profile.cover:
-            return profile.cover.cover_thumbnail or profile.cover.file
+            return profile.cover.cover_thumbnail or profile.cover.file.url
 
 
 class LogoutSerializer(serializers.Serializer):
