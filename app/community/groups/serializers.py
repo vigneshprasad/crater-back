@@ -8,6 +8,7 @@ class GroupSerializer(serializers.ModelSerializer):
     is_my = serializers.SerializerMethodField()
     is_requested = serializers.SerializerMethodField()
     location_name = serializers.CharField(source='location.name')
+    location_pk = serializers.CharField(source='location.pk', read_only=True)
 
     class Meta:
         model = Group
@@ -18,7 +19,8 @@ class GroupSerializer(serializers.ModelSerializer):
             'is_requested',
             'cover',
             'icon',
-            'location_name'
+            'location_name',
+            'location_pk'
         )
 
     def get_is_my(self, group):
