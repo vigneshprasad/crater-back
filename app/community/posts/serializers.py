@@ -123,6 +123,7 @@ class LimitedPostSerializer(PostSerializer):
             'pk',
             'message',
             'group',
+            'group_name',
             'is_my_group',
             'files_base64',
             'files_urls',
