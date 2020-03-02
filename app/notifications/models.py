@@ -98,7 +98,7 @@ class Notification(TimeStampedModel):
         elif self.master_class:
             return 'master_class'
         return None
-
+       
     @property
     def text(self):
         if not self.obj_type:

@@ -29,6 +29,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     message = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     creator_name = serializers.CharField(read_only=True, source='creator.name')
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True, allow_null=True)
 
     class Meta:
         model = Post
@@ -36,6 +37,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'pk',
             'message',
             'group',
+            'group_name',
             'files_base64',
             'files_urls',
             'files_data',
