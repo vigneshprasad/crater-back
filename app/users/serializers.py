@@ -412,7 +412,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
     is_cover_video = serializers.SerializerMethodField()
-    cover_thumbnail = serializers.SerializerMethodField()
+    cover_thumbnail = serializers.CharField(source='cover.cover_thumbnail', read_only=True, allow_null=True)
 
     class Meta:
         model = models.Profile
@@ -481,10 +481,13 @@ class ProfileSerializer(serializers.ModelSerializer):
                 return True
         return False
 
-    @staticmethod
-    def get_cover_thumbnail(profile):
+    @classmethod
+    def get_cover_thumbnail(cls, profile):
         if profile.cover:
-            return profile.cover.cover_thumbnail or profile.cover.file.url
+            if profile.cover.cover_thumbnail:
+                return profile.cover.cover_thumbnail
+            if cls.get_is_cover_video(profile):
+                return profile.cover.file.url
 
 
 class LogoutSerializer(serializers.Serializer):
