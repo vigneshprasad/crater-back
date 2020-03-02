@@ -412,7 +412,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
     is_cover_video = serializers.SerializerMethodField()
-    cover_thumbnail = serializers.CharField(source='cover.cover_thumbnail', read_only=True, allow_null=True)
+    cover_thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Profile
