@@ -13,17 +13,23 @@ class FollowingFilterBackend(BaseFilterBackend):
                 required=False,
                 type='string',
                 description='Filter Posts'
-            )
+            ),
+            coreapi.Field(
+                name='following',
+                location='query',
+                required=False,
+                type='boolean',
+                description='Filter Posts by following'
+            ),
         ]
 
     def filter_queryset(self, request, queryset, *args, **kwargs):
-        if not request.query_params.get('tag'):
-            return queryset
-
-        if 'following' == request.query_params['tag']:
+        if 'following' == request.query_params.get('tag') or request.query_params.get('following') == 'true':
             following = Following.objects.filter(follower=request.user).values_list('followed', flat=True)
-            return queryset.filter(creator__in=following)
-        return queryset.filter(creator__profile__tags=request.query_params['tag'])
+            queryset = queryset.filter(creator__in=following)
+        if request.query_params.get('tag'):
+            queryset = queryset.filter(creator__profile__tags=request.query_params['tag'])
+        return queryset
 
 
 class BlockersFilterBackend(BaseFilterBackend):
