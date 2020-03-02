@@ -486,7 +486,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         if profile.cover:
             if profile.cover.cover_thumbnail:
                 return profile.cover.cover_thumbnail
-            if cls.get_is_cover_video(profile):
+            if not cls.get_is_cover_video(profile):
                 return profile.cover.file.url
 
 
