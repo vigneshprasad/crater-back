@@ -38,6 +38,20 @@ class UserRequestViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet
         )
         return Response(serializer.data)
 
+    @action(
+        methods=['get'],
+        permission_classes=[IsAuthenticated],
+        serializer_class=GroupSerializer,
+        detail=True
+    )
+    def approved(self, request, pk):
+        is_approved = Group.objects.prefetch_related('group_users').filter(
+            pk=pk,
+            group_users__user=request.user,
+            group_users__is_approved=True
+        ).exists()
+        return Response({'approved': is_approved})
+
 
 class BlockViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     serializer_class = BlockSerializer
