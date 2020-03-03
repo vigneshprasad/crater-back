@@ -145,14 +145,19 @@ class LimitedPostSerializer(PostSerializer):
 
 class LikeSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     request_user = 'user'
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Like
         fields = (
             'pk',
             'post',
-            'user'
+            'user',
+            'like_count'
         )
+
+    def get_like_count(self, like):
+        return like.post.likes.count()
 
 
 class ReportSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
