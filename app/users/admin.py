@@ -116,9 +116,6 @@ class ReferralAdmin(ViewActionMixin, admin.ModelAdmin):
         link = f'<a href="{href}">{referral.user.referer.name}</a>'
         return mark_safe(link)
 
-    def has_delete_permission(self, request, obj=None):
-        return False
-
     def has_add_permission(self, request):
         return False
 
