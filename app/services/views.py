@@ -30,7 +30,7 @@ class ProfessionalsViewSet(mixins.ListModelMixin,
         services__isnull=False,
         services__status='approved',
         profile__public_profile=True
-    ).distinct()
+    ).distinct().order_by('profile__name')
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = Pagination
     serializer_class = serializers.ProfessionalSerializer
