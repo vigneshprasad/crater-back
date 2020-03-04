@@ -1,15 +1,15 @@
+import base64
+
+from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.core.files.base import ContentFile
 from django.db import IntegrityError
 from django.db.models import Q
-from django.core.cache import cache
-
-import base64
-from django.core.files.base import ContentFile
-from consumers.chat.models import Message, ChatStarredUser
-from channels.db import database_sync_to_async
-
-from consumers.chat.serializers import MessageSerializer, UserChatSerializer
 from django.db.models.functions import Lower
+
+from consumers.chat.models import Message, ChatStarredUser
+from consumers.chat.serializers import MessageSerializer, UserChatSerializer
 
 
 @database_sync_to_async
@@ -282,3 +282,72 @@ def unstar_user(creator, user):
     pk = str(starred.user.pk)
     starred.delete()
     return pk
+
+
+@database_sync_to_async
+def get_user_count(page=1, search=None, _filter=None, latest_messages=None, uuid=None):
+    """
+    Returns paginated user data
+    :param page: pagination page
+    :param search: search users by name
+    :param _filter: filter users by all, read messages, unread messages, starred
+    :param latest_messages: show the users with no chat messages
+    :param uuid: request user pk
+    :return: count for filtered and search qs
+    """
+    qs = get_user_model().objects.prefetch_related('sender_messages', 'receiver_messages').filter(
+        is_active=True, is_staff=False, is_superuser=False, groups__name__in=['User', 'Investor']
+    ).exclude(pk=uuid)
+    if qs:
+        if search:
+            qs = qs.filter(name__icontains=search)
+        if _filter == 'read':
+            """
+            Exclude all users with messages to consumer user and do not have and unread message
+            """
+            qs = qs.filter(
+                Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
+                Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
+            ).distinct()
+            for user in qs:
+                for message in user.sender_messages.all():
+                    if message.receiver and str(message.receiver.pk) == str(uuid) and not message.is_read:
+                        qs = qs.exclude(pk=user.pk)
+                        break
+        elif _filter == 'unread':
+            """
+            Exclude all users with messages to consumer user and who has al least one unread message
+            """
+            qs = qs.filter(sender_messages__is_read=False, sender_messages__receiver_id=uuid).distinct()
+        elif _filter == 'starred':
+            qs = qs.filter(user_stars__creator__pk=uuid).distinct()
+        if latest_messages == 'all':
+            """
+            Search user from all users
+            """
+            qs = qs.order_by(Lower('name'))
+            return qs.count()
+        else:
+            qs = qs.filter(
+                Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
+                Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
+            ).distinct()
+            users_data = UserChatSerializer(instance=qs, many=True, context={'user': uuid}).data
+            users = [u for u in sorted(users_data, key=lambda item: item['latest_message']['created'], reverse=True)]
+            return len(users)
+
+
+@database_sync_to_async
+def get_user_messages_count(sender, receiver, page):
+    """
+    Returns paginated messages for user get help page
+    :param sender: sender
+    :param receiver: receiver
+    :param page: page
+    :return: queryset count
+    """
+    qs = Message.objects.filter(
+        Q(receiver_id=sender, sender_id=receiver) | Q(receiver_id=receiver, sender_id=sender),
+        is_support=False
+    )
+    return qs.count()

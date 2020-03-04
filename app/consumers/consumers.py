@@ -1,11 +1,13 @@
 import json
+import math
+
 from rest_framework.renderers import JSONRenderer
 
-from consumers.connect import ChatAuthConsumer
 from consumers.chat.services import create_message, get_paginated_support_messages, \
     get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \
     unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids, is_starred, \
-    get_latest_message, get_user_data
+    get_latest_message, get_user_data, get_user_count, get_user_messages_count
+from consumers.connect import ChatAuthConsumer
 
 
 class ChatConsumer(ChatAuthConsumer):
@@ -265,13 +267,22 @@ class ChatConsumer(ChatAuthConsumer):
                 latest_messages=latest_message,
                 uuid=self.user_id,
             )
+            count = await get_user_count(
+                page=page,
+                search=event.get('search'),
+                _filter=event.get('filter'),
+                latest_messages=latest_message,
+                uuid=self.user_id,
+            )
             results = json.loads(JSONRenderer().render(users).decode('utf8'))
         except ValueError as error:
             errors = str(error)
             results = []
+            count = 0
         await self.send(text_data=json.dumps({
             'type': 'search_all_users' if latest_message == 'all' else 'all_users',
             'page': page,
+            'pages': math.ceil(count/20),
             'results': results,
             'errors': errors
         }))
@@ -305,11 +316,14 @@ class ChatConsumer(ChatAuthConsumer):
         """
         self.receiver_id = event['user']
         messages = await get_paginated_user_messages(sender=self.user_id, receiver=self.receiver_id, page=event['page'])
+        messages_count = await get_user_messages_count(sender=self.user_id, receiver=self.receiver_id, page=event['page'])
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         user_data = await get_user_data(self.receiver_id)
         await self.send(text_data=json.dumps({
             'type': 'get_user_messages',
             'results': results,
+            'page': event['page'],
+            'pages': math.ceil(messages_count/20),
             'user': self.receiver_id,
             'photo': user_data.get('photo'),
             'introduction': user_data.get('introduction'),

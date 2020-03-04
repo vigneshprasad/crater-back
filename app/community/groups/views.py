@@ -88,4 +88,4 @@ class FollowViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericVi
             follow.delete()
         except Following.DoesNotExist:
             raise NotFound
-        return Response(status=status.HTTP_204_NO_CONTENT, data=data)
+        return Response(status=status.HTTP_200_OK, data=data)
