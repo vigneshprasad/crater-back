@@ -10,7 +10,7 @@ from community.groups.models import Group
 from community.groups.permissions import GroupPermission, GroupPostPermission
 from community.groups.services import get_group, get_followers_count
 from community.posts.filter_backends import FollowingFilterBackend, BlockersFilterBackend, UserTagFilterBackend
-from community.posts.models import Like, Report
+from community.posts.models import Like, Report, Post
 from community.posts.paginators import PostPagination
 from community.posts.permissions import PostPermission
 from community.posts.serializers import PostSerializer, LikeSerializer, ReportSerializer, LimitedPostSerializer
@@ -30,6 +30,17 @@ class PostViewSet(ModelViewSet):
     pagination_class = PostPagination
     permission_classes = (IsAuthenticated, PostPermission)
     filter_backends = (FollowingFilterBackend, BlockersFilterBackend, UserTagFilterBackend)
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = Post.objects.get(pk=kwargs['pk'])
+        except Post.DoesNotExist:
+            raise NotFound
+        groups = request.user.user_groups.filter(is_approved=True).values_list('group', flat=True)
+        if instance.group and instance.group.pk not in groups:
+            raise NotFound
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @action(
         methods=['get'],

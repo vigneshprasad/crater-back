@@ -116,6 +116,15 @@ class TestPostView(APITestCase):
         response = self.client.get(f'{url}group/', format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_get_post_detail_from_group(self):
+        post = Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
+        UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=True)
+        url = reverse('v1:community:post-detail', kwargs={'pk': post.pk})
+        self.client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(self.token))
+        response = self.client.get(f'{url}', format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('pk', response.json())
+
     def test_get_posts_from_group_not_approved_by_admin(self):
         Post.objects.create(message='Test message', creator=self.user, group=self.community_group)
         UserRequest.objects.create(user=self.user, group=self.community_group, is_approved=False)
