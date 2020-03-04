@@ -1,5 +1,5 @@
-from rest_framework.filters import BaseFilterBackend
 import coreapi
+from rest_framework.filters import BaseFilterBackend
 
 from community.groups.models import Following, Block
 
@@ -21,14 +21,23 @@ class FollowingFilterBackend(BaseFilterBackend):
                 type='boolean',
                 description='Filter Posts by following'
             ),
+            coreapi.Field(
+                name='tags',
+                location='query',
+                required=False,
+                type='string',
+                description='Filter post by user tag'
+            ),
         ]
 
     def filter_queryset(self, request, queryset, *args, **kwargs):
-        if 'following' == request.query_params.get('tag') or request.query_params.get('following') == 'true':
+        tag = request.query_params['tag']
+        tags = request.query_params.get('tags')
+        if 'following' == tag or request.query_params.get('following') == 'true':
             following = Following.objects.filter(follower=request.user).values_list('followed', flat=True)
             queryset = queryset.filter(creator__in=following)
-        if request.query_params.get('tag'):
-            queryset = queryset.filter(creator__profile__tags=request.query_params['tag'])
+        if tags:
+            queryset = queryset.filter(creator__profile__tags=tags.split(','))
         return queryset
 
 
