@@ -63,7 +63,7 @@ class User(AbstractUser):
         'users.User',
         verbose_name=_('Referer'),
         related_name='referrals',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True
     )
     is_staff = models.BooleanField(

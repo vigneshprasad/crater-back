@@ -128,10 +128,13 @@ class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericView
         """
         post = get_post(kwargs['pk'])
         try:
-            Like.objects.get(post=post, user=request.user).delete()
+            like = Like.objects.get(post=post, user=request.user)
+            like_data = self.serializer_class(like).data
+            like_data['like_count'] = like_data['like_count'] - 1
+            like.delete()
+            return Response(like_data)
         except Like.DoesNotExist:
             raise NotFound
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ReportViewSet(mixins.CreateModelMixin, GenericViewSet):

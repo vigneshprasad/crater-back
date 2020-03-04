@@ -222,7 +222,7 @@ class TestLikeView(APITestCase):
 
         like_detail = reverse('v1:community:like-detail', args=(post.id,))
         response = self.client.delete(like_detail)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         url = reverse('v1:community:post-detail', args=(post.id,))
         response = self.client.get(url, format='json')
