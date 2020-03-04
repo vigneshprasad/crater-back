@@ -38,7 +38,7 @@ class FollowingFilterBackend(BaseFilterBackend):
             queryset = queryset.filter(creator__in=following)
         if tags:
             queryset = queryset.filter(creator__profile__tags__in=tags.split(','))
-        return queryset
+        return queryset.distinct()
 
 
 class BlockersFilterBackend(BaseFilterBackend):
