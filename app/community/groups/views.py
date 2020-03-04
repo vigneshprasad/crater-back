@@ -79,9 +79,13 @@ class FollowViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericVi
         """
         Delete followed user by follower
         """
+        data = {}
         try:
             followed = get_followed_user(kwargs['pk'])
-            Following.objects.get(followed=followed, follower=request.user).delete()
+            follow = Following.objects.get(followed=followed, follower=request.user)
+            # Front end developers requirements. Can`t do anything without this data
+            data = self.get_serializer(follow).data
+            follow.delete()
         except Following.DoesNotExist:
             raise NotFound
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT, data=data)
