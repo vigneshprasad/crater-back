@@ -31,7 +31,7 @@ class FollowingFilterBackend(BaseFilterBackend):
         ]
 
     def filter_queryset(self, request, queryset, *args, **kwargs):
-        tag = request.query_params['tag']
+        tag = request.query_params.get('tag')
         tags = request.query_params.get('tags')
         if 'following' == tag or request.query_params.get('following') == 'true':
             following = Following.objects.filter(follower=request.user).values_list('followed', flat=True)
