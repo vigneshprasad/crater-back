@@ -37,7 +37,7 @@ class FollowingFilterBackend(BaseFilterBackend):
             following = Following.objects.filter(follower=request.user).values_list('followed', flat=True)
             queryset = queryset.filter(creator__in=following)
         if tags:
-            queryset = queryset.filter(creator__profile__tags=tags.split(','))
+            queryset = queryset.filter(creator__profile__tags__in=tags.split(','))
         return queryset
 
 
