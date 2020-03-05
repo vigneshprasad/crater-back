@@ -50,7 +50,11 @@ class UserRequestViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet
             group_users__user=request.user,
             group_users__is_approved=True
         ).exists()
-        return Response({'approved': is_approved})
+        is_requested = Group.objects.prefetch_related('group_users').filter(
+            pk=pk,
+            group_users__user=request.user,
+        ).exists()
+        return Response({'approved': is_approved, 'requested': is_requested})
 
 
 class BlockViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
