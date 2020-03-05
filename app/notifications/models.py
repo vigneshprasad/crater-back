@@ -75,10 +75,10 @@ class Notification(TimeStampedModel):
         'comment': 'post_comments'
     }
     PUSH_MESSAGE_DICT = {
-        'event': _('New event posted'),
-        'article': _('New article posted'),
-        'master_class': _('New master class posted'),
-        'comment': _('New comment posted')
+        'event': _('You have been invited to an event'),
+        'article': _('A new article has been shared'),
+        'master_class': _('A new video has been shared'),
+        'comment': _('{username} commented on your post')
     }
 
     class Meta:
@@ -189,11 +189,15 @@ def user_notification_post_save(sender, instance,  created, *args, **kwargs):
                 instance.notification.PUSH_PERMISSION_DICT.get(instance.notification.obj_type)
             )
         else:
-            send = True
+            send = False
         if send:
             from .serializers import PushNotificationSerializer
             data = PushNotificationSerializer(instance).data
+            try:
+                username = instance.notification.comment.creator.profile.name
+            except Exception:
+                username = ''
             instance.user.send_push(
-                message=instance.notification.message(),
+                message=instance.notification.message().format(username=username),
                 data=data
             )
