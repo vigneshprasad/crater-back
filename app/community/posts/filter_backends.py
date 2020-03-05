@@ -20,24 +20,16 @@ class FollowingFilterBackend(BaseFilterBackend):
                 required=False,
                 type='boolean',
                 description='Filter Posts by following'
-            ),
-            coreapi.Field(
-                name='tags',
-                location='query',
-                required=False,
-                type='string',
-                description='Filter post by user tag'
-            ),
+            )
         ]
 
     def filter_queryset(self, request, queryset, *args, **kwargs):
         tag = request.query_params.get('tag')
-        tags = request.query_params.get('tags')
         if 'following' == tag or request.query_params.get('following') == 'true':
             following = Following.objects.filter(follower=request.user).values_list('followed', flat=True)
             queryset = queryset.filter(creator__in=following)
-        if tags:
-            queryset = queryset.filter(creator__profile__tags__in=tags.split(','))
+        if tag and tag != 'following':
+            queryset = queryset.filter(creator__profile__tags=tag)
         return queryset.distinct()
 
 

@@ -94,3 +94,23 @@ def post_post_save(sender, instance,  created, *args, **kwargs):
         users = users.exclude(pk=instance.creator.pk)
         for user in users:
             UserNotification.objects.create(user=user, notification=notification)
+
+
+@receiver(post_save, sender=Like)
+def like_notification_post_save(sender, instance,  created, *args, **kwargs):
+    if created:
+        if instance.post.creator:
+            send = instance.post.creator.notification_settings.post_likes
+            if send:
+                from .serializers import LikeSerializer
+                data = LikeSerializer(instance).data
+                data['obj_type'] = 'like'
+                data['obj_pk'] = data['pk']
+                try:
+                    username = instance.user.profile.name
+                except Exception:
+                    username = ''
+                instance.post.creator.send_push(
+                    message=_('{username} liked your post').format(username=username),
+                    data=data
+                )

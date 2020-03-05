@@ -2,6 +2,8 @@ import os
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
@@ -65,3 +67,23 @@ class ChatStarredUser(models.Model):
 
 class Chat(models.Model):
     proxy = True
+
+
+@receiver(post_save, sender=Message)
+def user_notification_post_save(sender, instance,  created, *args, **kwargs):
+    if created:
+        if instance.receiver and not instance.is_support:
+            send = instance.receiver.notification_settings.messages
+            if send:
+                from .serializers import MessageSerializer
+                data = MessageSerializer(instance).data
+                data['obj_type'] = 'message'
+                data['obj_pk'] = data['pk']
+                try:
+                    username = instance.sender.profile.name
+                except Exception:
+                    username = ''
+                instance.receiver.send_push(
+                    message=_('You have received a message from {username}').format(username=username),
+                    data=data
+                )
