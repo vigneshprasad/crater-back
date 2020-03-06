@@ -80,7 +80,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             {
                 'file': post_file.file.cover_transcoder,
                 'thumbnail': post_file.file.cover_thumbnail
-                             or self.context['request'].build_absolute_uri(file.object.url),
+                             or self.context['request'].build_absolute_uri(post_file.object.url),
              }
             for post_file in get_post_files(post) if post_file.file and post_file.file.file
         ]
