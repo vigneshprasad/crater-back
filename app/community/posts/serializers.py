@@ -75,16 +75,14 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     def get_my_like(self, post):
         return post.likes.filter(user=self.context['request'].user).exists()
 
-    @staticmethod
-    def get_files_data(post):
+    def get_files_data(self, post):
         return [
             {
                 'file': post_file.file.cover_transcoder,
                 'thumbnail': post_file.file.cover_thumbnail
                              or self.context['request'].build_absolute_uri(file.object.url),
              }
-            for post_file in get_post_files(post)
-            if post_file.file and post_file.file.file
+            for post_file in get_post_files(post) if post_file.file and post_file.file.file
         ]
 
     @staticmethod
