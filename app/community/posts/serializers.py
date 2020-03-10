@@ -1,3 +1,5 @@
+import mimetypes
+
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.fields import FileField
@@ -75,12 +77,14 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     def get_my_like(self, post):
         return post.likes.filter(user=self.context['request'].user).exists()
 
-    @staticmethod
-    def get_files_data(post):
+    def get_files_data(self, post):
+        video_formats = ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']
         return [
             {
                 'file': post_file.file.cover_transcoder,
                 'thumbnail': post_file.file.cover_thumbnail
+                             or self.context['request'].build_absolute_uri(post_file.object.url),
+                'is_video': any(_format in mimetypes.guess_type(post_file.object.url)[0] for _format in video_formats)
              }
             for post_file in get_post_files(post) if post_file.file and post_file.file.file
         ]
