@@ -80,7 +80,7 @@ def user_notification_post_save(sender, instance,  created, *args, **kwargs):
                 data['obj_type'] = 'message'
                 data['obj_pk'] = data['pk']
                 try:
-                    username = instance.sender.profile.name
+                    username = instance.sender.name
                 except Exception:
                     username = ''
                 instance.receiver.send_push(

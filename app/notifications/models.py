@@ -194,7 +194,7 @@ def user_notification_post_save(sender, instance,  created, *args, **kwargs):
             from .serializers import PushNotificationSerializer
             data = PushNotificationSerializer(instance).data
             try:
-                username = instance.notification.comment.creator.profile.name
+                username = instance.notification.comment.creator.name
             except Exception:
                 username = ''
             instance.user.send_push(

@@ -107,7 +107,7 @@ def like_notification_post_save(sender, instance,  created, *args, **kwargs):
                 data['obj_type'] = 'like'
                 data['obj_pk'] = data['pk']
                 try:
-                    username = instance.user.profile.name
+                    username = instance.user.name
                 except Exception:
                     username = ''
                 instance.post.creator.send_push(
