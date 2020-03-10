@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 from community.groups.models import Location, Block, Following, Group
 from community.groups.serializers import UserRequestSerializer, LocationSerializer, BlockSerializer, FollowSerializer, \
     GroupSerializer
-from community.groups.services import get_blockers, get_blocked_user, get_followers, get_followed_user
+from community.groups.services import get_blockers, get_blocked_user, get_followers
 
 
 class UserRequestViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet):
@@ -85,8 +85,7 @@ class FollowViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericVi
         """
         data = {}
         try:
-            followed = get_followed_user(kwargs['pk'])
-            follow = Following.objects.get(followed=followed, follower=request.user)
+            follow = Following.objects.get(followed_id=kwargs['pk'], follower=request.user)
             # Front end developers requirements. Can`t do anything without this data
             data = self.get_serializer(follow).data
             follow.delete()

@@ -9,10 +9,6 @@ def get_blocked_user(user_pk):
     return Block.objects.get(blocked_id=user_pk).blocked
 
 
-def get_followed_user(user_pk):
-    return Following.objects.get(followed_id=user_pk).followed
-
-
 def get_blockers():
     return Block.objects.all()
 
