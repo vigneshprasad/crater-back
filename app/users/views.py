@@ -359,6 +359,7 @@ class RefererEmailView(APIView):
 
 
 class InvestorsViewSet(mixins.ListModelMixin,
+                       mixins.RetrieveModelMixin,
                        viewsets.GenericViewSet):
     queryset = models.User.objects.filter(
         groups__name='Investor',
