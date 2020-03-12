@@ -16,5 +16,9 @@ class CuratedArticleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['website_link'] = forms.URLField(
-            disabled=True, label=_('Website URL'), max_length=75, initial=self.instance.website_tag.url
+            required=False,
+            disabled=True,
+            label=_('Website URL'),
+            max_length=75,
+            initial=self.instance.website_tag.url
         )
