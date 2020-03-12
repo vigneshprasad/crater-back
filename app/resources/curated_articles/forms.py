@@ -20,5 +20,5 @@ class CuratedArticleForm(forms.ModelForm):
             disabled=True,
             label=_('Website URL'),
             max_length=75,
-            initial=self.instance.website_tag.url
+            initial=self.instance.website_tag.url if self.instance.website_tag else None
         )
