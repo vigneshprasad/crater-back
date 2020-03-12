@@ -285,8 +285,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         return attrs
 
     def get_photo(self, user):
-        if user.profile and user.profile.image:
-            return self.context['request'].build_absolute_uri(user.profile.image)
+        if user.profile and user.profile.photo:
+            return self.context['request'].build_absolute_uri(user.profile.photo)
 
     @staticmethod
     def get_pan_card_size(obj):
