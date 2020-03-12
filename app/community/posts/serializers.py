@@ -84,7 +84,8 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
                 'file': post_file.file.cover_transcoder,
                 'thumbnail': post_file.file.cover_thumbnail
                              or self.context['request'].build_absolute_uri(post_file.object.url),
-                'is_video': any(_format in mimetypes.guess_type(post_file.object.url)[0] for _format in video_formats)
+                'is_video': any(_format in mimetypes.guess_type(post_file.object.url)[0] or []
+                                for _format in video_formats)
              }
             for post_file in get_post_files(post) if post_file.file and post_file.file.file
         ]
