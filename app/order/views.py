@@ -1,3 +1,5 @@
+import datetime
+
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
@@ -97,12 +99,13 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
     def add_review(self, request, pk):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        queryset = self.get_queryset().filter(status='accepted')
+        queryset = self.get_queryset().filter(status__in=['accepted', 'done'])
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
             instance.rate = serializer.validated_data['rate']
             instance.review_text = serializer.validated_data['review_text']
+            instance.review_datetime = datetime.datetime.now()
             instance.status = 'complete'
             instance.save()
             if instance.service:
