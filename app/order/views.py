@@ -1,5 +1,4 @@
-import datetime
-
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
@@ -105,7 +104,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             instance = queryset.get(pk=pk)
             instance.rate = serializer.validated_data['rate']
             instance.review_text = serializer.validated_data['review_text']
-            instance.review_datetime = datetime.datetime.now()
+            instance.review_datetime = timezone.now()
             instance.status = 'complete'
             instance.save()
             if instance.service:

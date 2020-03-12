@@ -239,7 +239,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     city = serializers.PrimaryKeyRelatedField(queryset=CityProxy.objects.all(), required=False)
     pan_card_base64 = Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
-    photo = serializers.SerializerMethodField()
+    photo = serializers.FileField(source='profile.photo', allow_null=True, read_only=True)
 
     class Meta:
         model = UserModel
@@ -284,9 +284,9 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             attrs['pan_card'] = pan_card
         return attrs
 
-    def get_photo(self, user):
-        if hasattr(user.profile) and user.profile.photo:
-            return self.context['request'].build_absolute_uri(user.profile.photo)
+    # def get_photo(self, user):
+    #     if hasattr(user.profile) and user.profile.photo:
+    #         return self.context['request'].build_absolute_uri(user.profile.photo)
 
     @staticmethod
     def get_pan_card_size(obj):
