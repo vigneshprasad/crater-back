@@ -213,4 +213,4 @@ class TestFollowView(APITestCase):
 
         url_detail = reverse('v1:community:following-detail', args=(self.followed.pk,))
         response = self.client.delete(url_detail, format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

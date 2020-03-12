@@ -394,6 +394,7 @@ class AuthTestCase(TestCase):
             'active_subscription_membership': 'basic',
             'phone_number': '',
             'phone_number_verified': False,
+            'photo': None,
             'role': 'user',
             'pan_card': None,
             'pan_card_size': None,

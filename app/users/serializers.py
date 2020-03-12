@@ -239,11 +239,13 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     city = serializers.PrimaryKeyRelatedField(queryset=CityProxy.objects.all(), required=False)
     pan_card_base64 = Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
+    photo = serializers.CharField(source='profile.photo', read_only=True, allow_null=True)
 
     class Meta:
         model = UserModel
         fields = (
             'pk',
+            'photo',
             'email',
             'email_verified',
             'name',
