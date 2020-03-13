@@ -363,11 +363,12 @@ class InvestorsViewSet(mixins.ListModelMixin,
                        viewsets.GenericViewSet):
     queryset = models.User.objects.filter(
         groups__name='Investor',
-        bank_details__isnull=False,
+        # bank_details__isnull=False,
         investor_services_info__isnull=False,
         is_active=True,
         is_superuser=False,
-        investor_services_info__reach_out=True
+        investor_services_info__reach_out=True,
+        is_approved=True,
     ).order_by('name')
 
     permission_classes = [permissions.IsAuthenticated]
