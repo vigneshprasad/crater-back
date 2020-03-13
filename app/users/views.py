@@ -311,7 +311,8 @@ class NetworkView(mixins.RetrieveModelMixin,
     pagination_class = Pagination
     queryset = models.Profile.objects.filter(
         user__is_staff=False,
-        user__is_superuser=False
+        user__is_superuser=False,
+        user__is_approved=True
     ).order_by('name')
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     filterset_fields = ['tags']

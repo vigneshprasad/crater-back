@@ -6,7 +6,6 @@ from resources.curated_articles.models import CuratedArticle
 class CuratedArticleSerializer(serializers.ModelSerializer):
     tag = serializers.CharField(source='tag.name')
     website_tag = serializers.CharField(source='website_tag.name')
-    website_url = serializers.CharField(source='website_tag.url')
 
     class Meta:
         model = CuratedArticle
