@@ -312,7 +312,7 @@ class NetworkView(mixins.RetrieveModelMixin,
     queryset = models.Profile.objects.filter(
         user__is_staff=False,
         user__is_superuser=False,
-        is_approved=True
+        user__is_approved=True
     ).order_by('name')
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     filterset_fields = ['tags']
