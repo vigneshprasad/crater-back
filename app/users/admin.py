@@ -33,8 +33,8 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     list_display_links = ('action', 'name')
     edit_icon = 'launch'
     icon_name = 'person'
-    list_display = ('name', 'email', 'group', 'date_joined', 'status', 'is_active', 'action')
-    list_editable = ['is_active']
+    list_display = ('name', 'email', 'group', 'date_joined', 'status', 'is_active', 'is_approved', 'action')
+    list_editable = ['is_active', 'is_approved']
     search_fields = ('name', 'email')
     list_filter = ('is_active', GroupNameUserFilter, 'is_approved')
     form = UserForm
@@ -49,6 +49,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     autocomplete_fields = ['city']
     readonly_fields = ['referer', 'rating']
     inlines = [ProfileAdmin]
+    actions = ['approve_users']
 
     @staticmethod
     def status(user):
@@ -67,6 +68,10 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
         if not user.groups.exists():
             return mark_safe('<i class="material-icons red-color medium-icon">highlight_off</i>')
         return ', '.join([group.name for group in user.groups.all()])
+
+    def approve_users(modeladmin, request, queryset):
+        queryset.update(is_approved=True)
+    approve_users.short_description = _('Approve users')
 
 
 @admin.register(Admin)

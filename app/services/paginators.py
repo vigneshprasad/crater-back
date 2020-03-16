@@ -20,3 +20,7 @@ class Pagination(PageNumberPagination):
             ('previous', self.get_previous_link()),
             ('results', data)
         ]))
+
+
+class ShortPagination(Pagination):
+    page_size = 5

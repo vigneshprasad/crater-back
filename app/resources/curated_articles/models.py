@@ -30,6 +30,11 @@ class CuratedArticle(TimeStampedModel):
         related_name='website_articles',
         null=True
     )
+    website_url = models.URLField(
+        _('Website URL'),
+        null=True,
+        max_length=255
+    )
 
     class Meta:
         verbose_name = _('Article')

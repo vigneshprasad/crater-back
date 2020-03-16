@@ -69,6 +69,9 @@ class Order(TimeStampedModel):
         null=True,
         blank=True
     )
+    review_datetime = models.DateTimeField(
+        null=True,
+    )
     is_paid = models.BooleanField(
         default=False
     )

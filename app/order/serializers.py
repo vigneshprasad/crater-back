@@ -391,12 +391,17 @@ class AttachCompletedFileSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     rate = serializers.IntegerField(max_value=5, min_value=1)
+    reviewer_name = serializers.CharField(source='buyer.name', read_only=True)
+    reviewer_avatar = serializers.FileField(source='buyer.profile.image', read_only=True)
 
     class Meta:
         model = models.Order
         fields = [
             'rate',
-            'review_text'
+            'review_text',
+            'review_datetime',
+            'reviewer_name',
+            'reviewer_avatar'
         ]
 
 

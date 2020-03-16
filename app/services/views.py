@@ -1,12 +1,16 @@
 from django_filters import rest_framework as filters
 from rest_framework import viewsets, mixins, permissions
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import OrderingFilter
+from rest_framework.response import Response
 
+from order.models import Order
+from order.serializers import ReviewSerializer
 from users.models import User
 from . import models, serializers
 from .filters import ProfessionalFilter
-from .paginators import Pagination
+from .paginators import Pagination, ShortPagination
 
 
 class CategoryViewSet(mixins.RetrieveModelMixin,
@@ -37,6 +41,30 @@ class ProfessionalsViewSet(mixins.ListModelMixin,
     ordering_fields = ['user_services_info__followers', 'rating', 'price_start']
     filter_backends = (filters.DjangoFilterBackend, OrderingFilter)
     filterset_class = ProfessionalFilter
+
+    @action(
+        methods=['get'],
+        serializer_class=ReviewSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+        pagination_class=ShortPagination,
+        detail=True
+    )
+    def reviews(self, request, pk):
+        context = self.get_serializer_context()
+        try:
+            instance = self.queryset.get(pk=pk)
+            order_with_reviews = Order.objects.filter(
+                seller=instance, rate__isnull=False, status__in=['done', 'complete']
+            ).order_by('-rate_datetime')
+        except User.DoesNotExist:
+            raise NotFound
+        page = self.paginate_queryset(order_with_reviews)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(
+            ReviewSerializer(order_with_reviews, many=True, **{'context': context}).data
+        )
 
 
 class UserServicesViewSet(mixins.RetrieveModelMixin,
