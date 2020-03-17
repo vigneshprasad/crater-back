@@ -78,7 +78,8 @@ class Notification(TimeStampedModel):
         'event': _('You have been invited to an event'),
         'article': _('A new article has been shared'),
         'master_class': _('A new video has been shared'),
-        'comment': _('{username} commented on your post')
+        'comment': _('{username} commented on your post'),
+        'post': _('New post added')
     }
 
     class Meta:
