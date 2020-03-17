@@ -22,6 +22,8 @@ class BuyerFilter(SimpleListFilter):
 class RequestFilter(filters.FilterSet):
     days_from = filters.NumberFilter(field_name='days', lookup_expr='gte')
     days_to = filters.NumberFilter(field_name='days', lookup_expr='lte')
+    budget_from = filters.NumberFilter(field_name='extended_price', lookup_expr='gte')
+    budget_to = filters.NumberFilter(field_name='extended_price', lookup_expr='lte')
 
     class Meta:
         model = ExchangeRequest
@@ -30,6 +32,9 @@ class RequestFilter(filters.FilterSet):
             'days_to',
             'category',
             'extended_price',
-            'user__city'
+            'user__city',
+            'budget_from',
+            'budget_to',
+            'city'
         ]
 
