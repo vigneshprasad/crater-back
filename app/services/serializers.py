@@ -204,6 +204,13 @@ class PublicUserServicesInfoSerializer(UserServicesSerializer):
             'services',
         ]
 
-    @staticmethod
-    def get_services(obj):
-        return ServiceSerializer(obj.services.filter(status='approved'), many=True).data
+    def get_services(self, obj):
+        ordering = None
+        try:
+            ordering = self.context['request'].query_params.get('ordering')
+        except Exception:
+            pass
+        services = obj.services.filter(status='approved')
+        if ordering:
+            services = services.order_by(ordering)
+        return ServiceSerializer(services, many=True).data
