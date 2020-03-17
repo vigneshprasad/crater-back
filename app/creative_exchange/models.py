@@ -68,11 +68,15 @@ class ExchangeRequest(TimeStampedModel):
     )
     special_requirement = models.TextField(
         max_length=800,
-        verbose_name=_('Special Requirements')
+        verbose_name=_('Special Requirements'),
+        null=True,
+        blank=True
     )
     additional_information = models.TextField(
         max_length=800,
-        verbose_name=_('Additional Information')
+        verbose_name=_('Additional Information'),
+        null=True,
+        blank=True
     )
     extended_price = models.PositiveIntegerField(
         verbose_name=_('Extended Price'),
