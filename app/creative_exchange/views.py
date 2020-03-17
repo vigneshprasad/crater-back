@@ -1,4 +1,6 @@
+from django_filters import rest_framework as django_filters
 from rest_framework import viewsets, mixins, permissions
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from order.models import Quote
@@ -25,6 +27,8 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
     pagination_class = Pagination
     detail_serializer_class = serializers.DetailExchangeRequestSerializer
     filterset_class = filters.RequestFilter
+    ordering_fields = ['created']
+    filter_backends = (django_filters.DjangoFilterBackend, OrderingFilter)
 
     def perform_create(self, serializer):
         serializer.validated_data['user'] = self.request.user
