@@ -46,10 +46,12 @@ class ServiceSerializer(serializers.ModelSerializer):
             'revision',
             'includes',
             'attachments',
-            'questions'
+            'questions',
+            'rating'
         )
         read_only_fields = (
             'status',
+            'rating',
             'service_type_name',
             'service_type_description'
         )
@@ -204,6 +206,11 @@ class PublicUserServicesInfoSerializer(UserServicesSerializer):
             'services',
         ]
 
-    @staticmethod
-    def get_services(obj):
-        return ServiceSerializer(obj.services.filter(status='approved'), many=True).data
+    def get_services(self, obj):
+        ordering = None
+        try:
+            ordering = self.context['request'].query_params.get('ordering')
+        except TypeError:
+            pass
+        services = obj.services.filter(status='approved')
+        return ServiceSerializer(services.order_by(ordering) if ordering else services, many=True).data

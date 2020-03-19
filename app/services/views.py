@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django_filters import rest_framework as filters
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.decorators import action
@@ -88,7 +89,7 @@ class UserServicesViewSet(mixins.RetrieveModelMixin,
             user = queryset.get(pk=self.kwargs['pk'])
             if hasattr(user, 'user_services_info') and user.user_services_info:
                 return user.user_services_info
-        except User.DoesNotExist:
+        except (User.DoesNotExist, ValidationError):
             raise NotFound
 
 
