@@ -23,7 +23,11 @@ class EventViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericView
     filterset_class = EventFilter
 
     def list(self, request, *args, **kwargs):
-        response = super().list(request, * args, **kwargs)
+        offset = int(self.request.query_params.get('offset', 0))
+        queryset = self.filter_queryset(self.get_queryset())[offset:]
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        response = self.get_paginated_response(serializer.data)
         notifications = self.request.user.notifications.filter(notification__event__isnull=False, is_read=False)
         notifications.update(is_read=True)
         return response
