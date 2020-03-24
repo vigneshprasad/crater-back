@@ -89,7 +89,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
     def _get_thumbnail(self, post_file):
         return post_file.file.cover_thumbnail or (
-            None if self._is_video else self.context['request'].build_absolute_uri(post_file.object.url)
+            None if self._is_video(post_file) else self.context['request'].build_absolute_uri(post_file.object.url)
         )
 
     @staticmethod
