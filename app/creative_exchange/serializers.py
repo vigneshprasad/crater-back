@@ -116,7 +116,7 @@ class ExchangeRequestSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'user') and obj.user:
             if hasattr(obj.user, 'profile') and obj.user.profile and obj.user.profile.photo:
                 try:
-                    return self.context['request'].build_absolute_uri(obj.user.profile.photo)
+                    return self.context['request'].build_absolute_uri(obj.user.profile.photo.url)
                 except AttributeError:
                     return None
         return None

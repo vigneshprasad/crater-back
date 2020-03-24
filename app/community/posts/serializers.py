@@ -78,17 +78,25 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
         return post.likes.filter(user=self.context['request'].user).exists()
 
     def get_files_data(self, post):
-        video_formats = ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']
         return [
             {
                 'file': post_file.file.cover_transcoder,
-                'thumbnail': post_file.file.cover_thumbnail
-                             or self.context['request'].build_absolute_uri(post_file.object.url),
-                'is_video': any(_format in mimetypes.guess_type(post_file.object.url)[0] or []
-                                for _format in video_formats)
+                'thumbnail': self._get_thumbnail(post_file),
+                'is_video': self._is_video(post_file)
              }
             for post_file in get_post_files(post) if post_file.file and post_file.file.file
         ]
+
+    def _get_thumbnail(self, post_file):
+        return post_file.file.cover_thumbnail or (
+            None if self._is_video(post_file) else self.context['request'].build_absolute_uri(post_file.object.url)
+        )
+
+    @staticmethod
+    def _is_video(post_file):
+        video_formats = ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']
+        return any(_format in mimetypes.guess_type(post_file.object.url)[0] or []
+                                for _format in video_formats)
 
     @staticmethod
     def _create_post_files(files, post):
