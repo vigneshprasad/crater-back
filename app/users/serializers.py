@@ -514,6 +514,12 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
         allow_null=True,
         allow_blank=True
     )
+    name = serializers.CharField(
+        max_length=255,
+        allow_null=True,
+        allow_blank=True,
+        required=True
+    )
 
     @staticmethod
     def validate_email(email):
