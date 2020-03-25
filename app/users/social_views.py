@@ -88,7 +88,7 @@ class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailM
         if first_name or last_name:
             self.user.name = f'{first_name} {last_name}'
             self.user.save()
-        if name and not (first_name and last_name):
+        if name and not (first_name or last_name):
             self.user.name = name
             self.user.save()
 
