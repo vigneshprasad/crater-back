@@ -23,11 +23,7 @@ class EventViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericView
     filterset_class = EventFilter
 
     def list(self, request, *args, **kwargs):
-        offset = int(self.request.query_params.get('offset', 0))
-        queryset = self.filter_queryset(self.get_queryset())[offset:]
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        response = self.get_paginated_response(serializer.data)
+        response = super().list(request, * args, **kwargs)
         notifications = self.request.user.notifications.filter(notification__event__isnull=False, is_read=False)
         notifications.update(is_read=True)
         return response
@@ -55,8 +51,9 @@ class CommentViewSet(mixins.CreateModelMixin, DestroyModelMixin, GenericViewSet)
         detail=True
     )
     def event(self, request, pk):
+        offset = int(request.query_params.get('offset', 2))
         try:
-            queryset = self.filter_queryset(get_event(pk).event_comments.all()[2:])
+            queryset = self.filter_queryset(get_event(pk).event_comments.all()[offset:])
         except Event.DoesNotExist:
             raise NotFound
         page = self.paginate_queryset(queryset)

@@ -32,6 +32,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     creator_name = serializers.CharField(read_only=True, source='creator.name')
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
     group_name = serializers.CharField(source='group.name', read_only=True, allow_null=True)
+    is_creator_approved = serializers.CharField(read_only=True, source='creator.is_approved')
 
     class Meta:
         model = Post
@@ -46,6 +47,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'files_formdata',
             'creator',
             'creator_name',
+            'is_creator_approved',
             'creator_photo',
             'created',
             'likes',
