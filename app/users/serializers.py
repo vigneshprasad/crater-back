@@ -518,7 +518,7 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
         max_length=255,
         allow_null=True,
         allow_blank=True,
-        required=True
+        required=False
     )
 
     @staticmethod
