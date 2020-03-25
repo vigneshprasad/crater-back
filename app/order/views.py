@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
@@ -232,6 +232,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
 
 class CartOrderViewSet(mixins.RetrieveModelMixin,
                        mixins.ListModelMixin,
+                       mixins.DestroyModelMixin,
                        # mixins.CreateModelMixin,
                        viewsets.GenericViewSet):
     queryset = models.Order.objects.all()
@@ -249,6 +250,18 @@ class CartOrderViewSet(mixins.RetrieveModelMixin,
             quote__isnull=True
         )
 
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete order from cart
+        """
+        data = {}
+        try:
+            order = models.Order.objects.get(uuid=kwargs['pk'])
+            data = self.get_serializer(order).data
+            order.delete()
+        except models.Order.DoesNotExist:
+            raise NotFound
+        return Response(status=status.HTTP_200_OK, data=data)
 
 class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
                         mixins.ListModelMixin,

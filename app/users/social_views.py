@@ -80,11 +80,16 @@ class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailM
     def set_fullname(self):
         first_name = self.serializer.validated_data.get('first_name', '')
         last_name = self.serializer.validated_data.get('last_name', '')
+        name = self.serializer.validated_data.get('name', '')
         if first_name:
             self.user.first_name = first_name
         if last_name:
             self.user.last_name = last_name
         if first_name or last_name:
+            self.user.name = f'{first_name} {last_name}'
+            self.user.save()
+        if name and not (first_name or last_name):
+            self.user.name = name
             self.user.save()
 
 

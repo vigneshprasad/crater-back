@@ -31,6 +31,11 @@ class PostViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated, PostPermission)
     filter_backends = (FollowingFilterBackend, BlockersFilterBackend, UserTagFilterBackend)
 
+    def get_queryset(self):
+        if self.request.method == 'DELETE':
+            return self.request.user.post_set.all()
+        return super().get_queryset()
+
     def retrieve(self, request, *args, **kwargs):
         try:
             instance = Post.objects.get(pk=kwargs['pk'])

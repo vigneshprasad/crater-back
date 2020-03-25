@@ -51,8 +51,9 @@ class CommentViewSet(mixins.CreateModelMixin, DestroyModelMixin, GenericViewSet)
         detail=True
     )
     def event(self, request, pk):
+        offset = int(request.query_params.get('offset', 2))
         try:
-            queryset = self.filter_queryset(get_event(pk).event_comments.all()[2:])
+            queryset = self.filter_queryset(get_event(pk).event_comments.all()[offset:])
         except Event.DoesNotExist:
             raise NotFound
         page = self.paginate_queryset(queryset)
