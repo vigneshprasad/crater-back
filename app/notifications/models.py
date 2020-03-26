@@ -184,6 +184,15 @@ class UserNotification(TimeStampedModel):
 @receiver(post_save, sender=UserNotification)
 def user_notification_post_save(sender, instance,  created, *args, **kwargs):
     if created:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        layer = get_channel_layer()
+        message_fmt = {
+            'type': 'send_notifications_count',
+            'messages': instance.user.notifications.filter(is_read=False).count()
+        }
+        async_to_sync(layer.group_send)(str(instance.user.uuid), message_fmt)
+
         if instance.notification.obj_type in instance.notification.PUSH_PERMISSION_DICT.keys():
             send = getattr(
                 instance.user.notification_settings,
@@ -193,6 +202,7 @@ def user_notification_post_save(sender, instance,  created, *args, **kwargs):
             send = False
         if send:
             from .serializers import PushNotificationSerializer
+
             data = PushNotificationSerializer(instance).data
             try:
                 username = instance.notification.comment.creator.name
