@@ -355,3 +355,13 @@ class ChatConsumer(ChatAuthConsumer):
             'type': 'get_messages',
             'results': results
         }))
+
+    async def send_notifications_count(self, event, *args, **kwargs):
+        """
+        Set chat with user. Retrieve the latest chat messages
+        :param event: message event data
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'send_notifications_count',
+            'unread_count': event['messages']
+        }))
