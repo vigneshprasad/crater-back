@@ -77,7 +77,7 @@ class UserServicesViewSet(mixins.RetrieveModelMixin,
         is_approved=True,
         groups__name='User',
         user_services_info__generate_business=True,
-        bank_details__membership='premium',
+        # bank_details__membership='premium',
         services__isnull=False,
         services__status='approved',
         profile__public_profile=True
