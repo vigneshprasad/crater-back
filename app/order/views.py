@@ -62,6 +62,9 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             for order in orders:
                 order.status = 'pending'
                 order.save()
+                if hasattr(order, 'quote') and order.quote:
+                    order.quote.status = 'accepted'
+                    order.quote.save()
                 Transaction.objects.create(
                     user=order.seller,
                     amount=order.price,
@@ -262,6 +265,7 @@ class CartOrderViewSet(mixins.RetrieveModelMixin,
         except models.Order.DoesNotExist:
             raise NotFound
         return Response(status=status.HTTP_200_OK, data=data)
+
 
 class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
                         mixins.ListModelMixin,
