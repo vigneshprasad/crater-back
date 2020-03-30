@@ -398,6 +398,7 @@ class AuthTestCase(TestCase):
             'role': 'user',
             'pan_card': None,
             'pan_card_size': None,
+            'unread_notifications': 0
         }
         self.assertDictEqual(data, resp.json())
 
