@@ -282,6 +282,8 @@ class OrderSerializer(serializers.ModelSerializer):
     service_data = ServiceSerializer(read_only=True, source='service')
     attachments = AttachmentSerializer(many=True)
     answers = AnswerSerializer(many=True)
+    timeline = serializers.SerializerMethodField()
+    revisions = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Order
@@ -302,14 +304,18 @@ class OrderSerializer(serializers.ModelSerializer):
             'note',
             'status',
             'title',
-            'completed_file'
+            'completed_file',
+            'timeline',
+            'revisions'
         ]
         read_only_fields = [
             'buyer',
             'status',
             'price',
             'title',
-            'completed_file'
+            'completed_file',
+            'timeline',
+            'revisions'
         ]
 
     @staticmethod
@@ -367,6 +373,21 @@ class OrderSerializer(serializers.ModelSerializer):
                 question=answer['question'],
                 text=answer['text']
             )
+
+    @staticmethod
+    def get_timeline(obj):
+        if hasattr(obj, 'quote') and obj.quote:
+            return obj.quote.timeline
+        else:
+            return obj.service.timeline
+
+    @staticmethod
+    def get_revisions(obj):
+        if hasattr(obj, 'quote') and obj.quote:
+            return obj.quote.revisions
+        else:
+            return obj.service.revision
+
 
 
 class AttachCompletedFileSerializer(serializers.ModelSerializer):

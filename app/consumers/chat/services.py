@@ -1,4 +1,5 @@
 import base64
+import math
 
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
@@ -168,7 +169,7 @@ def get_paginated_support_messages(receiver, page):
     if page == 1:
         cache.set(qs_key, qs.reverse(), 86400)
     messages = cache.get(qs_key, Message.objects.none())[(page-1) * page_size:page * page_size]
-    return MessageSerializer(instance=messages, many=True).data
+    return MessageSerializer(instance=messages, many=True).data, math.ceil(qs.count() / page_size)
 
 
 @database_sync_to_async

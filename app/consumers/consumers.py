@@ -197,10 +197,13 @@ class ChatConsumer(ChatAuthConsumer):
         Send paginated support messages to user
         :param event: message event data
         """
-        messages = await get_paginated_support_messages(self.user_id, page=event.get('page', 1))
+        page = event.get('page', 1)
+        messages, pages = await get_paginated_support_messages(self.user_id, page=page)
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         await self.send(text_data=json.dumps({
             'type': 'get_support_chat_messages',
+            'page': page,
+            'pages': pages,
             'results': results
         }))
 
@@ -337,10 +340,13 @@ class ChatConsumer(ChatAuthConsumer):
         :param event: message event data
         """
         self.receiver_id = None
-        messages = await get_paginated_support_messages(self.user_id, page=event.get('page', 1))
+        page = event.get('page', 1)
+        messages, pages = await get_paginated_support_messages(self.user_id, page=page)
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
         await self.send(text_data=json.dumps({
             'type': 'get_support_chat_user_messages',
+            'page': page,
+            'pages': pages,
             'results': results
         }))
 
@@ -354,4 +360,14 @@ class ChatConsumer(ChatAuthConsumer):
         await self.send(text_data=json.dumps({
             'type': 'get_messages',
             'results': results
+        }))
+
+    async def send_notifications_count(self, event, *args, **kwargs):
+        """
+        Set chat with user. Retrieve the latest chat messages
+        :param event: message event data
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'send_notifications_count',
+            'unread_count': event['messages']
         }))

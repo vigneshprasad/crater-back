@@ -12,6 +12,7 @@ tz = timezone(settings.TIME_ZONE)
 
 
 class MessageHelper:
+
     @classmethod
     def send_user_message_to_admin(cls, admins, message):
         """

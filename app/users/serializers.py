@@ -240,6 +240,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     pan_card_base64 = Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
     photo = serializers.FileField(source='profile.photo', allow_null=True, read_only=True)
+    unread_notifications = serializers.SerializerMethodField()
 
     class Meta:
         model = UserModel
@@ -262,7 +263,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'active_subscription_membership',
             'pan_card',
             'pan_card_base64',
-            'pan_card_size'
+            'pan_card_size',
+            'unread_notifications'
         )
         read_only_fields = (
             'full_registered',
@@ -293,6 +295,10 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         if obj.pan_card:
             return obj.pan_card.size
         return None
+
+    @staticmethod
+    def get_unread_notifications(obj):
+        return obj.notifications.filter(is_read=False).count()
 
 
 class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
