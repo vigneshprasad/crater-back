@@ -438,7 +438,7 @@ class AcceptOrderSerializer(serializers.ModelSerializer):
 class ProvideQuoteSerializer(serializers.ModelSerializer):
     price = serializers.IntegerField(max_value=999999, min_value=1)
     timeline = serializers.IntegerField(max_value=99, min_value=1)
-    revisions = serializers.IntegerField(max_value=10, min_value=1)
+    revisions = serializers.IntegerField(max_value=10, min_value=0)
 
     class Meta:
         model = models.Quote

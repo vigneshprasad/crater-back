@@ -145,7 +145,7 @@ class Quote(TimeStampedModel):
     )
     revisions = models.PositiveIntegerField(
         verbose_name=_('Revisions'),
-        validators=[MaxValueValidator(10), MinValueValidator(1)],
+        validators=[MaxValueValidator(10), MinValueValidator(0)],
         null=True
     )
     service = models.ForeignKey(
