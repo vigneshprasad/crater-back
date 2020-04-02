@@ -28,19 +28,18 @@ class ChatConsumer(ChatAuthConsumer):
         Send message event to admin if user is typing
         :param message: message string
         """
-        user_ids = await get_users_ids()
-        for user_id in user_ids:
+        users = [self.receiver_id] if self.receiver_id else await get_support_admin_ids()
+        for user_id in users:
             await self.channel_layer.group_send(str(user_id), {
                 'type': 'user_is_typing_to_user',
-                'receiver_id': self.user_id,
-                'admin_receiver_id': message.get('admin_receiver_id') if message else None
+                'receiver_id': self.user_id
             })
 
     async def user_is_typing_to_user(self, event, *args, **kwargs):
         """
         Send message event to admin if user is typing
         """
-        if self.receiver_id == event['receiver_id'] or self.user_id == event['admin_receiver_id']:
+        if self.receiver_id == event['receiver_id']:
             await self.send(text_data=json.dumps({
                 'type': 'user_is_typing',
                 'receiver_id': event['receiver_id']
