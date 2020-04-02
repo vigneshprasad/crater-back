@@ -299,7 +299,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
         Order pk user for payment
         After successfully payment status changed to accepted
         """
-        queryset = self.get_queryset().filter(status='provided')
+        queryset = self.request.user.buyer_quotes.filter(status='provided')
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
@@ -323,7 +323,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
         detail=True
     )
     def cancel(self, request, pk):
-        queryset = self.get_queryset().filter(status='provided')
+        queryset = self.request.user.buyer_quotes.filter(status='provided')
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
