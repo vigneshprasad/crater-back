@@ -340,21 +340,22 @@ class RefererEmailView(APIView):
         try:
             email = request.data.get('email').strip()
             validate_email(email)
-            if not get_user_model().objects.filter(email=email).exists():
-                data = {
-                    email: {
-                        'key': encrypted_uuid.decode("ascii"),
-                        'user': str(request.user),
-                        'front_url': settings.FRONT_URL
-                    }
+            if get_user_model().objects.filter(email=email).exists():
+                return Response({'email': _('Email already exists.')}, status=status.HTTP_400_BAD_REQUEST)
+            data = {
+                email: {
+                    'key': encrypted_uuid.decode("ascii"),
+                    'user': str(request.user),
+                    'front_url': settings.FRONT_URL
                 }
-                send_email.delay(
-                    subject=_('Signup invitation'),
-                    to=[email],
-                    template_name=choices.template_names.get('invite_friend'),
-                    content={},
-                    merge_vars=data)
-            return Response({'detail': _('Verification e-mail sent.')})
+            }
+            send_email.delay(
+                subject=_('Signup invitation'),
+                to=[email],
+                template_name=choices.template_names.get('invite_friend'),
+                content={},
+                merge_vars=data)
+            return Response({'detail': _('Verification e-mail sent.'), 'email': email})
         except (ValidationError, AttributeError):
             return Response({'email': _('Email is not valid.')}, status=status.HTTP_400_BAD_REQUEST)
 

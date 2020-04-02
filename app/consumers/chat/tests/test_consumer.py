@@ -487,7 +487,7 @@ async def test_consumer_get_support_chat_empty_messages():
     await communicator.send_json_to(user_message)
 
     response = await communicator.receive_json_from()
-    assert response == {'results': [], 'type': 'get_support_chat_messages'}
+    assert response == {'page': 1, 'pages': 0, 'results': [], 'type': 'get_support_chat_messages'}
     await communicator.wait()
 
     await communicator.disconnect()

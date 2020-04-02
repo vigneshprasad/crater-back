@@ -190,7 +190,7 @@ class DetailExchangeRequestSerializer(ExchangeRequestSerializer):
 class ExchangeQuoteSerializer(serializers.ModelSerializer):
     price = serializers.IntegerField(min_value=1, max_value=999999)
     timeline = serializers.IntegerField(min_value=1, max_value=99)
-    revisions = serializers.IntegerField(min_value=1, max_value=10)
+    revisions = serializers.IntegerField(min_value=0, max_value=10)
     year_of_experience =  serializers.IntegerField(min_value=1, max_value=50)
     includes = serializers.CharField(max_length=800, allow_blank=True)
     additional_text = serializers.CharField(max_length=800, allow_blank=True)
