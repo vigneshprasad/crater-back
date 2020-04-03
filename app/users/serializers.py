@@ -380,8 +380,10 @@ class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmS
 
 class ProfileSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source='user.uuid', required=False)
-    role = serializers.CharField(source='user.role')
-    professional_service_provider = serializers.BooleanField(source='user.user_services_info.professional_service_provider')
+    role = serializers.CharField(source='user.role', required=False, read_only=True)
+    professional_service_provider = serializers.BooleanField(
+        source='user.user_services_info.professional_service_provider', required=False, read_only=True
+    )
     name = serializers.CharField(
         error_messages={
             'blank': _('Please enter your name'),
