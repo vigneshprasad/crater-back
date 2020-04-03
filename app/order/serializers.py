@@ -325,7 +325,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_date_preferences(obj):
         if obj.quote:
             return QuotePreferenceSerializer(
-                source=obj.quote.date_preferences.all(), many=True, required=False, read_only=True
+                obj.quote.date_preferences.all(), many=True, required=False, read_only=True
             )
 
     @staticmethod
