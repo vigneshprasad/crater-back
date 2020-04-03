@@ -315,7 +315,7 @@ class ChatConsumer(ChatAuthConsumer):
             sender=self.user_id, receiver=self.receiver_id, page=event['page']
         )
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
-        user_data = await get_user_data(self.receiver_id)
+        user_data, serialized_data = await get_user_data(self.receiver_id)
         await self.send(text_data=json.dumps({
             'type': 'get_user_messages',
             'results': results,
@@ -326,6 +326,7 @@ class ChatConsumer(ChatAuthConsumer):
             'introduction': user_data.get('introduction'),
             'additional_information': user_data.get('additional_information'),
             'name': user_data.get('name'),
+            'user_data': serialized_data
         }))
 
     async def set_admin_chat(self, event, *args, **kwargs):

@@ -284,6 +284,7 @@ class OrderSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True)
     timeline = serializers.SerializerMethodField()
     revisions = serializers.SerializerMethodField()
+    date_preferences = QuotePreferenceSerializer(source='quote.date_preferences', many=True)
 
     class Meta:
         model = models.Order
@@ -306,7 +307,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'title',
             'completed_file',
             'timeline',
-            'revisions'
+            'revisions',
+            'date_preferences'
         ]
         read_only_fields = [
             'buyer',
@@ -315,7 +317,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'title',
             'completed_file',
             'timeline',
-            'revisions'
+            'revisions',
+            'date_preferences'
         ]
 
     @staticmethod

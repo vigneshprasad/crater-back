@@ -69,6 +69,7 @@ def get_user_data(user_id):
     """
     try:
         user = get_user_model().objects.get(pk=user_id)
+        serializer_data = UserChatSerializer(instance=user, context={'user': user.uuid}).data
         if hasattr(user, 'profile'):
             photo = None
             try:
@@ -80,10 +81,11 @@ def get_user_data(user_id):
                 'introduction': user.profile.introduction,
                 'name': user.name,
                 'additional_information': user.profile.additional_information,
-            }
+            }, serializer_data
+        return {}, serializer_data
     except get_user_model().DoesNotExist:
         pass
-    return {}
+    return {}, {}
 
 
 @database_sync_to_async
@@ -214,50 +216,52 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
     qs = get_user_model().objects.prefetch_related('sender_messages', 'receiver_messages').filter(
         is_active=True, is_staff=False, is_superuser=False, groups__name__in=['User', 'Investor']
     ).exclude(pk=uuid)
-    if qs:
-        if search:
-            qs = qs.filter(name__icontains=search)
-        if _filter == 'read':
-            """
-            Exclude all users with messages to consumer user and do not have and unread message
-            """
-            qs = qs.filter(
-                Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
-                Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
-            ).distinct()
-            for user in qs:
-                for message in user.sender_messages.all():
-                    if message.receiver and str(message.receiver.pk) == str(uuid) and not message.is_read:
-                        qs = qs.exclude(pk=user.pk)
-                        break
-        elif _filter == 'unread':
-            """
-            Exclude all users with messages to consumer user and who has al least one unread message
-            """
-            qs = qs.filter(sender_messages__is_read=False, sender_messages__receiver_id=uuid).distinct()
-        elif _filter == 'starred':
-            qs = qs.filter(user_stars__creator__pk=uuid).distinct()
-        if latest_messages == 'all':
-            """
-            Search user from all users
-            """
-            qs = qs.order_by(Lower('name'))
-            users = qs[(page - 1) * messages_page_size:page * messages_page_size]
-            return UserChatSerializer(
-                instance=users, many=True, context={'user': uuid}
-            ).data, math.ceil(qs.count() / users_page_size)
-        else:
-            qs = qs.filter(
-                Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
-                Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
-            ).distinct()
-            users_data = UserChatSerializer(instance=qs, many=True, context={'user': uuid}).data
-            users = [u for u in sorted(users_data, key=lambda item: item['latest_message']['created'], reverse=True)]
-            if is_strict:
-                return users[
-                       (page - 1) * messages_page_size:page * users_page_size
-                       ], math.ceil(len(users) / users_page_size)
-            return users[:page * users_page_size], math.ceil(len(users) / users_page_size)
+    if not qs:
+        return None, None
+
+    if search:
+        qs = qs.filter(name__icontains=search)
+    if _filter == 'read':
+        """
+        Exclude all users with messages to consumer user and do not have and unread message
+        """
+        qs = qs.filter(
+            Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
+            Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
+        ).distinct()
+        for user in qs:
+            for message in user.sender_messages.all():
+                if message.receiver and str(message.receiver.pk) == str(uuid) and not message.is_read:
+                    qs = qs.exclude(pk=user.pk)
+                    break
+    elif _filter == 'unread':
+        """
+        Exclude all users with messages to consumer user and who has al least one unread message
+        """
+        qs = qs.filter(sender_messages__is_read=False, sender_messages__receiver_id=uuid).distinct()
+    elif _filter == 'starred':
+        qs = qs.filter(user_stars__creator__pk=uuid).distinct()
+    if latest_messages == 'all':
+        """
+        Search user from all users
+        """
+        qs = qs.order_by(Lower('name'))
+        users = qs[(page - 1) * messages_page_size:page * messages_page_size]
+        return UserChatSerializer(
+            instance=users, many=True, context={'user': uuid}
+        ).data, math.ceil(qs.count() / users_page_size)
+    else:
+        qs = qs.filter(
+            Q(sender_messages__receiver_id=uuid, sender_messages__is_support=False) |
+            Q(receiver_messages__sender_id=uuid, receiver_messages__is_support=False),
+        ).distinct()
+        users_data = UserChatSerializer(instance=qs, many=True, context={'user': uuid}).data
+        users = [u for u in sorted(users_data, key=lambda item: item['latest_message']['created'], reverse=True)]
+        if is_strict:
+            return users[
+                   (page - 1) * messages_page_size:page * users_page_size
+                   ], math.ceil(len(users) / users_page_size)
+        return users[:page * users_page_size], math.ceil(len(users) / users_page_size)
 
 
 @database_sync_to_async
