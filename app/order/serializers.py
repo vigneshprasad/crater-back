@@ -285,9 +285,7 @@ class OrderSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True)
     timeline = serializers.SerializerMethodField()
     revisions = serializers.SerializerMethodField()
-    date_preferences = QuotePreferenceSerializer(
-        source='quote.date_preferences', many=True, required=False, read_only=True
-    )
+    date_preferences = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Order
@@ -320,9 +318,15 @@ class OrderSerializer(serializers.ModelSerializer):
             'title',
             'completed_file',
             'timeline',
-            'revisions',
-            'date_preferences'
+            'revisions'
         ]
+
+    @staticmethod
+    def get_date_preferences(obj):
+        if obj.quote:
+            return QuotePreferenceSerializer(
+                source=obj.quote.date_preferences, many=True, required=False, read_only=True
+            )
 
     @staticmethod
     def get_buyer_name(obj):
