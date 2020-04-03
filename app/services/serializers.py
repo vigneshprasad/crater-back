@@ -29,8 +29,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ServiceSerializer(serializers.ModelSerializer):
     service_type_name = serializers.CharField(source='service_type.name', read_only=True)
+    service_group = serializers.CharField(source='service_type.group', read_only=True)
+    service_group_display = serializers.CharField(source='service_type.get_group_display', read_only=True)
     service_type_description = serializers.CharField(source='service_type.description', read_only=True)
     pk = serializers.IntegerField(required=False)
+
 
     class Meta:
         model = models.Service
@@ -38,6 +41,8 @@ class ServiceSerializer(serializers.ModelSerializer):
             'pk',
             'status',
             'service_type',
+            'service_group',
+            'service_group_display',
             'service_type_name',
             'service_type_description',
             'price_type',
@@ -53,6 +58,8 @@ class ServiceSerializer(serializers.ModelSerializer):
             'status',
             'rating',
             'service_type_name',
+            'service_group',
+            'service_group_display',
             'service_type_description'
         )
 
