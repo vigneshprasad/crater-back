@@ -380,6 +380,8 @@ class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmS
 
 class ProfileSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source='user.uuid', required=False)
+    role = serializers.CharField(source='user.role')
+    professional_service_provider = serializers.BooleanField(source='user.user_services_info.professional_service_provider')
     name = serializers.CharField(
         error_messages={
             'blank': _('Please enter your name'),
@@ -432,6 +434,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'pk',
             'uuid',
             'name',
+            'role',
+            'professional_service_provider',
             'tag_line',
             'photo',
             'cover',
@@ -457,6 +461,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'instagram': {'write_only': True},
         }
         read_only_fields = (
+            'role',
+            'professional_service_provider',
             'cover_thumbnail',
             'cover_transcoder',
             'cover_file',
