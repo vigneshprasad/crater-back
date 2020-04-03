@@ -59,13 +59,13 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
                 request.user.bank_details.stripe_customer_id = stripe_customer_id
                 request.user.bank_details.card_data = stripe_service.get_customer_card_data(stripe_customer_id)
                 request.user.save()
-        if serializer.validated_data['pay_saved_card']:
+        if serializer.validated_data['pay_saved_card'] or serializer.validated_data['remember_card']:
             charge = stripe_service.create_customer_charge(
                 customer_id=self.request.user.bank_details.stripe_customer_id,
                 amount=amount,
                 description=description
             )
-        elif serializer.validated_data['stripe_token'] and not serializer.validated_data['remember_card']:
+        elif serializer.validated_data['stripe_token']:
             charge = stripe_service.create_token_charge(
                 token=serializer.validated_data['stripe_token'],
                 amount=amount,
