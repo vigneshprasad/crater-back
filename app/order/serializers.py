@@ -285,7 +285,9 @@ class OrderSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True)
     timeline = serializers.SerializerMethodField()
     revisions = serializers.SerializerMethodField()
-    date_preferences = QuotePreferenceSerializer(source='quote.date_preferences', many=True, required=False)
+    date_preferences = QuotePreferenceSerializer(
+        source='quote.date_preferences', many=True, required=False, read_only=True
+    )
 
     class Meta:
         model = models.Order
