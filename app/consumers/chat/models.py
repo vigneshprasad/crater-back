@@ -69,6 +69,20 @@ class Chat(models.Model):
     proxy = True
 
 
+class LastSeen(TimeStampedModel):
+
+    user = models.OneToOneField(
+        'users.User',
+        related_name='last_chat_activity',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = _('User last activity')
+        verbose_name_plural = _('User last activities')
+        db_table = 'last_seen'
+
+
 @receiver(post_save, sender=Message)
 def user_notification_post_save(sender, instance,  created, *args, **kwargs):
     if created:

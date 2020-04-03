@@ -7,7 +7,7 @@ from django.core.exceptions import PermissionDenied
 from django.templatetags.static import static as staticfiles
 from rest_framework_jwt.utils import jwt_payload_handler, jwt_encode_handler
 
-from consumers.chat.models import Chat, Message
+from consumers.chat.models import Chat, Message, LastSeen
 from consumers.chat.tasks import read_admin_messages_for_user
 
 

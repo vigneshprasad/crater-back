@@ -11,6 +11,14 @@ from django.db.models.functions import Lower
 
 from consumers.chat.models import Message, ChatStarredUser
 from consumers.chat.serializers import MessageSerializer, UserChatSerializer
+from consumers.chat.models import LastSeen
+
+
+@database_sync_to_async
+def create_last_seen(user_id):
+    instance, created = LastSeen.objects.get_or_create(user_id=user_id)
+    if not created:
+        instance.save()
 
 
 @database_sync_to_async
@@ -61,15 +69,17 @@ def get_read_support_messages_ids_by_user(user):
 
 
 @database_sync_to_async
-def get_user_data(user_id):
+def get_user_data(receiver_id, sender_id):
     """
     Read user data as photo, introduction
-    :param user_id: receiver user
+    :param receiver_id: receiver user primary key
+    :param sender_id: sender user primary key
     return user data dict
     """
     try:
-        user = get_user_model().objects.get(pk=user_id)
-        serializer_data = UserChatSerializer(instance=user, context={'user': user.uuid}).data
+        user = get_user_model().objects.get(pk=receiver_id)
+        sender = get_user_model().objects.get(pk=sender_id)
+        serializer_data = UserChatSerializer(instance=user, context={'user': sender.uuid}).data
         if hasattr(user, 'profile'):
             photo = None
             try:
