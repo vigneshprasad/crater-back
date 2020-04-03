@@ -326,7 +326,7 @@ class OrderSerializer(serializers.ModelSerializer):
         if obj.quote:
             return QuotePreferenceSerializer(
                 obj.quote.date_preferences.all(), many=True, required=False, read_only=True
-            )
+            ).data
 
     @staticmethod
     def get_buyer_name(obj):
