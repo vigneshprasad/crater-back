@@ -72,7 +72,7 @@ class QuoteSerializer(serializers.ModelSerializer):
     service_data = ServiceSerializer(read_only=True, source='service')
     attachments = AttachmentSerializer(many=True)
     answers = AnswerSerializer(many=True)
-    date_preferences = QuotePreferenceSerializer(many=True)
+    date_preferences = QuotePreferenceSerializer(many=True, read_only=False)
     title = serializers.SerializerMethodField()
     order_pk = serializers.SerializerMethodField()
 
@@ -121,7 +121,8 @@ class QuoteSerializer(serializers.ModelSerializer):
             'includes',
             'additional_text',
             'require',
-            'created'
+            'created',
+            'date_preferences'
         ]
 
     @staticmethod
@@ -284,7 +285,7 @@ class OrderSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True)
     timeline = serializers.SerializerMethodField()
     revisions = serializers.SerializerMethodField()
-    date_preferences = QuotePreferenceSerializer(source='quote.date_preferences', many=True)
+    date_preferences = QuotePreferenceSerializer(source='quote.date_preferences', many=True, req)
 
     class Meta:
         model = models.Order
