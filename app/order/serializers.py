@@ -151,7 +151,7 @@ class QuoteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         attachments = validated_data.pop('attachments')
         answers = validated_data.pop('answers')
-        date_preferences = validated_data.pop('date_preferences')
+        date_preferences = validated_data.pop('date_preferences', None)
         instance = super().create(validated_data)
         if attachments:
             self.update_attachments(instance, attachments)
