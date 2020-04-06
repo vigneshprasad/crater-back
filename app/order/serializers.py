@@ -357,7 +357,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         attachments = validated_data.pop('attachments')
         answers = validated_data.pop('answers')
-        order_preferences = validated_data.pop('order_preferences')
+        order_preferences = validated_data.pop('order_preferences', None)
         instance = super().create(validated_data)
         if attachments:
             self.update_attachments(instance, attachments)
