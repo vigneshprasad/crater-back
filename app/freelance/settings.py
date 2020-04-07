@@ -120,7 +120,7 @@ REST_FRAMEWORK = {
 }
 
 JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=8),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=30),
 }
 
 ASGI_APPLICATION = 'freelance.routing.application'
