@@ -2,7 +2,7 @@ from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.mixins import DestroyModelMixin
-from rest_framework.permissions import IsAuthenticated
+
 from rest_framework.viewsets import GenericViewSet
 
 from community.comments.paginators import CommentPagination
@@ -13,6 +13,8 @@ from resources.events.models import RSVPD, Event
 from resources.events.paginators import EventPagination
 from resources.events.serializers import EventSerializer, RSVPDSerializer
 from resources.events.services import get_events, get_event, get_event_pk_by_participant
+
+from users.permissions import IsAuthenticated
 
 
 class EventViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):

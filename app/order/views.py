@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import viewsets, permissions, mixins, status
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from payment.models import Transaction
 from utils.stripe_service import stripe_service
 from . import models, paginators, serializers
+from users import permissions
 
 
 class BuyerOrderViewSet(mixins.RetrieveModelMixin,

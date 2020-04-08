@@ -1,8 +1,9 @@
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import viewsets, mixins
 
 from . import models, serializers
 from .serializers import ArticleTagSerializer, ArticleWebsiteSerializer
 from .services import get_websites
+from users import permissions
 
 
 class TagViewSet(mixins.RetrieveModelMixin,

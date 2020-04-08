@@ -109,6 +109,9 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
             if not user.is_active:
                 msg = _('User account is disabled.')
                 raise exceptions.ValidationError(msg)
+            if user.emailaddress_set.exists() and not user.emailaddress_set.first().verified:
+                msg = _('User email is verified.')
+                raise exceptions.ValidationError(msg)
         else:
             msg = _('Email or password is not correct')
             raise exceptions.ValidationError(msg)

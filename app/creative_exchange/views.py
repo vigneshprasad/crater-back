@@ -1,5 +1,6 @@
 from django_filters import rest_framework as django_filters
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import viewsets, mixins
+from users import permissions
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 

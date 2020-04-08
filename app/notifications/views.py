@@ -1,6 +1,6 @@
 from django.core.exceptions import FieldError
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from order.serializers import EmptySerializer
 from . import models, serializers, paginators
 from .schema import batch_notification_read
+from users import permissions
 
 
 class UserNotificationSettingsViesSet(mixins.ListModelMixin,

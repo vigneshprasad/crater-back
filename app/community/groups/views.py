@@ -3,7 +3,6 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.mixins import ListModelMixin
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -11,6 +10,7 @@ from community.groups.models import Location, Block, Following, Group
 from community.groups.serializers import UserRequestSerializer, LocationSerializer, BlockSerializer, FollowSerializer, \
     GroupSerializer
 from community.groups.services import get_blockers, get_blocked_user, get_followers
+from users.permissions import IsAuthenticated
 
 
 class UserRequestViewSet(mixins.CreateModelMixin, ListModelMixin, GenericViewSet):

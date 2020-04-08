@@ -14,9 +14,9 @@ from rest_framework import mixins, status
 
 from consumers.chat.models import Message
 from consumers.chat.serializers import MessageSerializer
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from users import permissions
 
 
 def index(request):
@@ -65,7 +65,7 @@ class AdminChatFileView(CreateView):
 class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = MessageSerializer
     queryset = Message.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
         try:
@@ -90,7 +90,7 @@ class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
 
     @action(
         methods=['get'],
-        permission_classes=[IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
     def chat(self, request, pk):

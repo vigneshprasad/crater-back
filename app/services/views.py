@@ -1,12 +1,13 @@
 from django.core.exceptions import ValidationError
 from django_filters import rest_framework as filters
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from order.models import Order
+from users import permissions
 from order.serializers import ReviewSerializer
 from users.models import User
 from . import models, serializers

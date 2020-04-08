@@ -1,4 +1,5 @@
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import viewsets, mixins
+from users import permissions
 
 from . import models, serializers
 
