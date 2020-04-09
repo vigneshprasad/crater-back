@@ -72,7 +72,8 @@ class Notification(TimeStampedModel):
         'event': 'new_events_created',
         'article': 'new_articles_posted',
         'master_class': 'new_videos_posted',
-        'comment': 'post_comments'
+        'comment': 'post_comments',
+        'post': 'user'
     }
     PUSH_MESSAGE_DICT = {
         'event': _('You have been invited to an event'),
@@ -208,6 +209,7 @@ def user_notification_post_save(sender, instance,  created, *args, **kwargs):
                 username = instance.notification.comment.creator.name
             except Exception:
                 username = ''
+
             instance.user.send_push(
                 message=instance.notification.message().format(username=username),
                 data=data
