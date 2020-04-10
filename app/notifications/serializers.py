@@ -12,7 +12,8 @@ class UserNotificationsSettingsSerializer(serializers.ModelSerializer):
             'post_likes',
             'new_videos_posted',
             'new_articles_posted',
-            'new_events_created'
+            'new_events_created',
+            'new_post_created'
         ]
 
 

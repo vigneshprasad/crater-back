@@ -30,6 +30,9 @@ class UserNotificationsSettings(models.Model):
     new_events_created = models.BooleanField(
         default=True
     )
+    new_post_created = models.BooleanField(
+        default=True
+    )
 
 
 class Notification(TimeStampedModel):
@@ -73,7 +76,7 @@ class Notification(TimeStampedModel):
         'article': 'new_articles_posted',
         'master_class': 'new_videos_posted',
         'comment': 'post_comments',
-        'post': 'user'
+        'post': 'new_post_created'
     }
     PUSH_MESSAGE_DICT = {
         'event': _('You have been invited to an event'),
