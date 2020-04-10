@@ -71,18 +71,27 @@ class Notification(TimeStampedModel):
         null=True,
         related_name='notifications'
     )
+    like = models.ForeignKey(
+        'posts.Like',
+        verbose_name=_('Like'),
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notifications'
+    )
     PUSH_PERMISSION_DICT = {
         'event': 'new_events_created',
         'article': 'new_articles_posted',
         'master_class': 'new_videos_posted',
         'comment': 'post_comments',
-        'post': 'new_post_created'
+        'post': 'new_post_created',
+        'like': 'post_likes'
     }
     PUSH_MESSAGE_DICT = {
         'event': _('You have been invited to an event'),
         'article': _('A new article has been shared'),
         'master_class': _('A new video has been shared'),
         'comment': _('{username} commented on your post'),
+        'like': _('{username} liked your post'),
         'post': _('New post added')
     }
 
@@ -94,6 +103,8 @@ class Notification(TimeStampedModel):
     def obj_type(self):
         if self.post:
             return 'post'
+        elif self.like:
+            return 'like'
         elif self.comment:
             return 'comment'
         elif self.event:
@@ -123,6 +134,7 @@ class Notification(TimeStampedModel):
             return None
         name_data = {
             'post': self.post.creator.name if self.post else None,
+            'like': self.like.user.name if self.like else None,
             'comment': self.comment.creator.name if self.comment else None,
             'event': self.event.title if self.event else None,
             'article': self.article.website_tag.name if self.article else None,
@@ -136,6 +148,7 @@ class Notification(TimeStampedModel):
             return None
         avatar_data = {
             'post': self.post.creator.profile.photo if self.post else None,
+            'like': self.like.user.profile.photo if self.like else None,
             'comment': self.comment.creator.profile.photo if self.comment else None,
             'event': self.event.picture if self.event else None,
             'article': self.article.picture if self.article else None,
@@ -149,6 +162,7 @@ class Notification(TimeStampedModel):
             return None
         pk_data = {
             'post': self.post_id if self.post else None,
+            'like': self.like_id if self.like else None,
             'comment': self.comment.post_id if self.comment else None,
             'event': self.event_id if self.event else None,
             'article': self.article_id if self.article else None,

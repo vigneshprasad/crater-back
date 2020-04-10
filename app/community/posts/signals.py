@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from community.posts.models import File, Like
 from users.models import CoverFile
+from notifications.models import Notification, UserNotification
 
 from .serializers import LikeSerializer
 
@@ -28,6 +29,10 @@ def like_notification_post_save(sender, instance,  created, *args, **kwargs):
                     username = instance.user.name
                 except Exception:
                     username = ''
+                notification = Notification.objects.create(like=instance)
+                UserNotification.objects.create(
+                    user=instance.post.creator, notification=notification
+                )
                 instance.post.creator.send_push(
                     message=_('{username} liked your post').format(username=username),
                     data=data
