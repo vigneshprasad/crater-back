@@ -406,7 +406,7 @@ def order_create_transaction(sender, instance,  created, *args, **kwargs):
                     out_transaction.save()
             else:
                 Transaction.objects.create(
-                    user=instance.seller,
+                    user=instance.buyer,
                     amount=instance.price,
                     order=instance,
                     direction='out',
