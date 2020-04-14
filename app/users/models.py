@@ -288,7 +288,7 @@ class Profile(models.Model):
     )
     name = models.CharField(
         max_length=100,
-        verbose_name=_('Name')
+        verbose_name=_('Company Name')
     )
     tag_line = models.CharField(
         verbose_name=_('Tag line'),

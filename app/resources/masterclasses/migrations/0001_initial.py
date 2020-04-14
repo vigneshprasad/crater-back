@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('teacher', models.CharField(max_length=255, verbose_name='Author Name')),
                 ('position', models.CharField(max_length=255, verbose_name='Author Position')),
                 ('description', models.TextField(verbose_name='Description')),
-                ('cover', models.FileField(null=True, upload_to='masterclasses/%Y/%m/%d', validators=[utils.validators.SizeValidator(size=512)], verbose_name='Cover')),
+                ('cover', models.FileField(null=True, upload_to='masterclasses/%Y/%m/%d', validators=[utils.validators.SizeValidator(size=512)], verbose_name='Video')),
                 ('tags', models.ManyToManyField(to='tags.MasterClassTag')),
             ],
             options={

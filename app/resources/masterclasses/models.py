@@ -12,7 +12,7 @@ class MasterClass(TimeStampedModel):
     description = models.TextField(_('Description'))
     cover = models.FileField(
         upload_to='masterclasses/%Y/%m/%d',
-        verbose_name=_('Cover'),
+        verbose_name=_('Video'),
         null=True,
         validators=[SizeValidator(size=512)]
     )
