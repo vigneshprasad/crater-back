@@ -81,7 +81,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
                     order.quote.status = 'accepted'
                     order.quote.save()
                 Transaction.objects.create(
-                    user=order.seller,
+                    user=order.buyer,
                     amount=order.price,
                     order=order,
                     direction='in',
