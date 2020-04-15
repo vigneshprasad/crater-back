@@ -259,11 +259,13 @@ class InvestorServiceInfo(models.Model):
     attachments = ArrayField(
         models.CharField(max_length=255),
         size=3,
+        blank=True,
         null=True
     )
     questions = ArrayField(
         models.CharField(max_length=255),
         size=3,
+        blank=True,
         null=True
     )
     understand = models.BooleanField(
