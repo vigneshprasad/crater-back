@@ -128,7 +128,7 @@ class Quote(TimeStampedModel):
         default='pending'
     )
     comment = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Comment'),
         blank=True,
         null=True
@@ -172,22 +172,22 @@ class Quote(TimeStampedModel):
         null=True
     )
     includes = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Includes and Process'),
         blank=True
     )
     additional_text = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Additional text'),
         blank=True
     )
     require = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('I require'),
         blank=True
     )
     note = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Note from Provider'),
         blank=True
     )
