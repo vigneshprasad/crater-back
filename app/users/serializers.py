@@ -433,6 +433,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     is_cover_video = serializers.SerializerMethodField()
     cover_thumbnail = serializers.SerializerMethodField()
 
+    instagram_id = None
+    instagram_token = None
+
     class Meta:
         model = models.Profile
         fields = (
@@ -449,6 +452,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'focus',
             'additional_information',
             'instagram',
+            'instagram_id',
             'instagram_username',
             'is_instagram_set',
             'twitter',
@@ -462,8 +466,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'is_cover_video'
         )
         extra_kwargs = {
-            'tags': {'write_only': True},
-            'instagram': {'write_only': True},
+            'tags': {'write_only': True}
         }
         read_only_fields = (
             'role',
@@ -482,18 +485,22 @@ class ProfileSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(_('Please use your cover file'))
         return cover
 
-    @staticmethod
-    def validate_instagram(instagram_token):
+    def validate_instagram(self, instagram_token):
         if instagram_token:
-            instagram_long_access_token = instagram_service.convert_code_to_long_access_token(instagram_token)
-            if not instagram_long_access_token:
-                instagram_long_access_token = instagram_service.get_long_access_token(instagram_token)
-            if not instagram_long_access_token:
+            self.instagram_token, self.instagram_id = instagram_service.convert_code_to_long_access_token(
+                instagram_token
+            )
+            if not self.instagram_token:
+                self.instagram_token = instagram_service.get_long_access_token(instagram_token)
+            if not self.instagram_token:
                 raise serializers.ValidationError(
                     _('Instagram token is not valid')
                 )
-            return instagram_long_access_token
+            return self.instagram_token
         return ''
+
+    def validate_instagram_id(self, instagram_id):
+        return instagram_id or self.instagram_id
 
     @staticmethod
     def get_is_cover_video(obj):

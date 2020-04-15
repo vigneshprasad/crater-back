@@ -19,9 +19,9 @@ class InstagramService:
         }
         resp = requests.post('https://api.instagram.com/oauth/access_token/', data=data)
         if 'access_token' in resp.json():
-            return resp.json()['access_token']
+            return resp.json()['access_token'], resp.json()['user_id']
         else:
-            return None
+            return None, None
 
     def get_long_access_token(self, short_access_token):
         data = {
@@ -36,10 +36,10 @@ class InstagramService:
             return None
 
     def convert_code_to_long_access_token(self, code):
-        short_access_token = self.get_short_access_token(code=code)
+        short_access_token, user_id = self.get_short_access_token(code=code)
         if not short_access_token:
-            return None
-        return self.get_long_access_token(short_access_token=short_access_token)
+            return None, None
+        return self.get_long_access_token(short_access_token=short_access_token), user_id
 
     @staticmethod
     def refresh_long_access_token(long_access_token):

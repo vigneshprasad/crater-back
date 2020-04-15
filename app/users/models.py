@@ -328,6 +328,11 @@ class Profile(models.Model):
         blank=True,
         max_length=800
     )
+    instagram_id = models.CharField(
+        verbose_name=_('Instagram Id'),
+        blank=True,
+        max_length=32
+    )
     instagram_username = models.CharField(
         blank=True,
         null=True,
