@@ -162,7 +162,7 @@ class Notification(TimeStampedModel):
             return None
         pk_data = {
             'post': self.post_id if self.post else None,
-            'like': self.like_id if self.like else None,
+            'like': self.like.post_id if self.like else None,
             'comment': self.comment.post_id if self.comment else None,
             'event': self.event_id if self.event else None,
             'article': self.article_id if self.article else None,
