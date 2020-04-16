@@ -433,7 +433,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     is_cover_video = serializers.SerializerMethodField()
     cover_thumbnail = serializers.SerializerMethodField()
 
-    instagram_id = None
+    instagram_id = ''
     instagram_token = None
 
     class Meta:
