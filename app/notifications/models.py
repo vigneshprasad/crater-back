@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
+from django.templatetags.static import static as staticfiles
 
 
 class UserNotificationsSettings(models.Model):
@@ -122,8 +123,8 @@ class Notification(TimeStampedModel):
         text_data = {
             'post': self.post.message if self.post else None,
             'comment': self.comment.message if self.comment else None,
-            'event': self.event.title if self.event else None,
-            'article': self.article.title if self.article else None,
+            'event': self.event.text if self.event else None,
+            'article': self.article.text if self.article else None,
             'master_class': self.master_class.description if self.master_class else None
         }
         return text_data.get(self.obj_type, None)
@@ -147,12 +148,13 @@ class Notification(TimeStampedModel):
         if not self.obj_type:
             return None
         avatar_data = {
-            'post': self.post.creator.profile.photo if self.post else None,
-            'like': self.like.user.profile.photo if self.like else None,
-            'comment': self.comment.creator.profile.photo if self.comment else None,
-            'event': self.event.picture if self.event else None,
-            'article': self.article.picture if self.article else None,
-            'master_class': self.master_class.cover if self.master_class else None
+            'post': self.post.creator.profile.photo.url if self.post and self.post.creator.profile.photo else None,
+            'like': self.like.user.profile.photo.url if self.like and self.like.user.profile.photo else None,
+            'comment': self.comment.creator.profile.photo.url
+            if self.comment and self.comment.creator.profile.photo else None,
+            'event': self.event.picture.url if self.event and self.event.picture else None,
+            'article': self.article.picture.url if self.article and self.article.picture else None,
+            'master_class': staticfiles('admin/logo.png') if self.master_class else None
         }
         return avatar_data.get(self.obj_type, None)
 

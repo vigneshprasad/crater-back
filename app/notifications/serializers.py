@@ -37,7 +37,7 @@ class PushNotificationSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(PushNotificationSerializer):
-    author_avatar = serializers.FileField(source='notification.author_avatar', read_only=True)
+    author_avatar = serializers.CharField(source='notification.author_avatar', read_only=True)
     event_date = serializers.DateField(source='notification.event.date', allow_null=True)
 
     class Meta:
