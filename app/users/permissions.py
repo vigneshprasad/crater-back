@@ -9,7 +9,6 @@ class IsAuthenticated(permissions.BasePermission):
     def has_permission(self, request, view):
         if not bool(request.user and request.user.is_authenticated):
             raise AuthenticationFailed
-        email_address = request.user.emailaddress_set.first()
-        if email_address and not email_address.verified:
+        if not request.user.email_verified:
             raise AuthenticationFailed
         return True

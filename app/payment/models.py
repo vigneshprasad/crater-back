@@ -80,7 +80,6 @@ class BankDetails(TimeStampedModel):
     )
 
 
-
 class Transaction(TimeStampedModel):
     user = models.ForeignKey(
         'users.User',

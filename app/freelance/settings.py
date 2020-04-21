@@ -107,9 +107,9 @@ ACCOUNT_USERNAME_REQUIRED = False
 REST_USE_JWT = True
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
@@ -243,9 +243,9 @@ if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
     AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-central-1')
-    AWS_TRASCODER_REGION_NAME = os.getenv('AWS_TRASCODER_REGION_NAME')
-    if not AWS_TRASCODER_REGION_NAME:
-        AWS_TRASCODER_REGION_NAME = AWS_S3_REGION_NAME
+    AWS_TRANSCODER_REGION_NAME = os.getenv('AWS_TRASCODER_REGION_NAME')
+    if not AWS_TRANSCODER_REGION_NAME:
+        AWS_TRANSCODER_REGION_NAME = AWS_S3_REGION_NAME
     STATIC_LOCATION = 'static'
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
     STATICFILES_STORAGE = 'utils.storage_backends.StaticStorage'

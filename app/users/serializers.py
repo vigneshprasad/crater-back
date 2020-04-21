@@ -303,6 +303,14 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     def get_unread_notifications(obj):
         return obj.notifications.filter(is_read=False).count()
 
+    def update(self, instance, validated_data):
+        old_email = instance.email
+        inctance = super().update(instance, validated_data)
+        new_email = instance.email
+        if old_email != new_email:
+            instance.send_verify_email()
+        return instance
+
 
 class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
     new_password = serializers.CharField(

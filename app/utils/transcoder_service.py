@@ -116,5 +116,5 @@ transcoder_service = TranscoderService(
     pipeline_id=settings.MP4_PIPELINE_ID,
     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    region_name=settings.AWS_TRASCODER_REGION_NAME
+    region_name=settings.AWS_TRANSCODER_REGION_NAME
 )
