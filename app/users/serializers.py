@@ -574,6 +574,7 @@ class ConnectSerializer(register_serializers.SocialConnectSerializer):
             )
         return attrs
 
+
 class NewPhoneNumberSerializer(serializers.ModelSerializer):
     phone_number = PhoneNumberField(required=False, allow_blank=False, allow_null=False)
 

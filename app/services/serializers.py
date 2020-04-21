@@ -34,7 +34,6 @@ class ServiceSerializer(serializers.ModelSerializer):
     service_type_description = serializers.CharField(source='service_type.description', read_only=True)
     pk = serializers.IntegerField(required=False)
 
-
     class Meta:
         model = models.Service
         fields = (

@@ -260,7 +260,7 @@ class User(AbstractUser):
         rate = 0
         if rates:
             rate = sum(filter(lambda x: x, rates)) / len(rates)
-            self.rating = rate
+            self.rating = round(rate, 2)
             self.save()
         return round(rate, 2)
 

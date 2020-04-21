@@ -166,16 +166,16 @@ class Service(TimeStampedModel):
 
     @property
     def rating_count(self):
-        return self.orders.filter(status='completed', rate__isnull=False).count()
+        return self.orders.filter(status='complete', rate__isnull=False).count()
 
     def recalculate_rating(self):
-        rates = list(self.orders.filter(status='completed', rate__isnull=False).values_list('rate', flat=True))
+        rates = list(self.orders.filter(status='complete', rate__isnull=False).values_list('rate', flat=True))
         rate = 0
         if rates:
             rate = sum(filter(lambda x: x, rates)) / len(rates)
-            return round(rate, 2)
-        self.rating = rate
-        self.save()
+            self.rating = round(rate, 2)
+            self.save()
+        return round(rate, 2)
 
 
 class UserServiceInfo(models.Model):
