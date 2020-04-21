@@ -253,10 +253,10 @@ class User(AbstractUser):
 
     @property
     def rating_count(self):
-        return self.seller_orders.filter(status='completed', rate__isnull=False).count()
+        return self.seller_orders.filter(status='complete', rate__isnull=False).count()
 
     def recalculate_rating(self):
-        rates = list(self.seller_orders.filter(status='completed', rate__isnull=False).values_list('rate', flat=True))
+        rates = list(self.seller_orders.filter(status='complete', rate__isnull=False).values_list('rate', flat=True))
         rate = 0
         if rates:
             rate = sum(filter(lambda x: x, rates)) / len(rates)
