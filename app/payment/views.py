@@ -3,9 +3,9 @@ from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from users import permissions
 from users.paginators import Pagination
 from . import models, serializers
-from users import permissions
 
 
 class TransactionViewSet(mixins.RetrieveModelMixin,
@@ -30,7 +30,7 @@ class TransactionViewSet(mixins.RetrieveModelMixin,
         detail=False
     )
     def statistic(self, request):
-        transaction = self.get_queryset()
+        transaction = self.get_queryset().filter(status='transferred')
         data = {
             'received_sum': transaction.filter(direction='out').aggregate(Sum('amount'))['amount__sum'],
             'paid_sum': transaction.filter(direction='in').aggregate(Sum('amount'))['amount__sum']
