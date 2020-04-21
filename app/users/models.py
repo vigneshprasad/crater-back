@@ -250,9 +250,9 @@ class User(AbstractUser):
         rate = 0
         if rates:
             rate = sum(filter(lambda x: x, rates)) / len(rates)
-            return round(rate, 2)
-        self.rating = rate
-        self.save()
+            self.rating = rate
+            self.save()
+        return round(rate, 2)
 
 
 class Device(TimeStampedModel):
