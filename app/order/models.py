@@ -128,7 +128,7 @@ class Quote(TimeStampedModel):
         default='pending'
     )
     comment = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Comment'),
         blank=True,
         null=True
@@ -172,22 +172,22 @@ class Quote(TimeStampedModel):
         null=True
     )
     includes = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Includes and Process'),
         blank=True
     )
     additional_text = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Additional text'),
         blank=True
     )
     require = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('I require'),
         blank=True
     )
     note = models.TextField(
-        max_length=800,
+        max_length=2000,
         verbose_name=_('Note from Provider'),
         blank=True
     )
@@ -306,6 +306,24 @@ class QuotePreference(models.Model):
     )
 
 
+class OrderPreference(models.Model):
+    order = models.ForeignKey(
+        'order.Order',
+        on_delete=models.CASCADE,
+        verbose_name=_('Order'),
+        related_name='order_preferences'
+    )
+    date = models.DateField(
+        verbose_name=_('Date')
+    )
+    time_start = models.TimeField(
+        verbose_name=_('Time start')
+    )
+    time_end = models.TimeField(
+        verbose_name=_('Time end')
+    )
+
+
 class FundingRequest(TimeStampedModel):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     investor = models.ForeignKey(
@@ -388,7 +406,7 @@ def order_create_transaction(sender, instance,  created, *args, **kwargs):
                     out_transaction.save()
             else:
                 Transaction.objects.create(
-                    user=instance.seller,
+                    user=instance.buyer,
                     amount=instance.price,
                     order=instance,
                     direction='out',

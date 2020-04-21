@@ -65,10 +65,11 @@ class UserChatSerializer(serializers.ModelSerializer):
     photo = serializers.SerializerMethodField()
     is_starred = serializers.SerializerMethodField()
     latest_message = serializers.SerializerMethodField()
+    last_seen = serializers.DateTimeField(source='last_chat_activity.modified', read_only=True)
 
     class Meta:
         model = get_user_model()
-        fields = ['pk', 'name', 'photo', 'is_starred', 'latest_message']
+        fields = ['pk', 'name', 'photo', 'is_starred', 'latest_message', 'last_seen']
 
     def get_is_starred(self, user):
         return user.user_stars.filter(creator_id=self.context['user']).exists()

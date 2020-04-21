@@ -55,6 +55,7 @@ class NotificationSettingsTestCase(TestCase):
             'new_videos_posted': False,
             'new_articles_posted': False,
             'new_events_created': False,
+            'new_post_created': False,
         }
         resp = self.auth_client.post(endpoint, data=data, content_type='application/json')
         self.assertEqual(resp.status_code, 200)

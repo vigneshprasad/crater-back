@@ -64,6 +64,17 @@ class QuotePreferenceSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class OrderPreferenceSerializer(QuotePreferenceSerializer):
+
+    class Meta:
+        model = models.OrderPreference
+        fields = [
+            'date',
+            'time_start',
+            'time_end'
+        ]
+
+
 class QuoteSerializer(serializers.ModelSerializer):
     buyer_name = serializers.SerializerMethodField()
     buyer_photo = serializers.FileField(source='buyer.profile.photo', allow_null=True, read_only=True)
@@ -140,7 +151,7 @@ class QuoteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         attachments = validated_data.pop('attachments')
         answers = validated_data.pop('answers')
-        date_preferences = validated_data.pop('date_preferences')
+        date_preferences = validated_data.pop('date_preferences', None)
         instance = super().create(validated_data)
         if attachments:
             self.update_attachments(instance, attachments)
@@ -285,7 +296,7 @@ class OrderSerializer(serializers.ModelSerializer):
     answers = AnswerSerializer(many=True)
     timeline = serializers.SerializerMethodField()
     revisions = serializers.SerializerMethodField()
-    date_preferences = serializers.SerializerMethodField()
+    order_preferences = OrderPreferenceSerializer(many=True, read_only=False, required=False)
 
     class Meta:
         model = models.Order
@@ -309,7 +320,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'completed_file',
             'timeline',
             'revisions',
-            'date_preferences'
+            'order_preferences'
         ]
         read_only_fields = [
             'buyer',
@@ -320,13 +331,6 @@ class OrderSerializer(serializers.ModelSerializer):
             'timeline',
             'revisions'
         ]
-
-    @staticmethod
-    def get_date_preferences(obj):
-        if obj.quote:
-            return QuotePreferenceSerializer(
-                source=obj.quote.date_preferences.all(), many=True, required=False, read_only=True
-            )
 
     @staticmethod
     def get_buyer_name(obj):
@@ -353,11 +357,14 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         attachments = validated_data.pop('attachments')
         answers = validated_data.pop('answers')
+        order_preferences = validated_data.pop('order_preferences', None)
         instance = super().create(validated_data)
         if attachments:
             self.update_attachments(instance, attachments)
         if answers:
             self.update_answers(instance, answers)
+        if order_preferences:
+            self.update_preferences(instance, order_preferences)
         return instance
 
     @staticmethod
@@ -382,6 +389,17 @@ class OrderSerializer(serializers.ModelSerializer):
                 order=instance,
                 question=answer['question'],
                 text=answer['text']
+            )
+
+    @staticmethod
+    def update_preferences(instance, preferences):
+        instance.order_preferences.all().delete()
+        for preference in preferences:
+            models.OrderPreference.objects.create(
+                order=instance,
+                date=preference['date'],
+                time_start=preference['time_start'],
+                time_end=preference['time_end']
             )
 
     @staticmethod

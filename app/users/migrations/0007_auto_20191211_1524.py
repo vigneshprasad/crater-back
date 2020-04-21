@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='Name')),
+                ('name', models.CharField(max_length=100, verbose_name='Company Name')),
                 ('tag_line', models.CharField(blank=True, max_length=100, null=True, verbose_name='Tag line')),
                 ('photo', models.ImageField(null=True, upload_to='profile/photo/%Y/%m/%d', verbose_name='Photo')),
                 ('cover', models.FileField(null=True, upload_to='profile/cover/%Y/%m/%d', verbose_name='Cover')),

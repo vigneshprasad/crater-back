@@ -10,7 +10,8 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_auth.registration.views import VerifyEmailView as DefaultVerifyEmailView
 from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import filters
-from rest_framework import mixins, viewsets, permissions, status
+from rest_framework import mixins, viewsets, status
+from users import permissions
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView

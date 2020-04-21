@@ -461,11 +461,15 @@ class AuthTestCase(TestCase):
             'cover': None,
             'cover_file': None,
             'photo': None,
+            'professional_service_provider': None,
+            'role': 'user',
             'introduction': '',
             'is_cover_video': False,
             'focus': '',
             'is_instagram_set': False,
             'instagram_username': None,
+            'instagram_id': '',
+            'instagram': '',
             'twitter': '',
             'additional_information': '',
             'work_city': city.pk,
@@ -582,7 +586,7 @@ class AuthTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.has_profile)
 
-    @patch('utils.instagram_service.InstagramService.convert_code_to_long_access_token', autospec=True, return_value='Token')
+    @patch('utils.instagram_service.InstagramService.convert_code_to_long_access_token', autospec=True, return_value=('Token', 'user_id'))
     @patch('utils.transcoder_service.TranscoderService.create_file_transcoder_job', autospec=True)
     def test_profile_set_success_full_info(self, create_file_transcoder_job, convert):
         endpoint = self.endpoints.get('user-profile')
@@ -596,6 +600,8 @@ class AuthTestCase(TestCase):
             'tags': [self.tag.pk],
             'tag_line': '',
             'photo': None,
+            'professional_service_provider': None,
+            'role': 'user',
             'cover': cover_file.pk,
             'introduction': 'Introduction',
             'is_cover_video': False,
@@ -605,7 +611,8 @@ class AuthTestCase(TestCase):
             'work_city_name': city.name,
             'is_instagram_set': True,
             'instagram_username': 'Fake',
-            'instagram': 'fake_code',
+            'instagram': 'Token',
+            'instagram_id': 'user_id',
             'twitter': 'https://twitter.com/',
             'public_profile': True,
         }
@@ -614,7 +621,6 @@ class AuthTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.has_profile)
         data.pop('tags')
-        data.pop('instagram')
         data['tag_list'] = [{'name': self.tag.name, 'pk': self.tag.pk}]
         result = resp.json()
         result.pop('pk')

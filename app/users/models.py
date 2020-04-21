@@ -288,7 +288,7 @@ class Profile(models.Model):
     )
     name = models.CharField(
         max_length=100,
-        verbose_name=_('Name')
+        verbose_name=_('Company Name')
     )
     tag_line = models.CharField(
         verbose_name=_('Tag line'),
@@ -327,6 +327,11 @@ class Profile(models.Model):
         verbose_name=_('Instagram'),
         blank=True,
         max_length=800
+    )
+    instagram_id = models.CharField(
+        verbose_name=_('Instagram Id'),
+        blank=True,
+        max_length=32
     )
     instagram_username = models.CharField(
         blank=True,

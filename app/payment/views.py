@@ -1,10 +1,11 @@
 from django.db.models import Sum
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from users.paginators import Pagination
 from . import models, serializers
+from users import permissions
 
 
 class TransactionViewSet(mixins.RetrieveModelMixin,

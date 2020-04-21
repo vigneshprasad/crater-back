@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
+from django.templatetags.static import static as staticfiles
 
 
 class UserNotificationsSettings(models.Model):
@@ -28,6 +29,9 @@ class UserNotificationsSettings(models.Model):
         default=True
     )
     new_events_created = models.BooleanField(
+        default=True
+    )
+    new_post_created = models.BooleanField(
         default=True
     )
 
@@ -68,17 +72,27 @@ class Notification(TimeStampedModel):
         null=True,
         related_name='notifications'
     )
+    like = models.ForeignKey(
+        'posts.Like',
+        verbose_name=_('Like'),
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notifications'
+    )
     PUSH_PERMISSION_DICT = {
         'event': 'new_events_created',
         'article': 'new_articles_posted',
         'master_class': 'new_videos_posted',
-        'comment': 'post_comments'
+        'comment': 'post_comments',
+        'post': 'new_post_created',
+        'like': 'post_likes'
     }
     PUSH_MESSAGE_DICT = {
         'event': _('You have been invited to an event'),
         'article': _('A new article has been shared'),
         'master_class': _('A new video has been shared'),
         'comment': _('{username} commented on your post'),
+        'like': _('{username} liked your post'),
         'post': _('New post added')
     }
 
@@ -90,6 +104,8 @@ class Notification(TimeStampedModel):
     def obj_type(self):
         if self.post:
             return 'post'
+        elif self.like:
+            return 'like'
         elif self.comment:
             return 'comment'
         elif self.event:
@@ -107,8 +123,8 @@ class Notification(TimeStampedModel):
         text_data = {
             'post': self.post.message if self.post else None,
             'comment': self.comment.message if self.comment else None,
-            'event': self.event.title if self.event else None,
-            'article': self.article.title if self.article else None,
+            'event': self.event.text if self.event else None,
+            'article': self.article.text if self.article else None,
             'master_class': self.master_class.description if self.master_class else None
         }
         return text_data.get(self.obj_type, None)
@@ -119,6 +135,7 @@ class Notification(TimeStampedModel):
             return None
         name_data = {
             'post': self.post.creator.name if self.post else None,
+            'like': self.like.user.name if self.like else None,
             'comment': self.comment.creator.name if self.comment else None,
             'event': self.event.title if self.event else None,
             'article': self.article.website_tag.name if self.article else None,
@@ -131,11 +148,13 @@ class Notification(TimeStampedModel):
         if not self.obj_type:
             return None
         avatar_data = {
-            'post': self.post.creator.profile.photo if self.post else None,
-            'comment': self.comment.creator.profile.photo if self.comment else None,
-            'event': self.event.picture if self.event else None,
-            'article': self.article.picture if self.article else None,
-            'master_class': self.master_class.cover if self.master_class else None
+            'post': self.post.creator.profile.photo.url if self.post and self.post.creator.profile.photo else None,
+            'like': self.like.user.profile.photo.url if self.like and self.like.user.profile.photo else None,
+            'comment': self.comment.creator.profile.photo.url
+            if self.comment and self.comment.creator.profile.photo else None,
+            'event': self.event.picture.url if self.event and self.event.picture else None,
+            'article': self.article.picture.url if self.article and self.article.picture else None,
+            'master_class': staticfiles('admin/logo.png') if self.master_class else None
         }
         return avatar_data.get(self.obj_type, None)
 
@@ -145,6 +164,7 @@ class Notification(TimeStampedModel):
             return None
         pk_data = {
             'post': self.post_id if self.post else None,
+            'like': self.like.post_id if self.like else None,
             'comment': self.comment.post_id if self.comment else None,
             'event': self.event_id if self.event else None,
             'article': self.article_id if self.article else None,
@@ -208,6 +228,7 @@ def user_notification_post_save(sender, instance,  created, *args, **kwargs):
                 username = instance.notification.comment.creator.name
             except Exception:
                 username = ''
+
             instance.user.send_push(
                 message=instance.notification.message().format(username=username),
                 data=data

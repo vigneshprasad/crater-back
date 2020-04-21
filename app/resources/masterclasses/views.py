@@ -1,5 +1,4 @@
 from rest_framework import mixins
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from resources.masterclasses.filter_backends import TagFilterBackend
@@ -7,12 +6,13 @@ from resources.masterclasses.models import MasterClass
 from resources.masterclasses.paginations import MasterClassPagination
 from resources.masterclasses.serializers import MasterClassSerializer
 from resources.masterclasses.tasks import masterclass_count_views
+from users import permissions
 
 
 class MaterClassViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     serializer_class = MasterClassSerializer
     queryset = MasterClass.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,)
     pagination_class = MasterClassPagination
     filter_backends = (TagFilterBackend,)
 

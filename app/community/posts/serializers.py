@@ -94,11 +94,16 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             None if self._is_video(post_file) else self.context['request'].build_absolute_uri(post_file.object.url)
         )
 
-    @staticmethod
-    def _is_video(post_file):
+    @classmethod
+    def _is_video(cls, post_file):
         video_formats = ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']
-        return any(_format in mimetypes.guess_type(post_file.object.url)[0] or []
-                                for _format in video_formats)
+        return any(cls._is_fit_format(_format, post_file) for _format in video_formats)
+
+    @staticmethod
+    def _is_fit_format(_format, post_file):
+        format_type = mimetypes.guess_type(post_file.object.url)[0]
+        if format_type:
+            return _format in format_type
 
     @staticmethod
     def _create_post_files(files, post):

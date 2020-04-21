@@ -5,7 +5,7 @@ from rest_framework.renderers import JSONRenderer
 from consumers.chat.services import create_message, get_paginated_support_messages, \
     get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \
     unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids, is_starred, \
-    get_latest_message, get_user_data
+    get_latest_message, get_user_data, create_last_seen
 from consumers.connect import ChatAuthConsumer
 
 
@@ -18,6 +18,7 @@ class ChatConsumer(ChatAuthConsumer):
         :param bytes_data: bytes data
         """
         if self.user_id:
+            await create_last_seen(self.user_id)
             data = json.loads(text_data)
             await getattr(self, data['type'])(data.get('message'), data.get('file'), data.get('filename'))
         else:
@@ -315,7 +316,7 @@ class ChatConsumer(ChatAuthConsumer):
             sender=self.user_id, receiver=self.receiver_id, page=event['page']
         )
         results = json.loads(JSONRenderer().render(messages).decode('utf8'))
-        user_data, serialized_data = await get_user_data(self.receiver_id)
+        user_data, serialized_data = await get_user_data(self.receiver_id, self.user_id)
         await self.send(text_data=json.dumps({
             'type': 'get_user_messages',
             'results': results,
@@ -326,7 +327,7 @@ class ChatConsumer(ChatAuthConsumer):
             'introduction': user_data.get('introduction'),
             'additional_information': user_data.get('additional_information'),
             'name': user_data.get('name'),
-            'user_data': serialized_data
+            'user_data': json.loads(JSONRenderer().render(serialized_data).decode('utf8'))
         }))
 
     async def set_admin_chat(self, event, *args, **kwargs):

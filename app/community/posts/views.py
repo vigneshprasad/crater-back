@@ -1,7 +1,6 @@
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from twitter.error import TwitterError
@@ -22,13 +21,14 @@ from resources.masterclasses.services import get_first_masterclass_data
 from users.models import User
 from utils.instagram_service import instagram_service
 from utils.twitter_service import api as twitter_api
+from users import permissions
 
 
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     queryset = get_community_posts()
     pagination_class = PostPagination
-    permission_classes = (IsAuthenticated, PostPermission)
+    permission_classes = (permissions.IsAuthenticated, PostPermission)
     filter_backends = (FollowingFilterBackend, BlockersFilterBackend, UserTagFilterBackend)
 
     def get_queryset(self):
@@ -49,7 +49,7 @@ class PostViewSet(ModelViewSet):
 
     @action(
         methods=['get'],
-        permission_classes=[IsAuthenticated, GroupPermission],
+        permission_classes=[permissions.IsAuthenticated, GroupPermission],
         detail=True
     )
     def group(self, request, pk):
@@ -63,7 +63,7 @@ class PostViewSet(ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(
-        methods=['get'], permission_classes=[IsAuthenticated], detail=False, pagination_class=None, filter_backends=None
+        methods=['get'], permission_classes=[permissions.IsAuthenticated], detail=False, pagination_class=None, filter_backends=None
     )
     def company(self, request):
         return Response({
@@ -72,7 +72,7 @@ class PostViewSet(ModelViewSet):
             'articles': get_company_curated_articles_data(),
         })
 
-    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
+    @action(methods=['get'], permission_classes=[permissions.IsAuthenticated], detail=True, filter_backends=None,
             serializer_class=LimitedPostSerializer, queryset=get_posts())
     def all(self, request, pk):
         context = self.get_serializer_context()
@@ -86,7 +86,7 @@ class PostViewSet(ModelViewSet):
             'posts': serializer.data,
         })
 
-    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
+    @action(methods=['get'], permission_classes=[permissions.IsAuthenticated], detail=True, filter_backends=None,
             serializer_class=EmptySerializer, queryset=User.objects.all())
     def twitter(self, request, pk):
         data = []
@@ -101,7 +101,7 @@ class PostViewSet(ModelViewSet):
             raise NotFound()
         return Response(data=[d._json for d in data])
 
-    @action(methods=['get'], permission_classes=[IsAuthenticated], detail=True, filter_backends=None,
+    @action(methods=['get'], permission_classes=[permissions.IsAuthenticated], detail=True, filter_backends=None,
             serializer_class=EmptySerializer, queryset=User.objects.all())
     def instagram(self, request, pk):
         data = {}
@@ -125,7 +125,7 @@ class PostViewSet(ModelViewSet):
 class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     serializer_class = LikeSerializer
     queryset = get_likes()
-    permission_classes = (IsAuthenticated, GroupPostPermission)
+    permission_classes = (permissions.IsAuthenticated, GroupPostPermission)
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -145,4 +145,4 @@ class LikeViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericView
 class ReportViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = ReportSerializer
     queryset = Report.objects.none()
-    permission_classes = (IsAuthenticated, GroupPostPermission)
+    permission_classes = (permissions.IsAuthenticated, GroupPostPermission)
