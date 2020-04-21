@@ -309,6 +309,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         new_email = instance.email
         if old_email != new_email:
             instance.send_verify_email()
+            instance.refresh_auth_secret_key()
         return instance
 
 

@@ -20,6 +20,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 from notifications.models import UserNotificationsSettings
 from payment.models import Subscription
 from users.managers import UserManager
+from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from . import choices
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
@@ -104,6 +105,11 @@ class User(AbstractUser):
         null=True,
         verbose_name=_('Pan card'),
         upload_to='user/pan_card/%Y/%m/%d'
+    )
+    auth_secret_key = models.CharField(
+        max_length=255,
+        verbose_name=_('Secret key'),
+        null=True
     )
 
     USERNAME_FIELD = 'email'
@@ -253,6 +259,11 @@ class User(AbstractUser):
             self.rating = rate
             self.save()
         return round(rate, 2)
+
+    def refresh_auth_secret_key(self, commit=True):
+        self.auth_secret_key = create_new_secret_key()
+        if commit:
+            self.save()
 
 
 class Device(TimeStampedModel):

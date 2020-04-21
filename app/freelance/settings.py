@@ -121,6 +121,8 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=30),
+    'JWT_GET_USER_SECRET_KEY': 'utils.user_secret_key.get_user_secret_key',
+    # 'JWT_PAYLOAD_HANDLER': 'utils.user_secret_key.jwt_payload_handler'
 }
 
 ASGI_APPLICATION = 'freelance.routing.application'
