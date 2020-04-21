@@ -591,7 +591,7 @@ class CheckCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = [
-            'sms_code'
+            'sms_code',
         ]
 
     def validate_sms_code(self, code):

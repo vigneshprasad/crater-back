@@ -51,14 +51,18 @@ class User(AbstractUser):
         blank=True,
         verbose_name=_('Phone number')
     )
+    phone_number_verified = models.BooleanField(
+        default=False,
+        verbose_name=_('Phone Number Verified')
+    )
+    new_phone_number = PhoneNumberField(
+        blank=True,
+        verbose_name=_('Phone number')
+    )
     sms_code = models.CharField(
         blank=True,
         verbose_name=_('Sms code'),
         max_length=4
-    )
-    phone_number_verified = models.BooleanField(
-        default=False,
-        verbose_name=_('Phone Number Verified')
     )
     referer = models.ForeignKey(
         'users.User',

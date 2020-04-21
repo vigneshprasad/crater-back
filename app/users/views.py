@@ -11,7 +11,6 @@ from rest_auth.registration.views import VerifyEmailView as DefaultVerifyEmailVi
 from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import filters
 from rest_framework import mixins, viewsets, status
-from users import permissions
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView
@@ -20,6 +19,7 @@ from rest_framework.views import APIView
 
 from payment import models as payment_models, serializers as payment_serializers
 from services import serializers as service_serializers, models as service_models
+from users import permissions
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, choices
@@ -171,13 +171,17 @@ class VerificationView(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         phone_number = serializer.validated_data.get('phone_number')
         if phone_number:
-            if phone_number != request.user.phone_number:
-                request.user.phone_number_verified = False
-            request.user.phone_number = phone_number
+            if request.user.phone_number:
+                request.user.new_phone_number = phone_number
+            else:
+                if phone_number != request.user.phone_number:
+                    request.user.phone_number_verified = False
+                request.user.phone_number = phone_number
         request.user.generate_sms_code(commit=False)
         request.user.save()
         if request.user.phone_number:
-            request.user.send_sms(
+            request.user._send_sms(
+                phone_number,
                 messages.PHONE_CODE_VERIFICATION.format(code=request.user.sms_code)
             )
         return Response({'status': messages.PHONE_CODE_SUCCESSFULLY_SENT})
@@ -187,6 +191,9 @@ class VerificationView(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         request.user.sms_code = ''
+        if request.user.new_phone_number:
+            request.user.phone_number = request.user.new_phone_number
+            request.user.new_phone_number = ''
         request.user.phone_number_verified = True
         request.user.save()
         return Response({'status': messages.PHONE_NUMBER_SUCCESSFULLY_VERIFIED})
