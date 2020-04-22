@@ -91,7 +91,7 @@ class Order(TimeStampedModel):
                 price = self.quote.service.price
             elif self.quote.exchange_request:
                 price = self.quote.exchange_request.extended_price
-        else:
+        elif self.service:
             price = self.service.price
         return price
 
