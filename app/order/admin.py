@@ -1,10 +1,10 @@
 from django.contrib.admin import ModelAdmin, register
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 from order.filters import BuyerFilter, SellerFilter
 from order.models import Order
-from django.utils.translation import ugettext_lazy as _
 
 
 @register(Order)
@@ -25,9 +25,7 @@ class OrderAdmin(ModelAdmin):
 
     @staticmethod
     def sum(order):
-        if order.quote:
-            return order.quote.price
-        return '-'
+        return order.price if order.price else '-'
 
     @staticmethod
     def job_state(order):
