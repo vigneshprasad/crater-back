@@ -86,10 +86,7 @@ class Report(TimeStampedModel):
 def post_post_save(sender, instance,  created, *args, **kwargs):
     if created:
         notification = Notification.objects.create(post=instance)
-        if instance.group:
-            users_approved = list(instance.group.group_users.filter(is_approved=True).values_list('user_id', flat=True))
-        else:
-            users_approved = list(instance.creator.follows.values_list('follower_id', flat=True))
+        users_approved = list(instance.creator.follows.values_list('follower_id', flat=True))
         users = User.objects.filter(pk__in=users_approved, profile__isnull=False).exclude(pk=instance.creator.pk)
         for user in users:
             UserNotification.objects.create(user=user, notification=notification)
