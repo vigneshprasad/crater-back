@@ -172,9 +172,8 @@ class VerificationView(viewsets.GenericViewSet):
         phone_number = serializer.validated_data.get('phone_number')
         if phone_number:
             request.user.new_phone_number = phone_number
-        request.user.generate_sms_code(commit=False)
-        request.user.save()
-        if request.user.phone_number:
+            request.user.generate_sms_code(commit=False)
+            request.user.save()
             request.user._send_sms(
                 phone_number,
                 messages.PHONE_CODE_VERIFICATION.format(code=request.user.sms_code)
