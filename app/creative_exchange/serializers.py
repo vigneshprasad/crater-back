@@ -14,7 +14,8 @@ class ExchangeCategorySerializer(serializers.ModelSerializer):
         model = models.ExchangeCategory
         fields = [
             'pk',
-            'name'
+            'name',
+            'photo'
         ]
 
 

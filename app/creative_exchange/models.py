@@ -13,6 +13,11 @@ class ExchangeCategory(models.Model):
         default=True,
         verbose_name=_('Active')
     )
+    photo = models.ImageField(
+        upload_to='category/photo/%Y/%m/%d',
+        verbose_name=_('Photo'),
+        null=True
+    )
 
     class Meta:
         verbose_name_plural = _('Exchange Categories')
