@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
@@ -177,9 +178,9 @@ class DetailExchangeRequestSerializer(ExchangeRequestSerializer):
         graph_data = {}
         day_average = 0
         for single_date in date_range(six_month_ago, timezone.now()):
-            resps = responses.filter(created=single_date)
+            resps = responses.filter(created__date=single_date.date())
             if resps:
-                day_average = round(sum(list(resps.values_list('price', flat=True))) / resps.count())
+                day_average = resps.aggregate(avg=Avg('price'))['avg']
             graph_data[single_date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')] = day_average
         half_year_avg = sum(graph_data.values())/len(graph_data.values())
         return {
