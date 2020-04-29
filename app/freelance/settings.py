@@ -35,6 +35,7 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"https://[a-zA-Z-]+.scenario-projects.com*",
     r"^https://localhost[:0-9]*",
     r"https://[a-zA-Z-]+.1worknetwork.com*",
+    r"https://[a-zA-Z-]+.worknetwork.in*",
     # r"^http://*",
 ]
 
@@ -259,6 +260,7 @@ else:
     STATIC_ROOT = os.path.join(ROOT_DIR, "staticfiles")
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(ROOT_DIR, "media")
+    AWS_TRANSCODER_REGION_NAME=''
 
 REDIS_HOST = os.getenv('REDIS_HOST', 'freelance_redis')
 CELERY_BROKER_URL = 'redis://%s:6379' % REDIS_HOST
