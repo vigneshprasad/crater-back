@@ -63,7 +63,9 @@ def get_inbox_messages(receiver):
     :param receiver: receiver user
     :return message queryset
     """
-    return MessageSerializer(Message.objects.filter(receiver_id=receiver, is_read=False)[:5], many=True).data
+    return MessageSerializer(Message.objects.filter(
+        receiver_id=receiver, is_read=False
+    ).order_by('sender_id', '-created').distinct('sender_id')[:5], many=True).data
 
 
 @database_sync_to_async
