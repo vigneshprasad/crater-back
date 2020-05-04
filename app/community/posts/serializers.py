@@ -10,6 +10,7 @@ from community.posts.models import Post, File, Like, Report
 from community.posts.services import get_post_files
 from utils.fields import Base64FileField
 from pytz import timezone
+from django.conf import settings
 
 tz = timezone(settings.TIME_ZONE)
 

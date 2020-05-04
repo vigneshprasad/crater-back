@@ -3,6 +3,7 @@ from pytz import timezone
 
 from community.comments.models import Comment
 from community.mixins import SetCreatorRequestDataMixin
+from django.conf import settings
 
 tz = timezone(settings.TIME_ZONE)
 
