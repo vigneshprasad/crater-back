@@ -3,12 +3,15 @@ from rest_framework import serializers
 from community.comments.models import Comment
 from community.mixins import SetCreatorRequestDataMixin
 
+tz = timezone(settings.TIME_ZONE)
+
 
 class CommentSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     request_user = 'creator'
     creator_name = serializers.CharField(source='creator.name', read_only=True)
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
     creator_id = serializers.UUIDField(source='creator.pk', read_only=True)
+    created = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -28,3 +31,7 @@ class CommentSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer)
             'event': {'write_only': True},
             'creator': {'write_only': True}
         }
+
+    @staticmethod
+    def get_created(comment):
+        return comment.created.astimezone(tz)

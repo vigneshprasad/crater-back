@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from . import models
 
+tz = timezone(settings.TIME_ZONE)
+
 
 class UserNotificationsSettingsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,6 +42,7 @@ class NotificationSerializer(PushNotificationSerializer):
     author_avatar = serializers.CharField(source='notification.author_avatar', read_only=True)
     event_date = serializers.DateField(source='notification.event.date', allow_null=True)
 
+
     class Meta:
         model = models.UserNotification
         fields = [
@@ -53,6 +56,10 @@ class NotificationSerializer(PushNotificationSerializer):
             'created',
             'event_date'
         ]
+
+    @staticmethod
+    def get_created(comment):
+        return comment.created.astimezone(tz)
 
 
 class EmptySerializer(serializers.Serializer):

@@ -10,6 +10,8 @@ from community.posts.models import Post, File, Like, Report
 from community.posts.services import get_post_files
 from utils.fields import Base64FileField
 
+tz = timezone(settings.TIME_ZONE)
+
 
 class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     request_user = 'creator'
@@ -33,6 +35,7 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     creator_photo = serializers.ImageField(source='creator.profile.photo', read_only=True)
     group_name = serializers.CharField(source='group.name', read_only=True, allow_null=True)
     is_creator_approved = serializers.BooleanField(read_only=True, source='creator.is_approved')
+    created = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -57,6 +60,10 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
             'comments',
             'latest_comments'
         )
+
+    @staticmethod
+    def get_created(post):
+        return post.created.astimezone(tz)
 
     def validate(self, data):
         """
