@@ -53,7 +53,17 @@ def get_messages(receiver, is_support=False):
     :param is_support: is support message or between users, Boolean
     :return message queryset
     """
-    Message.objects.filter(receiver_id=receiver, is_support=is_support)
+    return Message.objects.filter(receiver_id=receiver, is_support=is_support)
+
+
+@database_sync_to_async
+def get_inbox_messages(receiver):
+    """
+    Get messages for specific receiver
+    :param receiver: receiver user
+    :return message queryset
+    """
+    return MessageSerializer(Message.objects.filter(receiver_id=receiver, is_read=False)[:5], many=True).data
 
 
 @database_sync_to_async

@@ -2,7 +2,7 @@ import json
 
 from rest_framework.renderers import JSONRenderer
 
-from consumers.chat.services import create_message, get_paginated_support_messages, \
+from consumers.chat.services import create_message, get_paginated_support_messages, get_inbox_messages, \
     get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \
     unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids, is_starred, \
     get_latest_message, get_user_data, create_last_seen
@@ -371,4 +371,26 @@ class ChatConsumer(ChatAuthConsumer):
         await self.send(text_data=json.dumps({
             'type': 'send_notifications_count',
             'unread_count': event['messages']
+        }))
+
+    async def get_inbox_messages(self, message, *args, **kwargs):
+        """
+        Send message event to admin if user is typing
+        :param message: message string
+        """
+
+        await self.channel_layer.group_send(str(self.user_id), {
+            'type': 'inbox_messages',
+            'receiver_id': self.user_id
+        })
+
+    async def inbox_messages(self, event, *args, **kwargs):
+        """
+        Set chat with user. Retrieve the latest chat messages
+        :param event: message event data
+        """
+        latest_messages = await get_inbox_messages(event['receiver_id'])
+        await self.send(text_data=json.dumps({
+            'type': 'user_inbox_messages',
+            'messages': json.loads(JSONRenderer().render(latest_messages).decode('utf8'))
         }))
