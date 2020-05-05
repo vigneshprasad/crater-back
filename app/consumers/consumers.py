@@ -389,8 +389,9 @@ class ChatConsumer(ChatAuthConsumer):
         Set chat with user. Retrieve the latest chat messages
         :param event: message event data
         """
-        latest_messages = await get_inbox_messages(event['receiver_id'])
+        latest_messages, count = await get_inbox_messages(event['receiver_id'])
         await self.send(text_data=json.dumps({
             'type': 'user_inbox_messages',
-            'messages': json.loads(JSONRenderer().render(latest_messages).decode('utf8'))
+            'messages': json.loads(JSONRenderer().render(latest_messages).decode('utf8')),
+            'count': count
         }))

@@ -65,7 +65,9 @@ def get_inbox_messages(receiver):
     """
     return MessageSerializer(Message.objects.filter(
         receiver_id=receiver, is_read=False
-    ).order_by('sender_id', '-created').distinct('sender_id')[:5], many=True).data
+    ).order_by('sender_id', '-created').distinct('sender_id')[:5], many=True).data, Message.objects.filter(
+        receiver_id=receiver, is_read=False
+    ).order_by('sender_id', '-created').distinct('sender_id').count()
 
 
 @database_sync_to_async
