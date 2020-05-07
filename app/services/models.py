@@ -131,7 +131,7 @@ class Service(TimeStampedModel):
     revision = models.PositiveIntegerField(
         null=True,
         verbose_name=_('Revision'),
-        validators=[MaxValueValidator(10), MinValueValidator(1)]
+        validators=[MaxValueValidator(10), MinValueValidator(0)]
     )
     includes = models.TextField(
         max_length=800,
