@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin import register
-from payment.models import Transaction
+from payment.models import BankDetails
 
 
-# @register(Transaction)
-# class TransactionAdmin(admin.ModelAdmin):
-#     pass
+@register(BankDetails)
+class BankDetailsAdmin(admin.ModelAdmin):
+    pass
