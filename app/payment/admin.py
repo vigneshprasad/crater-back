@@ -5,4 +5,7 @@ from payment.models import BankDetails
 
 @register(BankDetails)
 class BankDetailsAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('user', 'stripe_customer_id')
+
+    def has_add_permission(self, request, obj):
+        return False
