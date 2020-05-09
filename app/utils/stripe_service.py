@@ -46,7 +46,7 @@ class StripeService:
             source=token
         )
 
-    def create_token_charge(self, token, amount, description, user, currency='usd'):
+    def create_token_charge(self, token, amount, description, user, currency=settings.LOCAL_CURRENCY):
         name = user.email
         if hasattr(user, 'profile') and user.profile:
             name = user.profile.name
@@ -55,7 +55,7 @@ class StripeService:
             'address': {
                 'line1': 'Non Address Payment',
                 'city': 'Non City Payment',
-                'country': 'US',
+                'country': settings.LOCAL_COUNTRY,
             }
         }
         charge = self.stripe.Charge.create(
@@ -67,7 +67,7 @@ class StripeService:
         )
         return charge
 
-    def create_customer_charge(self, customer_id, amount, description, currency='usd'):
+    def create_customer_charge(self, customer_id, amount, description, currency=settings.LOCAL_CURRENCY):
         charge = self.stripe.Charge.create(
             amount=amount,
             currency=currency,
