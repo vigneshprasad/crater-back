@@ -366,7 +366,7 @@ class RefererEmailView(APIView):
 class InvestorsViewSet(mixins.ListModelMixin,
                        mixins.RetrieveModelMixin,
                        viewsets.GenericViewSet):
-    queryset = models.User.objects.filter(
+    queryset = models.User.objects.select_related('profile').filter(
         groups__name='Investor',
         # bank_details__isnull=False,
         investor_services_info__isnull=False,
@@ -374,6 +374,7 @@ class InvestorsViewSet(mixins.ListModelMixin,
         is_superuser=False,
         investor_services_info__reach_out=True,
         is_approved=True,
+        profile__public_profile=True
     ).order_by('name')
 
     permission_classes = [permissions.IsAuthenticated]
