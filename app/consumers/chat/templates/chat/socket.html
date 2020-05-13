@@ -1,0 +1,86 @@
+<script>
+    let token = '{{ token }}';
+    let uuid = '{{ uuid }}';
+    let $messages_block = $('#messages__block');
+    let objDiv = document.getElementById('messages__block');
+
+    let chatSocket = new WebSocket(
+      'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
+      '/ws/connector/' + uuid + '/' + token + '/'
+    );
+
+    let send_icon_template = '<div class="is-read"><i class="material-icons">done</i></div>';
+
+    chatSocket.onmessage = function(e) {
+      let data = JSON.parse(e.data);
+      if (data['type'] === 'admin_message') {
+        let time = new Date(data['created']).toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Calcutta'});
+        let template = `<div class="message__block admin"><div class="message message-id-${data['pk']}">${data['message']}${send_icon_template}</div><div class="chat__message-sender">${data['sender']}, ${time}</div></div>`
+        $messages_block.append(template);
+        objDiv.scrollTop = objDiv.scrollHeight;
+      } else if (data['type'] === 'user_message') {
+        let time = new Date(data['created']).toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Calcutta'});
+        let template = `<div class="message__block user"><div class="message">${data['message']}`;
+        if (data['file']) {
+          template += `<a href="${ data['file'] }" target="_blank" class="flex"><i class="material-icons attached-file">cloud_download</i></a>`;
+        }
+        template += `</div><div class="chat__message-sender">${data['sender']}, ${time}</div></div>`;
+        $messages_block.append(template);
+        objDiv.scrollTop = objDiv.scrollHeight;
+      } else if (data['type'] === 'user_notification') {
+        let $unread_notifications = $('#user-' + data['sender_id'] + ' .unread');
+        if ($unread_notifications) {
+          $('#user-' + data['sender_id'] + ' .unread').remove();
+        }
+        $('#user-' + data['sender_id'] + ' a').append(`<span class="unread">${data['unread_count']}</span>`);
+        $('#user-' + data['sender_id'] + ' .message').text(data['message']);
+      } else if (data['type'] === 'user_read_messages') {
+        for (let messageId of data['messages']) {
+          $('.message-id-' + messageId).find('.is-read').html('<i class="material-icons done-all">done_all</i>')
+        }
+      } else if (data['type'] === 'user_is_typing') {
+        let $isTyping = $('.is-typing');
+        if ($isTyping.is(':hidden')) {
+          $isTyping.show();
+          setTimeout(() => $isTyping.hide(), 2000);
+        }
+      }
+    };
+
+    chatSocket.onclose = function(e) {
+      console.error('Chat socket closed unexpectedly');
+    };
+
+    let $input = $('#chat-message-input');
+    $input.focus();
+    $input.keyup(function(e) {
+      if (e.keyCode === 13) {
+        document.querySelector('#chat-message-submit').click();
+      }
+    });
+
+    $('#chat-message-submit').click(function(e) {
+      let messageInputDom = document.querySelector('#chat-message-input');
+      let message = messageInputDom.value;
+      if (message) {
+        chatSocket.send(JSON.stringify({
+          'message': message,
+          'type': 'send_admin_message_to_user',
+        }));
+        messageInputDom.value = '';
+      }
+    });
+
+    $('#chat-message-input').on('input', function() {
+      var self = this;
+      if (this.active !== false ) {
+        setTimeout(() => {self.active = true}, 2000);
+        this.active = false;
+        chatSocket.send(JSON.stringify({
+         'message': {'admin_receiver_id': uuid},
+         'type': 'user_is_typing',
+        }));
+      }
+    });
+
+</script>

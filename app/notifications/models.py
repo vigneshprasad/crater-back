@@ -1,0 +1,235 @@
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils.translation import ugettext_lazy as _
+from model_utils.models import TimeStampedModel
+from django.templatetags.static import static as staticfiles
+
+
+class UserNotificationsSettings(models.Model):
+    user = models.OneToOneField(
+        'users.User',
+        related_name='notification_settings',
+        on_delete=models.CASCADE,
+        verbose_name=_('User')
+    )
+    messages = models.BooleanField(
+        default=True
+    )
+    post_comments = models.BooleanField(
+        default=True
+    )
+    post_likes = models.BooleanField(
+        default=True
+    )
+    new_videos_posted = models.BooleanField(
+        default=True
+    )
+    new_articles_posted = models.BooleanField(
+        default=True
+    )
+    new_events_created = models.BooleanField(
+        default=True
+    )
+    new_post_created = models.BooleanField(
+        default=True
+    )
+
+
+class Notification(TimeStampedModel):
+    post = models.ForeignKey(
+        'posts.Post',
+        related_name='notifications',
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('Post')
+    )
+    comment = models.ForeignKey(
+        'comments.Comment',
+        related_name='notifications',
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('Comment')
+    )
+    event = models.ForeignKey(
+        'events.Event',
+        related_name='notifications',
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('Event')
+    )
+    article = models.ForeignKey(
+        'curated_articles.CuratedArticle',
+        verbose_name=_('Article'),
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notifications'
+    )
+    master_class = models.ForeignKey(
+        'masterclasses.MasterClass',
+        verbose_name=_('Master Class'),
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notifications'
+    )
+    like = models.ForeignKey(
+        'posts.Like',
+        verbose_name=_('Like'),
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='notifications'
+    )
+    PUSH_PERMISSION_DICT = {
+        'event': 'new_events_created',
+        'article': 'new_articles_posted',
+        'master_class': 'new_videos_posted',
+        'comment': 'post_comments',
+        'post': 'new_post_created',
+        'like': 'post_likes'
+    }
+    PUSH_MESSAGE_DICT = {
+        'event': _('You have been invited to an event'),
+        'article': _('A new article has been shared'),
+        'master_class': _('A new video has been shared'),
+        'comment': _('{username} commented on your post'),
+        'like': _('{username} liked your post'),
+        'post': _('New post added')
+    }
+
+    class Meta:
+        verbose_name = _('Notification')
+        verbose_name_plural = _('Notifications')
+
+    @property
+    def obj_type(self):
+        if self.post:
+            return 'post'
+        elif self.like:
+            return 'like'
+        elif self.comment:
+            return 'comment'
+        elif self.event:
+            return 'event'
+        elif self.article:
+            return 'article'
+        elif self.master_class:
+            return 'master_class'
+        return None
+       
+    @property
+    def text(self):
+        if not self.obj_type:
+            return None
+        text_data = {
+            'post': self.post.message if self.post else None,
+            'comment': self.comment.message if self.comment else None,
+            'event': self.event.text if self.event else None,
+            'article': self.article.text if self.article else None,
+            'master_class': self.master_class.description if self.master_class else None
+        }
+        return text_data.get(self.obj_type, None)
+
+    @property
+    def author_name(self):
+        if not self.obj_type:
+            return None
+        name_data = {
+            'post': self.post.creator.name if self.post else None,
+            'like': self.like.user.name if self.like else None,
+            'comment': self.comment.creator.name if self.comment else None,
+            'event': self.event.title if self.event else None,
+            'article': self.article.website_tag.name if self.article else None,
+            'master_class': self.master_class.author if self.master_class else None
+        }
+        return name_data.get(self.obj_type, None)
+
+    @property
+    def author_avatar(self):
+        if not self.obj_type:
+            return None
+        avatar_data = {
+            'post': self.post.creator.profile.photo.url if self.post and self.post.creator.profile.photo else None,
+            'like': self.like.user.profile.photo.url if self.like and self.like.user.profile.photo else None,
+            'comment': self.comment.creator.profile.photo.url
+            if self.comment and self.comment.creator.profile.photo else None,
+            'event': self.event.picture.url if self.event and self.event.picture else None,
+            'article': self.article.picture.url if self.article and self.article.picture else None,
+            'master_class': staticfiles('admin/logo.png') if self.master_class else None
+        }
+        return avatar_data.get(self.obj_type, None)
+
+    @property
+    def obj_pk(self):
+        if not self.obj_type:
+            return None
+        pk_data = {
+            'post': self.post_id if self.post else None,
+            'like': self.like.post_id if self.like else None,
+            'comment': self.comment.post_id if self.comment else None,
+            'event': self.event_id if self.event else None,
+            'article': self.article_id if self.article else None,
+            'master_class': self.master_class_id if self.master_class else None
+        }
+        return pk_data.get(self.obj_type, None)
+
+    def message(self):
+        if not self.obj_type:
+            return ''
+        return self.PUSH_MESSAGE_DICT.get(self.obj_type, 'None message')
+
+
+class UserNotification(TimeStampedModel):
+    user = models.ForeignKey(
+        'users.User',
+        related_name='notifications',
+        verbose_name=_('User'),
+        on_delete=models.CASCADE
+    )
+    notification = models.ForeignKey(
+        'notifications.Notification',
+        related_name='users_notification',
+        verbose_name=_('Notification'),
+        on_delete=models.CASCADE
+    )
+    is_read = models.BooleanField(
+        default=False
+    )
+
+    class Meta:
+        verbose_name_plural = _('User Notifications')
+        verbose_name = _('User Notification')
+        ordering = ['-created']
+
+
+@receiver(post_save, sender=UserNotification)
+def user_notification_post_save(sender, instance,  created, *args, **kwargs):
+    if created:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        layer = get_channel_layer()
+        message_fmt = {
+            'type': 'send_notifications_count',
+            'messages': instance.user.notifications.filter(is_read=False).count()
+        }
+        async_to_sync(layer.group_send)(str(instance.user.uuid), message_fmt)
+
+        if instance.notification.obj_type in instance.notification.PUSH_PERMISSION_DICT.keys():
+            send = getattr(
+                instance.user.notification_settings,
+                instance.notification.PUSH_PERMISSION_DICT.get(instance.notification.obj_type)
+            )
+        else:
+            send = False
+        if send:
+            from .serializers import PushNotificationSerializer
+
+            data = PushNotificationSerializer(instance).data
+            try:
+                username = instance.notification.comment.creator.name
+            except Exception:
+                username = ''
+
+            instance.user.send_push(
+                message=instance.notification.message().format(username=username),
+                data=data
+            )

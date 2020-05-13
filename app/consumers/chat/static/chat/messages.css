@@ -1,0 +1,92 @@
+.app.messages {
+    height: calc(100vh - 115px);
+}
+
+.app.messages .card-content {
+    height: calc(100% - 90px);
+    overflow-y: scroll;
+}
+
+.app.messages .message {
+    margin: 5px;
+    padding: 10px;
+}
+
+.app.messages .message {
+    display: inline-block;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.app.messages .admin {
+    text-align: right;
+}
+
+.app.messages .admin .message {
+    background: lightgrey;
+    text-align: left;
+}
+
+.chat__message-sender {
+    font-size: 10px;
+    margin: 0 8px 8px;
+}
+
+.app.messages .user .message {
+    background-color: #448AFF;
+    color: #fff;
+    word-break: break-all;
+}
+
+.app.messages .user .attached-file {
+    color: #fff;
+}
+
+.app.messages .admin .attached-file {
+    color: #448AFF;
+}
+
+.app.messages .actions {
+    padding: 8px;
+    border-top: 1px solid lightgrey;
+}
+
+.actions .input-field {
+    width: calc(100% - 35px)
+}
+
+.is-read {
+    text-align: right;
+}
+
+.is-read .material-icons {
+    font-size: 12px;
+}
+
+.is-read .done-all {
+    color: green;
+}
+
+.is-typing {
+    margin-top: -18px;
+    font-size: 12px;
+    color: gray;
+    text-align: center;
+    display: none;
+}
+
+.attach-file {
+    position: absolute;
+    top: -20px;
+    left: -3px;
+    cursor: pointer;
+}
+
+.file-submit-block {
+    position: relative;
+    display: none;
+    width: 100%;
+    text-align: center;
+    padding-right: 35px;
+    margin-top: 20px;
+}

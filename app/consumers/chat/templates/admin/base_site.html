@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% load i18n  %}
+
+{% block userlinks %}
+    {% if unread_messages %}
+        <a href="{% url 'admin:chat_chat_changelist' %}" title="{% trans 'You have unread messages' %}">
+            <span style="position:relative">
+                <i class="material-icons notification-active" style="top: -5px; color: #d3596b;">notifications_active</i>
+            </span>
+        </a>
+    {% endif %}
+    {% if user.name %}
+        <a href="{% url 'admin:users_admin_change' user.pk %}">{% trans 'Hello' %}, {{ user.name }}</a>
+    {% endif %}
+    <a href="{% url 'schema-swagger-ui' %}">{% trans 'Swagger' %}</a>
+    {% if user.has_usable_password %}
+        <a href="{% url 'admin:password_change' %}">
+            {% trans 'Change password' %}
+        </a>
+    {% endif %}
+    <a href="{% url 'admin:logout' %}">
+        {% trans 'Log out' %}
+        <i class="material-icons">exit_to_app</i>
+    </a>
+{% endblock %}

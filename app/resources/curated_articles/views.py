@@ -1,0 +1,16 @@
+from rest_framework import mixins
+from rest_framework.viewsets import GenericViewSet
+
+from resources.curated_articles.filter_backends import TagFilterBackend
+from resources.curated_articles.paginators import CuratedArticlePagination
+from resources.curated_articles.serializers import CuratedArticleSerializer
+from resources.curated_articles.services import get_curated_articles
+from users.permissions import IsAuthenticated
+
+
+class CuratedArticleViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    serializer_class = CuratedArticleSerializer
+    pagination_class = CuratedArticlePagination
+    queryset = get_curated_articles()
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (TagFilterBackend,)

@@ -1,0 +1,121 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n static tz %}
+{% get_current_timezone as TIME_ZONE %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'chat/users.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/messages.css' %}">
+  <script src="{% static 'chat/search-users.js' %}"></script>
+  <script src="{% static 'chat/upload-file.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+  <div id="content">
+    <div class="app users {% if uuid %}user-chat{% endif %}">
+      <div class="card">
+        <div class="card-content">
+          <div class="input-field flex">
+            <i class="material-icons prefix">search</i>
+            <label for="search-users">{% trans 'Search users' %}</label>
+            <input id="search-users" type="text" class="validate">
+          </div>
+          {% if active_user %}
+            <div class="active-user">
+              <hr>
+              <a class="flex selected">
+                <img class="chat__user-photo" width="50" height="50" src="{{ active_user.photo }}">
+                <span class="username flex flex-column">
+                  <span class="name">{{ active_user.name }}</span>
+                </span>
+              </a>
+            </div>
+          {% endif %}
+          {% for user in users %}
+            <div class="user-detail" id="user-{{ user.pk }}">
+              <hr>
+              <a href="{% url 'admin:chat_chat_result' user.pk %}" class="flex">
+                <img class="chat__user-photo" width="50" height="50" src="{{ user.photo }}">
+                <span class="username flex flex-column">
+                  <span class="name">{{ user.name }}</span>
+                  <span class="message">
+                    <span>
+                      {% if user.message.sender.pk == request.user.pk %}
+                        {% trans 'You' %}:
+                      {% elif user.message.sender.pk|stringformat:'s' != user.pk %}
+                        {{ user.message.sender.name }}:
+                      {% endif %}
+                        {{ user.message.message }}
+                    </span>
+                    {% if user.message.file %}
+                      <i class="material-icons attached-file">cloud_download</i>
+                    {% endif %}
+                  </span>
+                </span>
+                {% if user.unread %}
+                  <span class="unread ">{{ user.unread }}</span>
+                {% endif %}
+              </a>
+            </div>
+          {% endfor %}
+          <hr>
+        </div>
+      </div>
+    </div>
+    {% if messages %}
+      <div class="app messages">
+        <div class="card">
+          <div class="card-content" id="messages__block">
+            {% for message in messages %}
+              <div class="message__block {% if message.sender.pk|stringformat:'s' == uuid %}user{% else %}admin{% endif %}">
+                <div class="message message-id-{{ message.pk }}">
+                  {{ message }}
+                  {% if message.file %}
+                    <a href="{{ message.file.url }}" target="_blank" class="flex" title="{{ message.filename }}">
+                      <i class="material-icons attached-file">cloud_download</i>
+                    </a>
+                  {% endif %}
+                  {% if message.sender.pk|stringformat:'s' != uuid %}
+                    <div class="is-read">
+                      {% if message.is_read %}
+                        <i class="material-icons done-all">done_all</i>
+                      {% else %}
+                        <i class="material-icons">done</i>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="chat__message-sender">{{ message.sender.name }}, {{ message.created|date:'d M H:i' }}</div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="is-typing">{% trans 'User is typing...' %}</div>
+
+          <div class="actions flex">
+            <form class="file-submit-block" method="POST" enctype="multipart/form-data" action="{% url 'chat:chat-file' %}">
+              {% csrf_token %}
+              <i class="material-icons attach-file">attachment</i>
+              <input type="file" name="file" id="file" class="chat-input-file"/>
+              <input type="hidden" name="receiver" value="{{ uuid }}"/>
+              <button type="submit" class="default waves-effect waves-light btn">
+                <i class="material-icons right">send</i>
+              </button>
+            </form>
+            <div class="input-field message-submit-block flex">
+              <i class="material-icons attach-file">attach_file</i>
+              <i class="material-icons prefix">chat_bubble</i>
+              <input id="chat-message-input" type="text" class="validate" maxlength="1006">
+              <label for="chat-message-input">{% trans 'Text Message' %}</label>
+              <button id="chat-message-submit" type="submit" class="default waves-effect waves-light btn">
+                <i class="material-icons right">send</i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% include 'chat/socket.html' with token=token uuid=uuid %}
+    {% endif %}
+  </div>
+
+{% endblock %}
