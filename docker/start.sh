@@ -12,5 +12,5 @@ done;
 ./manage.py collectstatic --no-input --traceback
 #./manage.py makemessages --locale=ru --extension=html,txt,py --ignore=venv
 #./manage.py compilemessages --locale=ru
-#daphne -b 0.0.0.0 -p 8000 freelance.asgi:application
-./manage.py runserver 0.0.0.0:8000
+daphne -b 0.0.0.0 -p 8000 freelance.asgi:application
+#./manage.py runserver 0.0.0.0:8000
