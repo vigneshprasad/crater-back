@@ -326,7 +326,7 @@ class ChatConsumer(ChatAuthConsumer):
             'photo': user_data.get('photo'),
             'introduction': user_data.get('introduction'),
             'additional_information': user_data.get('additional_information'),
-            'tag_line': user_data.get('tag_lilne'),
+            'tag_line': user_data.get('tag_line'),
             'name': user_data.get('name'),
             'user_data': json.loads(JSONRenderer().render(serialized_data).decode('utf8'))
         }))
