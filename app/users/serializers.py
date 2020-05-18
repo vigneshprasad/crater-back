@@ -267,7 +267,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'pan_card',
             'pan_card_base64',
             'pan_card_size',
-            'unread_notifications'
+            'unread_notifications',
+            'is_approved'
         )
         read_only_fields = (
             'full_registered',
@@ -280,7 +281,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'role',
             'has_active_subscription',
             'active_subscription_membership',
-            'pan_card_size'
+            'pan_card_size',
+            'is_approved'
         )
 
     def validate(self, attrs):
