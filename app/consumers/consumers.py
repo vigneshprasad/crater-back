@@ -4,7 +4,7 @@ from rest_framework.renderers import JSONRenderer
 
 from consumers.chat.services import create_message, get_paginated_support_messages, get_inbox_messages, \
     get_read_support_messages_ids_by_user, get_support_admin_ids, is_admin_by_pk, get_paginated_users, star_user, \
-    unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, get_users_ids, is_starred, \
+    unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, is_starred, \
     get_latest_message, get_user_data, create_last_seen
 from consumers.connect import ChatAuthConsumer
 
@@ -326,6 +326,7 @@ class ChatConsumer(ChatAuthConsumer):
             'photo': user_data.get('photo'),
             'introduction': user_data.get('introduction'),
             'additional_information': user_data.get('additional_information'),
+            'tag_line': user_data.get('tag_lilne'),
             'name': user_data.get('name'),
             'user_data': json.loads(JSONRenderer().render(serialized_data).decode('utf8'))
         }))
