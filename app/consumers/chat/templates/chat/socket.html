@@ -5,7 +5,7 @@
     let objDiv = document.getElementById('messages__block');
 
     let chatSocket = new WebSocket(
-      'ws{% if request.is_secure %}s{% endif %}://' + window.location.host +
+      'wss://' + window.location.host +
       '/ws/connector/' + uuid + '/' + token + '/'
     );
 
