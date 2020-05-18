@@ -44,6 +44,6 @@ def get_event(pk):
 
 
 def get_first_event_data():
-    event = Event.objects.first()
+    event = Event.objects.order_by('-created').first()
     if event:
         return EventSerializer(event).data
