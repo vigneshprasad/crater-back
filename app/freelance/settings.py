@@ -299,7 +299,6 @@ OLD_PASSWORD_FIELD_ENABLED = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 MANDRILL_API_KEY = os.getenv('MANDRILL_API_KEY', 'Q23YKb071AurOhmYLY5Hew')
-DEFAULT_EMAIL_FROM = os.getenv('DEFAULT_EMAIL_FROM', 'no-reply@fwmail.scenario-projects.com')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@fwmail.scenario-projects.com')
 
 
