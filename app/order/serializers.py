@@ -519,5 +519,5 @@ class FundingRequestCommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FundingRequest
         fields = (
-            'comments'
+            'comments',
         )
