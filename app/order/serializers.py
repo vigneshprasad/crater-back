@@ -513,3 +513,11 @@ class PaymentOrdersSerialier(serializers.Serializer):
 
 class EmptySerializer(serializers.Serializer):
     pass
+
+
+class FundingRequestCommentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        models = models.FundingRequest
+        fields = (
+            'comments'
+        )

@@ -6,9 +6,9 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from payment.models import Transaction
+from users import permissions
 from utils.stripe_service import stripe_service
 from . import models, paginators, serializers
-from users import permissions
 
 
 class BuyerOrderViewSet(mixins.RetrieveModelMixin,
@@ -434,16 +434,19 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=serializers.EmptySerializer,
+        serializer_class=serializers.FundingRequestCommentsSerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
     def accept(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset().filter(status='pending')
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
             instance.status = 'accepted'
+            instance.comments = serializer.validated_data['comments']
             instance.save()
         except models.FundingRequest.DoesNotExist:
             raise NotFound
