@@ -420,7 +420,7 @@ class Admin(User):
 
 class CoverFile(TimeStampedModel):
     file = models.FileField(
-        upload_to='profile/cover/%Y/%m/%d',
+        upload_to='profile/cover/%Y/%m/%d/',
         verbose_name=_('Cover'),
         null=True,
         validators=[SizeValidator(size=512)],
