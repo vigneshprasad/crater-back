@@ -517,7 +517,7 @@ class EmptySerializer(serializers.Serializer):
 
 class FundingRequestCommentsSerializer(serializers.ModelSerializer):
     class Meta:
-        models = models.FundingRequest
+        model = models.FundingRequest
         fields = (
             'comments'
         )
