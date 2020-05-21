@@ -24,6 +24,7 @@ from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from . import choices
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
+from freelance.settings import DEFAULT_FROM_EMAIL
 
 
 class User(AbstractUser):
@@ -133,7 +134,7 @@ class User(AbstractUser):
                    template_name,
                    content,
                    merge_vars,
-                   from_email='no-reply@fwmail.scenario-projects.com'):
+                   from_email=DEFAULT_FROM_EMAIL):
         for d in merge_vars.values():
             d.update({'front_url': settings.FRONT_URL})
         send_email.delay(
