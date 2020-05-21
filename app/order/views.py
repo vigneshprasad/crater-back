@@ -456,16 +456,19 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=serializers.EmptySerializer,
+        serializer_class=serializers.FundingRequestCommentsSerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
     def cancel(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset().filter(status__in=['pending'])
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
             instance.status = 'canceled'
+            instance.comments = serializer.validated_data['comments']
             instance.save()
         except models.FundingRequest.DoesNotExist:
             raise NotFound
