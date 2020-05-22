@@ -42,6 +42,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
         serializer.is_valid(raise_exception=True)
         orders = serializer.validated_data['orders']
         amount = sum([order.price for order in orders])
+        amount = amount * 100  # Convert amount to stripe. Stripe get amount in coins
         # TODO: Calculate amount with promo code discount
         orders_id = ', '.join([str(order.pk) for order in orders])
         description = f'Payment for {orders_id}'
