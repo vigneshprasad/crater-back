@@ -105,6 +105,8 @@ class UserServicesSerializer(serializers.ModelSerializer):
                 try:
                     service_instance = models.Service.objects.filter(pk=pk)
                     if service_instance.exists() and service_instance[0].user == instance.user:
+                        if service['service_type'] == 'upon':
+                            service['price'] = None
                         service_instance.update(**service)
                         service_instance = service_instance[0]
                     else:
