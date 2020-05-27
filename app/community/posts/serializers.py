@@ -1,6 +1,8 @@
 import mimetypes
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from pytz import timezone
 from rest_framework import serializers
 from rest_framework.fields import FileField
 
@@ -9,8 +11,6 @@ from community.mixins import SetCreatorRequestDataMixin
 from community.posts.models import Post, File, Like, Report
 from community.posts.services import get_post_files
 from utils.fields import Base64FileField
-from pytz import timezone
-from django.conf import settings
 
 tz = timezone(settings.TIME_ZONE)
 
@@ -106,7 +106,9 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     @classmethod
     def _is_video(cls, post_file):
         video_formats = ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']
-        return any(cls._is_fit_format(_format, post_file) for _format in video_formats)
+        ext = post_file.object.url.split('.')[-1]
+        return ext in video_formats
+        # return any(cls._is_fit_format(_format, post_file) for _format in video_formats)
 
     @staticmethod
     def _is_fit_format(_format, post_file):
