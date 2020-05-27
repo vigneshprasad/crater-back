@@ -417,7 +417,6 @@ class OrderSerializer(serializers.ModelSerializer):
             return obj.service.revision
 
 
-
 class AttachCompletedFileSerializer(serializers.ModelSerializer):
     completed_file = serializers.FileField(required=False)
     completed_file_base64 = Base64FileField(required=False)
