@@ -294,5 +294,5 @@ def update_price_start(sender, instance, created, *args, **kwargs):
     instance.user.price_start = None
     if services.exists():
         instance.user.price_start = min(list(services.values_list('price', flat=True)))
-        instance.user.save()
+    instance.user.save()
 
