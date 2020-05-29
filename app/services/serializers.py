@@ -122,6 +122,11 @@ class UserServicesSerializer(serializers.ModelSerializer):
                     **service
                 )
             instance.services.add(service_instance)
+        services = instance.services.filter(price_type='price', status='approved')
+        instance.user.price_start = None
+        if services.exists():
+            instance.user.price_start = min(list(services.values_list('price', flat=True)))
+        instance.user.save()
 
 
 class InvestorServicesSerializer(serializers.ModelSerializer):

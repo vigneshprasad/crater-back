@@ -290,7 +290,7 @@ def marketing_pre_save(sender, instance, *args, **kwargs):
 
 @receiver(post_save, sender=Service)
 def update_price_start(sender, instance, created, *args, **kwargs):
-    services = instance.user.services.filter(price_type='price', status='approved')
+    services = instance.user.user_services_info.services.filter(price_type='price', status='approved')
     instance.user.price_start = None
     if services.exists():
         instance.user.price_start = min(list(services.values_list('price', flat=True)))
