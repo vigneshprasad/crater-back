@@ -60,13 +60,8 @@ class ServiceAdmin(ViewActionMixin, ModelAdmin):
     list_display = ('service_type', 'status', 'user', 'action')
     list_filter = ['status']
     search_fields = ['user__email', 'service_type__name']
-    readonly_fields = (
-        'user', 'service_type', 'price_type', 'price', 'timeline', 'revision', 'includes', 'attachments', 'questions',
-        'rating'
-    )
-
-    def has_add_permission(self, request):
-        return False
+    list_editable = ['status']
+    readonly_fields = ['rating']
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user', 'service_type')
@@ -101,12 +96,7 @@ class UserServiceInfoAdmin(ViewActionMixin, ModelAdmin):
         'followers',
         'action'
     )
-    readonly_fields = ['user']
     search_fields = ['user__email']
-
-    def has_add_permission(self, request):
-        return False
-
 
 @register(InvestorServiceInfo)
 class InvestorServiceInfoAdmin(ViewActionMixin, ModelAdmin):
@@ -122,8 +112,4 @@ class InvestorServiceInfoAdmin(ViewActionMixin, ModelAdmin):
         'process',
         'action'
     )
-    readonly_fields = ['user']
     search_fields = ['user__email']
-
-    def has_add_permission(self, request):
-        return False

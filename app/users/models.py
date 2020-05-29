@@ -319,6 +319,7 @@ class Profile(models.Model):
     cover = models.ForeignKey(
         'users.CoverFile',
         null=True,
+        blank=True,
         verbose_name=_('Cover File'),
         related_name='profiles',
         on_delete=models.SET_NULL

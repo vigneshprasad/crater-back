@@ -120,16 +120,19 @@ class Service(TimeStampedModel):
     )
     price = models.PositiveIntegerField(
         null=True,
+        blank=True, 
         verbose_name=_('Price'),
         validators=[MaxValueValidator(999999)]
     )
     timeline = models.PositiveIntegerField(
         null=True,
+        blank=True,
         verbose_name=_('Timeline'),
         validators=[MaxValueValidator(99), MinValueValidator(1)]
     )
     revision = models.PositiveIntegerField(
         null=True,
+        blank=True,
         verbose_name=_('Revision'),
         validators=[MaxValueValidator(10), MinValueValidator(0)]
     )
@@ -177,6 +180,16 @@ class Service(TimeStampedModel):
             self.save()
         return round(rate, 2)
 
+    def save(self, *args, **kwargs):
+        if not self.questions:
+            self.questions = None
+        if not self.attachments: 
+            self.attachments = None
+        super(Service, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.service_type.name} {self.user.name} ({self.pk})"
+
 
 class UserServiceInfo(models.Model):
     user = models.OneToOneField(
@@ -197,6 +210,7 @@ class UserServiceInfo(models.Model):
         blank=True
     )
     followers = models.PositiveIntegerField(
+        blank=True,
         null=True,
         verbose_name=_('Combined followers on social networks')
     )
