@@ -26,8 +26,9 @@ class AppleOAuth2Adapter(OAuth2Adapter):
         Finish the auth process once the access_token was retrieved
         Get the email from ID token received from apple
         """
+        is_web = kwargs.get('is_web', False)
         response_data = {}
-        client_id, client_secret = self.get_key_and_secret()
+        client_id, client_secret = self.get_key_and_secret(is_web=is_web)
 
         headers = {'content-type': "application/x-www-form-urlencoded"}
         data = {
@@ -54,7 +55,8 @@ class AppleOAuth2Adapter(OAuth2Adapter):
         return response_data
 
     @staticmethod
-    def get_key_and_secret():
+    def get_key_and_secret(is_web=False):
+        apple_client_id = settings.SOCIAL_AUTH_WEB_APPLE_CLIENT_ID if is_web else settings.SOCIAL_AUTH_APPLE_CLIENT_ID
         headers = {
             'kid': settings.SOCIAL_AUTH_APPLE_KEY_ID
         }
@@ -63,7 +65,7 @@ class AppleOAuth2Adapter(OAuth2Adapter):
             'iat': timezone.now(),
             'exp': timezone.now() + timezone.timedelta(days=180),
             'aud': 'https://appleid.apple.com',
-            'sub': settings.SOCIAL_AUTH_APPLE_CLIENT_ID,
+            'sub': apple_client_id,
         }
 
         client_secret = jwt.encode(
@@ -72,7 +74,7 @@ class AppleOAuth2Adapter(OAuth2Adapter):
             algorithm='ES256',
             headers=headers
         ).decode("utf-8")
-        return settings.SOCIAL_AUTH_APPLE_CLIENT_ID, client_secret
+        return apple_client_id, client_secret
 
 
 oauth2_login = OAuth2LoginView.adapter_view(AppleOAuth2Adapter)

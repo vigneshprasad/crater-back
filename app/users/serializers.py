@@ -565,6 +565,26 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
         return email.lower()
 
 
+class AppleSocialLoginSerializer(SocialLoginSerializer):
+    is_web = serializers.BooleanField(default=False)
+
+    def get_social_login(self, adapter, app, token, response):
+        """
+        :param adapter: allauth.socialaccount Adapter subclass.
+            Usually OAuthAdapter or Auth2Adapter
+        :param app: `allauth.socialaccount.SocialApp` instance
+        :param token: `allauth.socialaccount.SocialToken` instance
+        :param response: Provider's response for OAuth1. Not used in the
+        :returns: A populated instance of the
+            `allauth.socialaccount.SocialLoginView` instance
+        """
+        request = self._get_request()
+        is_web = self.initial_data.get('is_web', False)
+        social_login = adapter.complete_login(request, app, token, response=response, is_web=is_web)
+        social_login.token = token
+        return social_login
+
+
 class ConnectSerializer(register_serializers.SocialConnectSerializer):
 
     def validate(self, attrs):
