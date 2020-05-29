@@ -7,8 +7,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from order.models import Order
-from users import permissions
 from order.serializers import ReviewSerializer
+from users import permissions
 from users.models import User
 from . import models, serializers
 from .filters import ProfessionalFilter
@@ -35,6 +35,8 @@ class ProfessionalsViewSet(mixins.ListModelMixin,
         # bank_details__membership='premium',
         services__isnull=False,
         services__status='approved',
+        user_services_info__services__isnull=False,
+        user_services_info__services__status='approved',
         profile__public_profile=True
     ).distinct().order_by('profile__name')
     permission_classes = [permissions.IsAuthenticated]
@@ -80,6 +82,8 @@ class UserServicesViewSet(mixins.RetrieveModelMixin,
         user_services_info__generate_business=True,
         # bank_details__membership='premium',
         services__isnull=False,
+        # user_services_info__services__isnull=False,
+        # user_services_info__services__status='approved',
         services__status='approved',
         profile__public_profile=True
     ).distinct()
