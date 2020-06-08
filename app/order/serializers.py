@@ -1,6 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
+from payment.models import StripePaymentIntent
 from services.serializers import ServiceSerializer
 from utils.fields import Base64FileField
 from . import models
@@ -508,6 +509,41 @@ class PaymentOrdersSerialier(serializers.Serializer):
                     _('You do not have saved cards')
                 )
         return value
+
+    def validate_orders(self, orders):
+        user = self.context['request'].user
+        if not all([user == order.buyer for order in orders]):
+            raise serializers.ValidationError(
+                _('In one of orders request user isn`t buyer')
+            )
+        return orders
+
+
+class GetPaymentIntentSerializer(serializers.Serializer):
+    orders = serializers.PrimaryKeyRelatedField(queryset=models.Order.objects.filter(status='created'), many=True)
+    promo_code = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, required=True)
+
+    def validate_orders(self, orders):
+        user = self.context['request'].user
+        if not all([user == order.buyer for order in orders]):
+            raise serializers.ValidationError(
+                _('In one of orders request user isn`t buyer')
+            )
+        return orders
+
+
+class CheckPaymentIntentSerializer(serializers.Serializer):
+    payment_intent = serializers.PrimaryKeyRelatedField(
+        queryset=StripePaymentIntent.objects.exclude(status__in=['canceled', 'succeeded'])
+    )
+
+    def validate_payment_intent_id(self, intent):
+        user = self.context['request'].user
+        if not user == intent.user:
+            raise serializers.ValidationError(
+                _('Wrong payment intent id')
+            )
+        return intent
 
 
 class EmptySerializer(serializers.Serializer):
