@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
 from users.forms import AdminCreationForm, UserForm, ProfileForm
-from users.models import Profile, Admin, Referral
+from users.models import Profile, Admin, Referral, CoverFile
 from utils.mixins import ViewActionMixin
 
 admin.site.unregister(Group)
@@ -19,8 +19,6 @@ class ProfileAdmin(admin.StackedInline):
     model = Profile
     form = ProfileForm
     autocomplete_fields = ['work_city']
-    readonly_fields = ['cover']
-
 
 @admin.register(get_user_model())
 class UserAdmin(ViewActionMixin, admin.ModelAdmin):
@@ -142,3 +140,13 @@ class GroupAdmin(GroupAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+@admin.register(CoverFile)
+class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
+    icon_name = 'person'
+    list_display = ['user', 'file']
+    list_display_links = None
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).all()
+    
