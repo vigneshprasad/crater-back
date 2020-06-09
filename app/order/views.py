@@ -114,13 +114,13 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             description=description,
             receipt_email=request.user.email
         )
-        payment_intent = StripePaymentIntent.objects.create(
+        intent = StripePaymentIntent.objects.create(
             stripe_id=payment_intent.id,
             status=payment_intent.status,
             data=payment_intent.to_dict(),
             user=request.user
         )
-        payment_intent.orders.add(*orders)
+        intent.orders.add(*orders)
         return Response({'payment_intent_id': payment_intent.id})
 
     @action(
