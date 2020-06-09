@@ -155,13 +155,10 @@ class InvestorServicesSerializer(serializers.ModelSerializer):
             errors = {}
             kind_of_funding = attrs.get('kind_of_funding')
             companies = attrs.get('companies')
-            process = attrs.get('process')
             if not kind_of_funding:
                 errors.update({'kind_of_funding': _('This field is required')})
             if not companies:
                 errors.update({'companies': _('This field is required')})
-            if not process:
-                errors.update({'process': _('This field is required')})
             if errors:
                 raise serializers.ValidationError(errors)
         return attrs
