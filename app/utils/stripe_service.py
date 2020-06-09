@@ -80,7 +80,7 @@ class StripeService:
         return self.stripe.PaymentIntent.create(
             amount=amount,
             currency=currency,
-            payment_method=['card'],
+            payment_method_types=['card'],
             description=description,
             receipt_email=receipt_email
         )
