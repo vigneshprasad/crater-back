@@ -121,7 +121,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             user=request.user
         )
         intent.orders.add(*orders)
-        return Response({'payment_intent_id': payment_intent.id})
+        return Response(payment_intent.to_dict())
 
     @action(
         methods=['post'],
