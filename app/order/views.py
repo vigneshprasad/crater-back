@@ -135,7 +135,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
         intent = serializer.validated_data['payment_intent']
         status = intent.check_status(commit=True)
         if status == 'succeeded':
-            for order in intent.orders:
+            for order in intent.orders.all():
                 order.status = 'pending'
                 order.save()
                 if hasattr(order, 'quote') and order.quote:
