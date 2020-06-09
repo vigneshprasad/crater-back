@@ -521,7 +521,7 @@ class PaymentOrdersSerialier(serializers.Serializer):
 
 class GetPaymentIntentSerializer(serializers.Serializer):
     orders = serializers.PrimaryKeyRelatedField(queryset=models.Order.objects.filter(status='created'), many=True)
-    promo_code = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, required=True)
+    promo_code = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, required=False)
 
     def validate_orders(self, orders):
         user = self.context['request'].user
