@@ -533,15 +533,19 @@ class GetPaymentIntentSerializer(serializers.Serializer):
 
 
 class CheckPaymentIntentSerializer(serializers.Serializer):
-    payment_intent = serializers.PrimaryKeyRelatedField(
-        queryset=StripePaymentIntent.objects.exclude(status__in=['canceled', 'succeeded'])
-    )
+    payment_intent = serializers.CharField()
 
-    def validate_payment_intent_id(self, intent):
+    def validate_payment_intent(self, intent_pk):
         user = self.context['request'].user
+        try:
+            intent = StripePaymentIntent.objects.get(stripe_id=intent_pk)
+        except StripePaymentIntent.DoesNotExist:
+            raise serializers.ValidationError(
+                _('Wrong payment intent')
+            )
         if not user == intent.user:
             raise serializers.ValidationError(
-                _('Wrong payment intent id')
+                _('Wrong payment intent')
             )
         return intent
 
