@@ -5,6 +5,7 @@ from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
 from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
 from allauth.account.utils import setup_user_email
+from allauth.socialaccount.helpers import complete_social_login
 from allauth.utils import (email_address_exists)
 from cryptography.fernet import Fernet
 from django.conf import settings
@@ -13,6 +14,7 @@ from django.contrib.auth import models as auth_models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.serializerfields import PhoneNumberField
+from requests.exceptions import HTTPError
 from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers, exceptions
