@@ -270,6 +270,13 @@ class User(AbstractUser):
         if commit:
             self.save()
 
+    def __str__(self):
+        if (self.email):
+            return self.email
+        else:
+            return '<no-email>'
+    
+
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
