@@ -120,16 +120,19 @@ class Service(TimeStampedModel):
     )
     price = models.PositiveIntegerField(
         null=True,
+        blank=True, 
         verbose_name=_('Price'),
         validators=[MaxValueValidator(999999)]
     )
     timeline = models.PositiveIntegerField(
         null=True,
+        blank=True,
         verbose_name=_('Timeline'),
         validators=[MaxValueValidator(99), MinValueValidator(1)]
     )
     revision = models.PositiveIntegerField(
         null=True,
+        blank=True,
         verbose_name=_('Revision'),
         validators=[MaxValueValidator(10), MinValueValidator(0)]
     )
@@ -177,6 +180,16 @@ class Service(TimeStampedModel):
             self.save()
         return round(rate, 2)
 
+    def save(self, *args, **kwargs):
+        if not self.questions:
+            self.questions = None
+        if not self.attachments: 
+            self.attachments = None
+        super(Service, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.service_type.name} {self.user.name} ({self.pk})"
+
 
 class UserServiceInfo(models.Model):
     user = models.OneToOneField(
@@ -197,6 +210,7 @@ class UserServiceInfo(models.Model):
         blank=True
     )
     followers = models.PositiveIntegerField(
+        blank=True,
         null=True,
         verbose_name=_('Combined followers on social networks')
     )
@@ -289,9 +303,10 @@ def marketing_pre_save(sender, instance, *args, **kwargs):
 
 
 @receiver(post_save, sender=Service)
-def update_price_start(sender , instance, created, *args, **kwargs):
-    if instance.status == 'approved' and instance.price:
-        if not instance.user.price_start or instance.user.price_start > instance.price:
-            instance.user.price_start = instance.price
-            instance.user.save()
+def update_price_start(sender, instance, created, *args, **kwargs):
+    services = instance.user.user_services_info.services.filter(price_type='price', status='approved')
+    instance.user.price_start = None
+    if services.exists():
+        instance.user.price_start = min(list(services.values_list('price', flat=True)))
+    instance.user.save()
 

@@ -11,6 +11,7 @@ from utils.instagram_service import instagram_service
 from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
+from freelance.settings import DEFAULT_FROM_EMAIL
 
 
 @shared_task(name="send_twilio_message")
@@ -31,7 +32,7 @@ def send_email(self,
                template_name: str,
                content: dict,
                merge_vars: dict,
-               from_email='no-reply@fwmail.scenario-projects.com'):
+               from_email=DEFAULT_FROM_EMAIL):
     msg = EmailMessage(
         subject=subject,
         from_email=from_email,

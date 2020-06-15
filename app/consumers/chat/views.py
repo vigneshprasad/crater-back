@@ -1,21 +1,23 @@
 import copy
 import json
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.db import DataError, IntegrityError
+from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView
-from django.db.models import Q
-from rest_framework.decorators import action
 from rest_framework import mixins, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from consumers.chat.models import Message
 from consumers.chat.serializers import MessageSerializer
-from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
 from users import permissions
 
 
@@ -91,9 +93,13 @@ class MessageViewSet(mixins.CreateModelMixin, GenericViewSet):
     @action(
         methods=['get'],
         permission_classes=[permissions.IsAuthenticated],
-        detail=True
+        detail=True,
     )
     def chat(self, request, pk):
+        try:
+            uuid.UUID(pk, version=4)
+        except ValueError:
+            return Response(status=400, data={'status': _('UUID chant is not valid')})
         return Response({'has_chat': Message.objects.filter(
             Q(receiver__uuid=pk, sender=request.user) | Q(receiver=request.user, sender__uuid=pk),
             is_support=False

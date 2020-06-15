@@ -54,7 +54,7 @@ class TranscoderService:
         try:
             cover_file = CoverFile.objects.get(pk=cover_file_pk)
             cover_name = cover_file.file.name
-            ext = cover_name.split('.')[1]
+            ext = cover_name.split('.')[-1]
             if ext.lower() in ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']:
                 input_file = f'media/{cover_name}'
                 output_file = str(uuid.uuid4())

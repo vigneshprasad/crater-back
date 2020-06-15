@@ -76,5 +76,16 @@ class StripeService:
         )
         return charge
 
+    def create_payment_intent(self, amount, description, receipt_email, currency=settings.LOCAL_CURRENCY):
+        return self.stripe.PaymentIntent.create(
+            amount=amount,
+            currency=currency,
+            payment_method_types=['card'],
+            description=description,
+            receipt_email=receipt_email
+        )
+
+    def retrieve_payment_intent(self, intent_id):
+        return self.stripe.PaymentIntent.retrieve(intent_id)
 
 stripe_service = StripeService(api_key=settings.STRIPE_API_KEY)

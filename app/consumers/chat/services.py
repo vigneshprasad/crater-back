@@ -9,9 +9,9 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.db.models.functions import Lower
 
+from consumers.chat.models import LastSeen
 from consumers.chat.models import Message, ChatStarredUser
 from consumers.chat.serializers import MessageSerializer, UserChatSerializer
-from consumers.chat.models import LastSeen
 
 
 @database_sync_to_async
@@ -105,6 +105,7 @@ def get_user_data(receiver_id, sender_id):
                 'introduction': user.profile.introduction,
                 'name': user.name,
                 'additional_information': user.profile.additional_information,
+                'tag_line': user.profile.tag_line
             }, serializer_data
         return {}, serializer_data
     except get_user_model().DoesNotExist:

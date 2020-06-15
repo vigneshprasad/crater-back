@@ -113,9 +113,10 @@ REST_FRAMEWORK = {
     #     'rest_framework.permissions.IsAuthenticated',
     # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
+        'users.authentication.JSONWebTokenAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DATETIME_FORMAT': "%Y-%m-%dT%H:%M:%S.%fZ",
@@ -299,7 +300,6 @@ OLD_PASSWORD_FIELD_ENABLED = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 MANDRILL_API_KEY = os.getenv('MANDRILL_API_KEY', 'Q23YKb071AurOhmYLY5Hew')
-DEFAULT_EMAIL_FROM = os.getenv('DEFAULT_EMAIL_FROM', 'no-reply@fwmail.scenario-projects.com')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@fwmail.scenario-projects.com')
 
 
@@ -324,6 +324,7 @@ MP4_TRANSCODER_PRESET_ID = os.getenv('MP4_TRANSCODER_PRESET_ID', '1351620000001-
 SOCIAL_AUTH_APPLE_KEY_ID = os.getenv('SOCIAL_AUTH_APPLE_KEY_ID', '76MWF8X6M3')
 SOCIAL_AUTH_APPLE_TEAM_ID = os.getenv('SOCIAL_AUTH_APPLE_TEAM_ID', 'L6D4MNLA5U')
 SOCIAL_AUTH_APPLE_CLIENT_ID = os.getenv('SOCIAL_AUTH_APPLE_CLIENT_ID', 'com.wurknet.mobile')
+SOCIAL_AUTH_WEB_APPLE_CLIENT_ID = os.getenv('SOCIAL_AUTH_APPLE_CLIENT_ID', 'com.wurknet.mobile.service')
 SOCIAL_AUTH_APPLE_PRIVATE_KEY = '''
 -----BEGIN PRIVATE KEY-----
 MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg0vQkK/b6cf5nwqZw

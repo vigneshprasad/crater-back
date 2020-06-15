@@ -206,3 +206,31 @@ class Subscription(TimeStampedModel):
             content={},
             merge_vars=data
         )
+
+
+class StripePaymentIntent(TimeStampedModel):
+    stripe_id = models.CharField(
+        unique=True,
+        max_length=255
+    )
+    status = models.CharField(
+        max_length=50
+    )
+    orders = models.ManyToManyField(
+        'order.Order'
+    )
+    user = models.ForeignKey(
+        'users.User',
+        related_name='payment_intents',
+        on_delete=models.CASCADE,
+    )
+    data = JSONField()
+
+    def check_status(self, commit=True):
+        from utils.stripe_service import stripe_service
+        data = stripe_service.retrieve_payment_intent(self.stripe_id)
+        if commit:
+            self.status = data['status']
+            self.data = data
+            self.save()
+        return data['status']

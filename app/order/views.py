@@ -5,10 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from payment.models import Transaction
+from payment.models import Transaction, StripePaymentIntent
+from users import permissions
 from utils.stripe_service import stripe_service
 from . import models, paginators, serializers
-from users import permissions
 
 
 class BuyerOrderViewSet(mixins.RetrieveModelMixin,
@@ -42,6 +42,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
         serializer.is_valid(raise_exception=True)
         orders = serializer.validated_data['orders']
         amount = sum([order.price for order in orders])
+        amount = amount * 100  # Convert amount to stripe. Stripe get amount in coins
         # TODO: Calculate amount with promo code discount
         orders_id = ', '.join([str(order.pk) for order in orders])
         description = f'Payment for {orders_id}'
@@ -92,6 +93,62 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
                 {'message': _('Create payment error. Connect with support')}
             )
         return Response({'message': _('Successfully paid')})
+
+    @action(
+        methods=['post'],
+        serializer_class=serializers.GetPaymentIntentSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=False
+    )
+    def get_payment_intent(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        orders = serializer.validated_data['orders']
+        amount = sum([order.price for order in orders])
+        amount = amount * 100  # Convert amount to stripe. Stripe get amount in coins
+        # TODO: Calculate amount with promo code discount
+        orders_id = ', '.join([str(order.pk) for order in orders])
+        description = f'Payment for {orders_id}'
+        payment_intent = stripe_service.create_payment_intent(
+            amount=amount,
+            description=description,
+            receipt_email=request.user.email
+        )
+        intent = StripePaymentIntent.objects.create(
+            stripe_id=payment_intent.id,
+            status=payment_intent.status,
+            data=payment_intent.to_dict(),
+            user=request.user
+        )
+        intent.orders.add(*orders)
+        return Response(payment_intent.to_dict())
+
+    @action(
+        methods=['post'],
+        serializer_class=serializers.CheckPaymentIntentSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+        detail=False
+    )
+    def check_payment_intent(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        intent = serializer.validated_data['payment_intent']
+        status = intent.check_status(commit=True)
+        if status == 'succeeded':
+            for order in intent.orders.all():
+                order.status = 'pending'
+                order.save()
+                if hasattr(order, 'quote') and order.quote:
+                    order.quote.status = 'accepted'
+                    order.quote.save()
+                Transaction.objects.create(
+                    user=order.buyer,
+                    amount=order.price,
+                    order=order,
+                    direction='in',
+                    status='transferred'
+                )
+        return Response({'payment_intent_id': intent.stripe_id, 'status': intent.status})
 
     @action(
         methods=['post'],
@@ -434,16 +491,19 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=serializers.EmptySerializer,
+        serializer_class=serializers.FundingRequestCommentsSerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
     def accept(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset().filter(status='pending')
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
             instance.status = 'accepted'
+            instance.comments = serializer.validated_data['comments']
             instance.save()
         except models.FundingRequest.DoesNotExist:
             raise NotFound
@@ -453,16 +513,19 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=serializers.EmptySerializer,
+        serializer_class=serializers.FundingRequestCommentsSerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
     def cancel(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         queryset = self.get_queryset().filter(status__in=['pending'])
         context = self.get_serializer_context()
         try:
             instance = queryset.get(pk=pk)
             instance.status = 'canceled'
+            instance.comments = serializer.validated_data['comments']
             instance.save()
         except models.FundingRequest.DoesNotExist:
             raise NotFound

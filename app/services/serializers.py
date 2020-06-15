@@ -105,6 +105,8 @@ class UserServicesSerializer(serializers.ModelSerializer):
                 try:
                     service_instance = models.Service.objects.filter(pk=pk)
                     if service_instance.exists() and service_instance[0].user == instance.user:
+                        if service['service_type'] == 'upon':
+                            service['price'] = None
                         service_instance.update(**service)
                         service_instance = service_instance[0]
                     else:
@@ -120,6 +122,11 @@ class UserServicesSerializer(serializers.ModelSerializer):
                     **service
                 )
             instance.services.add(service_instance)
+        services = instance.services.filter(price_type='price', status='approved')
+        instance.user.price_start = None
+        if services.exists():
+            instance.user.price_start = min(list(services.values_list('price', flat=True)))
+        instance.user.save()
 
 
 class InvestorServicesSerializer(serializers.ModelSerializer):
@@ -148,13 +155,10 @@ class InvestorServicesSerializer(serializers.ModelSerializer):
             errors = {}
             kind_of_funding = attrs.get('kind_of_funding')
             companies = attrs.get('companies')
-            process = attrs.get('process')
             if not kind_of_funding:
                 errors.update({'kind_of_funding': _('This field is required')})
             if not companies:
                 errors.update({'companies': _('This field is required')})
-            if not process:
-                errors.update({'process': _('This field is required')})
             if errors:
                 raise serializers.ValidationError(errors)
         return attrs

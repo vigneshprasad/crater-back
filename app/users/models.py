@@ -24,6 +24,7 @@ from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from . import choices
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
+from freelance.settings import DEFAULT_FROM_EMAIL
 
 
 class User(AbstractUser):
@@ -133,7 +134,7 @@ class User(AbstractUser):
                    template_name,
                    content,
                    merge_vars,
-                   from_email='no-reply@fwmail.scenario-projects.com'):
+                   from_email=DEFAULT_FROM_EMAIL):
         for d in merge_vars.values():
             d.update({'front_url': settings.FRONT_URL})
         send_email.delay(
@@ -269,6 +270,13 @@ class User(AbstractUser):
         if commit:
             self.save()
 
+    def __str__(self):
+        if (self.email):
+            return self.email
+        else:
+            return '<no-email>'
+    
+
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
@@ -319,6 +327,7 @@ class Profile(models.Model):
     cover = models.ForeignKey(
         'users.CoverFile',
         null=True,
+        blank=True,
         verbose_name=_('Cover File'),
         related_name='profiles',
         on_delete=models.SET_NULL
@@ -420,7 +429,7 @@ class Admin(User):
 
 class CoverFile(TimeStampedModel):
     file = models.FileField(
-        upload_to='profile/cover/%Y/%m/%d',
+        upload_to='profile/cover/%Y/%m/%d/',
         verbose_name=_('Cover'),
         null=True,
         validators=[SizeValidator(size=512)],

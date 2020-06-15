@@ -1,6 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
+from payment.models import StripePaymentIntent
 from services.serializers import ServiceSerializer
 from utils.fields import Base64FileField
 from . import models
@@ -417,7 +418,6 @@ class OrderSerializer(serializers.ModelSerializer):
             return obj.service.revision
 
 
-
 class AttachCompletedFileSerializer(serializers.ModelSerializer):
     completed_file = serializers.FileField(required=False)
     completed_file_base64 = Base64FileField(required=False)
@@ -510,6 +510,53 @@ class PaymentOrdersSerialier(serializers.Serializer):
                 )
         return value
 
+    def validate_orders(self, orders):
+        user = self.context['request'].user
+        if not all([user == order.buyer for order in orders]):
+            raise serializers.ValidationError(
+                _('In one of orders request user isn`t buyer')
+            )
+        return orders
+
+
+class GetPaymentIntentSerializer(serializers.Serializer):
+    orders = serializers.PrimaryKeyRelatedField(queryset=models.Order.objects.filter(status='created'), many=True)
+    promo_code = serializers.CharField(max_length=50, allow_null=True, allow_blank=True, required=False)
+
+    def validate_orders(self, orders):
+        user = self.context['request'].user
+        if not all([user == order.buyer for order in orders]):
+            raise serializers.ValidationError(
+                _('In one of orders request user isn`t buyer')
+            )
+        return orders
+
+
+class CheckPaymentIntentSerializer(serializers.Serializer):
+    payment_intent = serializers.CharField()
+
+    def validate_payment_intent(self, intent_pk):
+        user = self.context['request'].user
+        try:
+            intent = StripePaymentIntent.objects.get(stripe_id=intent_pk)
+        except StripePaymentIntent.DoesNotExist:
+            raise serializers.ValidationError(
+                _('Wrong payment intent')
+            )
+        if not user == intent.user:
+            raise serializers.ValidationError(
+                _('Wrong payment intent')
+            )
+        return intent
+
 
 class EmptySerializer(serializers.Serializer):
     pass
+
+
+class FundingRequestCommentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FundingRequest
+        fields = (
+            'comments',
+        )

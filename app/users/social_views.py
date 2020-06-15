@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from users.appleid.views import AppleOAuth2Adapter
 from .mixins import CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin
-from .serializers import SocialLoginSerializer, ConnectSerializer
+from .serializers import SocialLoginSerializer, ConnectSerializer, AppleSocialLoginSerializer
 
 
 class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
@@ -67,7 +67,7 @@ class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEma
 
 class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
     adapter_class = AppleOAuth2Adapter
-    serializer_class = SocialLoginSerializer
+    serializer_class = AppleSocialLoginSerializer
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
