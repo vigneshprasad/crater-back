@@ -9,3 +9,4 @@ class UserConfig(AppConfig):
 
     def ready(self):
         import users.signals
+        import users.recievers
