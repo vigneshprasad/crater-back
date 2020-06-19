@@ -9,3 +9,4 @@ class PostConfig(AppConfig):
 
     def ready(self):
         import community.posts.signals
+        import community.posts.recievers

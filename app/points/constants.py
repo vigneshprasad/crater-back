@@ -1,0 +1,15 @@
+POINTS_RULES = [
+    {"key": 1, "desc": "Profile Completed", "points_value": 100},
+    {"key": 2, "desc": "Post Created", "points_value": 10},
+    {"key": 3, "desc": "Like receive on post ", "points_value": 2},
+    {"key": 4, "desc": "Comment receive on post", "points_value": 5},
+    {"key": 5, "desc": "Commenting on posts", "points_value": 5},
+    {"key": 6, "desc": "Liked post", "points_value": 1},
+    {"key": 7, "desc": "Received a follower", "points_value": 20},
+    {"key": 8, "desc": "Logging in 24 hours", "points_value": 10},
+    {"key": 9, "desc": "Attending event", "points_value": 15},
+    {"key": 10, "desc": "Chat with new user", "points_value": 5},
+    {"key": 11, "desc": "Completed service buyer", "points_value": 100},
+    {"key": 12, "desc": "Completed service seller", "points_value": 100},
+    {"key": 13, "desc": "Referral success", "points_value": 50},
+]

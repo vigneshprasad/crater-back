@@ -163,6 +163,21 @@ class User(AbstractUser):
         return bool(hasattr(self, 'profile') and self.profile)
 
     @property
+    def profile_completed(self):
+        status = (
+            self.has_profile
+            and
+            self.phone_number
+            and
+            self.phone_number_verified
+            and
+            self.email_verified
+            and
+            self.is_approved
+        )
+        return status
+
+    @property
     def has_bank_details(self):
         return bool(hasattr(self, 'bank_details') and self.bank_details)
 

@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models.signals import pre_save, post_save
-from django.dispatch import receiver
+from django.dispatch import receiver, Signal
 
 from users.models import Referral
 
@@ -16,3 +16,13 @@ def create_push_and_rent(sender, instance, *args, **kwargs):
 def set_referrer_relation(sender, instance, *args, **kwargs):
     if instance.referer:
         Referral.objects.get_or_create(user=instance)
+
+profile_completed = Signal(providing_args=[
+    "rule_key",
+    "user",
+])
+
+referal_success_points_signal = Signal(providing_args=[
+    "rule_key",
+    "user",
+])
