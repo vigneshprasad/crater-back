@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.dispatch import receiver, Signal
 
 from consumers.chat.helpers import MessageHelper
 from consumers.chat.models import Message
@@ -18,3 +18,10 @@ def send_messages(sender, instance, **kwargs):
             MessageHelper.send_user_message_to_admin(admins, instance)
     else:
         MessageHelper.send_user_message_to_user(instance)
+
+
+new_chat_points_signal = Signal(providing_args=[
+    "user",
+    "rule_key",
+    "base_factor"
+])

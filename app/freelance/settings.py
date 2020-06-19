@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'adminsortable2',
     'filefield_cache',
 
+    'base',
     'users',
     'locations',
     'tags',
@@ -90,6 +91,7 @@ INSTALLED_APPS = [
     'resources.curated_articles',
     'resources.masterclasses',
     'payment',
+    'points.apps.PointsConfig',
     'services',
     'order',
     'creative_exchange',

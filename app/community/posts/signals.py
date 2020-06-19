@@ -1,5 +1,5 @@
 from django.db.models.signals import pre_save, post_save
-from django.dispatch import receiver
+from django.dispatch import receiver, Signal
 
 from community.posts.models import File, Like
 from notifications.models import Notification, UserNotification
@@ -13,10 +13,29 @@ def post_transcode_file(sender, instance, *args, **kwargs):
 
 
 @receiver(post_save, sender=Like)
-def like_notification_post_save(sender, instance,  created, *args, **kwargs):
+def like_notification_post_save(sender, instance, created, *args, **kwargs):
     if created:
         if instance.post.creator:
             notification = Notification.objects.create(like=instance)
             UserNotification.objects.create(
                 user=instance.post.creator, notification=notification
             )
+
+
+points_post_created = Signal(providing_args=[
+    "user",
+    "rule_key",
+    "base_factor"
+])
+
+points_like_received_on_post = Signal(providing_args=[
+    "user",
+    "rule_key",
+    "base_factor"
+])
+
+points_liked_post = Signal(providing_args=[
+    "user",
+    "rule_key",
+    "base_factor"
+])

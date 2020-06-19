@@ -9,6 +9,7 @@ from payment.models import Transaction, StripePaymentIntent
 from users import permissions
 from utils.stripe_service import stripe_service
 from . import models, paginators, serializers
+from .utils import send_service_complete_buyer_points_signal, send_service_complete_seller_points_signal
 
 
 class BuyerOrderViewSet(mixins.RetrieveModelMixin,
@@ -168,6 +169,8 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
             instance.review_datetime = timezone.now()
             instance.status = 'complete'
             instance.save()
+            send_service_complete_buyer_points_signal(order=instance, buyer=instance.buyer)
+            send_service_complete_seller_points_signal(order=instance, seller=instance.seller)
             if instance.service:
                 instance.service.recalculate_rating()
             instance.seller.recalculate_rating()
