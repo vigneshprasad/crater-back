@@ -6,7 +6,7 @@ from base.models import BaseModel
 
 
 class UserPoints(BaseModel):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         get_user_model(),
         on_delete=models.CASCADE,
         related_name='points'

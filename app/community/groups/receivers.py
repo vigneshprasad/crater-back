@@ -19,9 +19,10 @@ def send_following_points_signal(sender, instance, created, *args, **kwargs):
 
 @receiver(post_delete, sender=Following)
 def send_follower_removed_signal(sender, instance, *args, **kwargs):
-  follower_recieved_signal.send(
-    sender=instance.followed.__class__,
-    user=instance.followed,
-    rule_key=NEW_FOLLOWER_POINTS_KEY,
-    base_factor=-1
-  )
+  if instance.followed and instance.followed.has_points:
+    follower_recieved_signal.send(
+      sender=instance.followed.__class__,
+      user=instance.followed,
+      rule_key=NEW_FOLLOWER_POINTS_KEY,
+      base_factor=-1
+    )
