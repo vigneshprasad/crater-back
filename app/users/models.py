@@ -163,6 +163,10 @@ class User(AbstractUser):
         return bool(hasattr(self, 'profile') and self.profile)
 
     @property
+    def has_points(self):
+        return bool(hasattr(self, 'points') and self.points)
+
+    @property
     def profile_completed(self):
         status = (
             self.has_profile
