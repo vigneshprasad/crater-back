@@ -75,7 +75,7 @@ class ServiceTypeAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'room_service'
     list_display = ('category', 'group', 'providers', 'action')
     list_filter = ['group']
-    search_fields = ['category']
+    search_fields = ['category__name']
 
     def providers(self, service_type):
         return service_type.services.count()
@@ -97,6 +97,7 @@ class UserServiceInfoAdmin(ViewActionMixin, ModelAdmin):
         'action'
     )
     search_fields = ['user__email']
+
 
 @register(InvestorServiceInfo)
 class InvestorServiceInfoAdmin(ViewActionMixin, ModelAdmin):
