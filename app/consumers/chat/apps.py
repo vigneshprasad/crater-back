@@ -9,3 +9,4 @@ class ChatConfig(AppConfig):
 
     def ready(self):
         import consumers.chat.signals
+        import consumers.chat.receivers

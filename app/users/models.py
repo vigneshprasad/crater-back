@@ -163,6 +163,25 @@ class User(AbstractUser):
         return bool(hasattr(self, 'profile') and self.profile)
 
     @property
+    def has_points(self):
+        return bool(hasattr(self, 'points') and self.points)
+
+    @property
+    def profile_completed(self):
+        status = (
+            self.has_profile
+            and
+            self.phone_number
+            and
+            self.phone_number_verified
+            and
+            self.email_verified
+            and
+            self.is_approved
+        )
+        return status
+
+    @property
     def has_bank_details(self):
         return bool(hasattr(self, 'bank_details') and self.bank_details)
 
@@ -269,6 +288,13 @@ class User(AbstractUser):
         self.auth_secret_key = create_new_secret_key()
         if commit:
             self.save()
+
+    def __str__(self):
+        if (self.email):
+            return self.email
+        else:
+            return '<no-email>'
+    
 
 
 class Device(TimeStampedModel):
