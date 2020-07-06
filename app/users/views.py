@@ -25,6 +25,7 @@ from utils.stripe_service import stripe_service
 from . import serializers, models, choices
 from .forms import AdminSetPasswordForm
 from .models import Profile
+from .signals import basic_profile_created, service_created, phone_number_verified, referred_friend
 from .paginators import Pagination
 from .swagger_schemas import referer_email
 from .tasks import send_email
@@ -44,15 +45,24 @@ class ProfileViewSet(mixins.CreateModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
+        created_flag = True
         if hasattr(request.user, 'profile') and request.user.profile:
             serializer = self.get_serializer(data=request.data, instance=request.user.profile, partial=True)
-        else:
-            serializer = self.get_serializer(data=request.data)
+            created_flag = False
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['user'] = request.user
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializers.ProfileSerializer(request.user.profile).data)
+        response = Response(serializers.ProfileSerializer(request.user.profile).data)
+        if created_flag:
+            basic_profile_created.send(
+                sender=self.__class__,
+                user=request.user,
+                request=request,
+                response=response
+            )
+        return response
 
     def get_object(self):
         if hasattr(self.request.user, 'profile') and self.request.user.profile:
@@ -186,6 +196,11 @@ class VerificationView(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         request.user.sms_code = ''
         if request.user.new_phone_number:
+            phone_number_verified.send(
+                sender=self.__class__,
+                user=request.user,
+                request=request
+            )
             request.user.phone_number = request.user.new_phone_number
             request.user.new_phone_number = ''
         request.user.phone_number_verified = True
@@ -242,15 +257,26 @@ class UserServicesViewSet(mixins.CreateModelMixin,
         """
     )
     def create(self, request, *args, **kwargs):
+        created_flag = True
         if hasattr(request.user, 'user_services_info') and request.user.user_services_info:
             serializer = self.get_serializer(data=request.data, instance=request.user.user_services_info, partial=True)
-        else:
-            serializer = self.get_serializer(data=request.data)
+            created_flag = False
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['user'] = request.user
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(service_serializers.UserServicesSerializer(request.user.user_services_info).data)
+        response = Response(service_serializers.UserServicesSerializer(request.user.user_services_info).data)
+        if created_flag:
+            service_created.send(
+                sender=self.__class__,
+                user=request.user,
+                request=request,
+                response=response
+            )
+        return response
+            
+        
 
     def get_object(self):
         if self.request.user.role == 'user':
@@ -358,6 +384,11 @@ class RefererEmailView(APIView):
                 template_name=choices.template_names.get('invite_friend'),
                 content={},
                 merge_vars=data)
+            referred_friend.send(
+                sender=self.__class__,
+                user=request.user,
+                request=request
+            )
             return Response({'detail': _('Verification e-mail sent.'), 'email': email})
         except (ValidationError, AttributeError):
             return Response({'email': _('Email is not valid.')}, status=status.HTTP_400_BAD_REQUEST)

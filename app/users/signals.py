@@ -17,6 +17,44 @@ def set_referrer_relation(sender, instance, *args, **kwargs):
     if instance.referer:
         Referral.objects.get_or_create(user=instance)
 
+user_updated = Signal(providing_args=[
+    "user",
+])
+
+user_signed_up = Signal(providing_args=[
+    "user",
+])
+
+agreement_filled = Signal(providing_args=[
+    "user",
+])
+
+email_verified = Signal(providing_args=[
+    "user",
+])
+
+basic_profile_created = Signal(providing_args=[
+    "user",
+    "request",   
+    "response" 
+])
+
+phone_number_verified = Signal(providing_args=[
+    "user",
+    "request"
+])
+
+service_created = Signal(providing_args=[
+    "user",
+    "request",
+    "response"
+])
+
+referred_friend = Signal(providing_args=[
+    "user",
+    "request",    
+])
+
 profile_completed = Signal(providing_args=[
     "rule_key",
     "user",
