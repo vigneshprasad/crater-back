@@ -1,0 +1,8 @@
+USER_CREATED = "signup_user"
+AGREEMENT_FILLED = "accept_agreement"
+EMAIL_VERIFIED = "signup_email_verified"
+BASIC_PROFILE_CREATED = "signup_basic_profile"
+SERVICES_CREATION = "signup_services_user"
+PHONE_NUMBER_VERIFIED = "signup_phone_verified"
+POST_CREATED = "post_created"
+REFERRED_FRIEND = "refer_friend"

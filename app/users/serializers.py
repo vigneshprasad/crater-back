@@ -26,6 +26,7 @@ from utils.fields import Base64FileField
 from utils.instagram_service import instagram_service
 from . import models
 from .validators import password_validate_symbols
+from .signals import agreement_filled, email_verified
 
 UserModel = get_user_model()
 
@@ -309,8 +310,15 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
     def update(self, instance, validated_data):
         old_email = instance.email
-        inctance = super().update(instance, validated_data)
+        old_city = instance.city
+        super().update(instance, validated_data)
         new_email = instance.email
+        new_city = instance.city
+        if old_city == None and new_city != old_city:
+            agreement_filled.send(
+                sender=self.__class__,
+                user=instance
+            )
         if old_email != new_email:
             instance.send_verify_email()
             instance.refresh_auth_secret_key()
@@ -721,8 +729,7 @@ class CheckCodeSerializer(serializers.ModelSerializer):
 class VerifyEmailSerializer(register_serializers.VerifyEmailSerializer):
     key = serializers.CharField()
 
-    @staticmethod
-    def validate_key(key):
+    def validate_key(self, key):
         emailconfirmation = EmailConfirmationHMAC.from_key(key)
         if not emailconfirmation:
             queryset = EmailConfirmation.objects.all_valid()
@@ -732,6 +739,10 @@ class VerifyEmailSerializer(register_serializers.VerifyEmailSerializer):
                 raise serializers.ValidationError(
                     messages.WRONG_VALIDATE_KEY
                 )
+        email_verified.send(
+            sender=self.__class__,
+            email_address=emailconfirmation.email_address
+        )
         return key
 
 

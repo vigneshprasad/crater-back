@@ -91,7 +91,8 @@ INSTALLED_APPS = [
     'resources.curated_articles',
     'resources.masterclasses',
     'payment',
-    'points.apps.PointsConfig',
+    'points',
+    'wn_analytics',
     'services',
     'order',
     'creative_exchange',
@@ -314,6 +315,8 @@ ONESIGNAL_APIKEY = os.getenv('ONESIGNAL_APIKEY', 'MThiOWYzOWYtOThkMC00MGI1LWJiMz
 ACCOUNT_LOGOUT_ON_GET = False
 
 STRIPE_API_KEY = os.getenv('STRIPE_API_KEY', 'sk_test_AwTUfAFu61uxi8uGLm5FSEJE00idcE0OEk')
+
+SEGMENT_WRITE_KEY = os.getenv('SEGMENT_WRITE_KEY', '6RqLquK0M8YzTVdhHJz3C5NSa0Tqli8v')
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 

@@ -3,7 +3,7 @@ from django.dispatch import receiver
 
 from .models import Post, Like
 from .signals import (
-    points_post_created,
+    post_created,
     points_like_received_on_post,
     points_liked_post
 )
@@ -16,18 +16,19 @@ LIKED_POST_KEY = 6
 @receiver(post_save, sender=Post)
 def send_post_created_points_signal(sender, instance, created, *args, **kwargs):
     if created:
-        points_post_created.send(
+        post_created.send(
             sender=instance.__class__,
             user=instance.creator,
             rule_key=CREATE_POST_POINTS_KEY,
-            base_factor=1
+            base_factor=1,
+            post=instance
         )
 
 
 @receiver(post_delete, sender=Post)
 def send_post_deleted_points_signal(sender, instance, *args, **kwargs):
     if instance.creator and instance.creator.has_points:
-        points_post_created.send(
+        post_created.send(
             sender=instance.__class__,
             user=instance.creator,
             rule_key=CREATE_POST_POINTS_KEY,

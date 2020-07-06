@@ -6,7 +6,7 @@ from rest_framework.exceptions import NotFound
 from .models import UserPoints, PointsRule, PointsLog
 from users.signals import profile_completed, referal_success_points_signal
 from community.posts.signals import (
-    points_post_created,
+    post_created,
     points_like_received_on_post,
     points_liked_post
 )
@@ -28,7 +28,7 @@ def create_user_points(sender, instance, created, *args, **kwargs):
 
 
 @receiver(profile_completed)
-@receiver(points_post_created)
+@receiver(post_created)
 @receiver(points_like_received_on_post)
 @receiver(points_liked_post)
 @receiver(comment_created_points)
