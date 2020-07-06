@@ -22,7 +22,7 @@ def like_notification_post_save(sender, instance, created, *args, **kwargs):
             )
 
 
-points_post_created = Signal(providing_args=[
+post_created = Signal(providing_args=[
     "user",
     "rule_key",
     "base_factor"
