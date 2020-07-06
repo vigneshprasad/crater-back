@@ -49,7 +49,8 @@ class ProfileViewSet(mixins.CreateModelMixin,
         if hasattr(request.user, 'profile') and request.user.profile:
             serializer = self.get_serializer(data=request.data, instance=request.user.profile, partial=True)
             created_flag = False
-        serializer = self.get_serializer(data=request.data)
+        else:
+            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['user'] = request.user
         self.perform_create(serializer)
