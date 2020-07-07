@@ -262,7 +262,8 @@ class UserServicesViewSet(mixins.CreateModelMixin,
         if hasattr(request.user, 'user_services_info') and request.user.user_services_info:
             serializer = self.get_serializer(data=request.data, instance=request.user.user_services_info, partial=True)
             created_flag = False
-        serializer = self.get_serializer(data=request.data)
+        else:
+            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['user'] = request.user
         self.perform_create(serializer)
