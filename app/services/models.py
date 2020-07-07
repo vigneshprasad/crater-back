@@ -220,7 +220,8 @@ class UserServiceInfo(models.Model):
     )
     services = models.ManyToManyField(
         'services.Service',
-        related_name='user_infos'
+        related_name='user_infos',
+        blank=True
     )
     professional_service_provider = models.BooleanField(
         default=False,
