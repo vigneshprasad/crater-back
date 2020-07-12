@@ -5,7 +5,8 @@ from .models import Post, Like
 from .signals import (
     post_created,
     points_like_received_on_post,
-    points_liked_post
+    points_liked_post,
+    post_deleted
 )
 
 CREATE_POST_POINTS_KEY = 2
@@ -28,7 +29,7 @@ def send_post_created_points_signal(sender, instance, created, *args, **kwargs):
 @receiver(post_delete, sender=Post)
 def send_post_deleted_points_signal(sender, instance, *args, **kwargs):
     if instance.creator and instance.creator.has_points:
-        post_created.send(
+        post_deleted.send(
             sender=instance.__class__,
             user=instance.creator,
             rule_key=CREATE_POST_POINTS_KEY,
