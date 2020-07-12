@@ -28,6 +28,12 @@ post_created = Signal(providing_args=[
     "base_factor"
 ])
 
+post_deleted = Signal(providing_args=[
+    "user",
+    "rule_key",
+    "base_factor"
+])
+
 points_like_received_on_post = Signal(providing_args=[
     "user",
     "rule_key",
