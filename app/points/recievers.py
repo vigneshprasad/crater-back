@@ -7,6 +7,7 @@ from .models import UserPoints, PointsRule, PointsLog
 from users.signals import profile_completed, referal_success_points_signal
 from community.posts.signals import (
     post_created,
+    post_deleted,
     points_like_received_on_post,
     points_liked_post
 )
@@ -29,6 +30,7 @@ def create_user_points(sender, instance, created, *args, **kwargs):
 
 @receiver(profile_completed)
 @receiver(post_created)
+@receiver(post_deleted)
 @receiver(points_like_received_on_post)
 @receiver(points_liked_post)
 @receiver(comment_created_points)
