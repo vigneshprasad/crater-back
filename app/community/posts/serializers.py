@@ -139,7 +139,8 @@ class PostSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
     @staticmethod
     def get_latest_comments(post):
-        return CommentSerializer(post.comments.all()[:2], many=True).data
+        queryset = CommentSerializer(post.comments.all()[:2], many=True).data
+        return sorted(queryset, key=lambda x: x['created'])
 
     def get_is_reported(self, post):
         return post.reports.filter(user=self.context['request'].user).exists()
