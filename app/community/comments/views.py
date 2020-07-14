@@ -27,10 +27,7 @@ class CommentViewSet(mixins.CreateModelMixin, DestroyModelMixin, GenericViewSet)
     def post(self, request, pk):
         offset = int(request.query_params.get('offset', 2))
         try:
-            post = get_post(pk)
-            queryset = self.filter_queryset(post.comments.all()[offset:])
-            # Sorting the outgoing comments in order of creation.
-            queryset = sorted(queryset, key=lambda x: x.created)
+            queryset = self.filter_queryset(get_post(pk).comments.all()[offset:])
         except (Comment.DoesNotExist, Post.DoesNotExist):
             raise NotFound
         page = self.paginate_queryset(queryset)
