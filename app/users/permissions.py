@@ -12,3 +12,12 @@ class IsAuthenticated(permissions.BasePermission):
         # if not request.user.email_verified:
         #     raise AuthenticationFailed
         return True
+
+
+class AllowAny(permissions.BasePermission):
+    """
+    Allows access to all user's, authenticated or otherwise.
+
+    """
+    def has_permission(self, request, view):
+        return True
