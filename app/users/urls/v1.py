@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 
+from users import public_views
 from users import social_views
 from .. import views
 
@@ -14,9 +15,16 @@ register_router.register('verify', views.VerificationView, base_name='verify')
 register_router.register('user_services', views.UserServicesViewSet, base_name='services')
 register_router.register('investor_services', views.InvestorServicesViewSet, base_name='investor-services')
 
-
 router = routers.SimpleRouter()
 router.register('investors', views.InvestorsViewSet, base_name='investors')
+
+# Router for Public API's.
+public_router = routers.SimpleRouter()
+public_router.register('investors', public_views.InvestorsViewSet, base_name='public-investors')
+
+public_urls_patterns = [
+    path('', include(public_router.urls))
+]
 
 auth_urlpatterns = [
 
@@ -48,7 +56,8 @@ auth_urlpatterns = [
     path('network/<pk>/', views.NetworkView.as_view(), name='other-profile'),
     path('referer/', views.RefererEmailView.as_view(), name='referer'),
 
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('public/', include(public_router.urls))
 
 ]
 
