@@ -11,8 +11,13 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 import datetime
 import os
+import sentry_sdk
 
 from django.utils.translation import ugettext_lazy as _
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -360,3 +365,14 @@ TWITTER_CUSTOMER_API_SECRET_KEY = os.getenv('TWITTER_ACCESS_TOKEN', 'B2OYrFneHnI
 LOCAL_CURRENCY = os.getenv('LOCAL_CURRENCY', 'inr')
 LOCAL_COUNTRY = os.getenv('LOCAL_COUNTRY', 'IN')
 
+# ------------ SENTRY ---------- #
+SENTRY_DSN = os.getenv('SENTRY_DNS')
+
+# Sentry Initializations.
+sentry_sdk.init(
+    dsn=SENTRY_DSN,
+    environment=os.getenv('ENVIRONMENT'),
+    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+    attach_stacktrace=True,
+    send_default_pii=True
+)
