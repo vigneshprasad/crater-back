@@ -36,6 +36,14 @@ class Message(TimeStampedModel):
         db_table = 'chat_messages'
         ordering = ('created',)
 
+    def is_picture(self):
+        _, extension = os.path.splitext(self.file.name)
+        return extension in ['.png', '.jpg', '.jpeg']
+
+    def extension(self):
+        _, extension = os.path.splitext(self.file.name)
+        return extension
+
     def filename(self):
         return os.path.basename(self.file.name)
 

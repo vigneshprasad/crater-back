@@ -25,7 +25,7 @@
             <div class="active-user">
               <hr>
               <a class="flex selected">
-                <img class="chat__user-photo" width="50" height="50" src="{{ active_user.photo }}">
+                <div class="chat__user-photo" style="background-image: url({{ active_user.photo }})"></div>
                 <span class="username flex flex-column">
                   <span class="name">{{ active_user.name }}</span>
                 </span>
@@ -36,7 +36,7 @@
             <div class="user-detail" id="user-{{ user.pk }}">
               <hr>
               <a href="{% url 'admin:chat_chat_result' user.pk %}" class="flex">
-                <img class="chat__user-photo" width="50" height="50" src="{{ user.photo }}">
+                <div class="chat__user-photo" style="background-image: url({{ user.photo }})"></div>
                 <span class="username flex flex-column">
                   <span class="name">{{ user.name }}</span>
                   <span class="message">
@@ -73,7 +73,13 @@
                   {{ message }}
                   {% if message.file %}
                     <a href="{{ message.file.url }}" target="_blank" class="flex" title="{{ message.filename }}">
-                      <i class="material-icons attached-file">cloud_download</i>
+                      {% if message.is_picture %}
+                        <div class="chat__user-picture" style="background-image: url({{ message.file.url }})"></div>
+                      {% elif message.extension == '.pdf' %}
+                        <i class="material-icons attached-file">picture_as_pdf</i>
+                      {% else %}
+                        <i class="material-icons attached-file">cloud_download</i>
+                      {% endif %}
                     </a>
                   {% endif %}
                   {% if message.sender.pk|stringformat:'s' != uuid %}
