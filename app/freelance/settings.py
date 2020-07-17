@@ -11,8 +11,13 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 import datetime
 import os
+import sentry_sdk
 
 from django.utils.translation import ugettext_lazy as _
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -349,7 +354,8 @@ APPLE_BUNDLE_ID = os.getenv('APPLE_BUNDLE_ID', 'example.bundle')
 
 INSTAGRAM_API_CLIENT_ID = os.getenv('INSTAGRAM_API_CLIENT_ID', '821506751670761')
 INSTAGRAM_API_CLIENT_SECRET = os.getenv('INSTAGRAM_API_CLIENT_SECRET', '84c075c5d9c53f82ff4580ce3e76da3c')
-INSTAGRAM_REDIRECT_URL = os.getenv('INSTAGRAM_REDIRECT_URL', 'https://front-dev-freelance.scenario-projects.com/dashboard/account')
+INSTAGRAM_REDIRECT_URL = os.getenv('INSTAGRAM_REDIRECT_URL', 'https://front-dev-freelance.scenario-projects.com'
+                                                             '/dashboard/account')
 
 
 TWITTER_ACCESS_TOKEN = os.getenv('TWITTER_ACCESS_TOKEN', '756173937130766336-CiFVnyxmQFddis6mjW1SYrh3DFCzv5z')
@@ -360,3 +366,14 @@ TWITTER_CUSTOMER_API_SECRET_KEY = os.getenv('TWITTER_ACCESS_TOKEN', 'B2OYrFneHnI
 LOCAL_CURRENCY = os.getenv('LOCAL_CURRENCY', 'inr')
 LOCAL_COUNTRY = os.getenv('LOCAL_COUNTRY', 'IN')
 
+# ------------ SENTRY ---------- #
+SENTRY_DSN = os.getenv('SENTRY_DNS')
+
+# Sentry Initializations.
+sentry_sdk.init(
+    dsn=SENTRY_DSN,
+    environment=os.getenv('ENVIRONMENT'),
+    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+    attach_stacktrace=True,
+    send_default_pii=True
+)
