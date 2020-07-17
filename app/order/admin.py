@@ -74,6 +74,8 @@ class QuoteAdmin(ModelAdmin):
 
     @staticmethod
     def _service(quote):
+        if not quote.service:
+            return ' - '
         href = reverse("admin:users_user_change", args=(quote.service.pk,))
         return mark_safe(f'<a target="_blank" href="{href}">{quote.service}</a>')
 
