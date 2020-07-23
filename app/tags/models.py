@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from locations.models import City
+from base import models as base_models
 
 
 class Tag(models.Model):
@@ -15,6 +16,27 @@ class Tag(models.Model):
         verbose_name = _('User Tag')
         verbose_name_plural = _('03. User Tags')
         ordering = ['order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class Interests(base_models.BaseModel):
+    """
+    Interest for a users on the platform.
+    """
+    INTERESTS = (
+        ('business_strategy', _('Business Strategy')),
+        ('current_affairs', _('Current Affairs')),
+        ('design_and_branding', _('Design & Branding')),
+        ('finance_and_investments', _('Finance & Investments')),
+        ('funding_and_vc', _('Funding & Venture Capital')),
+        ('law_and_policy', _('Law & Policy')),
+        ('marketing_and_advertising', _('Marketing & Advertising')),
+        ('software_and_product', _('Software & Product Development')),
+    )
+
+    name = models.CharField(max_length=255, choices=INTERESTS)
 
     def __str__(self):
         return self.name

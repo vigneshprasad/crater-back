@@ -95,6 +95,7 @@ INSTALLED_APPS = [
     'resources.events',
     'resources.curated_articles',
     'resources.masterclasses',
+    'resources.meetings',
     'payment',
     'points',
     'wn_analytics',
