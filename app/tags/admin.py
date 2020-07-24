@@ -4,7 +4,7 @@ from django.contrib.admin import register
 from django.utils.safestring import mark_safe
 
 from tags.models import Tag, ArticleTag, MasterClassTag, Industry, Funding, Company, CityProxy, WorkCityProxy, EventTag, \
-    SourceWebsite
+    SourceWebsite, Interests
 from utils.mixins import ViewActionMixin
 
 
@@ -56,6 +56,21 @@ class IndustryTagAdmin(TagAdmin):
     """
     Sortable Industry Tag admin configuration
     """
+
+
+@register(Interests)
+class InterestsAdmin(admin.ModelAdmin):
+    """
+    Sortable Interests admin configuration
+    """
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+    icon_name = 'local_offer'
+    list_display = ('name', 'icon')
+    search_fields = ['name']
+
+    @staticmethod
+    def tag_name(tag):
+        return mark_safe(f'<span class="new badge" data-badge-caption="{tag.name}"></span>')
 
 
 @register(Funding)

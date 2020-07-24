@@ -66,8 +66,7 @@ class UserMeetingPreference(base_model.BaseModel):
         'tags.Interests',
         verbose_name=_('Interests'),
     )
-    time_slots = models.ForeignKey(
+    time_slots = models.ManyToManyField(
         TimeSlot,
         verbose_name=_('Time Slots'),
-        on_delete=models.CASCADE
     )

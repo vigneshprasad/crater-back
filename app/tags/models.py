@@ -25,18 +25,13 @@ class Interests(base_models.BaseModel):
     """
     Interest for a users on the platform.
     """
-    INTERESTS = (
-        ('business_strategy', _('Business Strategy')),
-        ('current_affairs', _('Current Affairs')),
-        ('design_and_branding', _('Design & Branding')),
-        ('finance_and_investments', _('Finance & Investments')),
-        ('funding_and_vc', _('Funding & Venture Capital')),
-        ('law_and_policy', _('Law & Policy')),
-        ('marketing_and_advertising', _('Marketing & Advertising')),
-        ('software_and_product', _('Software & Product Development')),
-    )
+    name = models.CharField(max_length=255)
+    icon = models.FileField(blank=True, null=True)
 
-    name = models.CharField(max_length=255, choices=INTERESTS)
+    class Meta:
+        verbose_name = _('User Interests')
+        verbose_name_plural = _('11. User Interests')
+        ordering = ['name']
 
     def __str__(self):
         return self.name

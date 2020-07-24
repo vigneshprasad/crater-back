@@ -15,6 +15,7 @@ router.register('comments', CommentViewSet)
 router.register('articles', CuratedArticleViewSet)
 router.register('masterclasses', MaterClassViewSet)
 router.register('meetings', meeting_views.MeetingViewSet)
+router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSet)
 
 
 urlpatterns = [

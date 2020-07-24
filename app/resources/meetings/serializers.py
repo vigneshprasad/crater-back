@@ -47,7 +47,7 @@ class MeetingSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_interests(meeting):
-        return []
+        return services.get_interest_list()
 
     def get_user_preferences(self, meeting):
         user = self.context['request'].user
@@ -61,3 +61,19 @@ class MeetingSerializer(serializers.ModelSerializer):
             'slots': latest_user_preference.time_slots.values_list('pk')
         }
         return [user_preference]
+
+
+class UserMeetingPreferenceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserMeetingPreference
+        fields = (
+            'pk',
+            'user',
+            'meeting',
+            'number_of_meetings',
+            'objective',
+            'interests',
+            'time_slots'
+        )
+

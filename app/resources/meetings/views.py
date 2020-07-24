@@ -16,3 +16,11 @@ class MeetingViewSet(mixins.ListModelMixin,
         instance = self.get_queryset().filter(is_active=True).first()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class UserMeetingPreferenceViewSet(mixins.CreateModelMixin,
+                                   mixins.UpdateModelMixin,
+                                   viewsets.GenericViewSet):
+    serializer_class = serializers.UserMeetingPreferenceSerializer
+    queryset = models.UserMeetingPreference.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
