@@ -3,6 +3,8 @@ from rest_framework import serializers
 from resources.meetings import models
 from resources.meetings import services
 
+from community.mixins import SetCreatorRequestDataMixin
+
 
 class MeetingSerializer(serializers.ModelSerializer):
     available_time_slots = serializers.SerializerMethodField()
@@ -55,6 +57,7 @@ class MeetingSerializer(serializers.ModelSerializer):
         if not latest_user_preference:
             return []
         user_preference = {
+            'pk': latest_user_preference.pk,
             'number_of_meetings': latest_user_preference.number_of_meetings,
             'objective': latest_user_preference.objective,
             'interests': latest_user_preference.interests.values_list('pk'),
@@ -63,7 +66,8 @@ class MeetingSerializer(serializers.ModelSerializer):
         return [user_preference]
 
 
-class UserMeetingPreferenceSerializer(serializers.ModelSerializer):
+class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+    # user = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserMeetingPreference
@@ -77,3 +81,5 @@ class UserMeetingPreferenceSerializer(serializers.ModelSerializer):
             'time_slots'
         )
 
+    # @staticmethod
+    # def get_user():

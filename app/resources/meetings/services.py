@@ -4,7 +4,10 @@ from tags.models import Interests
 
 
 def get_objectives_list():
-    objectives = [objective[1] for objective in choices.OBJECTIVE_CHOICES]
+    objectives = [{
+        'key': objective[0],
+        'label': objective[1] 
+    } for objective in choices.OBJECTIVE_CHOICES]
     return objectives
 
 
