@@ -55,7 +55,7 @@ class MeetingSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         latest_user_preference = meeting.user_preferences.filter(user=user).last()
         if not latest_user_preference:
-            return []
+            return {}
         user_preference = {
             'pk': latest_user_preference.pk,
             'number_of_meetings': latest_user_preference.number_of_meetings,
@@ -63,7 +63,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             'interests': latest_user_preference.interests.values_list('pk'),
             'slots': latest_user_preference.time_slots.values_list('pk')
         }
-        return [user_preference]
+        return user_preference
 
 
 class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
