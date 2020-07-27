@@ -30,7 +30,6 @@ class MeetingSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_available_time_slots(meeting):
         all_slots = meeting.available_time_slots.all()
-        print(all_slots, '*'*80)
         available_slots = {}
         for slot in all_slots:
             date_str = str(slot.date)
@@ -60,14 +59,13 @@ class MeetingSerializer(serializers.ModelSerializer):
             'pk': latest_user_preference.pk,
             'number_of_meetings': latest_user_preference.number_of_meetings,
             'objective': latest_user_preference.objective,
-            'interests': latest_user_preference.interests.values_list('pk'),
-            'slots': latest_user_preference.time_slots.values_list('pk')
+            'interests': latest_user_preference.interests.values_list('pk', flat=True),
+            'time_slots': latest_user_preference.time_slots.values_list('pk', flat=True)
         }
         return user_preference
 
 
 class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
-    # user = serializers.SerializerMethodField()
 
     class Meta:
         model = models.UserMeetingPreference
@@ -80,6 +78,3 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
             'interests',
             'time_slots'
         )
-
-    # @staticmethod
-    # def get_user():
