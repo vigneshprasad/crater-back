@@ -13,5 +13,5 @@ done;
 #./manage.py makemessages --locale=ru --extension=html,txt,py --ignore=venv
 #./manage.py compilemessages --locale=ru
 # daphne -b 0.0.0.0 -p 8000 freelance.asgi:application
-./manage.py runserver 0.0.0.0:8000
-#uvicorn --host 0.0.0.0 --port 8000 --loop asyncio --http h11 freelance.asgi:application --workers 3
+#./manage.py runserver 0.0.0.0:8000
+uvicorn --host 0.0.0.0 --port 8000 --loop asyncio --http h11 freelance.asgi:application --workers 3
