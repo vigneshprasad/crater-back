@@ -25,9 +25,10 @@ class Meeting(base_model.BaseModel):
 
     """
     title = models.CharField(_('Title'), max_length=255)
-    week_start_date = models.DateField(_('Week Start Date'), null=True, blank=True)
-    week_end_date = models.DateField(_('Week End Date'), null=True, blank=True)
+    week_start_date = models.DateField(_('Week Start Date'), null=True, blank=False)
+    week_end_date = models.DateField(_('Week End Date'), null=True, blank=False)
     is_registration_open = models.BooleanField(_('Registration Open'), default=True)
+    registration_end_date = models.DateField(_('Registration End Date'), null=True, blank=False)
     is_active = models.BooleanField(_('Active Meeting'), default=True)
     available_time_slots = models.ManyToManyField(
         TimeSlot,
