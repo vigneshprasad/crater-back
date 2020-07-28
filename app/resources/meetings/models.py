@@ -42,6 +42,15 @@ class Meeting(base_model.BaseModel):
 
         # TODO: Add a validation for meeting in the same duration.
 
+    def close_meeting(self):
+        self.is_registration_open = False
+        self.is_active = False
+        self.save()
+
+    def close_registration(self):
+        self.is_registration_open = False
+        self.save()
+
 
 class UserMeetingPreference(base_model.BaseModel):
     """
