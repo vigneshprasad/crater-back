@@ -26,14 +26,19 @@ def create_meetings_for_time_period(
         stat_date,
         end_date,
         title=choices.DEFAULT_MEETING_TITLE,
-        time_slots=None
-    ):
+        time_slots=None,
+        registration_end_date=None
+):
     if not time_slots:
         return
+
+    if not registration_end_date:
+        registration_end_date = end_date
 
     meeting = models.Meeting.objects.create(
         week_start_date=stat_date,
         week_end_date=end_date,
+        registration_end_date=registration_end_date,
         title=title
     )
     meeting.time_slots.add(time_slots)
@@ -77,6 +82,13 @@ def create_time_slots_for_date_and_slots(date, time_slots):
 
 def get_old_active_meetings():
     return models.Meeting.objects.filter(
-        is_closed=False,
+        is_active=True,
+        week_end_date__lt=timezone.now().date()
+    )
+
+
+def get_meetings_with_open_registration():
+    return models.Meeting.objects.filter(
+        is_registration_opne=True,
         week_end_date__lt=timezone.now().date()
     )

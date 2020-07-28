@@ -16,10 +16,12 @@ def create_weekly_one_on_one_meeting():
     new_time_slots = services.create_default_time_slots(week_start_date, week_end_date)
 
     title = choices.DEFAULT_ONE_ON_ONE_MEETING_TITLE
+    registration_end_date = week_start_date + datetime.timedelta(days=4)
     services.create_meetings_for_time_period(
         week_start_date,
         week_end_date,
         time_slots=new_time_slots,
+        registration_end_date=registration_end_date,
         title=title
     )
 
@@ -29,3 +31,10 @@ def close_last_weeks_meetings():
     meetings = services.get_old_active_meetings()
     for meeting in meetings:
         meeting.close_meeting()
+
+
+@app.task(crontab(hour='0', minute='0'))
+def close_registration_for_last_weeks_meetings():
+    meetings = services.get_meetings_with_open_registration()
+    for meeting in meetings:
+        meeting.close_registration()
