@@ -8,7 +8,7 @@ from resources.meetings import services
 from resources.meetings import choices
 
 
-@periodic_task(run_every=crontab(day_of_week='sunday', hour='19', minute='00'))
+# @periodic_task(run_every=crontab(day_of_week='sunday', hour='19', minute='00'))
 def create_weekly_one_on_one_meeting(time_slots=None):
     """
     Creates weekly meeting and default time slots for that
@@ -44,7 +44,7 @@ def create_weekly_one_on_one_meeting(time_slots=None):
     )
 
 
-@periodic_task(crontab(hour='0', minute='0'))
+# @periodic_task(crontab(hour='0', minute='0'))
 def close_last_weeks_meetings():
     """
     Closes meetings with week_end_date less
@@ -58,7 +58,7 @@ def close_last_weeks_meetings():
         meeting.close_meeting()
 
 
-@periodic_task(crontab(hour='0', minute='0'))
+# @periodic_task(crontab(hour='0', minute='0'))
 def close_registration_for_last_weeks_meetings():
     """
     Closes registration for meetings with registration_end_date
