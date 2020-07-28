@@ -1,7 +1,7 @@
 from datetime import time
 
 OBJECTIVE_CHOICES = [
-    ('meet_interesting_people', 'Meet interesting people'),
+    ('meet_interesting_people', 'Meet Interesting People'),
     ('brainstorm_with_peers', 'Brainstorm with Peers'),
     ('business_development', 'Business Development'),
     ('start_a_company', 'Start a Company'),
@@ -21,51 +21,51 @@ DEFAULT_TIME_SLOTS = {
             'start_time': time(12, 00, 00),
             'end_time': time(12, 30, 00)
         },
-{
-            'start_time': time(2, 00, 00),
-            'end_time': time(2, 30, 00)
-        },
-{
-            'start_time': time(4, 00, 00),
-            'end_time': time(4, 30, 00)
-        },
-{
-            'start_time': time(6, 00, 00),
-            'end_time': time(6, 30, 00)
-        },
-{
-            'start_time': time(7, 00, 00),
-            'end_time': time(7, 30, 00)
+        {
+            'start_time': time(14, 00, 00),
+            'end_time': time(14, 30, 00)
         },
         {
-            'start_time': time(8, 00, 00),
-            'end_time': time(8, 30, 00)
+            'start_time': time(16, 00, 00),
+            'end_time': time(16, 30, 00)
+        },
+        {
+            'start_time': time(18, 00, 00),
+            'end_time': time(18, 30, 00)
+        },
+        {
+            'start_time': time(19, 00, 00),
+            'end_time': time(19, 30, 00)
+        },
+        {
+            'start_time': time(20, 00, 00),
+            'end_time': time(20, 30, 00)
         }
     ],
     4: [
-    {
+        {
             'start_time': time(12, 00, 00),
             'end_time': time(12, 30, 00)
         },
-    {
-            'start_time': time(2, 00, 00),
-            'end_time': time(2, 30, 00)
-        },
-    {
-            'start_time': time(4, 00, 00),
-            'end_time': time(4, 30, 00)
-        },
-    {
-            'start_time': time(6, 00, 00),
-            'end_time': time(6, 30, 00)
-        },
-{
-            'start_time': time(7, 00, 00),
-            'end_time': time(7, 30, 00)
+        {
+            'start_time': time(14, 00, 00),
+            'end_time': time(14, 30, 00)
         },
         {
-            'start_time': time(8, 00, 00),
-            'end_time': time(8, 30, 00)
+            'start_time': time(16, 00, 00),
+            'end_time': time(16, 30, 00)
+        },
+        {
+            'start_time': time(18, 00, 00),
+            'end_time': time(18, 30, 00)
+        },
+        {
+            'start_time': time(19, 00, 00),
+            'end_time': time(19, 30, 00)
+        },
+        {
+            'start_time': time(20, 00, 00),
+            'end_time': time(20, 30, 00)
         }
     ]
 }
