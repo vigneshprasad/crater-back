@@ -2,10 +2,10 @@ import datetime
 
 from django.utils import timezone
 
+from resources.meetings import models
+from resources.meetings import choices
 from tags.serializers import InterestsSerializer
 from tags.models import Interests
-from resources.meetings import choices
-from resources.meetings import models
 
 
 def get_objectives_list():
