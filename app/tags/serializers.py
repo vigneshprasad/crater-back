@@ -47,6 +47,13 @@ class IndustrySerializer(serializers.ModelSerializer):
         fields = ('pk', 'name')
 
 
+class InterestsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Interests
+        fields = ('pk', 'name', 'icon')
+
+
 class ArticleWebsiteSerializer(serializers.ModelSerializer):
 
     class Meta:
