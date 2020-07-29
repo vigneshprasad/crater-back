@@ -13,7 +13,15 @@ class MeetingViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        instance = self.get_queryset().filter(is_active=True).first()
+        instance = self.get_queryset().filter(
+            is_active=True,
+            is_registration_open=True
+        ).last()
+        # If there is no active meeting with registration open
+        # return and empty response.
+        if not instance:
+            return Response({})
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
