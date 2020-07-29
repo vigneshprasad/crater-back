@@ -9,12 +9,18 @@ from resources.meetings import choices
 
 
 # @periodic_task(run_every=crontab(day_of_week='sunday', hour='19', minute='00'))
-def create_weekly_one_on_one_meeting(time_slots=None):
+def create_weekly_one_on_one_meeting(
+        week_start_date=None,
+        week_end_date=None,
+        time_slots=None
+):
     """
     Creates weekly meeting and default time slots for that
     meeting.
 
     Args:
+        week_start_date(Date): Week start date.
+        week_end_date(Date): Week end date.
         time_slots(list(TimeSlots)): List of TimeSlots objects to
             be associated with the meeting. If not provided
             default time slots will be created.
@@ -28,9 +34,14 @@ def create_weekly_one_on_one_meeting(time_slots=None):
     """
     title = choices.DEFAULT_ONE_ON_ONE_MEETING_TITLE
     # timezone.now() will provide Sunday's date. Since both are UTC.
-    week_start_date = timezone.now().date() + datetime.timedelta(days=1)
-    week_end_date = week_start_date + datetime.timedelta(days=5)
-
+    if not week_start_date:
+        week_start_date = timezone.now().date() + datetime.timedelta(days=1)
+    if not week_end_date:
+        week_end_date = week_start_date + datetime.timedelta(days=5)
+    # Registration starts a few days early.
+    registration_start_date = week_start_date - datetime.timedelta(
+        days=choices.DEFAULT_REGISTRATION_START_AND_WEEK_START_DELTA
+    )
     registration_end_date = week_start_date + datetime.timedelta(
         days=choices.DEFAULT_REGISTRATION_CLOSED_WEEKDAY
     )
@@ -39,6 +50,7 @@ def create_weekly_one_on_one_meeting(time_slots=None):
         week_start_date,
         week_end_date,
         time_slots=time_slots,
+        registration_start_date=registration_start_date,
         registration_end_date=registration_end_date,
         title=title
     )

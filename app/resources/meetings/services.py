@@ -27,6 +27,7 @@ def create_meetings_for_time_period(
         end_date,
         title=choices.DEFAULT_MEETING_TITLE,
         time_slots=None,
+        registration_start_date=None,
         registration_end_date=None
 ):
     """
@@ -40,11 +41,16 @@ def create_meetings_for_time_period(
         time_slots(list(TimeSlot)): List of TimeSlots objects
             for the meeting. If not provided these are created
             with a set of default time slots.
+        registration_start_date(Date): When does meeting
+            registration start.
         registration_end_date(Date): Meeting registration closing
             date.
 
     Returns:
         Created Meeting object.
+
+    Note:
+        registration_start_date can be less than week_start_date.
 
     """
     if not time_slots:
@@ -52,12 +58,16 @@ def create_meetings_for_time_period(
 
     # If registration end date is not present, week end
     # is taken as default registration end date.
+    if not registration_start_date:
+        registration_start_date = start_date
+
     if not registration_end_date:
         registration_end_date = end_date
 
     meeting, _ = models.Meeting.objects.get_or_create(
         week_start_date=start_date,
         week_end_date=end_date,
+        registration_start_date=registration_start_date,
         registration_end_date=registration_end_date,
         title=title
     )
