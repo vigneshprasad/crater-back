@@ -137,5 +137,5 @@ def registered_for_meeting_track(sender, user, **kwargs):
     event = REGISTERED_MEETING_PREFERENCES if created else EDIT_MEETING_PREFERENCES
 
     analytics_track_properties = kwargs
-    print(analytics_track_properties)
+
     analytics_track(user, event, analytics_track_properties)
