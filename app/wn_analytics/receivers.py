@@ -139,3 +139,14 @@ def registered_for_meeting_track(sender, user, **kwargs):
     analytics_track_properties = kwargs
 
     analytics_track(user, event, analytics_track_properties)
+
+
+@receiver(meetings_signals.new_meeting_created)
+def registered_for_meeting_track(sender, user, **kwargs):
+    # Removing signal object from kwargs.
+    kwargs.pop('signal')
+
+    event = MEETING_CREATED
+    analytics_track_properties = kwargs
+
+    analytics_track(user, event, analytics_track_properties)
