@@ -142,7 +142,7 @@ def registered_for_meeting_track(sender, user, **kwargs):
 
 
 @receiver(meetings_signals.new_meeting_created)
-def registered_for_meeting_track(sender, user, **kwargs):
+def new_meeting_created_track(sender, user, **kwargs):
     # Removing signal object from kwargs.
     kwargs.pop('signal')
 
