@@ -22,3 +22,6 @@ template_names = {
     'two_weeks_subs_warning': 'Two weeks subs warning',
     'one_month_subs_warning': 'One month subs warning'
 }
+
+
+ADMIN_USER_EMAIL = 'admin@admin.com'

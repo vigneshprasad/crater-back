@@ -6,3 +6,6 @@ SERVICES_CREATION = "signup_services_user"
 PHONE_NUMBER_VERIFIED = "signup_phone_verified"
 POST_CREATED = "post_created"
 REFERRED_FRIEND = "refer_friend"
+REGISTERED_MEETING_PREFERENCES = "register_meeting_preferences"
+EDIT_MEETING_PREFERENCES = "edit_meeting_preferences"
+MEETING_CREATED = 'meeting_created'

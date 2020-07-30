@@ -1,6 +1,7 @@
 from django.dispatch import receiver
 from .models import TrackLog, IdentifyLog
 from community.posts.signals import post_created
+from resources.meetings import signals as meetings_signals
 from users.models import User
 from users.signals import basic_profile_created, user_signed_up, service_created, phone_number_verified, user_updated, agreement_filled, referred_friend, email_verified
 from utils.segment_service import segment_service
@@ -21,6 +22,7 @@ def analytics_track(user, event, analytics_track_properties={}):
         properties=analytics_track_properties
     )
 
+
 @receiver(user_updated)
 def analytics_identify(sender, user, **kwargs):
     user_id = str(user.pk)
@@ -35,6 +37,7 @@ def analytics_identify(sender, user, **kwargs):
         traits=traits
     )
 
+
 @receiver(user_signed_up)
 def user_signed_up_track(sender, user, **kwargs):
     event=USER_CREATED
@@ -45,6 +48,7 @@ def user_signed_up_track(sender, user, **kwargs):
     }
     analytics_track(user, event, analytics_track_properties)
 
+
 @receiver(email_verified)
 def email_verified_track(sender, email_address, **kwargs):
     event=EMAIL_VERIFIED
@@ -54,7 +58,8 @@ def email_verified_track(sender, email_address, **kwargs):
         'role': user.role,
     }
     analytics_track(user, event, analytics_track_properties)
-    
+
+
 @receiver(agreement_filled)
 def agreement_filled_track(sender, user, **kwargs):
     event=AGREEMENT_FILLED
@@ -64,6 +69,7 @@ def agreement_filled_track(sender, user, **kwargs):
         'role': user.role
     }
     analytics_track(user, event, analytics_track_properties)
+
 
 @receiver(basic_profile_created)
 def basic_profile_track(sender, user, request, response, **kwargs):
@@ -85,6 +91,7 @@ def basic_profile_track(sender, user, request, response, **kwargs):
     event=BASIC_PROFILE_CREATED
     analytics_track(user, event, analytics_track_properties)
 
+
 @receiver(service_created)
 def service_created_track(sender, user, request, response, **kwargs):
     event=SERVICES_CREATION
@@ -100,6 +107,7 @@ def phone_number_verified_track(sender, user, request, **kwargs):
     }
     analytics_track(user, event, analytics_track_properties)
 
+
 #TODO CREATE SIGNAL AT VIEW LEVEL
 @receiver(post_created)
 def post_created_track(sender, user, post, **kwargs):
@@ -110,10 +118,35 @@ def post_created_track(sender, user, post, **kwargs):
     }
     analytics_track(user, event, analytics_track_properties)
 
+
 @receiver(referred_friend)
 def referred_friend_track(sender, user, request, **kwargs):
     event=REFERRED_FRIEND
     analytics_track_properties={
         'referal_email':  request.data.get('email').strip(),
     }
+    analytics_track(user, event, analytics_track_properties)
+
+
+@receiver(meetings_signals.registered_for_meeting)
+def registered_for_meeting_track(sender, user, **kwargs):
+    # Removing signal object from kwargs.
+    kwargs.pop('signal')
+
+    created = kwargs.pop('created', None)
+    event = REGISTERED_MEETING_PREFERENCES if created else EDIT_MEETING_PREFERENCES
+
+    analytics_track_properties = kwargs
+
+    analytics_track(user, event, analytics_track_properties)
+
+
+@receiver(meetings_signals.new_meeting_created)
+def new_meeting_created_track(sender, user, **kwargs):
+    # Removing signal object from kwargs.
+    kwargs.pop('signal')
+
+    event = MEETING_CREATED
+    analytics_track_properties = kwargs
+
     analytics_track(user, event, analytics_track_properties)
