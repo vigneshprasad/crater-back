@@ -46,6 +46,16 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
 
 @receiver(notification_signals.app_started_signal)
 def create_or_update_user_device_info(sender, user, device_info, **kwargs):
+    """
+    Delegates creation or update of user device info.
+
+    Args:
+        sender(None)
+        user(User): User who opened the app.
+        device_info(UserAgent): User Agent object from the
+            request.
+
+    """
     is_web_user = False if device_info.is_mobile else True
     device_type = 'WEB' if is_web_user else 'MOBILE'
 

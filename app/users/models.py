@@ -327,26 +327,31 @@ class UserDeviceInfo(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name='device_info'
     )
+    # Ex. Android, iOS, WEB.
     os = models.CharField(
         max_length=32,
         null=True,
         blank=True
     )
+    # OS version.
     os_version = models.CharField(
         max_length=32,
         null=True,
         blank=True
     )
+    # Device being used.
     device_name = models.CharField(
         max_length=256,
         null=True,
         blank=True
     )
+    # Model number or the device.
     device_model = models.CharField(
         max_length=256,
         null=True,
         blank=True
     )
+    # What type of device is this.
     type = models.CharField(
         max_length=32,
         null=True,
