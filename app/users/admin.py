@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
 from users.forms import AdminCreationForm, UserForm, ProfileForm
 from users.models import Profile, Admin, Referral, CoverFile
+from users import models
 from utils.mixins import ViewActionMixin
 
 admin.site.unregister(Group)
@@ -141,6 +142,7 @@ class GroupAdmin(GroupAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+
 @admin.register(CoverFile)
 class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = 'person'
@@ -149,4 +151,8 @@ class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).all()
-    
+
+
+@admin.register(models.UserDeviceInfo)
+class UserDeviceInfoAdmin(admin.ModelAdmin):
+    exclude = ('created', 'modified',)
