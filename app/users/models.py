@@ -296,7 +296,6 @@ class User(AbstractUser):
             return '<no-email>'
     
 
-
 class Device(TimeStampedModel):
     user = models.ForeignKey(
         'users.User',
@@ -319,6 +318,59 @@ class Device(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user.username} {self.os_id}'
+
+
+class UserDeviceInfo(TimeStampedModel):
+    user = models.ForeignKey(
+        'users.User',
+        verbose_name=_('User'),
+        on_delete=models.CASCADE,
+        related_name='device_info'
+    )
+    os = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True
+    )
+    os_version = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True
+    )
+    device_name = models.CharField(
+        max_length=256,
+        null=True,
+        blank=True
+    )
+    device_model = models.CharField(
+        max_length=256,
+        null=True,
+        blank=True
+    )
+    type = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True
+    )
+    # When this device was last used.
+    last_used = models.DateTimeField(
+        default=timezone.now
+    )
+
+    class Meta:
+        ordering = ('-last_used', )
+
+    def get_os_info(self):
+        return "{} {}".format(
+            self.os or '',
+            self.os_version or ''
+        )
+
+    def get_device_info(self):
+        return "{} {}".format(
+            self.device_name or '',
+            self.device_model or ''
+        )
 
 
 class Profile(models.Model):

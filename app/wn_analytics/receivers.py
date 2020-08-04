@@ -11,6 +11,9 @@ from wn_analytics.utils import get_user_traits
 
 def analytics_track(user, event, analytics_track_properties={}):
     user_id = str(user.pk)
+    # Added user device info to the track properties.
+    _add_user_device_info(user, analytics_track_properties)
+
     segment_service.track(
         user_id=user_id, 
         event=event,
@@ -108,7 +111,7 @@ def phone_number_verified_track(sender, user, request, **kwargs):
     analytics_track(user, event, analytics_track_properties)
 
 
-#TODO CREATE SIGNAL AT VIEW LEVEL
+# TODO CREATE SIGNAL AT VIEW LEVEL
 @receiver(post_created)
 def post_created_track(sender, user, post, **kwargs):
     event=POST_CREATED
@@ -150,3 +153,15 @@ def new_meeting_created_track(sender, user, **kwargs):
     analytics_track_properties = kwargs
 
     analytics_track(user, event, analytics_track_properties)
+
+
+def _add_user_device_info(user, analytics_track_properties):
+    device_info = user.device_info.first()
+    if not device_info:
+        return
+
+    analytics_track_properties['os'] = device_info.get_os_info()
+    analytics_track_properties['device'] = device_info.get_device_info()
+    analytics_track_properties['device_type'] = device_info.type
+
+    return

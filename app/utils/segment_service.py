@@ -1,6 +1,7 @@
-# import analytics
-from django.conf import settings
 import analytics
+
+from django.conf import settings
+
 
 class SegmentService:
 
@@ -11,7 +12,7 @@ class SegmentService:
     @staticmethod
     def track(user_id, event, properties, **kwargs):
         analytics.track(
-            user_id=user_id, 
+            user_id=user_id,
             event=event,
             properties=properties
         )
