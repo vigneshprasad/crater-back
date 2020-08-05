@@ -2,6 +2,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from .signals import profile_completed, referal_success_points_signal, user_signed_up, user_updated
+from notifications import signals as notification_signals
+from users import models
+from users import choices
+from users import services
 
 PROFILE_COMPLETED_POINTS_KEY = 1
 REFERAL_SUCCESS_POINTS_KEY = 13
@@ -38,3 +42,45 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
                     user=instance.referer,
                     rule_key=REFERAL_SUCCESS_POINTS_KEY
                 )
+
+
+@receiver(notification_signals.app_started_signal)
+def create_or_update_user_device_info(sender, user, device_info, **kwargs):
+    """
+    Delegates creation or update of user device info.
+
+    Args:
+        sender(None)
+        user(User): User who opened the app.
+        device_info(UserAgent): User Agent object from the
+            request.
+
+    """
+    is_web_user = False if device_info.is_mobile else True
+    device_type = 'WEB' if is_web_user else 'MOBILE'
+
+    device_os = device_info.os.family
+    device_os_version = device_info.os.version_string
+
+    device_name = device_info.device.family
+    if device_name == choices.DEVICE_NAME_OTHER:
+        device_name = choices.DEVICE_NAME_WEB
+    device_model = device_info.device.model
+
+    user_device_info = {
+        'os': device_os,
+        'os_version': device_os_version,
+        'device_name': device_name,
+        'device_model': device_model,
+        'device_type': device_type
+    }
+
+    instance, created = services.create_or_update_user_device_info(
+        user=user,
+        **user_device_info
+    )
+    if created:
+        user_updated.send(
+            sender=instance.user.__class__,
+            user=user
+        )

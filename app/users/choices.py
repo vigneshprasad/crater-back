@@ -25,3 +25,11 @@ template_names = {
 
 
 ADMIN_USER_EMAIL = 'admin@admin.com'
+
+
+OS_NAME_ANDROID = 'ANDROID'
+OS_NAME_IOS = 'IOS'
+OS_NAME_WEB = 'WEB'
+
+DEVICE_NAME_OTHER = 'Other'
+DEVICE_NAME_WEB = 'WEB'

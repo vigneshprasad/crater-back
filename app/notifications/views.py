@@ -9,6 +9,7 @@ from order.serializers import EmptySerializer
 from . import models, serializers, paginators
 from .schema import batch_notification_read
 from users import permissions
+from notifications import signals
 
 
 class UserNotificationSettingsViesSet(mixins.ListModelMixin,
@@ -42,6 +43,16 @@ class NotificationViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.NotificationSerializer
     pagination_class = paginators.Pagination
+
+    def list(self, request, *args, **kwargs):
+        # This is the call that always happens as you open the app
+        # Hence firing the app started signal.
+        signals.app_started_signal.send(
+            sender=None,
+            user=request.user,
+            device_info=request.user_agent
+        )
+        return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
