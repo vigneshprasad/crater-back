@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'djrill',
     'adminsortable2',
     'filefield_cache',
+    'django_user_agents',
 
     'base',
     'users',
@@ -185,6 +186,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware'
 ]
 
 ROOT_URLCONF = 'freelance.urls'

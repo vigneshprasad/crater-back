@@ -4,6 +4,7 @@ from users.models import User, Profile
 from tags.models import CityProxy
 from tags.serializers import TagSerializer
 
+
 class UserTraitsSerializer(serializers.ModelSerializer):
     work_city = serializers.SerializerMethodField()
     social_auth = serializers.SerializerMethodField()
@@ -11,6 +12,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     twitter = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
+    device_info = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -26,12 +28,13 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             'social_auth',
             'referer',
             'user_tags',
-            'twitter'
+            'twitter',
+            'device_info'
         )
 
     @staticmethod
     def get_city(user):
-        if user.city != None:
+        if user.city is not None:
             return user.city.name
 
     @staticmethod
@@ -61,3 +64,15 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_phone(user):
         return str(user.phone_number)
+
+    @staticmethod
+    def get_device_info(user):
+        device = user.device_info.first()
+        if not device:
+            return {}
+
+        return {
+            'os': device.get_os_info(),
+            'device': device.get_device_info(),
+            'device_type': device.type
+        }
