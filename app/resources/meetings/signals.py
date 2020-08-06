@@ -12,7 +12,7 @@ registered_for_meeting = Signal(providing_args=[
     "meeting"
 ])
 
-new_meeting_created = Signal(providing_args=[
+new_meeting_config_created = Signal(providing_args=[
     "user",
     "week_start_date",
     "week_end_date",

@@ -31,8 +31,8 @@ def send_analytics_for_user_meeting_preference(sender, instance, created, *args,
     )
 
 
-@receiver(post_save, sender=models.Meeting)
-def send_analytics_for_meeting_creation(sender, instance, created, *args, **kwargs):
+@receiver(post_save, sender=models.MeetingConfig)
+def send_analytics_for_meeting_config_creation(sender, instance, created, *args, **kwargs):
     if not created:
         return
 
@@ -45,7 +45,7 @@ def send_analytics_for_meeting_creation(sender, instance, created, *args, **kwar
             'date': str(time_slot.date)}
         all_time_slots.append(slot)
 
-    signals.new_meeting_created.send(
+    signals.new_meeting_config_created.send(
         sender=instance,
         user=users_services.get_admin_user(),
         title=instance.title,

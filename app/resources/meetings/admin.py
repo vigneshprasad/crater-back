@@ -9,8 +9,8 @@ class TimeSlotAdmin(ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
 
-@register(models.Meeting)
-class MeetingAdmin(ModelAdmin):
+@register(models.MeetingConfig)
+class MeetingConfigAdmin(ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
 

@@ -3,8 +3,8 @@ from django import forms
 from resources.meetings import models
 
 
-class MeetingForm(forms.ModelForm):
+class MeetingConfigForm(forms.ModelForm):
 
     class Meta:
-        model = models.Meeting
+        model = models.MeetingConfig
         fields = '__all__'
