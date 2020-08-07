@@ -12,7 +12,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     twitter = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
-    device_info = serializers.SerializerMethodField()
+    # TODO(Nishant): Will reuse this code when Flutter app is released.
+    # device_info = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -29,7 +30,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             'referer',
             'user_tags',
             'twitter',
-            'device_info'
+            # 'device_info'
         )
 
     @staticmethod
