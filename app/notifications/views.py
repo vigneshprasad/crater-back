@@ -45,13 +45,14 @@ class NotificationViewSet(mixins.ListModelMixin,
     pagination_class = paginators.Pagination
 
     def list(self, request, *args, **kwargs):
+        # TODO(Nishant): Will reuse this code when Flutter app is released.
         # This is the call that always happens as you open the app
         # Hence firing the app started signal.
-        signals.app_started_signal.send(
-            sender=None,
-            user=request.user,
-            device_info=request.user_agent
-        )
+        # signals.app_started_signal.send(
+        #     sender=None,
+        #     user=request.user,
+        #     device_info=request.user_agent
+        # )
         return super().list(request, *args, **kwargs)
 
     def get_queryset(self):

@@ -11,8 +11,9 @@ from wn_analytics.utils import get_user_traits
 
 def analytics_track(user, event, analytics_track_properties={}):
     user_id = str(user.pk)
+    # TODO(Nishant): Will reuse this code when Flutter app is released.
     # Added user device info to the track properties.
-    _add_user_device_info(user, analytics_track_properties)
+    # _add_user_device_info(user, analytics_track_properties)
 
     segment_service.track(
         user_id=user_id, 
