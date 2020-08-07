@@ -45,7 +45,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     
     @staticmethod
     def get_work_city(user):
-        if user.has_profile:
+        if user.has_profile and user.profile.work_city:
             return user.profile.work_city.name 
 
     @staticmethod

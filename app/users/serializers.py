@@ -263,6 +263,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'role',
             'full_registered',
             'has_profile',
+            'has_introduction',
             'has_bank_details',
             'has_services',
             'has_active_subscription',
@@ -276,6 +277,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         read_only_fields = (
             'full_registered',
             'has_profile',
+            'has_introduction',
             'has_bank_details',
             'has_services',
             'phone_number_verified',
@@ -420,35 +422,43 @@ class ProfileSerializer(serializers.ModelSerializer):
             'max_length': _('Tag line should not be longer than 100 symbols'),
         },
         max_length=100,
-        allow_blank=True
+        allow_blank=True,
+        allow_null=True,
+        required=False
     )
     introduction = serializers.CharField(
         max_length=800,
         error_messages={
             'max_length': _('Max symbols exceeded'),
         },
-        allow_blank=True
+        allow_blank=True,
+        allow_null=True,
+        required=False
     )
     focus = serializers.CharField(
         max_length=800,
         error_messages={
             'max_length': _('Max symbols exceeded'),
         },
-        allow_blank=True
+        allow_blank=True,
+        allow_null=True,
+        required=False
     )
     additional_information = serializers.CharField(
         max_length=800,
         error_messages={
             'max_length': _('Max symbols exceeded'),
         },
-        allow_blank=True
+        allow_blank=True,
+        allow_null=True,
+        required=False
     )
     photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
     cover = serializers.PrimaryKeyRelatedField(
         queryset=models.CoverFile.objects.all(), allow_null=True, required=False
     )
-    tag_list = TagSerializer(source='tags', many=True, read_only=True)
-    work_city_name = serializers.CharField(source='work_city.name', read_only=True)
+    tag_list = TagSerializer(source='tags', many=True, read_only=True, allow_null=True, required=False)
+    work_city_name = serializers.CharField(source='work_city.name', read_only=True, allow_null=True, required=False)
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
     is_cover_video = serializers.SerializerMethodField()
@@ -470,6 +480,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'cover',
             'cover_file',
             'introduction',
+            'linkedin_url',
             'focus',
             'additional_information',
             'instagram',
@@ -487,7 +498,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'is_cover_video'
         )
         extra_kwargs = {
-            'tags': {'write_only': True}
+            'tags': {'write_only': True, 'allow_null': True, 'required': False }
         }
         read_only_fields = (
             'role',
