@@ -38,7 +38,12 @@ class MeetingConfig(base_model.BaseModel):
     available_time_slots = models.ManyToManyField(
         TimeSlot,
         verbose_name=_('Available Slots'),
-        related_name='meetings',
+        related_name='meeting_configs',
+    )
+    type = models.CharField(
+        max_length=64,
+        default=choices.MEETING_CHOICE_1_ON_1,
+        choices=choices.MEETING_TYPE_CHOICES
     )
 
     def clean(self):
@@ -85,4 +90,32 @@ class UserMeetingPreference(base_model.BaseModel):
     time_slots = models.ManyToManyField(
         TimeSlot,
         verbose_name=_('Time Slots'),
+    )
+
+
+class Meeting(base_model.BaseModel):
+    meeting_config = models.ForeignKey(
+        MeetingConfig,
+        verbose_name=_('Meeting Config'),
+        on_delete=models.CASCADE,
+        related_name='meetings'
+    )
+    organiser = models.ForeignKey(
+        'users.User',
+        verbose_name=_('Organiser'),
+        on_delete=models.CASCADE,
+        related_name='meetings',
+        null=True,
+        blank=True
+    )
+    participants = models.ManyToManyField(
+        'users.User',
+        verbose_name=_('Participants'),
+    )
+    link = models.URLField(null=True, blank=True)
+    time_slot = models.ForeignKey(
+        'meetings.TimeSlot',
+        verbose_name=_('Time Slot'),
+        on_delete=models.CASCADE,
+        related_name='meetings'
     )
