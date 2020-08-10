@@ -19,9 +19,9 @@ class TimeSlot(base_model.BaseModel):
         return '{}-{}'.format(self.start_time, self.end_time)
 
 
-class Meeting(base_model.BaseModel):
+class MeetingConfig(base_model.BaseModel):
     """
-    Resources meetings created by admins
+    Resources meeting config created by admins
 
     """
     title = models.CharField(_('Title'), max_length=255)
@@ -60,7 +60,8 @@ class Meeting(base_model.BaseModel):
 
 class UserMeetingPreference(base_model.BaseModel):
     """
-    Resources meetings created by admins
+    User meeting preference as selected by user
+    for a meeting config.
 
     """
     user = models.ForeignKey(
@@ -70,8 +71,8 @@ class UserMeetingPreference(base_model.BaseModel):
         related_name='meeting_preferences'
     )
     meeting = models.ForeignKey(
-        Meeting,
-        verbose_name=_('Meetings'),
+        MeetingConfig,
+        verbose_name=_('Meeting Config'),
         on_delete=models.CASCADE,
         related_name='user_preferences'
     )
