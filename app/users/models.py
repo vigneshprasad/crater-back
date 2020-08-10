@@ -186,6 +186,17 @@ class User(AbstractUser):
         return bool(hasattr(self, 'bank_details') and self.bank_details)
 
     @property
+    def has_introduction(self):
+        status = (
+            self.has_profile
+            and 
+            hasattr(self.profile, 'introduction') 
+            and 
+            self.profile.introduction
+        )
+        return bool(status)
+
+    @property
     def full_registered(self):
         status = (
             self.has_profile
@@ -423,6 +434,11 @@ class Profile(models.Model):
         verbose_name=_('Additional Information'),
         blank=True
     )
+    linkedin_url = models.CharField(
+        verbose_name=_('Linked In'),
+        blank=True,
+        max_length=800
+    )
     instagram = models.CharField(
         verbose_name=_('Instagram'),
         blank=True,
@@ -447,6 +463,7 @@ class Profile(models.Model):
     work_city = models.ForeignKey(
         'tags.WorkCityProxy',
         null=True,
+        blank=True,
         verbose_name=_('Work city'),
         on_delete=models.CASCADE
     )
