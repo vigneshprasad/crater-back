@@ -37,6 +37,19 @@ class Interests(base_models.BaseModel):
         return self.name
 
 
+class Objective(base_models.BaseModel):
+    name = models.CharField(max_length=255)
+    icon = models.FileField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('User Objective')
+        verbose_name_plural = _('User Objectives')
+        ordering = ['name']
+
+
 class MasterClassTag(models.Model):
     """
     Tag for Master Class created by admin

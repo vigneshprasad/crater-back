@@ -43,6 +43,10 @@ class User(AbstractUser):
         related_name='users',
         on_delete=models.SET_NULL
     )
+    objectives = models.ManyToManyField(
+        'tags.Objective',
+        verbose_name=_('Objectives')
+    )
     reason = models.CharField(
         max_length=400,
         verbose_name=_('Reason'),

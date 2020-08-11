@@ -273,6 +273,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'pan_card_size',
             'unread_notifications',
             'is_approved',
+            'objectives'
         )
         read_only_fields = (
             'full_registered',

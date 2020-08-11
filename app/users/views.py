@@ -277,8 +277,6 @@ class UserServicesViewSet(mixins.CreateModelMixin,
                 response=response
             )
         return response
-            
-        
 
     def get_object(self):
         if self.request.user.role == 'user':
