@@ -188,9 +188,9 @@ def get_active_meetings(start_date=None, end_date=None):
 
     """
     if not start_date:
-        start_date = timezone.now().date() - datetime.timedelta(days=1)
+        start_date = timezone.now().date() + datetime.timedelta(days=1)
     if not end_date:
-        end_date = week_start_date + datetime.timedelta(days=5)
+        end_date = week_start_date + datetime.timedelta(days=3)
 
     return models.Meeting.objects.filter(
         meeting__is_active=True,
