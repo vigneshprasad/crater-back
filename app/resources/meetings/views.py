@@ -40,5 +40,5 @@ class MeetingViewSet(mixins.RetrieveModelMixin,
                      mixins.UpdateModelMixin,
                      viewsets.GenericViewSet):
     serializer_class = serializers.MeetingSerializer
-    queryset = models.Meetings.objects.all()
+    queryset = models.Meeting.objects.all()
     permission_classes = [permissions.IsAuthenticated]

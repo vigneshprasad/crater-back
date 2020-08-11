@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -15,8 +17,36 @@ class TimeSlot(base_model.BaseModel):
         if self.start_time >= self.end_time:
             raise ValidationError({'end': _('Start time should be lesser than End time.')})
 
+    def get_display(self):
+        """
+        This is the display state for a time slot.
+
+        Args:
+            self(TimeSlot)
+
+        return:
+            str: String display for the time slot.
+                ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
+
+        """
+        start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
+        end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
+
+        display_start_time = start_time.strftime("%I:%M %p")
+        display_end_time = end_time.strftime("%I:%M %p")
+
+        display_time = '{} - {}'.format(display_start_time, display_end_time)
+
+        display_date = '{}, {} {}'.format(
+            self.date.strftime('%A'),
+            str(self.date.day),
+            self.date.strftime('%B')
+        )
+
+        return '{} - {}'.format(display_date, display_time)
+
     def __str__(self):
-        return '{}-{}'.format(self.start_time, self.end_time)
+        return self.get_display()
 
 
 class MeetingConfig(base_model.BaseModel):
