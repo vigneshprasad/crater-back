@@ -109,7 +109,7 @@ class AdminPasswordResetForm(PasswordResetForm):
 
 
 class ProfileForm(forms.ModelForm):
-    photo = forms.ImageField(widget=CachedMaterialAdminFileWidget)
+    photo = forms.ImageField(widget=CachedMaterialAdminFileWidget, required=False)
 
     class Meta:
         model = Profile
