@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -15,8 +17,36 @@ class TimeSlot(base_model.BaseModel):
         if self.start_time >= self.end_time:
             raise ValidationError({'end': _('Start time should be lesser than End time.')})
 
+    def get_display(self):
+        """
+        This is the display state for a time slot.
+
+        Args:
+            self(TimeSlot)
+
+        return:
+            str: String display for the time slot.
+                ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
+
+        """
+        start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
+        end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
+
+        display_start_time = start_time.strftime("%I:%M %p")
+        display_end_time = end_time.strftime("%I:%M %p")
+
+        display_time = '{} - {}'.format(display_start_time, display_end_time)
+
+        display_date = '{}, {} {}'.format(
+            self.date.strftime('%A'),
+            str(self.date.day),
+            self.date.strftime('%B')
+        )
+
+        return '{} - {}'.format(display_date, display_time)
+
     def __str__(self):
-        return '{}-{}'.format(self.start_time, self.end_time)
+        return self.get_display()
 
 
 class MeetingConfig(base_model.BaseModel):
@@ -38,7 +68,12 @@ class MeetingConfig(base_model.BaseModel):
     available_time_slots = models.ManyToManyField(
         TimeSlot,
         verbose_name=_('Available Slots'),
-        related_name='meetings',
+        related_name='meeting_configs',
+    )
+    type = models.CharField(
+        max_length=64,
+        default=choices.MEETING_CHOICE_1_ON_1,
+        choices=choices.MEETING_TYPE_CHOICES
     )
 
     def clean(self):
@@ -85,4 +120,32 @@ class UserMeetingPreference(base_model.BaseModel):
     time_slots = models.ManyToManyField(
         TimeSlot,
         verbose_name=_('Time Slots'),
+    )
+
+
+class Meeting(base_model.BaseModel):
+    meeting_config = models.ForeignKey(
+        MeetingConfig,
+        verbose_name=_('Meeting Config'),
+        on_delete=models.CASCADE,
+        related_name='meetings'
+    )
+    organiser = models.ForeignKey(
+        'users.User',
+        verbose_name=_('Organiser'),
+        on_delete=models.CASCADE,
+        related_name='meetings',
+        null=True,
+        blank=True
+    )
+    participants = models.ManyToManyField(
+        'users.User',
+        verbose_name=_('Participants'),
+    )
+    link = models.URLField(null=True, blank=True)
+    time_slot = models.ForeignKey(
+        'meetings.TimeSlot',
+        verbose_name=_('Time Slot'),
+        on_delete=models.CASCADE,
+        related_name='meetings'
     )
