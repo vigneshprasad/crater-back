@@ -102,16 +102,21 @@ def send_1_on_1_meeting_intro_emails(meetings):
         for participant in meeting.participants.all():
 
             display_slot = meeting.time_slot.get_display()
-            data = {
-                participant.email: {
-                    'time_slot': display_slot,
-                    'name': participant.name,
-                    'link': meeting.link,
-                    'introduction': p2.profile.introduction if p1 == participant else p1.profile.introduction,
+            # Checking if profile exists.
+            try:
+                data = {
+                    participant.email: {
+                        'time_slot': display_slot,
+                        'name': participant.name,
+                        'link': meeting.link,
+                        'introduction': p2.profile.introduction if p1 == participant else p1.profile.introduction,
+                    }
                 }
-            }
+            except RelatedObjectDoesNotExist:
+                continue
+
             subject = 'Your 1:1 meeting has been scheduled.'
-            to = (participant.user.email, )
+            to = (participant.email, )
             template_name = choices.ONE_ON_ONE_EMAIL_TEMPLATE
 
             # Sending the emails.
