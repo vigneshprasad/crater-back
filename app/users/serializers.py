@@ -299,10 +299,6 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             attrs['pan_card'] = pan_card
         return attrs
 
-    # def get_photo(self, user):
-    #     if hasattr(user.profile) and user.profile.photo:
-    #         return self.context['request'].build_absolute_uri(user.profile.photo)
-
     @staticmethod
     def get_pan_card_size(obj):
         if obj.pan_card:
@@ -324,14 +320,13 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         social_account = obj.socialaccount_set.first()
         return get_social_account_info(social_account)
 
-
     def update(self, instance, validated_data):
         old_email = instance.email
         old_city = instance.city
         super().update(instance, validated_data)
         new_email = instance.email
         new_city = instance.city
-        if old_city == None and new_city != old_city:
+        if (old_city is None) and new_city != old_city:
             agreement_filled.send(
                 sender=self.__class__,
                 user=instance
