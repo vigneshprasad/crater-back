@@ -140,5 +140,6 @@ def send_1_on_1_meeting_intro_emails(meetings):
             to=to,
             template_name=template_name,
             content={},
+            from_email=choices.MEETINGS_FROM_EMAIL,
             merge_vars=data
         )

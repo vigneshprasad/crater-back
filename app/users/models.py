@@ -128,15 +128,19 @@ class User(AbstractUser):
         db_table = 'users'
         ordering = ('date_joined',)
 
-    def send_email(self,
-                   subject,
-                   to,
-                   template_name,
-                   content,
-                   merge_vars,
-                   from_email=DEFAULT_FROM_EMAIL):
+    @staticmethod
+    def send_email(
+            subject,
+            to,
+            template_name,
+            content,
+            merge_vars,
+            from_email=DEFAULT_FROM_EMAIL
+    ):
+        # Update merge vars with Front URL.
         for d in merge_vars.values():
             d.update({'front_url': settings.FRONT_URL})
+
         send_email.delay(
             subject=subject,
             to=to,

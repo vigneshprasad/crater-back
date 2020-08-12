@@ -75,3 +75,4 @@ MEETING_TYPE_CHOICES = [
 ]
 
 ONE_ON_ONE_INTRODUCTION_EMAIL_TEMPLATE = '1:1 Meeting Introduction'
+MEETINGS_FROM_EMAIL = 'hello@worknetwork.in'
