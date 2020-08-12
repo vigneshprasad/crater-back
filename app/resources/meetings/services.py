@@ -173,3 +173,27 @@ def get_meeting_configs_with_open_registration():
         is_registration_opne=True,
         registration_end_date__lt=timezone.now().date()
     )
+
+
+def get_active_meetings(start_date=None, end_date=None):
+    """
+    Get all meetings that are active in a given duration.
+
+    Args:
+        start_date(date): Start date for the meetings.
+        end_date(date): End date for meetings.
+
+    Return:
+        Queryset of Meeting object.
+
+    """
+    if not start_date:
+        start_date = timezone.now().date() + datetime.timedelta(days=1)
+    if not end_date:
+        end_date = week_start_date + datetime.timedelta(days=3)
+
+    return models.Meeting.objects.filter(
+        meeting__is_active=True,
+        time_slots__date__gte=start_date,
+        time_slots__date__lte=end_date,
+    )

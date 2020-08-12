@@ -97,7 +97,7 @@ def get_user_data(receiver_id, sender_id):
         if hasattr(user, 'profile'):
             photo = None
             try:
-                photo = user.profile.photo.url
+                photo = user.profile.photo.url if user.profile.photo else user.profile.photo_url
             except ValueError:
                 pass
             return {

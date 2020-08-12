@@ -55,8 +55,10 @@ class MessageSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_photo(message):
         try:
-            if hasattr(message.sender, 'profile') and hasattr(message.sender.profile, 'photo'):
-                return message.sender.profile.photo.url
+            if not hasattr(message.sender, 'profile'):
+                return None
+            return message.sender.profile.photo.url \
+                if message.sender.profile.photo else message.sender.profile.photo_url
         except ValueError:
             return
 
@@ -84,7 +86,8 @@ class UserChatSerializer(serializers.ModelSerializer):
 
     def get_photo(self, user):
         try:
-            if hasattr(user, 'profile') and hasattr(user.profile, 'photo'):
-                return user.profile.photo.url
+            if not hasattr(user, 'profile'):
+                return None
+            return user.profile.photo.url if user.profile.photo else user.profile.photo_url
         except ValueError:
             return

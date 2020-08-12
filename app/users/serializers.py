@@ -27,6 +27,7 @@ from utils.instagram_service import instagram_service
 from . import models
 from .validators import password_validate_symbols
 from .signals import agreement_filled, email_verified
+from .services import get_social_account_info
 
 UserModel = get_user_model()
 
@@ -245,8 +246,9 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     city = serializers.PrimaryKeyRelatedField(queryset=CityProxy.objects.all(), required=False)
     pan_card_base64 = Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
-    photo = serializers.FileField(source='profile.photo', allow_null=True, read_only=True)
+    photo = serializers.SerializerMethodField()
     unread_notifications = serializers.SerializerMethodField()
+    social_account = serializers.SerializerMethodField()
 
     class Meta:
         model = UserModel
@@ -274,6 +276,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'unread_notifications',
             'is_approved',
             'objectives'
+            'social_account'
         )
         read_only_fields = (
             'full_registered',
@@ -310,6 +313,18 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     @staticmethod
     def get_unread_notifications(obj):
         return obj.notifications.filter(is_read=False).count()
+
+    @staticmethod
+    def get_photo(obj):
+        if not hasattr(obj, 'profile'):
+            return None
+        return obj.profile.photo.url if obj.profile.photo else obj.profile.photo_url
+
+    @staticmethod
+    def get_social_account(obj):
+        social_account = obj.socialaccount_set.first()
+        return get_social_account_info(social_account)
+
 
     def update(self, instance, validated_data):
         old_email = instance.email
@@ -454,7 +469,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
-    photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
+    photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True, required=False)
+    photo_url = serializers.URLField(allow_null=True, required=False, allow_blank=True)
     cover = serializers.PrimaryKeyRelatedField(
         queryset=models.CoverFile.objects.all(), allow_null=True, required=False
     )
@@ -478,6 +494,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'professional_service_provider',
             'tag_line',
             'photo',
+            'photo_url',
             'cover',
             'cover_file',
             'introduction',
