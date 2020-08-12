@@ -40,6 +40,11 @@ class Interests(base_models.BaseModel):
 class Objective(base_models.BaseModel):
     name = models.CharField(max_length=255)
     icon = models.FileField(blank=True, null=True)
+    redirect_url = models.URLField(
+        verbose_name=_('Redirect URL'),
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return self.name

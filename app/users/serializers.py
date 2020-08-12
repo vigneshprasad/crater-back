@@ -248,6 +248,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     photo = serializers.FileField(source='profile.photo', allow_null=True, read_only=True)
     unread_notifications = serializers.SerializerMethodField()
 
+
     class Meta:
         model = UserModel
         fields = (
