@@ -72,9 +72,15 @@ class ProfileViewSet(mixins.CreateModelMixin,
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        photo = instance.photo
+        if not photo:
+            photo = instance.photo_url
+
         if instance:
             serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            data = serializer.data
+            data['photo'] = photo.url if hasattr(photo, 'url') else photo
+            return Response(data)
         raise NotFound()
 
     def list(self, request, *args, **kwargs):
@@ -347,6 +353,20 @@ class NetworkView(mixins.RetrieveModelMixin,
     filterset_fields = ['tags']
     search_fields = ['name']
     permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        photo = instance.photo
+        if not photo:
+            photo = instance.photo_url
+
+        if instance:
+            serializer = self.get_serializer(instance)
+            data = serializer.data
+            data['photo'] = photo.url if hasattr(photo, 'url') else photo
+            return Response(data)
+        raise NotFound()
+
 
     def get(self, request, *args, **kwargs):
         pk = kwargs.get('pk')

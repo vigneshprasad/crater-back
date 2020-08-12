@@ -413,7 +413,14 @@ class Profile(models.Model):
         upload_to='profile/photo/%Y/%m/%d',
         verbose_name=_('Photo'),
         null=True,
+        blank=True,
         validators=[SizeValidator(size=30)]
+    )
+    photo_url = models.URLField(
+        blank=True,
+        verbose_name=_('Photo Url'),
+        null=True,
+        max_length=1024
     )
     cover = models.ForeignKey(
         'users.CoverFile',

@@ -82,3 +82,48 @@ def close_registration_for_last_weeks_meetings():
     meeting_configs = services.get_meeting_configs_with_open_registration()
     for meeting_config in meeting_configs:
         meeting_config.close_registration()
+
+
+def send_1_on_1_meeting_intro_emails(meetings):
+    """Send intro for 1 on 1 meetings.
+
+    Args:
+        meetings(list/queryset): Meeting object queryset.
+
+    """
+    meetings = meetings if meetings else services.get_active_meetings()
+
+    for meeting in meetings:
+        # For one on one meetings there are only two participants
+        # allowed.
+        p1 = meeting.participants.all()[0]
+        p2 = meeting.participants.all()[1]
+
+        for participant in meeting.participants.all():
+
+            display_slot = meeting.time_slot.get_display()
+            # Checking if profile exists.
+            try:
+                data = {
+                    participant.email: {
+                        'time_slot': display_slot,
+                        'name': participant.name,
+                        'link': meeting.link,
+                        'introduction': p2.profile.introduction if p1 == participant else p1.profile.introduction,
+                    }
+                }
+            except RelatedObjectDoesNotExist:
+                continue
+
+            subject = 'Your 1:1 meeting has been scheduled.'
+            to = (participant.email, )
+            template_name = choices.ONE_ON_ONE_EMAIL_TEMPLATE
+
+            # Sending the emails.
+            participant.send_email(
+                subject=subject,
+                to=to,
+                template_name=template_name,
+                content={},
+                merge_vars=data
+            )

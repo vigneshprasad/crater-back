@@ -26,9 +26,19 @@ class MeetingConfigViewSet(mixins.ListModelMixin,
         return Response(serializer.data)
 
 
-class UserMeetingPreferenceViewSet(mixins.CreateModelMixin,
+class UserMeetingPreferenceViewSet(mixins.RetrieveModelMixin,
+                                   mixins.CreateModelMixin,
                                    mixins.UpdateModelMixin,
                                    viewsets.GenericViewSet):
     serializer_class = serializers.UserMeetingPreferenceSerializer
     queryset = models.UserMeetingPreference.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class MeetingViewSet(mixins.RetrieveModelMixin,
+                     mixins.CreateModelMixin,
+                     mixins.UpdateModelMixin,
+                     viewsets.GenericViewSet):
+    serializer_class = serializers.MeetingSerializer
+    queryset = models.Meeting.objects.all()
     permission_classes = [permissions.IsAuthenticated]

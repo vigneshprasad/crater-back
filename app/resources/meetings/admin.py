@@ -17,3 +17,8 @@ class MeetingConfigAdmin(ModelAdmin):
 @register(models.UserMeetingPreference)
 class UserMeetingPreference(ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+
+
+@register(models.Meeting)
+class Meeting(ModelAdmin):
+    exclude = ('created_at', 'deleted_at', 'updated_at')
