@@ -99,31 +99,46 @@ def send_1_on_1_meeting_intro_emails(meetings):
         p1 = meeting.participants.all()[0]
         p2 = meeting.participants.all()[1]
 
-        for participant in meeting.participants.all():
+        display_day = meeting.time_slot.get_display_day()
+        display_time = meeting.time_slot.get_display_time()
+        data = {
+            p1.email: {
+                'day': display_day,
+                'time': display_time,
+                'name_a': p1.name.title(),
+                'name_b': p2.name.title(),
+                'link': meeting.link,
+                'introduction_a': p1.profile.introduction,
+                'introduction_b': p2.profile.introduction,
+                'linkedin_a': p1.profile.linkedin_url,
+                'linkedin_b': p2.profile.linkedin_url,
+            },
+            p2.email: {
+                'day': display_day,
+                'time': display_time,
+                'name_a': p1.name.title(),
+                'name_b': p2.name.title(),
+                'link': meeting.link,
+                'introduction_a': p1.profile.introduction,
+                'introduction_b': p2.profile.introduction,
+                'linkedin_a': p1.profile.linkedin_url,
+                'linkedin_b': p2.profile.linkedin_url,
+            },
+        }
 
-            display_slot = meeting.time_slot.get_display()
-            # Checking if profile exists.
-            try:
-                data = {
-                    participant.email: {
-                        'time_slot': display_slot,
-                        'name': participant.name,
-                        'link': meeting.link,
-                        'introduction': p2.profile.introduction if p1 == participant else p1.profile.introduction,
-                    }
-                }
-            except RelatedObjectDoesNotExist:
-                continue
+        # Checking if profile exists.
+        subject = 'Introducing {} & {}'.format(
+            p1.name.title(),
+            p2.name.title()
+        )
+        to = [p1.email, p2.email]
+        template_name = choices.ONE_ON_ONE_INTRODUCTION_EMAIL_TEMPLATE
 
-            subject = 'Your 1:1 meeting has been scheduled.'
-            to = (participant.email, )
-            template_name = choices.ONE_ON_ONE_EMAIL_TEMPLATE
-
-            # Sending the emails.
-            participant.send_email(
-                subject=subject,
-                to=to,
-                template_name=template_name,
-                content={},
-                merge_vars=data
-            )
+        # Sending the emails.
+        p1.send_email(
+            subject=subject,
+            to=to,
+            template_name=template_name,
+            content={},
+            merge_vars=data
+        )

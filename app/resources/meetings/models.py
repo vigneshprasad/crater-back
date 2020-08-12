@@ -29,21 +29,26 @@ class TimeSlot(base_model.BaseModel):
                 ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
 
         """
+        display_time = self.get_display_time()
+        display_date = self.get_display_day()
+
+        return '{} - {}'.format(display_date, display_time)
+
+    def get_display_day(self):
+        return '{}, {} {}'.format(
+            self.date.strftime('%A'),
+            str(self.date.day),
+            self.date.strftime('%B')
+        )
+
+    def get_display_time(self):
         start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
         end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
 
         display_start_time = start_time.strftime("%I:%M %p")
         display_end_time = end_time.strftime("%I:%M %p")
 
-        display_time = '{} - {}'.format(display_start_time, display_end_time)
-
-        display_date = '{}, {} {}'.format(
-            self.date.strftime('%A'),
-            str(self.date.day),
-            self.date.strftime('%B')
-        )
-
-        return '{} - {}'.format(display_date, display_time)
+        return '{} to {}'.format(display_start_time, display_end_time)
 
     def __str__(self):
         return self.get_display()

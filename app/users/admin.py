@@ -21,6 +21,7 @@ class ProfileAdmin(admin.StackedInline):
     form = ProfileForm
     autocomplete_fields = ['work_city']
 
+
 @admin.register(get_user_model())
 class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     class Media:
