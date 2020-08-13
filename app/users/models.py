@@ -493,6 +493,10 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
+    interests = models.ManyToManyField(
+        'tags.Interests',
+        verbose_name=_('Interests')
+    )
 
     class Meta:
         verbose_name = _('Profile')
