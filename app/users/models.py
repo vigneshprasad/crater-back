@@ -305,7 +305,7 @@ class User(AbstractUser):
             self.save()
 
     def __str__(self):
-        if (self.email):
+        if self.email:
             return self.email
         else:
             return '<no-email>'
@@ -487,6 +487,12 @@ class Profile(models.Model):
         default=True,
         verbose_name=_('Public Profile')
     )
+    public_introduction = models.TextField(
+        max_length=1024,
+        verbose_name=_('Public Introduction'),
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = _('Profile')
@@ -498,6 +504,10 @@ class Profile(models.Model):
     @property
     def is_instagram_set(self):
         return bool(self.instagram)
+
+    def get_introduction(self):
+        return (self.public_introduction
+                if self.public_introduction else self.introduction)
 
 
 class Referral(TimeStampedModel):
