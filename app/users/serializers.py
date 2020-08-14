@@ -328,14 +328,13 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     def get_objectives_items(obj):
         objectives = {}
         for objective in obj.objectives.all():
-            objectives[objective.pk] = Objective.objects.get(pk=objective.pk).redirect_url
+            objectives[objective.pk] = objective.redirect_url
         return objectives
 
     @staticmethod
     def get_social_account(obj):
         social_account = obj.socialaccount_set.first()
         return get_social_account_info(social_account)
-
 
     def update(self, instance, validated_data):
         old_email = instance.email
