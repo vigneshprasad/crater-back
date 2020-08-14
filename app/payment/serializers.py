@@ -18,10 +18,10 @@ class BankDetailsSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
-    remember_card = serializers.BooleanField(
-        default=False,
-        write_only=True
-    )
+    # remember_card = serializers.BooleanField(
+    #     default=False,
+    #     write_only=True
+    # )
 
     class Meta:
         model = models.BankDetails
@@ -30,7 +30,7 @@ class BankDetailsSerializer(serializers.ModelSerializer):
             'terms_and_condition',
             'card_data',
             'stripe_token',
-            'remember_card',
+            # 'remember_card',
             'funds_recipient',
             'pan_card_number',
             'bank_account_number',

@@ -102,24 +102,13 @@ class BankDetailViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         serializer.validated_data['user'] = request.user
         stripe_token = serializer.validated_data.pop('stripe_token', None)
-        remember_card = serializer.validated_data.pop('remember_card', False)
         if stripe_token:
-            amount = 350 if serializer.validated_data['membership'] == 'premium' else 250
-            description = f'Initial membership payment for user: {str(self.request.user.pk)}'
             try:
-                charge = stripe_service.create_token_charge(
-                    token=stripe_token,
-                    amount=amount,
-                    description=description,
-                    user=request.user
-                )
+                self.get_stripe_customer_id(serializer, stripe_token)
             except:
                 raise serializers.serializers.ValidationError(
                     {'stripe_token': _('Stripe token is not valid')}
                 )
-            # TODO: Create Transaction
-            if remember_card:
-                self.get_stripe_customer_id(serializer)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(payment_serializers.BankDetailsSerializer(request.user.bank_details).data)
@@ -140,8 +129,7 @@ class BankDetailViewSet(mixins.CreateModelMixin,
         return self.retrieve(request, *args, **kwargs)
 
     @staticmethod
-    def get_stripe_customer_id(serializer):
-        stripe_token = serializer.validated_data.pop('stripe_token', None)
+    def get_stripe_customer_id(serializer, stripe_token):
         if serializer.instance:
             stripe_service.update_customer_source(
                 serializer.instance.stripe_customer_id,
@@ -283,8 +271,8 @@ class UserServicesViewSet(mixins.CreateModelMixin,
                 response=response
             )
         return response
-            
-        
+
+
 
     def get_object(self):
         if self.request.user.role == 'user':
