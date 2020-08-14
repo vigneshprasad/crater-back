@@ -25,8 +25,8 @@ from utils.stripe_service import stripe_service
 from . import serializers, models, choices
 from .forms import AdminSetPasswordForm
 from .models import Profile
-from .signals import basic_profile_created, service_created, phone_number_verified, referred_friend
 from .paginators import Pagination
+from .signals import basic_profile_created, service_created, phone_number_verified, referred_friend
 from .swagger_schemas import referer_email
 from .tasks import send_email
 
@@ -140,6 +140,9 @@ class BankDetailViewSet(mixins.CreateModelMixin,
                 serializer.validated_data['user'],
                 stripe_token
             )
+        serializer.validated_data['card_data'] = stripe_service.get_customer_card_data(
+            serializer.validated_data['stripe_customer_id']
+        )
         return serializer
 
     def perform_create(self, serializer):
