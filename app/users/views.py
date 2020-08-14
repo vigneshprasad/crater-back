@@ -79,7 +79,7 @@ class ProfileViewSet(mixins.CreateModelMixin,
         if instance:
             serializer = self.get_serializer(instance)
             data = serializer.data
-            data['photo'] = photo.url if hasattr('url', photo) else photo
+            data['photo'] = photo.url if hasattr(photo, 'url') else photo
             return Response(data)
         raise NotFound()
 
@@ -353,7 +353,7 @@ class NetworkView(mixins.RetrieveModelMixin,
         if instance:
             serializer = self.get_serializer(instance)
             data = serializer.data
-            data['photo'] = photo.url if hasattr('url', photo) else photo
+            data['photo'] = photo.url if hasattr(photo, 'url') else photo
             return Response(data)
         raise NotFound()
 
