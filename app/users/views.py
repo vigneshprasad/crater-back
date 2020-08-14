@@ -140,9 +140,6 @@ class BankDetailViewSet(mixins.CreateModelMixin,
                 serializer.validated_data['user'],
                 stripe_token
             )
-        serializer.validated_data['card_data'] = stripe_service.get_customer_card_data(
-            serializer.validated_data['stripe_customer_id']
-        )
         return serializer
 
     def perform_create(self, serializer):
