@@ -84,6 +84,27 @@ def close_registration_for_last_weeks_meetings():
         meeting_config.close_registration()
 
 
+def send_opt_in_reminder_for_new_meetings():
+    """
+    Send emails reminding users to opt in for
+    next 1:1 meeting.
+
+    """
+    opted_in_users = services.get_opted_in_user_for_meetings()
+    template = choices.ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE
+    for user in opted_in_users:
+        # TODO(Nishant) Create merge vars here.
+        subject = "Register for next week's 1:1"
+        user.send_email(
+            subject=subject,
+            to=[user.email],
+            template_name=template,
+            content={},
+            from_email=choices.MEETINGS_FROM_EMAIL,
+            merge_vars={}
+        )
+
+
 def send_1_on_1_meeting_intro_emails(meetings):
     """Send intro for 1 on 1 meetings.
 
