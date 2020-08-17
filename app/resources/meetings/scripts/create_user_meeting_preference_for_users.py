@@ -1,6 +1,5 @@
 import csv
 import datetime
-import random
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -88,7 +87,7 @@ def create_user_meeting_preferences_for_users(
                 [user_time_slot.get_display_time() for user_time_slot in user_time_slots]
             ))
 
-        objective = random.choice(choices.OBJECTIVE_CHOICES)
+        objective = choices.OBJECTIVE_CHOICES[0][0]
         print('Objective: ', objective)
 
         if not dry_run:
