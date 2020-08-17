@@ -112,8 +112,10 @@ class MessageHelper:
     @staticmethod
     def _get_profile_photo(message):
         try:
-            if hasattr(message.sender, 'profile') and hasattr(message.sender.profile, 'photo'):
-                return message.sender.profile.photo.url
+            if not hasattr(message.sender, 'profile'):
+                return None
+            return message.sender.profile.photo.url \
+                if message.sender.profile.photo else message.sender.profile.photo_url
         except ValueError:
             return None
 

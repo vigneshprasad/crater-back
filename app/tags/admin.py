@@ -2,10 +2,15 @@ from adminsortable2.admin import SortableAdminMixin
 from django.contrib import admin
 from django.contrib.admin import register
 from django.utils.safestring import mark_safe
-
+from tags import models
 from tags.models import Tag, ArticleTag, MasterClassTag, Industry, Funding, Company, CityProxy, WorkCityProxy, EventTag, \
     SourceWebsite, Interests
 from utils.mixins import ViewActionMixin
+
+
+@register(models.Objective)
+class ObjectiveAdmin(admin.ModelAdmin):
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
 
 @register(Tag)

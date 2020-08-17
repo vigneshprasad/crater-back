@@ -6,14 +6,14 @@ from resources.meetings import services
 from community.mixins import SetCreatorRequestDataMixin
 
 
-class MeetingSerializer(serializers.ModelSerializer):
+class MeetingConfigSerializer(serializers.ModelSerializer):
     available_time_slots = serializers.SerializerMethodField()
     objectives = serializers.SerializerMethodField()
     interests = serializers.SerializerMethodField()
     user_preferences = serializers.SerializerMethodField()
 
     class Meta:
-        model = models.Meeting
+        model = models.MeetingConfig
         fields = (
             'pk',
             'title',
@@ -77,4 +77,19 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
             'objective',
             'interests',
             'time_slots'
+        )
+
+
+class MeetingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserMeetingPreference
+        fields = (
+            'pk',
+            'meeting'
+            'user',
+            'organiser',
+            'participants',
+            'link',
+            'time_slot'
         )

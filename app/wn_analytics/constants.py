@@ -8,4 +8,4 @@ POST_CREATED = "post_created"
 REFERRED_FRIEND = "refer_friend"
 REGISTERED_MEETING_PREFERENCES = "register_meeting_preferences"
 EDIT_MEETING_PREFERENCES = "edit_meeting_preferences"
-MEETING_CREATED = 'meeting_created'
+MEETING_CONFIG_CREATED = 'meeting_config_created'

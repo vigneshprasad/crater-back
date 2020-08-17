@@ -6,10 +6,10 @@ from resources.meetings import models
 from resources.meetings import serializers
 
 
-class MeetingViewSet(mixins.ListModelMixin,
-                     viewsets.GenericViewSet):
-    serializer_class = serializers.MeetingSerializer
-    queryset = models.Meeting.objects.all()
+class MeetingConfigViewSet(mixins.ListModelMixin,
+                           viewsets.GenericViewSet):
+    serializer_class = serializers.MeetingConfigSerializer
+    queryset = models.MeetingConfig.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
@@ -26,9 +26,19 @@ class MeetingViewSet(mixins.ListModelMixin,
         return Response(serializer.data)
 
 
-class UserMeetingPreferenceViewSet(mixins.CreateModelMixin,
+class UserMeetingPreferenceViewSet(mixins.RetrieveModelMixin,
+                                   mixins.CreateModelMixin,
                                    mixins.UpdateModelMixin,
                                    viewsets.GenericViewSet):
     serializer_class = serializers.UserMeetingPreferenceSerializer
     queryset = models.UserMeetingPreference.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class MeetingViewSet(mixins.RetrieveModelMixin,
+                     mixins.CreateModelMixin,
+                     mixins.UpdateModelMixin,
+                     viewsets.GenericViewSet):
+    serializer_class = serializers.MeetingSerializer
+    queryset = models.Meeting.objects.all()
     permission_classes = [permissions.IsAuthenticated]

@@ -4,8 +4,9 @@ from django.utils import timezone
 
 from resources.meetings import models
 from resources.meetings import choices
-from tags.serializers import InterestsSerializer
-from tags.models import Interests
+from tags import serializers as tags_serializers
+from tags import models as tags_models
+from users import services as user_services
 
 
 def get_objectives_list():
@@ -17,12 +18,14 @@ def get_objectives_list():
 
 
 def get_interest_list():
-    interests = InterestsSerializer(data=Interests.objects.all(), many=True)
+    interests = tags_serializers.InterestsSerializer(
+        data=tags_models.Interests.objects.all(), many=True
+    )
     interests.is_valid()
     return interests.data
 
 
-def create_meetings_for_time_period(
+def create_meeting_config_for_time_period(
         start_date,
         end_date,
         title=choices.DEFAULT_MEETING_TITLE,
@@ -31,7 +34,7 @@ def create_meetings_for_time_period(
         registration_end_date=None
 ):
     """
-    Creates meeting object for a give time period.
+    Creates meeting config object for a give time period.
 
     Args:
         start_date(Date): Meeting start date.
@@ -47,7 +50,7 @@ def create_meetings_for_time_period(
             date.
 
     Returns:
-        Created Meeting object.
+        Created MeetingConfig object.
 
     Note:
         registration_start_date can be less than week_start_date.
@@ -64,7 +67,7 @@ def create_meetings_for_time_period(
     if not registration_end_date:
         registration_end_date = end_date
 
-    meeting, _ = models.Meeting.objects.get_or_create(
+    meeting_config, _ = models.MeetingConfig.objects.get_or_create(
         week_start_date=start_date,
         week_end_date=end_date,
         registration_start_date=registration_start_date,
@@ -72,9 +75,9 @@ def create_meetings_for_time_period(
         title=title
     )
     # Added time slots to the meeting object.
-    meeting.available_time_slots.add(*time_slots)
+    meeting_config.available_time_slots.add(*time_slots)
 
-    return meeting
+    return meeting_config
 
 
 def create_default_time_slots(start_date, end_date):
@@ -145,7 +148,7 @@ def create_time_slots_for_date_and_slots(date, time_slots):
     return slots
 
 
-def get_old_active_meetings():
+def get_old_active_meeting_configs():
     """
     Closes meetings based on info provided
     in the model. (week_end_date)
@@ -154,22 +157,64 @@ def get_old_active_meetings():
         Queryset of meetings.
 
     """
-    return models.Meeting.objects.filter(
+    return models.MeetingConfig.objects.filter(
         is_active=True,
         week_end_date__lt=timezone.now().date()
     )
 
 
-def get_meetings_with_open_registration():
+def get_meeting_configs_with_open_registration():
     """
-    Closes registration for meeting based on info provided
-    in the model. (registration_end_date)
+    Closes registration for meeting config based on info
+    provided in the model. (registration_end_date)
 
     return:
-        Queryset of meetings.
+        Queryset of MeetingConfig object.
 
     """
-    return models.Meeting.objects.filter(
+    return models.MeetingConfig.objects.filter(
+        end_date__gte=datetime.datetime.now().date(),
         is_registration_opne=True,
         registration_end_date__lt=timezone.now().date()
     )
+
+
+def get_active_meetings(start_date=None, end_date=None):
+    """
+    Get all meetings that are active in a given duration.
+
+    Args:
+        start_date(date): Start date for the meetings.
+        end_date(date): End date for meetings.
+
+    Return:
+        Queryset of Meeting object.
+
+    """
+    if not start_date:
+        start_date = timezone.now().date() + datetime.timedelta(days=1)
+    if not end_date:
+        end_date = start_date + datetime.timedelta(days=3)
+
+    return models.Meeting.objects.filter(
+        meeting__is_active=True,
+        time_slots__date__gte=start_date,
+        time_slots__date__lte=end_date,
+    )
+
+
+def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
+    """
+    Get opted in user for a type of meeting.
+
+    Args:
+        meeting_type(str): Type of meeting.
+
+    Return:
+        List of users opted in for the type of meeting.
+
+    """
+    user_ids = models.UserMeetingPreference.objects.filter(
+        meeting__type=meeting_type
+    ).values_list('user_id')
+    return user_services.get_users_for_ids(user_ids)

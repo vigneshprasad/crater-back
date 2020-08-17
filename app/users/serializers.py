@@ -19,7 +19,7 @@ from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers, exceptions
 
-from tags.models import CityProxy
+from tags.models import CityProxy, Objective
 from tags.serializers import TagSerializer
 from utils import messages
 from utils.fields import Base64FileField
@@ -27,6 +27,7 @@ from utils.instagram_service import instagram_service
 from . import models
 from .validators import password_validate_symbols
 from .signals import agreement_filled, email_verified
+from .services import get_social_account_info
 
 UserModel = get_user_model()
 
@@ -245,8 +246,11 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     city = serializers.PrimaryKeyRelatedField(queryset=CityProxy.objects.all(), required=False)
     pan_card_base64 = Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
-    photo = serializers.FileField(source='profile.photo', allow_null=True, read_only=True)
+    photo = serializers.SerializerMethodField()
+    objectives_items = serializers.SerializerMethodField()
     unread_notifications = serializers.SerializerMethodField()
+    social_account = serializers.SerializerMethodField()
+
 
     class Meta:
         model = UserModel
@@ -273,6 +277,9 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'pan_card_size',
             'unread_notifications',
             'is_approved',
+            'objectives',
+            'objectives_items',
+            'social_account'
         )
         read_only_fields = (
             'full_registered',
@@ -283,6 +290,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'phone_number_verified',
             'email_verified',
             'phone_number',
+            'objectives_items',
             'role',
             'has_active_subscription',
             'active_subscription_membership',
@@ -296,10 +304,6 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             attrs['pan_card'] = pan_card
         return attrs
 
-    # def get_photo(self, user):
-    #     if hasattr(user.profile) and user.profile.photo:
-    #         return self.context['request'].build_absolute_uri(user.profile.photo)
-
     @staticmethod
     def get_pan_card_size(obj):
         if obj.pan_card:
@@ -310,13 +314,31 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     def get_unread_notifications(obj):
         return obj.notifications.filter(is_read=False).count()
 
+    @staticmethod
+    def get_photo(obj):
+        if not hasattr(obj, 'profile'):
+            return None
+        return obj.profile.photo.url if obj.profile.photo else obj.profile.photo_url
+
+    @staticmethod
+    def get_objectives_items(obj):
+        objectives = {}
+        for objective in obj.objectives.all():
+            objectives[objective.pk] = objective.redirect_url
+        return objectives
+
+    @staticmethod
+    def get_social_account(obj):
+        social_account = obj.socialaccount_set.first()
+        return get_social_account_info(social_account)
+
     def update(self, instance, validated_data):
         old_email = instance.email
         old_city = instance.city
         super().update(instance, validated_data)
         new_email = instance.email
         new_city = instance.city
-        if old_city == None and new_city != old_city:
+        if (old_city is None) and new_city != old_city:
             agreement_filled.send(
                 sender=self.__class__,
                 user=instance
@@ -453,7 +475,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
-    photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True)
+    photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True, required=False)
+    photo_url = serializers.URLField(allow_null=True, required=False, allow_blank=True)
     cover = serializers.PrimaryKeyRelatedField(
         queryset=models.CoverFile.objects.all(), allow_null=True, required=False
     )
@@ -477,6 +500,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'professional_service_provider',
             'tag_line',
             'photo',
+            'photo_url',
             'cover',
             'cover_file',
             'introduction',

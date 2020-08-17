@@ -14,7 +14,7 @@ router.register('rsvpd', RSVPDViewSet)
 router.register('comments', CommentViewSet)
 router.register('articles', CuratedArticleViewSet)
 router.register('masterclasses', MaterClassViewSet)
-router.register('meetings', meeting_views.MeetingViewSet)
+router.register('meetings', meeting_views.MeetingConfigViewSet)
 router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSet)
 
 
