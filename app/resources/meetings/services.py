@@ -4,8 +4,9 @@ from django.utils import timezone
 
 from resources.meetings import models
 from resources.meetings import choices
-from tags.serializers import InterestsSerializer
-from tags.models import Interests
+from tags import serializers as tags_serializers
+from tags import models as tags_models
+from users import services as user_services
 
 
 def get_objectives_list():
@@ -17,7 +18,9 @@ def get_objectives_list():
 
 
 def get_interest_list():
-    interests = InterestsSerializer(data=Interests.objects.all(), many=True)
+    interests = tags_serializers.InterestsSerializer(
+        data=tags_models.Interests.objects.all(), many=True
+    )
     interests.is_valid()
     return interests.data
 
@@ -170,6 +173,7 @@ def get_meeting_configs_with_open_registration():
 
     """
     return models.MeetingConfig.objects.filter(
+        end_date__gte=datetime.datetime.now().date(),
         is_registration_opne=True,
         registration_end_date__lt=timezone.now().date()
     )
@@ -190,10 +194,27 @@ def get_active_meetings(start_date=None, end_date=None):
     if not start_date:
         start_date = timezone.now().date() + datetime.timedelta(days=1)
     if not end_date:
-        end_date = week_start_date + datetime.timedelta(days=3)
+        end_date = start_date + datetime.timedelta(days=3)
 
     return models.Meeting.objects.filter(
         meeting__is_active=True,
         time_slots__date__gte=start_date,
         time_slots__date__lte=end_date,
     )
+
+
+def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
+    """
+    Get opted in user for a type of meeting.
+
+    Args:
+        meeting_type(str): Type of meeting.
+
+    Return:
+        List of users opted in for the type of meeting.
+
+    """
+    user_ids = models.UserMeetingPreference.objects.filter(
+        meeting__type=meeting_type
+    ).values_list('user_id')
+    return user_services.get_users_for_ids(user_ids)

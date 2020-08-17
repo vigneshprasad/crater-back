@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 import logging
 
+from celery.task import task
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMessage
@@ -25,14 +26,15 @@ def send_unique_push(self, player_id, contents, data):
     os_service.send_push([player_id], contents, data)
 
 
-@shared_task(bind=True)
-def send_email(self,
-               subject: str,
-               to: list,
-               template_name: str,
-               content: dict,
-               merge_vars: dict,
-               from_email=DEFAULT_FROM_EMAIL):
+@task
+def send_email(
+        subject: str,
+        to: list,
+        template_name: str,
+        content: dict,
+        merge_vars: dict,
+        from_email=DEFAULT_FROM_EMAIL
+):
     msg = EmailMessage(
         subject=subject,
         from_email=from_email,

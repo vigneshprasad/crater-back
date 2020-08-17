@@ -84,7 +84,33 @@ def close_registration_for_last_weeks_meetings():
         meeting_config.close_registration()
 
 
-def send_1_on_1_meeting_intro_emails(meetings):
+def send_opt_in_reminder_for_new_meetings(opted_in_users=None):
+    """
+    Send emails reminding users to opt in for
+    next 1:1 meeting.
+
+    """
+    opted_in_users = services.get_opted_in_user_for_meetings() \
+        if not opted_in_users else opted_in_users
+    template = choices.ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE
+    for user in opted_in_users:
+        data = {
+            user.email: {
+                'name': user.name.title()
+            }
+        }
+        subject = "Signup for new connections this week"
+        user.send_email(
+            subject=subject,
+            to=[user.email],
+            template_name=template,
+            content={},
+            from_email=choices.MEETINGS_FROM_EMAIL,
+            merge_vars=data
+        )
+
+
+def send_1_on_1_meeting_intro_emails(meetings=None):
     """Send intro for 1 on 1 meetings.
 
     Args:
@@ -99,31 +125,47 @@ def send_1_on_1_meeting_intro_emails(meetings):
         p1 = meeting.participants.all()[0]
         p2 = meeting.participants.all()[1]
 
-        for participant in meeting.participants.all():
+        display_day = meeting.time_slot.get_display_day()
+        display_time = meeting.time_slot.get_display_time()
+        data = {
+            p1.email: {
+                'day': display_day,
+                'time': display_time,
+                'name_a': p1.name.title(),
+                'name_b': p2.name.title(),
+                'link': meeting.link,
+                'introduction_a': p1.profile.get_introduction(),
+                'introduction_b': p2.profile.get_introduction(),
+                'linkedin_a': p1.profile.linkedin_url,
+                'linkedin_b': p2.profile.linkedin_url,
+            },
+            p2.email: {
+                'day': display_day,
+                'time': display_time,
+                'name_a': p1.name.title(),
+                'name_b': p2.name.title(),
+                'link': meeting.link,
+                'introduction_a': p1.profile.get_introduction(),
+                'introduction_b': p2.profile.get_introduction(),
+                'linkedin_a': p1.profile.linkedin_url,
+                'linkedin_b': p2.profile.linkedin_url,
+            },
+        }
 
-            display_slot = meeting.time_slot.get_display()
-            # Checking if profile exists.
-            try:
-                data = {
-                    participant.email: {
-                        'time_slot': display_slot,
-                        'name': participant.name,
-                        'link': meeting.link,
-                        'introduction': p2.profile.introduction if p1 == participant else p1.profile.introduction,
-                    }
-                }
-            except RelatedObjectDoesNotExist:
-                continue
+        # Checking if profile exists.
+        subject = 'Introducing {} & {}'.format(
+            p1.name.title(),
+            p2.name.title()
+        )
+        to = [p1.email, p2.email]
+        template_name = choices.ONE_ON_ONE_INTRODUCTION_EMAIL_TEMPLATE
 
-            subject = 'Your 1:1 meeting has been scheduled.'
-            to = (participant.email, )
-            template_name = choices.ONE_ON_ONE_EMAIL_TEMPLATE
-
-            # Sending the emails.
-            participant.send_email(
-                subject=subject,
-                to=to,
-                template_name=template_name,
-                content={},
-                merge_vars=data
-            )
+        # Sending the emails.
+        p1.send_email(
+            subject=subject,
+            to=to,
+            template_name=template_name,
+            content={},
+            from_email=choices.MEETINGS_FROM_EMAIL,
+            merge_vars=data
+        )
