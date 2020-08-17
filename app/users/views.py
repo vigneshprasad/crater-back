@@ -130,7 +130,7 @@ class BankDetailViewSet(mixins.CreateModelMixin,
 
     @staticmethod
     def get_stripe_customer_id(serializer, stripe_token):
-        if serializer.instance:
+        if serializer.instance and serializer.instance.stripe_customer_id:
             stripe_service.update_customer_source(
                 serializer.instance.stripe_customer_id,
                 stripe_token
