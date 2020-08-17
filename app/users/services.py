@@ -8,6 +8,22 @@ def get_admin_user():
     return models.User.objects.get(email=choices.ADMIN_USER_EMAIL)
 
 
+def get_users_for_ids(user_ids):
+    """
+    Returns user objects for given list of user_ids.
+
+    Args:
+        user_ids(list): List of user ids.
+
+    Returns:
+        List of user objects for the provided ID's
+
+    """
+    return [models.User.objects.filter(
+        pk__in=user_ids
+    )]
+
+
 def create_or_update_user_device_info(
         user,
         os,
