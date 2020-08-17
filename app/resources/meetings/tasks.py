@@ -93,15 +93,19 @@ def send_opt_in_reminder_for_new_meetings():
     opted_in_users = services.get_opted_in_user_for_meetings()
     template = choices.ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE
     for user in opted_in_users:
-        # TODO(Nishant) Create merge vars here.
-        subject = "Register for next week's 1:1"
+        data = {
+            user.email: {
+                'name': user.name.title()
+            }
+        }
+        subject = "Signup for new connections this week."
         user.send_email(
             subject=subject,
             to=[user.email],
             template_name=template,
             content={},
             from_email=choices.MEETINGS_FROM_EMAIL,
-            merge_vars={}
+            merge_vars=data
         )
 
 

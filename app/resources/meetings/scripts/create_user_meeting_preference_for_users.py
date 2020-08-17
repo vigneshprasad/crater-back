@@ -73,8 +73,8 @@ def create_user_meeting_preferences_for_users(
 
             for time_preference in time_preferences:
                 start, end = time_preference.split('-')
-                start = int(start.strip())
-                end = int(end.strip())
+                start = int(start.strip()) + 12
+                end = int(end.strip()) + 12
                 start_time, end_time = datetime.time(start), datetime.time(end)
                 slots = time_slots.filter(
                     start_time__gte=start_time,
