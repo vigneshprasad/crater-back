@@ -15,6 +15,14 @@ class TagViewSet(mixins.RetrieveModelMixin,
     serializer_class = serializers.TagSerializer
 
 
+class ObjectiveViewSet(mixins.ListModelMixin,
+                       mixins.RetrieveModelMixin,
+                       viewsets.GenericViewSet):
+    queryset = models.Objective.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.ObjectiveSerializer
+
+
 class MasterClassViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = models.MasterClassTag.objects.all().order_by(Lower('name'))
     permission_classes = [permissions.IsAuthenticated]

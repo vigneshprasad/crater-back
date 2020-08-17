@@ -19,7 +19,7 @@ from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import serializers, exceptions
 
-from tags.models import CityProxy
+from tags.models import CityProxy, Objective
 from tags.serializers import TagSerializer
 from utils import messages
 from utils.fields import Base64FileField
@@ -247,8 +247,10 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     pan_card_base64 = Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
     photo = serializers.SerializerMethodField()
+    objectives_items = serializers.SerializerMethodField()
     unread_notifications = serializers.SerializerMethodField()
     social_account = serializers.SerializerMethodField()
+
 
     class Meta:
         model = UserModel
@@ -275,6 +277,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'pan_card_size',
             'unread_notifications',
             'is_approved',
+            'objectives',
+            'objectives_items',
             'social_account'
         )
         read_only_fields = (
@@ -286,6 +290,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'phone_number_verified',
             'email_verified',
             'phone_number',
+            'objectives_items',
             'role',
             'has_active_subscription',
             'active_subscription_membership',
@@ -298,10 +303,6 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             pan_card = attrs.pop('pan_card_base64', None)
             attrs['pan_card'] = pan_card
         return attrs
-
-    # def get_photo(self, user):
-    #     if hasattr(user.profile) and user.profile.photo:
-    #         return self.context['request'].build_absolute_uri(user.profile.photo)
 
     @staticmethod
     def get_pan_card_size(obj):
@@ -320,10 +321,16 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         return obj.profile.photo.url if obj.profile.photo else obj.profile.photo_url
 
     @staticmethod
+    def get_objectives_items(obj):
+        objectives = {}
+        for objective in obj.objectives.all():
+            objectives[objective.pk] = objective.redirect_url
+        return objectives
+
+    @staticmethod
     def get_social_account(obj):
         social_account = obj.socialaccount_set.first()
         return get_social_account_info(social_account)
-
 
     def update(self, instance, validated_data):
         old_email = instance.email
@@ -331,7 +338,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         super().update(instance, validated_data)
         new_email = instance.email
         new_city = instance.city
-        if old_city == None and new_city != old_city:
+        if (old_city is None) and new_city != old_city:
             agreement_filled.send(
                 sender=self.__class__,
                 user=instance

@@ -43,6 +43,10 @@ class User(AbstractUser):
         related_name='users',
         on_delete=models.SET_NULL
     )
+    objectives = models.ManyToManyField(
+        'tags.Objective',
+        verbose_name=_('Objectives')
+    )
     reason = models.CharField(
         max_length=400,
         verbose_name=_('Reason'),
@@ -128,15 +132,19 @@ class User(AbstractUser):
         db_table = 'users'
         ordering = ('date_joined',)
 
-    def send_email(self,
-                   subject,
-                   to,
-                   template_name,
-                   content,
-                   merge_vars,
-                   from_email=DEFAULT_FROM_EMAIL):
+    @staticmethod
+    def send_email(
+            subject,
+            to,
+            template_name,
+            content,
+            merge_vars,
+            from_email=DEFAULT_FROM_EMAIL
+    ):
+        # Update merge vars with Front URL.
         for d in merge_vars.values():
             d.update({'front_url': settings.FRONT_URL})
+
         send_email.delay(
             subject=subject,
             to=to,
@@ -301,7 +309,7 @@ class User(AbstractUser):
             self.save()
 
     def __str__(self):
-        if (self.email):
+        if self.email:
             return self.email
         else:
             return '<no-email>'
@@ -483,6 +491,16 @@ class Profile(models.Model):
         default=True,
         verbose_name=_('Public Profile')
     )
+    public_introduction = models.TextField(
+        max_length=1024,
+        verbose_name=_('Public Introduction'),
+        blank=True,
+        null=True
+    )
+    interests = models.ManyToManyField(
+        'tags.Interests',
+        verbose_name=_('Interests')
+    )
 
     class Meta:
         verbose_name = _('Profile')
@@ -494,6 +512,10 @@ class Profile(models.Model):
     @property
     def is_instagram_set(self):
         return bool(self.instagram)
+
+    def get_introduction(self):
+        return (self.public_introduction
+                if self.public_introduction else self.introduction)
 
 
 class Referral(TimeStampedModel):

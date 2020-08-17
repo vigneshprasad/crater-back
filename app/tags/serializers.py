@@ -10,6 +10,13 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('pk', 'name')
 
 
+class ObjectiveSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Objective
+        fields = ('pk', 'name', 'icon')
+
+
 class MasterClassTagSerializer(serializers.ModelSerializer):
 
     class Meta:
