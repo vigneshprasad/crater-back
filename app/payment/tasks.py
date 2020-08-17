@@ -24,7 +24,7 @@ def charge_subscription_payment(user_pk):
                 membership = user.bank_details.membership
             if customer_id:
                 charge = None
-                amount = 350 if membership == 'premium' else 250
+                amount = 350000 if membership == 'premium' else 250000
                 try:
                     charge = stripe_service.create_customer_charge(
                         customer_id=customer_id,
@@ -47,7 +47,7 @@ def charge_subscription_payment(user_pk):
 @shared_task(name="check_subscription")
 def check_subscription():
     date = timezone.now().date()
-    subs = Subscription.objects.filter(date_end__lt=date, is_active=True, is_trial=True)
+    subs = Subscription.objects.filter(date_end__lt=date, is_active=True)
     subs.update(is_active=False)
     for sub in subs:
         sub.is_active = False

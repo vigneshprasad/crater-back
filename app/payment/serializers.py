@@ -38,6 +38,7 @@ class BankDetailsSerializer(serializers.ModelSerializer):
             'bank_ifsc_code',
             'bank_name',
             'branch_name',
+            'membership_aggreed',
         ]
         read_only_fields = [
             'card_data'
