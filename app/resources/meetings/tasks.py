@@ -84,13 +84,14 @@ def close_registration_for_last_weeks_meetings():
         meeting_config.close_registration()
 
 
-def send_opt_in_reminder_for_new_meetings():
+def send_opt_in_reminder_for_new_meetings(opted_in_users=None):
     """
     Send emails reminding users to opt in for
     next 1:1 meeting.
 
     """
-    opted_in_users = services.get_opted_in_user_for_meetings()
+    opted_in_users = services.get_opted_in_user_for_meetings() \
+        if not opted_in_users else opted_in_users
     template = choices.ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE
     for user in opted_in_users:
         data = {
@@ -98,7 +99,7 @@ def send_opt_in_reminder_for_new_meetings():
                 'name': user.name.title()
             }
         }
-        subject = "Signup for new connections this week."
+        subject = "Signup for new connections this week"
         user.send_email(
             subject=subject,
             to=[user.email],
@@ -109,7 +110,7 @@ def send_opt_in_reminder_for_new_meetings():
         )
 
 
-def send_1_on_1_meeting_intro_emails(meetings):
+def send_1_on_1_meeting_intro_emails(meetings=None):
     """Send intro for 1 on 1 meetings.
 
     Args:
@@ -133,8 +134,8 @@ def send_1_on_1_meeting_intro_emails(meetings):
                 'name_a': p1.name.title(),
                 'name_b': p2.name.title(),
                 'link': meeting.link,
-                'introduction_a': p1.profile.get_introduction,
-                'introduction_b': p2.profile.get_introduction,
+                'introduction_a': p1.profile.get_introduction(),
+                'introduction_b': p2.profile.get_introduction(),
                 'linkedin_a': p1.profile.linkedin_url,
                 'linkedin_b': p2.profile.linkedin_url,
             },
