@@ -272,8 +272,6 @@ class UserServicesViewSet(mixins.CreateModelMixin,
             )
         return response
 
-
-
     def get_object(self):
         if self.request.user.role == 'user':
             if hasattr(self.request.user, 'user_services_info') and self.request.user.user_services_info:
