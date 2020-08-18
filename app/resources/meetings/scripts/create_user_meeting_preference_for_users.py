@@ -10,7 +10,7 @@ from tags import models as tags_models
 from users import models as user_models
 
 
-def create_user_meeting_preferences_for_users(
+def run(
         file_name='/app/resources/meetings/data/1_on_1_meeting_data.csv',
         dry_run=True
 ):
@@ -35,11 +35,11 @@ def create_user_meeting_preferences_for_users(
     for row in reader:
         row = dict(row)
         email = row['Email Address']
+        email = email.strip()
         time_preferences = row['Time preference']
         linkedin = row['Linkedin']
         public_introduction = row['Introduction']
         interests = row['Wants to meet']
-
         try:
             user = user_models.User.objects.get(email=email)
             print('*'*80, 'User {}'.format(email))
@@ -122,6 +122,7 @@ def _clean_time_preference(time_preference):
 
 
 def _validate_url_and_return(url):
+    url = url.strip()
     try:
         validator = URLValidator()
         validator(url)
