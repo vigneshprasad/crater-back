@@ -40,6 +40,7 @@ def run(
         linkedin = row['Linkedin']
         public_introduction = row['Introduction']
         interests = row['Wants to meet']
+
         try:
             user = user_models.User.objects.get(email=email)
             print('*'*80, 'User {}'.format(email))

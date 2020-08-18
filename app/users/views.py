@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from payment import models as payment_models, serializers as payment_serializers
+from payment.tasks import charge_subscription_payment
 from services import serializers as service_serializers, models as service_models
 from users import permissions
 from utils import messages
@@ -130,7 +131,7 @@ class BankDetailViewSet(mixins.CreateModelMixin,
 
     @staticmethod
     def get_stripe_customer_id(serializer, stripe_token):
-        if serializer.instance:
+        if serializer.instance and serializer.instance.stripe_customer_id:
             stripe_service.update_customer_source(
                 serializer.instance.stripe_customer_id,
                 stripe_token
@@ -147,6 +148,8 @@ class BankDetailViewSet(mixins.CreateModelMixin,
         if instance.stripe_customer_id:
             instance.card_data = stripe_service.get_customer_card_data(instance.stripe_customer_id)
         instance.save()
+        if not instance.user.has_active_subscription and instance.membership_aggreed:
+            charge_subscription_payment.delay(instance.user.pk)
 
 
 class LogoutView(RestLogoutView):
@@ -271,8 +274,6 @@ class UserServicesViewSet(mixins.CreateModelMixin,
                 response=response
             )
         return response
-
-
 
     def get_object(self):
         if self.request.user.role == 'user':
