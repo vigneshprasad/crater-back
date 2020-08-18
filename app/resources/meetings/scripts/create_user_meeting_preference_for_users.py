@@ -43,9 +43,9 @@ def run(
 
         try:
             user = user_models.User.objects.get(email=email)
-            print('*'*80, 'User {}'.format(email))
+            print('*'*80, '\nUser {}'.format(email))
         except user_models.User.DoesNotExist:
-            print('*'*80, 'User not available for {}'.format(email))
+            print('*'*80, '\nUser not available for {}'.format(email))
             continue
 
         linkedin_url = _validate_url_and_return(linkedin)
