@@ -46,6 +46,7 @@ def run(
                     name=full_name
                 )
                 user.set_unusable_password()
+                user.save()
                 user_created = True
 
         objectives = tags_models.Objective.objects.filter(
