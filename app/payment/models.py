@@ -78,6 +78,10 @@ class BankDetails(TimeStampedModel):
         verbose_name=_('Branch name'),
         max_length=255
     )
+    membership_aggreed = models.BooleanField(
+        default=True,
+        verbose_name=_('Membership aggreed')
+    )
 
 
 class Transaction(TimeStampedModel):
