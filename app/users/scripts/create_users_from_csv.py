@@ -1,11 +1,10 @@
 import csv
-from django.contrib.auth.models import UserManager
+
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
-from resources.meetings import models
-from tags import models as tags_models
 from users import models
+from tags import models as tags_models
 
 
 def run(
@@ -14,7 +13,6 @@ def run(
 ):
 
     reader = csv.DictReader(open(file_name))
-
     for row in reader:
         full_name = row.get('Full Name', ',').strip()
         raw_interests = row.get('Interests', '').split(',')
@@ -30,6 +28,7 @@ def run(
         print("Creating user for email: {}".format(email))
 
         print("Username: {}".format(username))
+        print("Name: {}".format(full_name))
         print("Phone Number: {}".format(phone_number))
 
         user_created = False
@@ -39,27 +38,28 @@ def run(
             try:
                 user = models.User.objects.get(email=email)
             except models.User.DoesNotExist:
-                user_manager = UserManager()
-                user = user_manager.create_user(
-                    username=username,
+                user = models.User.objects.create(
                     email=email,
-                    new_phone_number=phone_number,
-                    phone_number=phone_number
+                    username=username,
+                    phone_number=phone_number,
+                    new_phone_number= phone_number,
+                    name=full_name
                 )
+                user.set_unusable_password()
                 user_created = True
 
         objectives = tags_models.Objective.objects.filter(
             name__in=objectives
         )
+        objectives = tags_models.Objective.objects.filter(
+            name='Meet Professionals & Founders'
+        ) if not objectives else objectives
+
         print("Objectives: {}".format(','.join([objective.name for objective in objectives])))
 
-        if not objectives:
-            objectives = tags_models.Objective.objects.get(
-                name='Meet Professionals & Founders'
-            )
-
         if not dry_run:
-            user.objectives.add(objectives)
+            for objective in objectives:
+                user.objectives.add(objective)
 
         print("Profile creation starting......")
         print("Linkedin Url: {}".format(linkedin_url))
@@ -68,14 +68,15 @@ def run(
         )
         print("Interests: {}".format(','.join([interest.name for interest in interests])))
 
-        if not dry_run and interests:
+        if not dry_run:
             profile, created = models.Profile.objects.get_or_create(
                 user=user
             )
             profile_created = created
             profile.linkedin_url = linkedin_url
             profile.save()
-            profile.interests.add(interests)
+            for interest in interests:
+                profile.interests.add(interest)
 
         if not dry_run:
             created_or_updated_user = 'Created' if user_created else 'Updated'
