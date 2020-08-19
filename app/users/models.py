@@ -411,7 +411,8 @@ class Profile(models.Model):
     tag_line = models.CharField(
         verbose_name=_('Tag line'),
         max_length=100,
-        blank=True
+        blank=True,
+        null=True
     )
     photo = models.ImageField(
         upload_to='profile/photo/%Y/%m/%d',
@@ -422,8 +423,8 @@ class Profile(models.Model):
     )
     photo_url = models.URLField(
         blank=True,
-        verbose_name=_('Photo Url'),
         null=True,
+        verbose_name=_('Photo Url'),
         max_length=1024
     )
     cover = models.ForeignKey(
@@ -437,30 +438,36 @@ class Profile(models.Model):
     introduction = models.CharField(
         max_length=800,
         verbose_name=_('Introduction'),
-        blank=True
+        blank=True,
+        null=True
     )
     focus = models.CharField(
         max_length=800,
         verbose_name=_('Focus'),
-        blank=True
+        blank=True,
+        null=True
     )
     additional_information = models.CharField(
         max_length=800,
         verbose_name=_('Additional Information'),
-        blank=True
+        blank=True,
+        null=True
     )
     linkedin_url = models.CharField(
         verbose_name=_('Linked In'),
         blank=True,
+        null=True,
         max_length=800
     )
     instagram = models.CharField(
         verbose_name=_('Instagram'),
+        null=True,
         blank=True,
         max_length=800
     )
     instagram_id = models.CharField(
         verbose_name=_('Instagram Id'),
+        null=True,
         blank=True,
         max_length=32
     )
@@ -473,6 +480,7 @@ class Profile(models.Model):
     twitter = models.CharField(
         verbose_name=_('Twitter'),
         blank=True,
+        null=True,
         max_length=255
     )
     work_city = models.ForeignKey(
