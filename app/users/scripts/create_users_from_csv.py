@@ -25,68 +25,97 @@ def run(
         objectives = [objective.strip() for objective in raw_objectives]
 
         username = full_name.split()[0]
-        print("Start", "*"*80)
-        print("Creating user for email: {}".format(email))
 
+        print("Start", "*"*80)
+
+        print("Creating user for email: {}".format(email))
         print("Username: {}".format(username))
         print("Name: {}".format(full_name))
         print("Phone Number: {}".format(phone_number))
-
-        user_created = False
-        profile_created = False
+        print("Objectives: {}".format(objectives))
+        print("Interests: {}".format(interests))
+        print("Linkedin Url: {}".format(linkedin_url))
 
         if not dry_run:
-            try:
-                user = models.User.objects.get(email=email)
-            except models.User.DoesNotExist:
-                user = models.User.objects.create(
-                    email=email,
-                    username=username,
-                    phone_number=phone_number,
-                    new_phone_number= phone_number,
-                    name=full_name
-                )
-                user.set_unusable_password()
-                user.save()
-                user_created = True
+            user, profile = create_user_and_profile(
+                username=username,
+                full_name=full_name,
+                email=email,
+                phone_number=phone_number,
+                objectives=objectives,
+                interests=interests,
+                linkedin_url=linkedin_url
+            )
 
+        print("End", "-"*80)
+
+
+def create_user_and_profile(
+        full_name,
+        email,
+        phone_number,
+        linkedin_url,
+        username=None,
+        interests=None,
+        objectives=None,
+):
+    user_created = False
+
+    if not username:
+        username = full_name.split()[0]
+    if not phone_number:
+        phone_number = None
+
+    # Creating User.
+    try:
+        user = models.User.objects.get(email=email)
+    except models.User.DoesNotExist:
+        user = models.User.objects.create(
+            email=email,
+            username=username,
+            phone_number=phone_number,
+            new_phone_number=phone_number,
+            name=full_name
+        )
+        user.set_unusable_password()
+        user.save()
+        user_created = True
+
+    # Adding Objectives to User.
+    if objectives:
         objectives = tags_models.Objective.objects.filter(
             name__in=objectives
         )
-        objectives = tags_models.Objective.objects.filter(
-            name='Meet Professionals & Founders'
-        ) if not objectives else objectives
 
-        print("Objectives: {}".format(','.join([objective.name for objective in objectives])))
+    objectives = tags_models.Objective.objects.filter(
+        name='Meet Professionals & Founders'
+    ) if not objectives else objectives
 
-        if not dry_run:
-            for objective in objectives:
-                user.objectives.add(objective)
+    for objective in objectives:
+        user.objectives.add(objective)
 
-        print("Profile creation starting......")
-        print("Linkedin Url: {}".format(linkedin_url))
+    # Creating Profile
+    profile, created = models.Profile.objects.get_or_create(
+        user=user
+    )
+    profile_created = created
+    profile.linkedin_url = linkedin_url
+    profile.save()
+
+    # Adding Interests to Profile.
+    if interests:
         interests = tags_models.Interests.objects.filter(
             name__in=interests
         )
-        print("Interests: {}".format(','.join([interest.name for interest in interests])))
+        for interest in interests:
+            profile.interests.add(interest)
 
-        if not dry_run:
-            profile, created = models.Profile.objects.get_or_create(
-                user=user
-            )
-            profile_created = created
-            profile.linkedin_url = linkedin_url
-            profile.save()
-            for interest in interests:
-                profile.interests.add(interest)
+    created_or_updated_user = 'Created' if user_created else 'Updated'
+    print("{} user: {}".format(created_or_updated_user, user.pk))
+    created_or_updated_profile = 'Created' if profile_created else 'Updated'
+    print("{} profile: {}".format(created_or_updated_profile, profile.pk))
 
-        if not dry_run:
-            created_or_updated_user = 'Created' if user_created else 'Updated'
-            print("{} user: {}".format(created_or_updated_user, user.pk))
-            created_or_updated_profile = 'Created' if profile_created else 'Updated'
-            print("{} profile: {}".format(created_or_updated_profile, profile.pk))
-
-        print("End", "-"*80)
+    return user, profile
 
 
 def _validate_url_and_return(url):
