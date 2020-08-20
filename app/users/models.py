@@ -50,10 +50,12 @@ class User(AbstractUser):
     reason = models.CharField(
         max_length=400,
         verbose_name=_('Reason'),
-        null=True
+        null=True,
+        blank=True
     )
     phone_number = PhoneNumberField(
         blank=True,
+        null=True,
         verbose_name=_('Phone number')
     )
     phone_number_verified = models.BooleanField(
@@ -62,9 +64,11 @@ class User(AbstractUser):
     )
     new_phone_number = PhoneNumberField(
         blank=True,
+        null=True,
         verbose_name=_('Phone number')
     )
     sms_code = models.CharField(
+        null=True,
         blank=True,
         verbose_name=_('Sms code'),
         max_length=4
@@ -74,7 +78,8 @@ class User(AbstractUser):
         verbose_name=_('Referer'),
         related_name='referrals',
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        blank=True,
     )
     is_staff = models.BooleanField(
         _('Admin'),
@@ -104,21 +109,25 @@ class User(AbstractUser):
     )
     rating = models.FloatField(
         verbose_name=_('Rating'),
-        null=True
+        null=True,
+        blank=True
     )
     price_start = models.PositiveIntegerField(
         null=True,
+        blank=True,
         verbose_name=_('Price start')
     )
     pan_card = models.ImageField(
         null=True,
+        blank=True,
         verbose_name=_('Pan card'),
         upload_to='user/pan_card/%Y/%m/%d'
     )
     auth_secret_key = models.CharField(
         max_length=255,
         verbose_name=_('Secret key'),
-        null=True
+        null=True,
+        blank=True
     )
 
     USERNAME_FIELD = 'email'

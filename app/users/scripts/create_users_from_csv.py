@@ -14,14 +14,15 @@ def run(
 
     reader = csv.DictReader(open(file_name))
     for row in reader:
-        full_name = row.get('Full Name', ',').strip()
+        full_name = row.get('Full Name', '').strip()
+        linkedin_url = _validate_url_and_return(row.get('Linkedin'))
+        email = row.get('Email ID').strip()
+        phone_number = row.get('Phone Number') or None
+
         raw_interests = row.get('Interests', '').split(',')
         interests = [interest.strip() for interest in raw_interests]
         raw_objectives = row.get('Objectives', '').split(',')
         objectives = [objective.strip() for objective in raw_objectives]
-        linkedin_url = _validate_url_and_return(row.get('Linkedin', ''))
-        email = row.get('Email ID').strip()
-        phone_number = row.get('Phone Number', '').strip()
 
         username = full_name.split()[0]
         print("Start", "*"*80)
@@ -89,10 +90,14 @@ def run(
 
 
 def _validate_url_and_return(url):
+    if not url:
+        return None
+
     url = url.strip()
     try:
         validator = URLValidator()
         validator(url)
     except ValidationError:
         return None
+
     return url
