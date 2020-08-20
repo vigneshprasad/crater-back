@@ -53,6 +53,12 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
+    source = models.CharField(
+        max_length=400,
+        verbose_name=_('Source'),
+        null=True,
+        blank=True
+    )
     phone_number = PhoneNumberField(
         blank=True,
         null=True,

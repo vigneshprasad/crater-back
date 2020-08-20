@@ -17,6 +17,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         user = {}
         user['email'] = form['hidden']['email']
         user['interests'] = []
+        user['source'] = 'https://worknetwork.typeform.com/to/' + form['form_id']
         for i in range(len(fields)):
             if fields[i]['ref'] == 'full_name':
                 user['name'] = answers[i]['text']
@@ -35,7 +36,8 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             email=user['email'],
             phone_number=user['phone_number'],
             linkedin_url=user['linkedin_url'],
-            interests=user['interests']
+            interests=user['interests'],
+            source = user['source']
         )
 
         return Response({'status': 'Success'})

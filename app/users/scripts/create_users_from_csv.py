@@ -3,6 +3,8 @@ import csv
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
+from django.contrib.auth.models import Group
+
 from users import models
 from tags import models as tags_models
 
@@ -58,6 +60,7 @@ def create_user_and_profile(
         username=None,
         interests=None,
         objectives=None,
+        source=None,
 ):
     user_created = False
 
@@ -75,11 +78,16 @@ def create_user_and_profile(
             username=username,
             phone_number=phone_number,
             new_phone_number=phone_number,
-            name=full_name
+            name=full_name,
+            source=source
         )
+        
         user.set_unusable_password()
         user.save()
         user_created = True
+    
+    group = Group.objects.get(name="User")
+    user.groups.add(group)
 
     # Adding Objectives to User.
     if objectives:
