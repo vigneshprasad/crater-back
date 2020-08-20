@@ -37,7 +37,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             phone_number=user['phone_number'],
             linkedin_url=user['linkedin_url'],
             interests=user['interests'],
-            source = user['source']
+            source=user['source']
         )
 
         return Response({'status': 'Success'})
