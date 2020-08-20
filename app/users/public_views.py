@@ -4,6 +4,7 @@ from services import serializers as service_serializers
 from users import permissions
 from . import models
 from .paginators import Pagination
+from rest_framework.response import Response
 
 
 class InvestorsViewSet(mixins.ListModelMixin,
@@ -35,3 +36,27 @@ class InvestorsViewSet(mixins.ListModelMixin,
             # queryset just for schema generation metadata
             return models.User.objects.none()
         return self.queryset.exclude(pk=self.request.user.pk)
+
+class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
+
+    def create(self, request, *args, **kwargs):
+        form = request.data['form_response']
+        fields = form['definition']['fields']
+        answers = form['answers']
+        user = {}
+        user['email'] = form['hidden']['email']
+        user['interests'] = []
+        for i in range(len(fields)):
+            if fields[i]['ref'] == "full_name":
+                user['name'] = answers[i]['text']
+            elif fields[i]['ref'] == "phone_number":
+                user['phone_number'] = answers[i]['phone_number']
+            if fields[i]['ref'] == "linkedin_url":
+                user['linkedin_url'] = answers[i]['url']
+            if fields[i]['ref'] == 'interest':
+                interest = answers[i]['choice']['label']:
+            if fields[i]['ref'] == 'interests':
+                interest = answers[i]['choice']['label']:
+                
+        print(user)
+        return Response({'status': "Success"})

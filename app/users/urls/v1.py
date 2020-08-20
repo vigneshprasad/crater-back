@@ -21,6 +21,8 @@ router.register('investors', views.InvestorsViewSet, base_name='investors')
 # Router for Public API's.
 public_router = routers.SimpleRouter()
 public_router.register('investors', public_views.InvestorsViewSet, base_name='public-investors')
+public_router.register('typeform_add', public_views.TypeFormViewSet, base_name='public-type-form')
+
 
 public_urls_patterns = [
     path('', include(public_router.urls))
