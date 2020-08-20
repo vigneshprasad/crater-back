@@ -50,10 +50,12 @@ class User(AbstractUser):
     reason = models.CharField(
         max_length=400,
         verbose_name=_('Reason'),
-        null=True
+        null=True,
+        blank=True
     )
     phone_number = PhoneNumberField(
         blank=True,
+        null=True,
         verbose_name=_('Phone number')
     )
     phone_number_verified = models.BooleanField(
@@ -62,9 +64,11 @@ class User(AbstractUser):
     )
     new_phone_number = PhoneNumberField(
         blank=True,
+        null=True,
         verbose_name=_('Phone number')
     )
     sms_code = models.CharField(
+        null=True,
         blank=True,
         verbose_name=_('Sms code'),
         max_length=4
@@ -74,7 +78,8 @@ class User(AbstractUser):
         verbose_name=_('Referer'),
         related_name='referrals',
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        blank=True,
     )
     is_staff = models.BooleanField(
         _('Admin'),
@@ -104,21 +109,25 @@ class User(AbstractUser):
     )
     rating = models.FloatField(
         verbose_name=_('Rating'),
-        null=True
+        null=True,
+        blank=True
     )
     price_start = models.PositiveIntegerField(
         null=True,
+        blank=True,
         verbose_name=_('Price start')
     )
     pan_card = models.ImageField(
         null=True,
+        blank=True,
         verbose_name=_('Pan card'),
         upload_to='user/pan_card/%Y/%m/%d'
     )
     auth_secret_key = models.CharField(
         max_length=255,
         verbose_name=_('Secret key'),
-        null=True
+        null=True,
+        blank=True
     )
 
     USERNAME_FIELD = 'email'
@@ -411,7 +420,8 @@ class Profile(models.Model):
     tag_line = models.CharField(
         verbose_name=_('Tag line'),
         max_length=100,
-        blank=True
+        blank=True,
+        null=True
     )
     photo = models.ImageField(
         upload_to='profile/photo/%Y/%m/%d',
@@ -422,8 +432,8 @@ class Profile(models.Model):
     )
     photo_url = models.URLField(
         blank=True,
-        verbose_name=_('Photo Url'),
         null=True,
+        verbose_name=_('Photo Url'),
         max_length=1024
     )
     cover = models.ForeignKey(
@@ -437,30 +447,36 @@ class Profile(models.Model):
     introduction = models.CharField(
         max_length=800,
         verbose_name=_('Introduction'),
-        blank=True
+        blank=True,
+        null=True
     )
     focus = models.CharField(
         max_length=800,
         verbose_name=_('Focus'),
-        blank=True
+        blank=True,
+        null=True
     )
     additional_information = models.CharField(
         max_length=800,
         verbose_name=_('Additional Information'),
-        blank=True
+        blank=True,
+        null=True
     )
     linkedin_url = models.CharField(
         verbose_name=_('Linked In'),
         blank=True,
+        null=True,
         max_length=800
     )
     instagram = models.CharField(
         verbose_name=_('Instagram'),
+        null=True,
         blank=True,
         max_length=800
     )
     instagram_id = models.CharField(
         verbose_name=_('Instagram Id'),
+        null=True,
         blank=True,
         max_length=32
     )
@@ -473,6 +489,7 @@ class Profile(models.Model):
     twitter = models.CharField(
         verbose_name=_('Twitter'),
         blank=True,
+        null=True,
         max_length=255
     )
     work_city = models.ForeignKey(
