@@ -183,7 +183,20 @@ class User(AbstractUser):
 
     @property
     def has_profile(self):
-        return bool(hasattr(self, 'profile') and self.profile)
+        """Checking if the user has profile object.
+
+        Note:
+            First this function check for the raw object and then
+            checks if the profile is saved in the DB. If any of
+            these conditions are not met, it returns False.
+
+        """
+        has_profile_object = bool(hasattr(self, 'profile') and self.profile)
+        if not has_profile_object:
+            return False
+        if not self.profile.pk:
+            return False
+        return True
 
     @property
     def has_points(self):
