@@ -139,7 +139,7 @@ class User(AbstractUser):
             template_name,
             content,
             merge_vars,
-            from_email=DEFAULT_FROM_EMAIL
+            **kwargs
     ):
         # Update merge vars with Front URL.
         for d in merge_vars.values():
@@ -151,7 +151,7 @@ class User(AbstractUser):
             template_name=template_name,
             content=content,
             merge_vars=merge_vars,
-            from_email=from_email
+            **kwargs
         )
 
     def send_reset_password_email(self):
