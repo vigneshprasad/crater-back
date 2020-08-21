@@ -20,7 +20,7 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
         user=instance,
     )
     
-    if created:    
+    if created:
         user_signed_up.send(
             sender=instance.__class__,
             user=instance
