@@ -1,5 +1,6 @@
 import csv
 
+from allauth.account.models import EmailAddress
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
@@ -96,11 +97,17 @@ def create_user_and_profile(
             name=full_name,
             source=source
         )
-        
         user.set_unusable_password()
         user.save()
         user_created = True
-    
+
+        # Create Email address object for user.
+        email_address = EmailAddress.objects.create(
+            user=user,
+            email=email
+        )
+        print("Email Address Object: {}".format(email_address.pk))
+
     group = Group.objects.get(name="User")
     user.groups.add(group)
 
@@ -122,6 +129,7 @@ def create_user_and_profile(
         user=user
     )
     profile_created = created
+    profile.name = full_name
     profile.linkedin_url = linkedin_url
     profile.save()
 
