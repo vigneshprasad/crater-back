@@ -44,11 +44,12 @@ def analytics_identify(sender, user, **kwargs):
 
 @receiver(user_signed_up)
 def user_signed_up_track(sender, user, **kwargs):
-    event=USER_CREATED
-    analytics_track_properties={
+    event = USER_CREATED
+    analytics_track_properties = {
         'email': user.email, 
         'role': user.role,
         'name': user.name,
+        'source': user.source
     }
     analytics_track(user, event, analytics_track_properties)
 
