@@ -1,4 +1,5 @@
 import datetime
+from copy import copy
 
 from celery.schedules import crontab
 from celery.task import periodic_task
@@ -105,11 +106,13 @@ def send_opt_in_reminder_for_new_meetings(opted_in_users=None):
             to=[user.email],
             template_name=template,
             content={},
-            from_email=choices.MEETINGS_FROM_EMAIL,
+            from_email=choices.MEETINGS_OPT_IN_FROM_EMAIL,
             merge_vars=data
         )
 
 
+# Will run every Tuesday at 11 AM.
+# @periodic_task(crontab(day_of_week='tuesday', hour='11', minute='00'))
 def send_1_on_1_meeting_intro_emails(meetings=None):
     """Send intro for 1 on 1 meetings.
 
@@ -122,6 +125,9 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
     for meeting in meetings:
         # For one on one meetings there are only two participants
         # allowed.
+        if not meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+            continue
+
         p1 = meeting.participants.all()[0]
         p2 = meeting.participants.all()[1]
 
@@ -157,15 +163,26 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             p1.name.title(),
             p2.name.title()
         )
-        to = [p1.email, p2.email]
+
+        to_emails = [p1.email, p2.email]
+        from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+        # reply_to_emails is all to_emails plus the from_email.
+        reply_to_emails = copy(to_emails)
+        reply_to_emails.append(from_email)
+
         template_name = choices.ONE_ON_ONE_INTRODUCTION_EMAIL_TEMPLATE
 
         # Sending the emails.
-        p1.send_email(
-            subject=subject,
-            to=to,
-            template_name=template_name,
-            content={},
-            from_email=choices.MEETINGS_FROM_EMAIL,
-            merge_vars=data
-        )
+        for to in to_emails:
+            reply_to = copy(reply_to_emails)
+            # Popping the to email from reply_to emails.
+            reply_to.pop(reply_to_emails.index(to))
+            p1.send_email(
+                subject=subject,
+                to=[to],
+                reply_to=reply_to,
+                template_name=template_name,
+                content={},
+                from_email=from_email,
+                merge_vars=data
+            )

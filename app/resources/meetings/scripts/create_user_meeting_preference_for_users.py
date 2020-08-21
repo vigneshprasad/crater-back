@@ -52,10 +52,13 @@ def run(
         print('Linkedin URL: ', linkedin_url)
         print('Public Introduction: ', public_introduction)
         if not dry_run:
-            profile = user.profile
-            profile.public_introduction = public_introduction
-            profile.linkedin_url = linkedin_url
-            profile.save()
+            try:
+                profile = user.profile
+                profile.public_introduction = public_introduction
+                profile.linkedin_url = linkedin_url
+                profile.save()
+            except:
+                print('Profile for this user is not there.')
 
         interests = [interest.strip() for interest in interests.split(',')]
         interests = tags_models.Interests.objects.filter(
@@ -95,12 +98,11 @@ def run(
 
             print('Create the actual User Meeting Preference object')
 
-            meeting_preference = models.UserMeetingPreference(
+            meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
                 meeting=meeting_config,
                 user=user,
                 objective=objective,
             )
-            meeting_preference.save()
 
             for interest in interests:
                 meeting_preference.interests.add(interest)

@@ -197,9 +197,9 @@ def get_active_meetings(start_date=None, end_date=None):
         end_date = start_date + datetime.timedelta(days=3)
 
     return models.Meeting.objects.filter(
-        meeting__is_active=True,
-        time_slots__date__gte=start_date,
-        time_slots__date__lte=end_date,
+        meeting_config__is_active=True,
+        time_slot__date__gte=start_date,
+        time_slot__date__lte=end_date,
     )
 
 

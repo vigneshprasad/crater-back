@@ -30,6 +30,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             'referer',
             'user_tags',
             'twitter',
+            'source'
             # 'device_info'
         )
 
