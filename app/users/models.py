@@ -181,6 +181,9 @@ class User(AbstractUser):
                         template_name=choices.template_names.get('password_reset'), content={},
                         merge_vars=data)
 
+    def get_phone_number(self):
+        return self.new_phone_number.as_e164 if self.new_phone_number else self.phone_number.as_e164
+
     @property
     def has_profile(self):
         """Checking if the user has profile object.
