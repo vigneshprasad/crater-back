@@ -16,6 +16,8 @@ def run(
 
     reader = csv.DictReader(open(file_name))
     for row in reader:
+        print("Start", "*" * 80)
+
         full_name = row.get('Full Name', '').strip()
         linkedin_url = _validate_url_and_return(row.get('Linkedin'))
         email = row.get('Email ID').strip()
@@ -26,9 +28,17 @@ def run(
         raw_objectives = row.get('Objectives', '').split(',')
         objectives = [objective.strip() for objective in raw_objectives]
 
-        username = full_name.split()[0]
+        if not full_name:
+            print("Name not provided for the user: {}".format(email))
+            print("End", "-" * 80)
+            continue
 
-        print("Start", "*"*80)
+        if not email:
+            print("Email is not provided for the user: {}".format(full_name))
+            print("End", "-" * 80)
+            continue
+
+        username = full_name.split()[0]
 
         print("Creating user for email: {}".format(email))
         print("Username: {}".format(username))
