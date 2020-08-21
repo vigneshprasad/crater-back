@@ -9,6 +9,9 @@ from users import models
 from tags import models as tags_models
 
 
+user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
+
+
 def run(
         file_name='/app/users/data/users_data.csv',
         dry_run=True
@@ -44,6 +47,7 @@ def run(
         print("Username: {}".format(username))
         print("Name: {}".format(full_name))
         print("Phone Number: {}".format(phone_number))
+        print("Source: {}".format(user_source))
         print("Objectives: {}".format(objectives))
         print("Interests: {}".format(interests))
         print("Linkedin Url: {}".format(linkedin_url))
@@ -56,7 +60,8 @@ def run(
                 phone_number=phone_number,
                 objectives=objectives,
                 interests=interests,
-                linkedin_url=linkedin_url
+                linkedin_url=linkedin_url,
+                source=user_source
             )
 
         print("End", "-"*80)
