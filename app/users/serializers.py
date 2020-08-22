@@ -250,6 +250,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     objectives_items = serializers.SerializerMethodField()
     unread_notifications = serializers.SerializerMethodField()
     social_account = serializers.SerializerMethodField()
+    linkedin_url = serializers.URLField(source="profile.linkedin_url", read_only=True, default=None)
 
 
     class Meta:
@@ -271,6 +272,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'has_bank_details',
             'has_services',
             'has_active_subscription',
+            'linkedin_url',
             'active_subscription_membership',
             'pan_card',
             'pan_card_base64',

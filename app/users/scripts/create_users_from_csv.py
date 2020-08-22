@@ -103,6 +103,7 @@ def create_user_and_profile(
 
         # Create Email address object for user.
         email_address = EmailAddress.objects.create(
+            primary=True,
             user=user,
             email=email
         )
