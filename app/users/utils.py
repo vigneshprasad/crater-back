@@ -10,6 +10,9 @@ def mark_email_as_verified(user):
         email=user.email,
         primary=True,
     )
+    # If email is already verified, no need to do anything.
+    if email.verified:
+        return
     email.verified = True
     email.save()
     # Sending email confirmation signal.
