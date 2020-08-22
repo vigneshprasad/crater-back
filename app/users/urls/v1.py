@@ -4,6 +4,7 @@ from rest_framework import routers
 from users import public_views
 from users import social_views
 from .. import views
+
 app_name = 'users'
 
 register_router = routers.SimpleRouter()

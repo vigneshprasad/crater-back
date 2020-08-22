@@ -4,15 +4,22 @@ from users import signals
 
 
 def mark_email_as_verified(user):
-    """Mark email as verified."""
+    """Mark email as verified.
+
+    Args:
+        user(User): User object whose email is being verified.
+
+    """
     email, _ = EmailAddress.objects.get_or_create(
         user=user,
         email=user.email,
         primary=True,
     )
+
     # If email is already verified, no need to do anything.
     if email.verified:
         return
+
     email.verified = True
     email.save()
     # Sending email confirmation signal.
