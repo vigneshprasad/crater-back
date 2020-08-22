@@ -556,6 +556,9 @@ class Profile(models.Model):
         return (self.public_introduction
                 if self.public_introduction else self.introduction)
 
+    def get_photo_url(self):
+        return self.photo.url if self.photo else self.photo_url
+
 
 class Referral(TimeStampedModel):
     """
