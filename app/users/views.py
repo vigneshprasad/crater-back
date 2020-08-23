@@ -4,10 +4,13 @@ from django.contrib.auth import views as auth_views, get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.urls import reverse_lazy
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_auth.registration.views import VerifyEmailView as DefaultVerifyEmailView
+from rest_auth.views import PasswordResetConfirmView as DefaultPasswordResetConfirmView
 from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import filters
 from rest_framework import mixins, viewsets, status
@@ -21,6 +24,7 @@ from payment import models as payment_models, serializers as payment_serializers
 from payment.tasks import charge_subscription_payment
 from services import serializers as service_serializers, models as service_models
 from users import permissions
+from users import utils
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, choices
@@ -451,3 +455,20 @@ class CoverFileViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         serializer.validated_data['user'] = self.request.user
         serializer.save()
+
+
+class PasswordResetConfirmAPIView(DefaultPasswordResetConfirmView):
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid()
+        data = serializer.data
+        uid = force_text(urlsafe_base64_decode(data['uid']))
+        try:
+            user = models.User.objects.get(pk=uid)
+        except models.User.DoesNotExist:
+            return
+        # Marking email as verified if not already verified.
+        utils.mark_email_as_verified(user)
+
+        return super().post(request, *args, **kwargs)
