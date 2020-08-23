@@ -14,22 +14,27 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         form = request.data['form_response']
         fields = form['definition']['fields']
         answers = form['answers']
-        user = {}
-        user['email'] = form['hidden']['email']
-        user['interests'] = []
-        user['source'] = 'https://worknetwork.typeform.com/to/' + form['form_id']
+        user = {
+            'email': form['hidden']['email'],
+            'interests': [],
+            'source': 'https://worknetwork.typeform.com/to/' + form['form_id']
+        }
+
         for i in range(len(fields)):
             if fields[i]['ref'] == 'full_name':
                 user['name'] = answers[i]['text']
+
             elif fields[i]['ref'] == 'phone_number':
                 user['phone_number'] = answers[i]['phone_number']
+
             if fields[i]['ref'] == 'linkedin_url':
                 user['linkedin_url'] = answers[i]['url']
-            if fields[i]['ref'] == 'interest':
-                user['interests'].append(answers[i]['choice']['label'])
-            if fields[i]['ref'] == 'interests':
+
+            if fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
                 for interest in answers[i]['choices']['labels']:
-                    user['interests'].append(answers[i]['choice']['label'])
+                    user['interests'].append(interest)
+            elif fields[i]['ref'] == 'interests':
+                user['interests'].append(answers[i]['choice']['label'])
 
         create_user_and_profile(
             full_name=user['name'],
