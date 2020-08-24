@@ -31,6 +31,9 @@ def run(
         interests = [interest.strip() for interest in raw_interests]
         raw_objectives = row.get('Objectives', '').split(',')
         objectives = [objective.strip() for objective in raw_objectives]
+        raw_tags = row.get('Objectives', '').split(',')
+        tags = [tag.strip() for tag in raw_tags]
+        public_introduction = row.get('Introduction')
 
         if not full_name:
             print("Name not provided for the user: {}".format(email))
@@ -51,7 +54,9 @@ def run(
         print("Source: {}".format(user_source))
         print("Objectives: {}".format(objectives))
         print("Interests: {}".format(interests))
+        print("Tags: {}".format(tags))
         print("Linkedin Url: {}".format(linkedin_url))
+        print("Introduction: {}".format(public_introduction))
 
         if not dry_run:
             user, profile = create_user_and_profile(
@@ -62,7 +67,9 @@ def run(
                 objectives=objectives,
                 interests=interests,
                 linkedin_url=linkedin_url,
-                source=user_source
+                source=user_source,
+                tags=tags,
+                introduction=public_introduction
             )
 
         print("End", "-"*80)
@@ -77,6 +84,8 @@ def create_user_and_profile(
         interests=None,
         objectives=None,
         source=None,
+        tags=None,
+        introduction=None
 ):
     user_created = False
 
@@ -132,6 +141,7 @@ def create_user_and_profile(
     profile_created = created
     profile.name = full_name
     profile.linkedin_url = linkedin_url
+    profile.public_introduction = introduction
     profile.save()
 
     # Adding Interests to Profile.
@@ -141,6 +151,13 @@ def create_user_and_profile(
         )
         for interest in interests:
             profile.interests.add(interest)
+
+    if tags:
+        tags = tags_models.Tag.objects.filter(
+            name__in=tags
+        )
+        for tag in tags:
+            profile.tags.add(tag)
 
     created_or_updated_user = 'Created' if user_created else 'Updated'
     print("{} user: {}".format(created_or_updated_user, user.pk))

@@ -165,18 +165,47 @@ def get_old_active_meeting_configs():
 
 def get_meeting_configs_with_open_registration():
     """
-    Closes registration for meeting config based on info
-    provided in the model. (registration_end_date)
+    Get meetings configs with open registration.
 
-    return:
+    Return:
+        Queryset of MeetingConfig object.
+
+    """
+    active_meeting_configs = get_active_meeting_configs()
+    if not active_meeting_configs:
+        return None
+    return active_meeting_configs.filter(
+        is_registration_open=True,
+        registration_end_date__lte=timezone.now().date()
+    )
+
+
+def get_active_meeting_configs():
+    """
+    Get active meeting configs.
+
+    Return:
         Queryset of MeetingConfig object.
 
     """
     return models.MeetingConfig.objects.filter(
         end_date__gte=datetime.datetime.now().date(),
-        is_registration_opne=True,
-        registration_end_date__lt=timezone.now().date()
+        is_active=True
     )
+
+
+def get_latest_active_meeting_config():
+    """
+    Get latest active meeting configs.
+
+    Return:
+        Queryset of MeetingConfig object.
+
+    """
+    active_meeting_configs = get_active_meeting_configs()
+    if not active_meeting_configs:
+        return None
+    return active_meeting_configs.last()
 
 
 def get_active_meetings(start_date=None, end_date=None):
