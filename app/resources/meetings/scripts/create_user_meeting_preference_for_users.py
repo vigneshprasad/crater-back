@@ -34,12 +34,12 @@ def run(
 
     for row in reader:
         row = dict(row)
-        email = row['Email Address']
-        email = email.strip()
-        time_preferences = row['Time preference']
-        linkedin = row['Linkedin']
-        public_introduction = row['Introduction']
-        interests = row['Wants to meet']
+        email = row.get('Email Address').strip()
+        time_preferences = row.get('Time preference', '')
+        linkedin_url = _validate_url_and_return(row.get('Linkedin'))
+        public_introduction = row.get('Introduction')
+        interests = row.get('Wants to meet', '')
+        interests = [interest.strip() for interest in interests.split(',')]
 
         try:
             user = user_models.User.objects.get(email=email)
@@ -48,23 +48,14 @@ def run(
             print('*'*80, '\nUser not available for {}'.format(email))
             continue
 
-        linkedin_url = _validate_url_and_return(linkedin)
-        print('Linkedin URL: ', linkedin_url)
-        print('Public Introduction: ', public_introduction)
-        if not dry_run:
-            try:
-                profile = user.profile
-                profile.public_introduction = public_introduction
-                profile.linkedin_url = linkedin_url
-                profile.save()
-            except:
-                print('Profile for this user is not there.')
+        objective = choices.OBJECTIVE_CHOICES[0][0]
 
         interests = [interest.strip() for interest in interests.split(',')]
         interests = tags_models.Interests.objects.filter(
             name__in=interests
         )
-        print('Interests: ', '.'.join([interest.name for interest in interests]))
+
+        # Get time slots for User.
         user_time_slots = []
         if time_preferences:
             time_preferences = _clean_time_preference(time_preferences)
@@ -87,32 +78,66 @@ def run(
                 for slot in slots:
                     user_time_slots.append(slot)
 
-            print('User Time Slots: ', ','.join(
-                [user_time_slot.get_display_time() for user_time_slot in user_time_slots]
-            ))
-
-        objective = choices.OBJECTIVE_CHOICES[0][0]
+        print('User Time Slots: ', ','.join(
+            [user_time_slot.get_display_time() for user_time_slot in user_time_slots]
+        ))
+        print('Linkedin URL: ', linkedin_url)
+        print('Public Introduction: ', public_introduction)
+        print('Interests: ', '.'.join([interest.name for interest in interests]))
         print('Objective: ', objective)
 
         if not dry_run:
-
-            print('Create the actual User Meeting Preference object')
-
-            meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
-                meeting=meeting_config,
-                user=user,
-                objective=objective,
+            create_user_meeting_preference(
+                meeting_config,
+                user,
+                objective,
+                time_slots=user_time_slots,
+                interests=interests
             )
-
-            for interest in interests:
-                meeting_preference.interests.add(interest)
-
-            for slot in user_time_slots:
-                meeting_preference.time_slots.add(slot)
-
-            print('User Meeting Preference: ', meeting_preference.pk)
-
         print('-'*100)
+
+
+def create_user_meeting_preference(
+        meeting_config,
+        user,
+        objective,
+        time_slots=None,
+        interests=None,
+        introduction=None,
+        linkedin_url=None,
+
+):
+    print('Creating the actual User Meeting Preference object')
+
+    meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
+        meeting=meeting_config,
+        user=user,
+        objective=objective,
+    )
+
+    for interest in interests or []:
+        meeting_preference.interests.add(interest)
+
+    for slot in time_slots or []:
+        meeting_preference.time_slots.add(slot)
+
+    print('User Meeting Preference: ', meeting_preference.pk)
+
+    # Creating/Updating Profile.
+    try:
+        profile = user.profile
+    except Exception as e:
+        print(e)
+        profile, _ = user_models.Profile.objects.get_or_create(
+            user=user
+        )
+
+    if introduction:
+        profile.public_introduction = introduction
+    if linkedin_url:
+        profile.linkedin_url = linkedin_url
+
+    profile.save()
 
 
 REMOVE_CHARS = ['PM', 'pm', 'Pm', 'pM']
