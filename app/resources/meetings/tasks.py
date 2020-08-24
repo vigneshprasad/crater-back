@@ -205,5 +205,3 @@ def send_whatsapp_meeting_reminders():
     for meeting in meetings:
         for participant in meeting.paticipants.all():
             freshchat_public.send_meeting_whatsapp_reminder_to_user(participant, meetings.time_slot.get_display_start_time())
-
-

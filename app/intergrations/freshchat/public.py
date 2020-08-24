@@ -10,3 +10,4 @@ def send_meeting_whatsapp_reminder_to_user(user, time):
         template_name=constants.MEETING_REMINDER_FRESHCHAT_TEMPLATE,
         template_data=template_data
     )
+    return response
