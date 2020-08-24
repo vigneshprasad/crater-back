@@ -56,7 +56,7 @@ def user_signed_up_track(sender, user, **kwargs):
 
 @receiver(email_verified)
 def email_verified_track(sender, email_address, **kwargs):
-    event=EMAIL_VERIFIED
+    event = EMAIL_VERIFIED
     user = User.objects.get(email=email_address.email)
     analytics_track_properties={
         'email': email_address.email, 

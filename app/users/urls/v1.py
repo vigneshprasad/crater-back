@@ -30,6 +30,7 @@ public_urls_patterns = [
 auth_urlpatterns = [
 
     path('logout/', views.LogoutView.as_view(), name='rest_logout'),
+    path('password/reset/confirm/', views.PasswordResetConfirmAPIView.as_view(), name='rest_password_reset_confirm'),
     path('', include('rest_auth.urls')),
 
     path('registration/verify-email/', views.VerifyEmailView.as_view(), name='rest_verify_email'),
