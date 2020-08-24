@@ -5,8 +5,10 @@ from celery.schedules import crontab
 from celery.task import periodic_task
 from django.utils import timezone
 
-from resources.meetings import services
+from intergrations.freshchat import public as freshchat_public
 from resources.meetings import choices
+from resources.meetings import models
+from resources.meetings import services
 
 
 # @periodic_task(run_every=crontab(day_of_week='sunday', hour='19', minute='00'))
@@ -186,3 +188,22 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 from_email=from_email,
                 merge_vars=data
             )
+
+
+@periodic_task(crontab(minute='15'))
+def send_whatsapp_meeting_reminders():
+    now_time = timezone.now().time()
+    start_time = now_time + datetime.timedelta(minutes=45)
+    end_time = now_time + datetime.timedelta(hours=1)
+
+    meetings = models.Meeting.objects.filter(
+        meeting_config__is_active=True,
+        time_slot__start_time__gt=start_time,
+        time_slot__start_time__lte=end_time
+    )
+
+    for meeting in meetings:
+        for participant in meeting.paticipants.all():
+            freshchat_public.send_meeting_whatsapp_reminder_to_user(participant, meetings.time_slot.get_display_start_time())
+
+
