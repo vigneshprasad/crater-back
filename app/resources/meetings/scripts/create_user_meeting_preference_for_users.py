@@ -33,6 +33,7 @@ def run(
     ))
 
     for row in reader:
+        print('Start', '-' * 80)
         row = dict(row)
         email = row.get('Email Address').strip()
         time_preferences = row.get('Time preference', '')
@@ -43,9 +44,9 @@ def run(
 
         try:
             user = user_models.User.objects.get(email=email)
-            print('*'*80, '\nUser {}'.format(email))
+            print('User {}'.format(email))
         except user_models.User.DoesNotExist:
-            print('*'*80, '\nUser not available for {}'.format(email))
+            print('User not available for {}'.format(email))
             continue
 
         objective = choices.OBJECTIVE_CHOICES[0][0]
@@ -94,7 +95,8 @@ def run(
                 time_slots=user_time_slots,
                 interests=interests
             )
-        print('-'*100)
+
+        print('End', '-' * 80)
 
 
 def create_user_meeting_preference(

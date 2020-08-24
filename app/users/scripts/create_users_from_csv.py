@@ -9,6 +9,9 @@ from django.contrib.auth.models import Group
 from users import models
 from tags import models as tags_models
 
+FIELDS = ['Full Name', 'Email ID', 'Interests', 'Objectives', 'Introduction']
+
+default_objective = 'Meet Professionals & Founders'
 
 user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
 
@@ -20,7 +23,7 @@ def run(
 
     reader = csv.DictReader(open(file_name))
     for row in reader:
-        print("Start", "*" * 80)
+        print("Start", "-" * 80)
 
         full_name = row.get('Full Name', '').strip()
         linkedin_url = _validate_url_and_return(row.get('Linkedin'))
@@ -72,7 +75,7 @@ def run(
                 introduction=public_introduction
             )
 
-        print("End", "-"*80)
+        print("End", "-" * 80)
 
 
 def create_user_and_profile(
@@ -128,7 +131,7 @@ def create_user_and_profile(
         )
 
     objectives = tags_models.Objective.objects.filter(
-        name='Meet Professionals & Founders'
+        name=default_objective
     ) if not objectives else objectives
 
     for objective in objectives:
