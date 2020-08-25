@@ -39,7 +39,7 @@ def run(
         time_preferences = row.get('User Time preference', '')
         linkedin_url = _validate_url_and_return(row.get('Linkedin'))
         public_introduction = row.get('Introduction')
-        interests = row.get('Wants to meet', '')
+        interests = row.get('Interests', '')
         interests = [interest.strip() for interest in interests.split(',')]
 
         try:

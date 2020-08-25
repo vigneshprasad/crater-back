@@ -62,7 +62,7 @@ def run(
         print("Introduction: {}".format(public_introduction))
 
         if not dry_run:
-            user, profile = create_user_and_profile(
+            create_user_and_profile(
                 username=username,
                 full_name=full_name,
                 email=email,

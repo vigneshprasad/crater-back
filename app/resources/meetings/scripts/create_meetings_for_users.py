@@ -18,7 +18,7 @@ FIELDS = [
 
 
 def run(
-        file_name='/app/resources/meetings/data/1_on_1_meeting_data.csv',
+        file_name='/app/resources/meetings/data/meeting_data_week_9.csv',
         dry_run=True
 ):
     reader = csv.DictReader(open(file_name))
@@ -43,7 +43,7 @@ def run(
         email_a = row.get('Email A').strip()
         email_b = row.get('Email B').strip()
         day = row.get('Day', 'Friday').strip()
-        time_preference = row.get('Time preference').strip()
+        time_preference = row.get('Time Preference').strip()
         meeting_link = row.get('Meeting Link').strip()
         introduction_a = row.get('Introduction A')
         introduction_b = row.get('Introduction B')
@@ -53,22 +53,28 @@ def run(
         try:
             user_a = user_models.User.objects.get(email=email_a)
             print('User {}'.format(email_a))
+            print('Introduction: {}'.format(introduction_a))
         except user_models.User.DoesNotExist:
             print('*' * 5, 'User Does Not Exist{}'.format(email_a))
 
         try:
             user_b = user_models.User.objects.get(email=email_b)
-            print('\nUser {}'.format(email_b))
+            print('User {}'.format(email_b))
+            print('Introduction: {}'.format(introduction_b))
         except user_models.User.DoesNotExist:
-            print('*' * 5, '\nUser Does Not Exist{}'.format(email_b))
+            print('*' * 5, 'User Does Not Exist{}'.format(email_b))
 
         # Check if time slot is there and valid.
-        hour, minute = time_preference.split(':')
-        start_time = datetime.time(hour, minute)
+        if time_preference.count(':') == 1:
+            hour, minute = time_preference.split(':')
+        if time_preference.count(':') == 2:
+            hour, minute, sec = time_preference.split(':')
+
+        start_time = datetime.time(int(hour), int(minute))
         week_time_slots = all_time_slots.filter(start_time=start_time)
         time_slot = week_time_slots.last() if day == 'Friday' else week_time_slots.first()
-        print('Time Slot for Meeting: {}', time_slot.get_display()) \
-            if time_slot else print('*' * 5, 'Time Slot missing for meeting')
+        print('Time Slot for Meeting:', time_slot.get_display()) \
+            if time_slot else print('*' * 5, 'No Time Slot missing for meeting')
 
         # Check if meeting link is present.
         print('Meeting Link: {}'.format(meeting_link)) \

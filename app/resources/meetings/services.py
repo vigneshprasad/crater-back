@@ -189,7 +189,7 @@ def get_active_meeting_configs():
 
     """
     return models.MeetingConfig.objects.filter(
-        end_date__gte=datetime.datetime.now().date(),
+        week_end_date__gte=datetime.datetime.now().date(),
         is_active=True
     )
 

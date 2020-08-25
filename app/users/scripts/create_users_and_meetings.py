@@ -168,12 +168,14 @@ def run(
                 available_time_slots=available_time_slots,
                 time_preferences=time_preference_a
             )
+            print("Created meeting preference for {} : {}".format(email_a, meeting_preference_a.pk))
             meeting_preference_b = create_user_meeting_preference(
                 user=user_b,
                 meeting_config=meeting_config,
                 available_time_slots=available_time_slots,
                 time_preferences=time_preference_b
             )
+            print("Created meeting preference for {} : {}".format(email_b, meeting_preference_b.pk))
 
             # Creating actual meeting object.
             meeting = create_meeting(
