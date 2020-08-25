@@ -44,18 +44,19 @@ def analytics_identify(sender, user, **kwargs):
 
 @receiver(user_signed_up)
 def user_signed_up_track(sender, user, **kwargs):
-    event=USER_CREATED
-    analytics_track_properties={
+    event = USER_CREATED
+    analytics_track_properties = {
         'email': user.email, 
         'role': user.role,
         'name': user.name,
+        'source': user.source
     }
     analytics_track(user, event, analytics_track_properties)
 
 
 @receiver(email_verified)
 def email_verified_track(sender, email_address, **kwargs):
-    event=EMAIL_VERIFIED
+    event = EMAIL_VERIFIED
     user = User.objects.get(email=email_address.email)
     analytics_track_properties={
         'email': email_address.email, 

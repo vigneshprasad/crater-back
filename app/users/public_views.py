@@ -1,9 +1,51 @@
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins, viewsets
+from rest_framework.response import Response
 
 from services import serializers as service_serializers
 from users import permissions
-from . import models
-from .paginators import Pagination
+from users import models
+from users.paginators import Pagination
+from users.scripts.create_users_from_csv import create_user_and_profile
+
+
+class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
+
+    def create(self, request, *args, **kwargs):
+        form = request.data['form_response']
+        fields = form['definition']['fields']
+        answers = form['answers']
+        user = {
+            'email': form['hidden']['email'],
+            'interests': [],
+            'source': 'https://worknetwork.typeform.com/to/' + form['form_id']
+        }
+
+        for i in range(len(fields)):
+            if fields[i]['ref'] == 'full_name':
+                user['name'] = answers[i]['text']
+
+            elif fields[i]['ref'] == 'phone_number':
+                user['phone_number'] = answers[i]['phone_number']
+
+            if fields[i]['ref'] == 'linkedin_url':
+                user['linkedin_url'] = answers[i]['url']
+
+            if fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
+                for interest in answers[i]['choices']['labels']:
+                    user['interests'].append(interest)
+            elif fields[i]['ref'] == 'interests':
+                user['interests'].append(answers[i]['choice']['label'])
+
+        create_user_and_profile(
+            full_name=user['name'],
+            email=user['email'],
+            phone_number=user['phone_number'],
+            linkedin_url=user['linkedin_url'],
+            interests=user['interests'],
+            source=user['source']
+        )
+
+        return Response({'status': 'Success'})
 
 
 class InvestorsViewSet(mixins.ListModelMixin,

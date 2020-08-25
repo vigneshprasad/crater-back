@@ -76,4 +76,7 @@ MEETING_TYPE_CHOICES = [
 
 ONE_ON_ONE_INTRODUCTION_EMAIL_TEMPLATE = '1:1 Meeting Introduction'
 ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE = '1:1 Opt In'
-MEETINGS_FROM_EMAIL = 'hello@worknetwork.in'
+MEETINGS_INTRO_FROM_EMAIL = 'keziah@worknetwork.in'
+MEETINGS_OPT_IN_FROM_EMAIL = 'hello@worknetwork.in'
+
+MAX_MEMBER_FOR_ONE_ON_ONE = 2

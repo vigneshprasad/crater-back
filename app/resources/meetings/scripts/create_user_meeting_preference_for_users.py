@@ -10,7 +10,7 @@ from tags import models as tags_models
 from users import models as user_models
 
 
-def create_user_meeting_preferences_for_users(
+def run(
         file_name='/app/resources/meetings/data/1_on_1_meeting_data.csv',
         dry_run=True
 ):
@@ -35,6 +35,7 @@ def create_user_meeting_preferences_for_users(
     for row in reader:
         row = dict(row)
         email = row['Email Address']
+        email = email.strip()
         time_preferences = row['Time preference']
         linkedin = row['Linkedin']
         public_introduction = row['Introduction']
@@ -42,19 +43,22 @@ def create_user_meeting_preferences_for_users(
 
         try:
             user = user_models.User.objects.get(email=email)
-            print('*'*80, 'User {}'.format(email))
+            print('*'*80, '\nUser {}'.format(email))
         except user_models.User.DoesNotExist:
-            print('*'*80, 'User not available for {}'.format(email))
+            print('*'*80, '\nUser not available for {}'.format(email))
             continue
 
         linkedin_url = _validate_url_and_return(linkedin)
         print('Linkedin URL: ', linkedin_url)
         print('Public Introduction: ', public_introduction)
         if not dry_run:
-            profile = user.profile
-            profile.public_introduction = public_introduction
-            profile.linkedin_url = linkedin_url
-            profile.save()
+            try:
+                profile = user.profile
+                profile.public_introduction = public_introduction
+                profile.linkedin_url = linkedin_url
+                profile.save()
+            except:
+                print('Profile for this user is not there.')
 
         interests = [interest.strip() for interest in interests.split(',')]
         interests = tags_models.Interests.objects.filter(
@@ -94,12 +98,11 @@ def create_user_meeting_preferences_for_users(
 
             print('Create the actual User Meeting Preference object')
 
-            meeting_preference = models.UserMeetingPreference(
+            meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
                 meeting=meeting_config,
                 user=user,
                 objective=objective,
             )
-            meeting_preference.save()
 
             for interest in interests:
                 meeting_preference.interests.add(interest)
@@ -122,6 +125,7 @@ def _clean_time_preference(time_preference):
 
 
 def _validate_url_and_return(url):
+    url = url.strip()
     try:
         validator = URLValidator()
         validator(url)

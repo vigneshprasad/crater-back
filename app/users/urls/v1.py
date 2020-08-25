@@ -21,6 +21,7 @@ router.register('investors', views.InvestorsViewSet, base_name='investors')
 # Router for Public API's.
 public_router = routers.SimpleRouter()
 public_router.register('investors', public_views.InvestorsViewSet, base_name='public-investors')
+public_router.register('typeform_add_user', public_views.TypeFormViewSet, base_name='public-type-form-user')
 
 public_urls_patterns = [
     path('', include(public_router.urls))
@@ -29,6 +30,7 @@ public_urls_patterns = [
 auth_urlpatterns = [
 
     path('logout/', views.LogoutView.as_view(), name='rest_logout'),
+    path('password/reset/confirm/', views.PasswordResetConfirmAPIView.as_view(), name='rest_password_reset_confirm'),
     path('', include('rest_auth.urls')),
 
     path('registration/verify-email/', views.VerifyEmailView.as_view(), name='rest_verify_email'),
