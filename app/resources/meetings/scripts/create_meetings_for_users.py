@@ -5,7 +5,16 @@ from resources.meetings import models
 from users import models as user_models
 from resources.meetings import services
 
-FIELDS = ['Email A', 'Email B', 'Day(Thursday/Friday)', 'Time Preference(24 HR)', 'Meeting Link']
+
+FIELDS = [
+    'Email A',
+    'Email B',
+    'Day(Thursday/Friday)',
+    'Time Preference(24 HR)',
+    'Meeting Link',
+    'Introduction A',
+    'Introduction B'
+]
 
 
 def run(
@@ -36,6 +45,8 @@ def run(
         day = row.get('Day', 'Friday').strip()
         time_preference = row.get('Time preference').strip()
         meeting_link = row.get('Meeting Link').strip()
+        introduction_a = row.get('Introduction A')
+        introduction_b = row.get('Introduction B')
 
         # Getting the users if present.
         user_a, user_b = None, None
@@ -69,6 +80,9 @@ def run(
                 print('*' * 5, "User's are not present")
                 continue
 
+            update_public_introduction(user_a, introduction_a)
+            update_public_introduction(user_b, introduction_b)
+
             meeting = create_meeting(
                 meeting_config,
                 meeting_link,
@@ -79,6 +93,16 @@ def run(
             print("Created Meeting for users {} & {}: {}".format(email_a, email_b, meeting.id))
 
         print('End', '-' * 80)
+
+
+def update_public_introduction(user, introduction):
+    if not hasattr(user, 'profile'):
+        print("*" * 5, "Profile not there was user {}".format(user.email))
+    if not introduction:
+        return
+    profile = user.profile
+    profile.public_introduction = introduction
+    profile.save()
 
 
 def create_meeting(meeting_config, meeting_link, time_slot, participants):
