@@ -164,7 +164,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             p2.name.title()
         )
 
-        to_emails = [p1.email, p2.email]
+        to_emails = [p1.email, p2.email, "hello@worknetwork.in"]
         from_email = choices.MEETINGS_INTRO_FROM_EMAIL
         # reply_to_emails is all to_emails plus the from_email.
         reply_to_emails = copy(to_emails)
