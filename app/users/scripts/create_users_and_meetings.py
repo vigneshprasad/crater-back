@@ -7,6 +7,7 @@ from django.core.validators import URLValidator
 from resources.meetings import models as meeting_models
 from users import models
 from resources.meetings import services
+from resources.meetings.scripts.create_user_meeting_preference_for_users import create_user_meeting_preference
 from users.scripts.create_users_from_csv import create_user_and_profile
 
 
@@ -48,11 +49,11 @@ def run(
         print('No inactive meeting')
         return
 
-    all_time_slots = meeting_config.available_time_slots.all()
+    available_time_slots = meeting_config.available_time_slots.all()
 
     print('Meeting Config: ', meeting_config.pk)
     print('Time Slots: ', ','.join(
-        [time_slot.get_display_time() for time_slot in all_time_slots]
+        [time_slot.get_display_time() for time_slot in available_time_slots]
     ))
 
     for row in reader:
@@ -113,7 +114,7 @@ def run(
         # Check if time slot is there and valid.
         hour, minute = time_preference.split(':')
         start_time = datetime.time(hour, minute)
-        week_time_slots = all_time_slots.filter(start_time=start_time)
+        week_time_slots = available_time_slots.filter(start_time=start_time)
         time_slot = week_time_slots.last() if day == 'Friday' else week_time_slots.first()
         print('Time Slot for Meeting: {}', time_slot.get_display()) \
             if time_slot else print('*' * 5, 'Time Slot missing for meeting')
@@ -123,7 +124,7 @@ def run(
             if meeting_link else print('*' * 5, 'Add Meeting Link')
 
         if not dry_run:
-
+            # Checking and creating user and profile for given users.
             if not user_a:
                 user_a, profile_a = create_user_and_profile(
                     full_name=full_name_a,
@@ -160,13 +161,33 @@ def run(
             if not profile_b:
                 update_public_introduction(user_b, introduction_b)
 
+            # Creating meeting preferences if not already there.
+            meeting_preference_a = create_user_meeting_preference(
+                user=user_a,
+                meeting_config=meeting_config,
+                available_time_slots=available_time_slots,
+                time_preferences=time_preference_a
+            )
+            meeting_preference_b = create_user_meeting_preference(
+                user=user_b,
+                meeting_config=meeting_config,
+                available_time_slots=available_time_slots,
+                time_preferences=time_preference_b
+            )
+
+            # Creating actual meeting object.
             meeting = create_meeting(
                 meeting_config,
                 meeting_link,
                 time_slot,
                 participants=[user_a, user_b]
             )
-            print("Created Meeting for users {} & {}: {}".format(email_a, email_b, meeting.id))
+            print("Created Meeting for users {} & {}: {} for {}".format(
+                email_a,
+                email_b,
+                meeting.id,
+                meeting.time_slot
+            ))
 
         print('End', '-' * 80)
 

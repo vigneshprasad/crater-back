@@ -155,6 +155,7 @@ def create_user_and_profile(
         for interest in interests:
             profile.interests.add(interest)
 
+    # Add tags to profile.
     if tags:
         tags = tags_models.Tag.objects.filter(
             name__in=tags
