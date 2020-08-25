@@ -71,18 +71,30 @@ def run(
             hour, minute, sec = time_preference.split(':')
 
         start_time = datetime.time(int(hour), int(minute))
-        week_time_slots = all_time_slots.filter(start_time=start_time)
-        time_slot = week_time_slots.last() if day == 'Friday' else week_time_slots.first()
-        print('Time Slot for Meeting:', time_slot.get_display()) \
-            if time_slot else print('*' * 5, 'No Time Slot missing for meeting')
+        end_time = (datetime.datetime.combine(datetime.date.today(), start_time) + datetime.timedelta(minutes=30)).time()
+        # week_time_slots = all_time_slots.filter(start_time=start_time)
+        # time_slot = week_time_slots.last() if day == 'Friday' else week_time_slots.first()
+        if day == 'Thursday':
+            date = datetime.date(2020, 8, 27)
+        elif day == 'Friday':
+            date = datetime.date(2020, 8, 28)
+
+        if not dry_run:
+            time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
+                date=date,
+                start_time=start_time,
+                end_time=end_time
+            )
+
+            print('Time Slot for Meeting:', time_slot.get_display()) \
+                if time_slot else print('*' * 5, 'No Time Slot missing for meeting')
 
         # Check if meeting link is present.
         print('Meeting Link: {}'.format(meeting_link)) \
             if meeting_link else print('*' * 5, 'Add Meeting Link')
 
         if not dry_run:
-
-            if not user_a and user_b:
+            if not (user_a and user_b):
                 print('*' * 5, "User's are not present")
                 continue
 
