@@ -1,7 +1,10 @@
-import requests
+import json
 
-from intergrations.freshchat import constants
-from intergrations.freshchat import utils
+import requests
+import sentry_sdk
+
+from integrations.freshchat import constants
+from integrations.freshchat import utils
 
 GET_OUTBOUND_MESSAGE_ENDPOINT = "get_outbound_message"
 SEND_OUTBOUND_MESSAGE_ENDPOINT = "send_outbound_message"
@@ -17,7 +20,7 @@ class FreshChatWhatsappService:
         SEND_OUTBOUND_MESSAGE_ENDPOINT: "/outbound-messages/whatsapp",
         CREATE_USER_ENDPOINT: "/users",
         UPDATE_USER_ENDPOINT: "/users/{user_id}",
-        GET_USER_ENDPOINT: "/users"
+        GET_USER_ENDPOINT: "/users/{user_id}"
     }
 
     def __init__(self, app_id, access_token, namespace, from_phone_number, provider):
@@ -49,10 +52,10 @@ class FreshChatWhatsappService:
     def _get_default_rich_template_data():
         return {"header": {"type": "", "media_url": ""}, "body": {"params": [{"data": ""}]}}
 
-    def get_users(self):
+    def get_users(self, user_id):
         """Get freshchat users."""
         response = requests.get(
-            url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[GET_USER_ENDPOINT],
+            url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[GET_USER_ENDPOINT].format(user_id=user_id),
             headers=self._get_authorization_headers(),
             data={}
         )
@@ -71,13 +74,14 @@ class FreshChatWhatsappService:
         data = {
             "email": user.email,
             "first_name": user.name,
+            "last_name": "",
             "avatar": {
                 "url": user.profile.get_photo_url()
             },
             "phone": user.get_phone_number(),
-            "properties": {
+            "properties": [
                 {"name": "linkedin", "value": user.profile.linkedin_url or ""}
-            }
+            ]
         }
 
         freshchat_user = utils.get_freshchat_user(user)
@@ -85,22 +89,31 @@ class FreshChatWhatsappService:
         if freshchat_user:
             response = requests.put(
                 url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[UPDATE_USER_ENDPOINT].format(
-                    freshchat_user.freshchat_user_id
+                    user_id=freshchat_user.freshchat_user_id
                 ),
                 headers=self._get_authorization_headers(),
-                data=data
+                json=data
             )
         else:
             response = requests.post(
                 url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[CREATE_USER_ENDPOINT],
                 headers=self._get_authorization_headers(),
-                data=data
+                json=data
             )
 
-        response_json = response.json()
-        freshchat_user = utils.create_or_update_freshchat_user(user, response_json.get('user_id'))
+        if response.status_code == 201:
+            response_json = response.json()
+            freshchat_user = utils.create_or_update_freshchat_user(user, response_json.get('id'))
+        elif response.status_code == 202:
+            pass
+        else:
+            sentry_sdk.capture_message(
+                "FreshChat Create User Failed with {}".format(response.status_code),
+                level="error",
+                email=user.email
+            )
 
-        return freshchat_user
+        return response, freshchat_user
 
     def get_outbound_messages(self, request_id):
         """Get outbound messages for a given request_id.
@@ -111,10 +124,10 @@ class FreshChatWhatsappService:
         """
         response = requests.get(
             url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[GET_OUTBOUND_MESSAGE_ENDPOINT].format(
-                request_id
+                request_id=request_id
             ),
             headers=self._get_authorization_headers(),
-            data={}
+            json={}
         )
         return response
 
@@ -150,8 +163,8 @@ class FreshChatWhatsappService:
                     "namespace": self.namespace,
                     "language": self._get_default_language_header(),
                     "template_data": template_data,
-                    # "rich_template_data": rich_template_data
-                    # if rich_template_data else self._get_default_rich_template_data()
+                    "rich_template_data": rich_template_data
+                    if rich_template_data else self._get_default_rich_template_data()
                 }
             }
         }
@@ -159,7 +172,7 @@ class FreshChatWhatsappService:
         response = requests.post(
             url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[SEND_OUTBOUND_MESSAGE_ENDPOINT],
             headers=self._get_authorization_headers(),
-            data=data
+            json=data
         )
 
         return response

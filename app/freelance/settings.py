@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'community.groups',
     'community.comments',
     'community.posts',
+    'integrations.freshchat',
     'resources.events',
     'resources.curated_articles',
     'resources.masterclasses',

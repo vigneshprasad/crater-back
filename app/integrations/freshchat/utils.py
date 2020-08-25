@@ -1,4 +1,4 @@
-from intergrations.freshchat import models
+from integrations.freshchat import models
 
 
 def create_or_update_freshchat_user(user, freshchat_user_id):
@@ -13,7 +13,7 @@ def create_or_update_freshchat_user(user, freshchat_user_id):
         freshchat_user(FreshChatsUser): Updated/Created FreshChatUser object.
 
     """
-    freshchat_user, _ = models.FreshChatUser.objects.create_or_update(
+    freshchat_user, _ = models.FreshChatUser.objects.update_or_create(
         user=user,
         freshchat_user_id=freshchat_user_id,
         defaults={}

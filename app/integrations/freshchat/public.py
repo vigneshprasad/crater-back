@@ -1,5 +1,5 @@
-from intergrations.freshchat import constants
-from intergrations.freshchat import _freshchat_service
+from integrations.freshchat import constants
+from integrations.freshchat import _freshchat_service
 
 
 def send_meeting_whatsapp_reminder_to_user(user, time):
