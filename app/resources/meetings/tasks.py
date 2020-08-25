@@ -192,9 +192,9 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
 
 @periodic_task(run_every=crontab(minute='15'))
 def send_whatsapp_meeting_reminders():
-    now_time = timezone.now().time()
-    start_time = now_time + datetime.timedelta(minutes=45)
-    end_time = now_time + datetime.timedelta(hours=1)
+    now_time = timezone.now()
+    start_time = (now_time + datetime.timedelta(minutes=45)).time()
+    end_time = (now_time + datetime.timedelta(hours=1)).time()
 
     meetings = models.Meeting.objects.filter(
         meeting_config__is_active=True,
