@@ -56,6 +56,52 @@ class TimeSlot(base_model.BaseModel):
         return self.get_display()
 
 
+class MeetingTimeSlot(base_model.BaseModel):
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def clean(self):
+        if self.start_time >= self.end_time:
+            raise ValidationError({'end': _('Start time should be lesser than End time.')})
+
+    def get_display(self):
+        """
+        This is the display state for a time slot.
+
+        Args:
+            self(TimeSlot)
+
+        return:
+            str: String display for the time slot.
+                ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
+
+        """
+        display_time = self.get_display_time()
+        display_date = self.get_display_day()
+
+        return '{} - {}'.format(display_date, display_time)
+
+    def get_display_day(self):
+        return '{}, {} {}'.format(
+            self.date.strftime('%A'),
+            str(self.date.day),
+            self.date.strftime('%B')
+        )
+
+    def get_display_time(self):
+        start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
+        end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
+
+        display_start_time = start_time.strftime("%I:%M %p")
+        display_end_time = end_time.strftime("%I:%M %p")
+
+        return '{} to {}'.format(display_start_time, display_end_time)
+
+    def __str__(self):
+        return self.get_display()
+
+
 class MeetingConfig(base_model.BaseModel):
     """
     Resources meeting config created by admins
@@ -151,8 +197,8 @@ class Meeting(base_model.BaseModel):
     )
     link = models.URLField(null=True, blank=True)
     time_slot = models.ForeignKey(
-        'meetings.TimeSlot',
-        verbose_name=_('Time Slot'),
+        'meetings.MeetingTimeSlot',
+        verbose_name=_('Meeting Time Slot'),
         on_delete=models.CASCADE,
         related_name='meetings'
     )

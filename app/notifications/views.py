@@ -6,10 +6,9 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from order.serializers import EmptySerializer
+from users import permissions
 from . import models, serializers, paginators
 from .schema import batch_notification_read
-from users import permissions
-from notifications import signals
 
 
 class UserNotificationSettingsViesSet(mixins.ListModelMixin,
@@ -89,9 +88,13 @@ class NotificationViewSet(mixins.ListModelMixin,
     )
     def read_all(self, request):
         queryset = self.get_queryset()
+        notification_type = request.data.get('type', None)
         try:
-            filter_dict = {f'notification__{request.data["type"]}__isnull': False}
-            instances = queryset.filter(**filter_dict).update(is_read=True)
+            if notification_type:
+                filter_dict = {f'notification__{request.data["type"]}__isnull': False}
+                instances = queryset.filter(**filter_dict).update(is_read=True)
+            else:
+                instances = queryset.update(is_read=True)
         except (FieldError, KeyError):
             raise NotFound
         return Response({'updated': instances})
