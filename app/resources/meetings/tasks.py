@@ -192,7 +192,8 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
 
 @periodic_task(run_every=crontab(minute='15'))
 def send_whatsapp_meeting_reminders():
-    now_time = timezone.now()
+    now_time = datetime.datetime.now()
+
     start_time = (now_time + datetime.timedelta(minutes=45)).time()
     end_time = (now_time + datetime.timedelta(hours=1)).time()
 
@@ -204,4 +205,7 @@ def send_whatsapp_meeting_reminders():
 
     for meeting in meetings:
         for participant in meeting.paticipants.all():
-            freshchat_public.send_meeting_whatsapp_reminder_to_user(participant, meetings.time_slot.get_display_start_time())
+            freshchat_public.send_meeting_whatsapp_reminder_to_user(
+                participant,
+                meetings.time_slot.get_display_start_time()
+            )

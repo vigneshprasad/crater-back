@@ -1,3 +1,5 @@
+# Use this file only for operations on Models.
+
 from integrations.freshchat import models
 
 
@@ -6,18 +8,21 @@ def create_or_update_freshchat_user(user, freshchat_user_id):
 
     Args:
         user(User): User on our platform.
-        freshchat_user_id(str): user_id of FreshChat's platform for
-            the User.
+        freshchat_user_id(str): User's id on Freshchat servers.
 
     Returns:
         freshchat_user(FreshChatsUser): Updated/Created FreshChatUser object.
 
     """
-    freshchat_user, _ = models.FreshChatUser.objects.update_or_create(
-        user=user,
-        freshchat_user_id=freshchat_user_id,
-        defaults={}
-    )
+
+    freshchat_user = get_freshchat_user(user)
+
+    if not freshchat_user:
+        freshchat_user = models.FreshChatUser.objects.create(
+            user=user,
+            freshchat_user_id=freshchat_user_id
+        )
+
     return freshchat_user
 
 

@@ -6,6 +6,7 @@ from users import models as user_models
 
 
 class FreshChatUser(base_models.BaseModel):
+
     user = models.OneToOneField(
         user_models.User,
         related_name='freshchat_user',

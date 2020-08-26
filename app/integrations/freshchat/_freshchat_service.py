@@ -1,10 +1,10 @@
-import json
-
 import requests
 import sentry_sdk
+from json import JSONDecodeError
 
 from integrations.freshchat import constants
 from integrations.freshchat import utils
+
 
 GET_OUTBOUND_MESSAGE_ENDPOINT = "get_outbound_message"
 SEND_OUTBOUND_MESSAGE_ENDPOINT = "send_outbound_message"
@@ -52,23 +52,35 @@ class FreshChatWhatsappService:
     def _get_default_rich_template_data():
         return {"header": {"type": "", "media_url": ""}, "body": {"params": [{"data": ""}]}}
 
-    def get_users(self, user_id):
-        """Get freshchat users."""
-        response = requests.get(
-            url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[GET_USER_ENDPOINT].format(user_id=user_id),
-            headers=self._get_authorization_headers(),
-            data={}
-        )
-        return response
+    def get_user_details(self, user):
+        """Get user details on Freshchat.
+
+        Args:
+            user(User): User object on our side.
+
+        Returns:
+            Response JSON if available.
+
+        """
+        freshchat_user = utils.get_freshchat_user(user)
+        if freshchat_user and freshchat_user.freshchat_user_id:
+            response = requests.get(
+                url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[GET_USER_ENDPOINT].format(
+                    user_id=freshchat_user.freshchat_user_id
+                ),
+                headers=self._get_authorization_headers(),
+                data={}
+            )
+        else:
+            return {"message": "User not available on Freshchat"}
+
+        return response.json()
 
     def create_or_update_user(self, user):
-        """Creates a user entity on Freshchat.
+        """Creates or updates a user entity on Freshchat.
 
         Args:
             user(User): User object on our end.
-
-        Returns:
-            freshchat_user(FreshChatsUser): Created/Update FreshChatUser object
 
         """
         data = {
@@ -86,7 +98,7 @@ class FreshChatWhatsappService:
 
         freshchat_user = utils.get_freshchat_user(user)
 
-        if freshchat_user:
+        if freshchat_user and freshchat_user.freshchat_user_id:
             response = requests.put(
                 url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[UPDATE_USER_ENDPOINT].format(
                     user_id=freshchat_user.freshchat_user_id
@@ -101,19 +113,30 @@ class FreshChatWhatsappService:
                 json=data
             )
 
-        if response.status_code == 201:
+        try:
             response_json = response.json()
-            freshchat_user = utils.create_or_update_freshchat_user(user, response_json.get('id'))
-        elif response.status_code == 202:
+        except JSONDecodeError:
+            response_json = {}
+
+        freshchat_user_id = response_json.get('id')
+
+        if response.status_code == constants.FRESHCHAT_STATUS_CREATED:
+            utils.create_or_update_freshchat_user(
+                user,
+                freshchat_user_id
+            )
+        elif response.status_code == constants.FRESHCHAT_STATUS_ACCEPTED:
             pass
+            # If the status is Accepted, we don't get any response from
+            # FreshChat. Not updating anything here.
         else:
             sentry_sdk.capture_message(
                 "FreshChat Create User Failed with {}".format(response.status_code),
                 level="error",
-                email=user.email
             )
+            return False
 
-        return response, freshchat_user
+        return True
 
     def get_outbound_messages(self, request_id):
         """Get outbound messages for a given request_id.

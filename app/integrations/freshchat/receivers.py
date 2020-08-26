@@ -13,4 +13,4 @@ def create_or_update_freshchat_user(sender, user, *args, **kwargs):
     if not hasattr(user, 'profile'):
         return
 
-    tasks.create_or_update_freshchat_user.delay(user)
+    tasks.create_or_update_freshchat_user.delay(user.pk)
