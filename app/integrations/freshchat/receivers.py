@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.dispatch import receiver
 
 from users import signals as user_signals
@@ -11,6 +12,9 @@ def create_or_update_freshchat_user(sender, user, *args, **kwargs):
 
     """
     if not hasattr(user, 'profile'):
+        return
+
+    if not settings.FRESHCHAT_USER_CREATION_ALLOWED:
         return
 
     tasks.create_or_update_freshchat_user.delay(user.pk)
