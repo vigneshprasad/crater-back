@@ -50,7 +50,7 @@ class FreshChatWhatsappService:
 
     @staticmethod
     def _get_default_rich_template_data():
-        return {"header": {"type": "", "media_url": ""}, "body": {"params": [{"data": ""}]}}
+        return {"header": {"type": "none", "media_url": "none"}, "body": {"params": [{"data": "none"}]}}
 
     def get_user_details(self, user):
         """Get user details on Freshchat.
@@ -185,9 +185,7 @@ class FreshChatWhatsappService:
                     "template_name": template_name,
                     "namespace": self.namespace,
                     "language": self._get_default_language_header(),
-                    "template_data": template_data,
-                    "rich_template_data": rich_template_data
-                    if rich_template_data else self._get_default_rich_template_data()
+                    "template_data": template_data
                 }
             }
         }

@@ -190,7 +190,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             )
 
 
-@periodic_task(run_every=crontab(minute='15'))
+# @periodic_task(run_every=crontab(minute='15'))
 def send_whatsapp_meeting_reminders():
     now_time = datetime.datetime.now()
 
