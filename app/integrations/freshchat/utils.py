@@ -1,5 +1,6 @@
 # Use this file only for operations on Models.
 
+from integrations.freshchat import constants
 from integrations.freshchat import models
 
 
@@ -40,3 +41,26 @@ def get_freshchat_user(user):
         return models.FreshChatUser.objects.get(user=user)
     except models.FreshChatUser.DoesNotExist:
         return None
+
+
+def create_message(user, status, message_id, request_id, data=None):
+    """Creates Message object(Freshchat) for a sent message.
+
+    Args:
+        user(User): User object on our side.
+        status(str): Status sent by Freshchat for message
+            delivery
+        message_id(str): Message ID on Freshchat's end.
+        request_id(str): Request ID on Freshchat's end for the
+            message send request.
+        data(dict): Response data from Freshchat.
+
+    """
+    message = models.Message(
+        user=user,
+        message_id=message_id,
+        request_id=request_id,
+        status=status,
+        data=data
+    )
+    message.save()

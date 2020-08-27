@@ -2,6 +2,9 @@ import requests
 import sentry_sdk
 from json import JSONDecodeError
 
+from celery import shared_task
+from django.contrib.auth import get_user_model
+
 from integrations.freshchat import constants
 from integrations.freshchat import utils
 
@@ -45,7 +48,7 @@ class FreshChatWhatsappService:
         """Returns default language header for Freshchat Service."""
         return {
             "policy": "deterministic",
-            "code": "en_US"
+            "code": "en"
         }
 
     @staticmethod
@@ -138,12 +141,13 @@ class FreshChatWhatsappService:
 
         return True
 
-    def get_outbound_messages(self, request_id):
-        """Get outbound messages for a given request_id.
+    def get_outbound_message(self, request_id):
+        """Gets a single outbound message for a given request_id.
 
         Args:
             request_id(str): Request ID returned after an outbound message is
                 send successfully.
+
         """
         response = requests.get(
             url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[GET_OUTBOUND_MESSAGE_ENDPOINT].format(
@@ -152,7 +156,20 @@ class FreshChatWhatsappService:
             headers=self._get_authorization_headers(),
             json={}
         )
-        return response
+        if response.status_code == constants.FRESHCHAT_STATUS_SUCCESS:
+            try:
+                response_json = response.json()
+                response_json = response_json.get('outbound_messages')[0]
+            except (JSONDecodeError, IndexError):
+                response_json = {}
+        else:
+            sentry_sdk.capture_message(
+                "FreshChat Outbound message failed with {}".format(response.status_code),
+                level="error",
+            )
+            response_json = {}
+
+        return response_json
 
     def send_outbound_message(
             self,
@@ -161,7 +178,7 @@ class FreshChatWhatsappService:
             template_data,
             rich_template_data=None
     ):
-        """Sends an outbound message through Freshchat for whatsapp.
+        """Sends a single outbound message through Freshchat for whatsapp.
 
         Args:
             user(User): User's on our App.
@@ -172,23 +189,27 @@ class FreshChatWhatsappService:
                 for the template.
 
         Returns:
-            Response object
+            Response object.
 
         """
 
         data = {
             "from": {"phone_number": self.from_phone_number},
-            "to": {"phone_number": user.get_phone_number()},
+            "to": [{"phone_number": user.get_phone_number()}],
             "provider": self.provider,
             "data": {
                 "message_template": {
+                    "storage": "none",
                     "template_name": template_name,
                     "namespace": self.namespace,
                     "language": self._get_default_language_header(),
-                    "template_data": template_data
+                    "template_data": template_data,
                 }
             }
         }
+
+        if rich_template_data:
+            data["data"]["message_template"] = rich_template_data
 
         response = requests.post(
             url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[SEND_OUTBOUND_MESSAGE_ENDPOINT],
@@ -196,7 +217,27 @@ class FreshChatWhatsappService:
             json=data
         )
 
-        return response
+        try:
+            response_json = response.json()
+        except JSONDecodeError:
+            response_json = {}
+
+        request_id = response_json.get('request_id')
+
+        if response.status_code == constants.FRESHCHAT_STATUS_ACCEPTED:
+            # Doing a delayed call for get_outbound_message and creating Message object.
+            _get_and_process_outbound_message_after_delay.apply_async(
+                args=(user.pk, request_id,),
+                countdown=60
+            )
+        else:
+            sentry_sdk.capture_message(
+                "FreshChat Outbound message failed with {}".format(response.status_code),
+                level="error",
+            )
+            return False
+
+        return True
 
 
 # Use this service for sending message through FreshChat to Whatsapp.
@@ -207,3 +248,21 @@ freshchat_whatsapp_service = FreshChatWhatsappService(
     from_phone_number=constants.FRESHCHAT_MESSAGING_PHONE_NUMBER,
     provider=constants.FRESHCHAT_DEFAULT_PROVIDER
 )
+
+
+
+@shared_task
+def _get_and_process_outbound_message_after_delay(user_pk, request_id):
+    user = get_user_model().objects.get(pk=user_pk)
+    get_response_json = freshchat_whatsapp_service.get_outbound_message(
+        request_id=request_id
+    )
+    status = get_response_json.get('status')
+    message_id = get_response_json.get('message_id')
+    utils.create_message(
+        user,
+        status,
+        message_id,
+        request_id,
+        data=get_response_json,
+    )

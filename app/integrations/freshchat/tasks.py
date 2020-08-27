@@ -1,7 +1,7 @@
 from celery import shared_task
 from django.contrib.auth import get_user_model
 
-from integrations.freshchat import _freshchat_service as freshchat_service
+from integrations.freshchat import freshchat_service as freshchat_service
 
 
 @shared_task()
