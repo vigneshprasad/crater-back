@@ -181,6 +181,9 @@ class User(AbstractUser):
                         template_name=choices.template_names.get('password_reset'), content={},
                         merge_vars=data)
 
+    def get_phone_number(self):
+        return self.phone_number.as_e164 if self.phone_number else self.new_phone_number.as_e164
+
     @property
     def has_profile(self):
         """Checking if the user has profile object.
@@ -537,6 +540,10 @@ class Profile(models.Model):
         'tags.Interests',
         verbose_name=_('Interests')
     )
+    opted_in_for_whatsapp = models.BooleanField(
+        default=True,
+        verbose_name=_('Whatsapp Messaging Enabled')
+    )
 
     class Meta:
         verbose_name = _('Profile')
@@ -552,6 +559,9 @@ class Profile(models.Model):
     def get_introduction(self):
         return (self.public_introduction
                 if self.public_introduction else self.introduction)
+
+    def get_photo_url(self):
+        return self.photo.url if self.photo else self.photo_url
 
 
 class Referral(TimeStampedModel):
