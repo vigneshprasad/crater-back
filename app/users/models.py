@@ -182,7 +182,7 @@ class User(AbstractUser):
                         merge_vars=data)
 
     def get_phone_number(self):
-        return self.new_phone_number.as_e164 if self.new_phone_number else self.phone_number.as_e164
+        return self.phone_number.as_e164 if self.phone_number else self.new_phone_number.as_e164
 
     @property
     def has_profile(self):
@@ -539,6 +539,10 @@ class Profile(models.Model):
     interests = models.ManyToManyField(
         'tags.Interests',
         verbose_name=_('Interests')
+    )
+    opted_in_for_whatsapp = models.BooleanField(
+        default=True,
+        verbose_name=_('Whatsapp Messaging Enabled')
     )
 
     class Meta:

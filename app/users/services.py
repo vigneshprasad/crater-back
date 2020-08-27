@@ -19,9 +19,9 @@ def get_users_for_ids(user_ids):
         List of user objects for the provided ID's
 
     """
-    return [models.User.objects.filter(
+    return list(models.User.objects.filter(
         pk__in=user_ids
-    )]
+    ))
 
 
 def create_or_update_user_device_info(
@@ -58,7 +58,8 @@ def create_or_update_user_device_info(
         defaults={'last_used': timezone.now()}
     )
     return user_device_info, created
-    
+
+
 def get_social_account_info(social_account):
     data = {}
     if not social_account:

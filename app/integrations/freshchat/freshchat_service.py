@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import sentry_sdk
 from json import JSONDecodeError
@@ -50,10 +52,6 @@ class FreshChatWhatsappService:
             "policy": "deterministic",
             "code": "en"
         }
-
-    @staticmethod
-    def _get_default_rich_template_data():
-        return {"header": {"type": "none", "media_url": "none"}, "body": {"params": [{"data": "none"}]}}
 
     def get_user_details(self, user):
         """Get user details on Freshchat.
@@ -133,9 +131,12 @@ class FreshChatWhatsappService:
             # If the status is Accepted, we don't get any response from
             # FreshChat. Not updating anything here.
         else:
-            sentry_sdk.capture_message(
-                "FreshChat Create User Failed with {}".format(response.status_code),
-                level="error",
+            logging.error(
+                "FreshChat Create/Update User Failed.",
+                status_code=response.status_code,
+                user_email=user.email,
+                data=data,
+                response_dict=response.__dict__
             )
             return False
 
@@ -163,9 +164,11 @@ class FreshChatWhatsappService:
             except (JSONDecodeError, IndexError):
                 response_json = {}
         else:
-            sentry_sdk.capture_message(
-                "FreshChat Outbound message failed with {}".format(response.status_code),
-                level="error",
+            logging.error(
+                "FreshChat Get Outbound Message Failed.",
+                status_code=response.status_code,
+                request_id=request_id,
+                response_dict=response.__dict__
             )
             response_json = {}
 
@@ -192,6 +195,9 @@ class FreshChatWhatsappService:
             Response object.
 
         """
+
+        if not user.profile.opted_in_for_whatsapp:
+            return True
 
         data = {
             "from": {"phone_number": self.from_phone_number},
@@ -231,9 +237,12 @@ class FreshChatWhatsappService:
                 countdown=60
             )
         else:
-            sentry_sdk.capture_message(
-                "FreshChat Outbound message failed with {}".format(response.status_code),
-                level="error",
+            logging.error(
+                "FreshChat Post Outbound Message Failed.",
+                status_code=response.status_code,
+                user_email=user.email,
+                data=data,
+                response_dict=response.__dict__
             )
             return False
 
@@ -248,7 +257,6 @@ freshchat_whatsapp_service = FreshChatWhatsappService(
     from_phone_number=constants.FRESHCHAT_MESSAGING_PHONE_NUMBER,
     provider=constants.FRESHCHAT_DEFAULT_PROVIDER
 )
-
 
 
 @shared_task

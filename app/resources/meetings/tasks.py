@@ -1,4 +1,5 @@
 import datetime
+import logging
 from copy import copy
 
 from celery.schedules import crontab
@@ -190,7 +191,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             )
 
 
-# @periodic_task(run_every=crontab(minute='15'))
+# @periodic_task(run_every=crontab(day_of_week='tuesday', hour='11', minute='00'))
 def send_whatsapp_meeting_reminders():
     now_time = datetime.datetime.now()
 
@@ -209,3 +210,15 @@ def send_whatsapp_meeting_reminders():
                 participant,
                 meetings.time_slot.get_display_start_time()
             )
+
+
+# @periodic_task(run_every=crontab(minute='15'))
+def send_whatsapp_opt_ins_for_one_on_one_meetings():
+    """Sends whatsapp messages for opt ins."""
+    users = services.get_opted_in_user_for_meetings()
+    # Logging info for users we are sending this to.
+    logging.info(
+        'Sending Opt In messages to Users.',
+        user_emails=[user.email for user in users]
+    )
+    freshchat_public.send_meeting_opt_in_messages(users)

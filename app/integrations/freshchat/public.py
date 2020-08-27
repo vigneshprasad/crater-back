@@ -1,13 +1,32 @@
+import logging
+
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 
 
 def send_meeting_whatsapp_reminder_to_user(user, time):
     """Send whatsapp message to user for upcoming meeting."""
-    template_data = [{"data": time}]
-    response = freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    logging.info(
+        "Sending Meeting Reminder for User",
+        user_email=user.email,
+        data=time
+    )
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_REMINDER_FRESHCHAT_TEMPLATE,
-        template_data=template_data
+        template_data=[{"data": time}]
     )
-    return response
+
+
+def send_meeting_opt_in_messages(users):
+    """Send whatsapp message to user for meeting opt ins."""
+    logging.info(
+        "Sending Opt In Meeting Reminder for User",
+        user_emails=[user.emails for user in users],
+    )
+    for user in users:
+        freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+            user=user,
+            template_name=constants.MEETING_OPT_IN_REMINDER_TEMPLATE,
+            template_data=[{"data": user.name.title()}]
+        )
