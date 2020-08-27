@@ -137,11 +137,12 @@ class FreshChatWhatsappService:
             # FreshChat. Not updating anything here.
         else:
             logging.error(
-                "FreshChat Create/Update User Failed.",
-                status_code=response.status_code,
-                user_email=user.email,
-                data=data,
-                response_dict=response.__dict__
+                "FreshChat Create/Update User Failed for {}".format(
+                    user.email
+                ),
+                extra={
+                    "status_code": response.status_code,
+                }
             )
             return False
 
@@ -170,10 +171,12 @@ class FreshChatWhatsappService:
                 response_json = {}
         else:
             logging.error(
-                "FreshChat Get Outbound Message Failed.",
-                status_code=response.status_code,
-                request_id=request_id,
-                response_dict=response.__dict__
+                "FreshChat Get Outbound Message Failed for {}".format(
+                    request_id
+                ),
+                extra={
+                    "status_code": response.status_code,
+                }
             )
             response_json = {}
 
@@ -243,11 +246,12 @@ class FreshChatWhatsappService:
             )
         else:
             logging.error(
-                "FreshChat Post Outbound Message Failed.",
-                status_code=response.status_code,
-                user_email=user.email,
-                data=data,
-                response_dict=response.__dict__
+                "FreshChat Post Outbound Message Failed for {}".format(
+                    user.email
+                ),
+                extra={
+                    "status_code": response.status_code,
+                }
             )
             return False
 
