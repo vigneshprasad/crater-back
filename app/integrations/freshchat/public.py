@@ -20,10 +20,6 @@ def send_meeting_whatsapp_reminder_to_user(user, time):
 
 def send_meeting_opt_in_messages(users):
     """Send whatsapp message to user for meeting opt ins."""
-    logging.info(
-        "Sending Opt In Meeting Reminder for User",
-        user_emails=[user.emails for user in users],
-    )
     for user in users:
         freshchat_service.freshchat_whatsapp_service.send_outbound_message(
             user=user,
