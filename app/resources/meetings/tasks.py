@@ -218,7 +218,9 @@ def send_whatsapp_opt_ins_for_one_on_one_meetings():
     users = services.get_opted_in_user_for_meetings()
     # Logging info for users we are sending this to.
     logging.info(
-        'Sending Opt In messages to Users.',
-        user_emails=[user.email for user in users]
+        'Sending Opt In messages to {} Users'.format(
+            len(users)
+        ),
+        extra={"user_emails": [user.email for user in users]}
     )
     freshchat_public.send_meeting_opt_in_messages(users)
