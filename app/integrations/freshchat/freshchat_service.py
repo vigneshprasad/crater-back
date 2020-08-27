@@ -86,7 +86,8 @@ class FreshChatWhatsappService:
 
         """
         # Added a Test {name} for testing environments.
-        first_name = "Test " + user.name if settings.ENVIRONMENT == "preprod" else user.name
+        first_name = "Test {}".format(user.name) \
+            if settings.ENVIRONMENT == settings.ENVIRONMENT_PREPROD else user.name
 
         data = {
             "email": user.email,
