@@ -2,6 +2,7 @@ import requests
 
 from django.conf import settings
 
+
 class InstagramService:
 
     def __init__(self, client_id, client_secret, redirect_url):

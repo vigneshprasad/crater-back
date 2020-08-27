@@ -1,0 +1,35 @@
+1.confirmation_of_appointment
+Hey {{1}},
+Happy to let you know that your 1:1 meeting has been set up for {{2}} on {{3}}. Do let us know if you need to make any changes.
+
+2.appointment_reminder
+Hey,
+Just a quick reminder that your meeting is scheduled for {{2}} today. Do let us know if you need any help.
+
+3.change_to_appointment
+Hey,
+You opted in for 1:1 meeting last week. Please do let us know if you would like to change your preferences for your meeting in the coming week.
+
+4.automated_reply
+HEY,
+THANKS FOR YOUR MESSAGE. WE WILL GET BACK TO YOU SHORTLY.
+
+5.confirmation_message
+Hey {{1}},
+Since you opted in for 1:1 meetings. Just wanted to re-confirm that you would like to have a meeting in the coming week. You could simply reply with “Yes” or “No”.
+
+6.appointment_change
+Hey {{1}},
+Just wanted to inform you that the meeting scheduled for {{2}} has been changed to {{3}} on {{4}}.
+
+7.appointment_change_request_1
+Hey {{1}},
+Just a quick update. {{2}] unfortunately, cannot make the meeting and has instead requested us to reschedule the meeting to {{3}} on {{4}]. Would this work for you?
+
+8.appointment_canceled
+Hey {{1}},
+Unfortunately, the meeting scheduled for {{2}} has been canceled. I sincerely apologize for any inconvenience.
+
+9.confirming_meeting
+Hey {{1}},
+Since you opted in for a 1:1 meeting. Wanted to confirm if you would like to have a meeting in the coming week.

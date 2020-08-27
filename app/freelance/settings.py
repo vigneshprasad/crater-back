@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'community.groups',
     'community.comments',
     'community.posts',
+    'integrations.freshchat',
     'resources.events',
     'resources.curated_articles',
     'resources.masterclasses',
@@ -379,3 +380,12 @@ sentry_sdk.init(
     attach_stacktrace=True,
     send_default_pii=True
 )
+
+# ----------- FRESHCHAT ---------#
+# TODO(Nishant): Add all this to CI repo.
+FRESHCHAT_BASE_URL = "https://api.in.freshchat.com/v2"
+FRESHCHAT_USER_CREATION_ALLOWED = False if os.getenv('FRESHCHAT_USER_CREATION_ALLOWED', True) == 'False' else True
+FRESHCHAT_APP_ID = os.getenv('FRESHCHAT_APP_ID')
+FRESHCHAT_MESSAGING_PHONE_NUMBER = os.getenv('FRESHCHAT_MESSAGING_PHONE_NUMBER')
+FRESHCHAT_WHATSAPP_NAMESPACE = os.getenv('FRESHCHAT_WHATSAPP_NAMESPACE')
+FRESHCHAT_ACCESS_TOKEN = os.getenv('FRESHCHAT_ACCESS_TOKEN')
