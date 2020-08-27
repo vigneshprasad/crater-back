@@ -5,6 +5,7 @@ import sentry_sdk
 from json import JSONDecodeError
 
 from celery import shared_task
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from integrations.freshchat import constants
@@ -84,9 +85,13 @@ class FreshChatWhatsappService:
             user(User): User object on our end.
 
         """
+        # Added a Test {name} for testing environments.
+        first_name = "Test {}".format(user.name) \
+            if settings.ENVIRONMENT == settings.ENVIRONMENT_PREPROD else user.name
+
         data = {
             "email": user.email,
-            "first_name": user.name,
+            "first_name": first_name,
             "last_name": "",
             "avatar": {
                 "url": user.profile.get_photo_url()
