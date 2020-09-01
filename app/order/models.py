@@ -179,7 +179,8 @@ class Quote(TimeStampedModel):
     additional_text = models.TextField(
         max_length=2000,
         verbose_name=_('Additional text'),
-        blank=True
+        blank=True,
+        null=True
     )
     require = models.TextField(
         max_length=2000,
