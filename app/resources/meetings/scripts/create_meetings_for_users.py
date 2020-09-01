@@ -26,7 +26,7 @@ def run(
     meeting_config = services.get_latest_active_meeting_config()
 
     if not meeting_config:
-        print('No inactive meeting')
+        print('No Active meeting')
         return
 
     all_time_slots = meeting_config.available_time_slots.all()
@@ -75,9 +75,11 @@ def run(
         # week_time_slots = all_time_slots.filter(start_time=start_time)
         # time_slot = week_time_slots.last() if day == 'Friday' else week_time_slots.first()
         if day == 'Thursday':
-            date = datetime.date(2020, 8, 27)
+            date = datetime.date(2020, 9, 3)
         elif day == 'Friday':
-            date = datetime.date(2020, 8, 28)
+            date = datetime.date(2020, 9, 4)
+        elif day == 'Wednesday':
+            date = datetime.date(2020, 9, 2)
 
         if not dry_run:
             time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
