@@ -17,7 +17,7 @@ user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
 
 
 def run(
-        file_name='/app/users/data/users_data_1.csv',
+        file_name='/app/users/data/users_data_2.csv',
         dry_run=True
 ):
 
