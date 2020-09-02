@@ -41,6 +41,6 @@ def create_users_on_freshchat(users=None):
         users_without_freshchat_user.count()
     ))
     for user in users:
-        if not user.has_profile():
+        if not user.has_profile:
             continue
         freshchat_service.freshchat_whatsapp_service.create_or_update_user(user)

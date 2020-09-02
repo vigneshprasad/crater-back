@@ -11,7 +11,7 @@ def create_or_update_freshchat_user(sender, user, *args, **kwargs):
         on our end.
 
     """
-    if not user.has_profile():
+    if not user.has_profile:
         return
 
     if not settings.FRESHCHAT_USER_CREATION_ALLOWED:
