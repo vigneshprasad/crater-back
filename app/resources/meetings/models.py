@@ -89,14 +89,16 @@ class MeetingTimeSlot(base_model.BaseModel):
             self.date.strftime('%B')
         )
 
-    def get_display_time(self):
+    def get_display_time(self, join="to"):
+        return '{} {} {}'.format(self.get_display_start_time(), join, self.get_display_end_time())
+
+    def get_display_start_time(self):
         start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
+        return start_time.strftime("%I:%M %p")
+
+    def get_display_end_time(self):
         end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
-
-        display_start_time = start_time.strftime("%I:%M %p")
-        display_end_time = end_time.strftime("%I:%M %p")
-
-        return '{} to {}'.format(display_start_time, display_end_time)
+        return end_time.strftime("%I:%M %p")
 
     def __str__(self):
         return self.get_display()
