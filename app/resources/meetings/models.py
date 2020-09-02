@@ -129,6 +129,29 @@ class MeetingConfig(base_model.BaseModel):
         choices=choices.MEETING_TYPE_CHOICES
     )
 
+    def __str__(self):
+        return 'Meeting Config {} ({} - {})'.format(
+            self.pk,
+            self.get_display_week_start_date(),
+            self.get_display_week_end_date()
+        )
+
+    def get_display_week_start_date(self):
+        return '{}, {} {}, {}'.format(
+            self.week_start_date.strftime('%A'),
+            str(self.week_start_date.day),
+            self.week_end_date.strftime('%B'),
+            self.week_start_date.year
+        )
+
+    def get_display_week_end_date(self):
+        return '{}, {} {}, {}'.format(
+            self.week_end_date.strftime('%A'),
+            str(self.week_end_date.day),
+            self.week_end_date.strftime('%B'),
+            self.week_end_date.year
+        )
+
     def clean(self):
         # Check is end date is greater than start date.
         if self.week_start_date >= self.week_end_date:
@@ -201,4 +224,8 @@ class Meeting(base_model.BaseModel):
         verbose_name=_('Meeting Time Slot'),
         on_delete=models.CASCADE,
         related_name='meetings'
+    )
+    is_canceled = models.BooleanField(
+        default=False,
+        verbose_name=_('Canceled')
     )

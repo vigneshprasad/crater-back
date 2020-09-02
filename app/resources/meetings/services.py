@@ -227,6 +227,7 @@ def get_active_meetings(start_date=None, end_date=None):
 
     return models.Meeting.objects.filter(
         meeting_config__is_active=True,
+        is_canceled=False,
         time_slot__date__gte=start_date,
         time_slot__date__lte=end_date,
     )
