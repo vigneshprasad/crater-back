@@ -50,9 +50,10 @@ class UserMeetingPreference(ModelAdmin):
 
 @register(models.Meeting)
 class Meeting(ModelAdmin):
-    list_display = ('id', 'meeting_participants', 'time_slot')
+    list_display = ('id', 'meeting_participants', 'time_slot', 'is_canceled')
     search_fields = ('participants__email', )
-    exclude = ('created_at', 'deleted_at', 'updated_at')
+    list_filter = ('is_canceled', )
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
     @staticmethod
     def meeting_participants(obj):

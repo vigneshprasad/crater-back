@@ -202,3 +202,7 @@ class Meeting(base_model.BaseModel):
         on_delete=models.CASCADE,
         related_name='meetings'
     )
+    is_canceled = models.BooleanField(
+        default=False,
+        verbose_name=_('Canceled')
+    )
