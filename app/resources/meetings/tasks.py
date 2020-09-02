@@ -159,6 +159,17 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 'linkedin_a': p1.profile.linkedin_url,
                 'linkedin_b': p2.profile.linkedin_url,
             },
+            choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION: {
+                'day': display_day,
+                'time': display_time,
+                'name_a': p1.name.title(),
+                'name_b': p2.name.title(),
+                'link': meeting.link,
+                'introduction_a': p1.profile.get_introduction(),
+                'introduction_b': p2.profile.get_introduction(),
+                'linkedin_a': p1.profile.linkedin_url,
+                'linkedin_b': p2.profile.linkedin_url,
+            }
         }
 
         # Checking if profile exists.
@@ -167,7 +178,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             p2.name.title()
         )
 
-        to_emails = [p1.email, p2.email, "hello@worknetwork.in"]
+        to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
         from_email = choices.MEETINGS_INTRO_FROM_EMAIL
         # reply_to_emails is all to_emails plus the from_email.
         reply_to_emails = copy(to_emails)
@@ -191,17 +202,32 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             )
 
 
-# @periodic_task(run_every=crontab(day_of_week='tuesday', hour='11', minute='00'))
-def send_whatsapp_meeting_reminders():
+@periodic_task(run_every=crontab(minute='15'))
+def send_whatsapp_meeting_reminders(meetings=None):
+    """Sends whatsapp reminders for people 90 minutes before their meetings.
+
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to send this
+            reminder to. Added for testing.
+
+    """
     now_time = datetime.datetime.now()
 
-    start_time = (now_time + datetime.timedelta(minutes=45)).time()
-    end_time = (now_time + datetime.timedelta(hours=1)).time()
+    start_time = (now_time + datetime.timedelta(minutes=75)).time()
+    end_time = (now_time + datetime.timedelta(minutes=90)).time()
 
     meetings = models.Meeting.objects.filter(
         meeting_config__is_active=True,
+        is_canceled=False,
         time_slot__start_time__gt=start_time,
         time_slot__start_time__lte=end_time
+    ) if not meetings else meetings
+
+    logging.info(
+        'Sending Meeting Reminders for meeting between {} - {}'.format(
+            start_time, end_time
+        ),
+        extra={"meeting_ids": [meeting.pk for meeting in meetings]}
     )
 
     for meeting in meetings:
@@ -212,10 +238,16 @@ def send_whatsapp_meeting_reminders():
             )
 
 
-# @periodic_task(run_every=crontab(minute='15'))
-def send_whatsapp_opt_ins_for_one_on_one_meetings():
-    """Sends whatsapp messages for opt ins."""
-    users = services.get_opted_in_user_for_meetings()
+# @periodic_task(run_every=crontab(day_of_week='tuesday', hour='11', minute='00'))
+def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
+    """Sends whatsapp messages for opting in for next weeks meetings.
+
+    Args:
+        users(User queryset): Queryset of user you want to send this
+            message to. Added for testing.
+
+    """
+    users = services.get_opted_in_user_for_meetings() if not users else users
     # Logging info for users we are sending this to.
     logging.info(
         'Sending Opt In messages to {} Users'.format(
