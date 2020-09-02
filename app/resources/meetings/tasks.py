@@ -216,11 +216,12 @@ def send_whatsapp_meeting_reminders(meetings=None):
 
     start_time = (now_time + datetime.timedelta(minutes=75)).time()
     end_time = (now_time + datetime.timedelta(minutes=90)).time()
+    date = (now_time + datetime.timedelta(minutes=90)).date()
 
     meetings = models.Meeting.objects.filter(
         meeting_config__is_active=True,
         is_canceled=False,
-        time_slot__date=now_time.date(),
+        time_slot__date=date,
         time_slot__start_time__gt=start_time,
         time_slot__start_time__lte=end_time
     ) if not meetings else meetings
