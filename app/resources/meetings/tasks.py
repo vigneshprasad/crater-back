@@ -232,7 +232,7 @@ def send_whatsapp_meeting_reminders(meetings=None):
     )
 
     for meeting in meetings:
-        for participant in meeting.paticipants.all():
+        for participant in meeting.participants.all():
             freshchat_public.send_meeting_whatsapp_reminder_to_user(
                 participant,
                 meetings.time_slot.get_display_start_time()
