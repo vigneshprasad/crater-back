@@ -8,8 +8,10 @@ def send_meeting_whatsapp_reminder_to_user(user, time):
     """Send whatsapp message to user for upcoming meeting."""
     logging.info(
         "Sending Meeting Reminder for User",
-        user_email=user.email,
-        data=time
+        extra={
+            "user_email": user.email,
+            "data": time
+        }
     )
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
