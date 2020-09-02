@@ -202,7 +202,8 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             )
 
 
-@periodic_task(run_every=crontab(minute='15'))
+# https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
+@periodic_task(run_every=crontab(minute='*/15'))
 def send_whatsapp_meeting_reminders(meetings=None):
     """Sends whatsapp reminders for people 90 minutes before their meetings.
 
