@@ -3,8 +3,10 @@ import datetime
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import signals
+from tags import models as tags_models
 from users import services as users_services
 
 
@@ -61,9 +63,10 @@ def send_analytics_for_meeting_config_creation(sender, instance, created, *args,
 
 @receiver(signals.create_new_meeting_preference_typeform)
 def create_meeting_preference_for_typeform_user(sender, user, time_preferences, interests, days, *args, **kwargs):
-    clean_time_preference = []
+
+    clean_time_preferences = []
     for time_preference in time_preferences:
-        clean_time_preference.append(_clean_time_preference(time_preference))
+        clean_time_preferences.append(_clean_time_preference(time_preference))
 
     meeting_config = models.MeetingConfig.objects.filter(
         is_active=False
@@ -72,11 +75,47 @@ def create_meeting_preference_for_typeform_user(sender, user, time_preferences, 
     start_date = meeting_config.week_start_date
     end_date = meeting_config.week_end_date
 
-    for time_preference in time_preferences:
-        start, end = time_preference.split('-')
-        start = int(start.strip()) + 12
-        end = int(end.strip()) + 12
-        start_time, end_time = datetime.time(start), datetime.time(end)
+    end_date_weekday = end_date.weekday()
+
+    dates = []
+    for day in days:
+        if day == 'Thursday':
+            day_weekday = 3
+        else:
+            day_weekday = 4
+
+        date_diff = end_date_weekday - day_weekday
+        date = end_date - datetime.timedelta(days=date_diff)
+        dates.append(date)
+
+    user_time_slots = []
+
+    for date in dates:
+        for time_preference in clean_time_preferences:
+            print(time_preference)
+            start, end = time_preference.split('-')
+            start = int(start.strip()) + 12
+            end = int(end.strip()) + 12
+            start_time, end_time = datetime.time(start), datetime.time(end)
+            time_slot, _ = models.TimeSlot.objects.get_or_create(
+                date=date,
+                start_time=start_time,
+                end_time=end_time
+            )
+            user_time_slots.append(time_slot)
+
+    meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
+        meeting=meeting_config,
+        user=user,
+        objective=choices.OBJECTIVE_CHOICES[0][0]
+    )
+    interests = tags_models.Interests.objects.filter(
+        name__in=interests
+    )
+    for interest in interests or []:
+        meeting_preference.interests.add(interest)
+    for slot in user_time_slots or []:
+        meeting_preference.time_slots.add(slot)
 
 
 REMOVE_CHARS = ['PM', 'pm', 'Pm', 'pM', 'p.m.']

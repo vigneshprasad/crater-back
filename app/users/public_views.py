@@ -22,9 +22,6 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'source': 'https://worknetwork.typeform.com/to/' + form['form_id']
         }
 
-        import pprint
-        pprint.pprint(answers)
-
         for i in range(len(fields)):
             if fields[i]['ref'] == 'full_name':
                 user['name'] = answers[i]['text']
@@ -51,9 +48,8 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     user['time_preferences'].append(preference)
             elif fields[i]['ref'] == 'time_preferences':
                 user['time_preferences'].append(answers[i]['choice']['label'])
-        pprint.pprint(user)
 
-        if user['email']:
+        if not user['email']:
             return Response({'status':'No email exists'})
         else:
             user_obj, _ = create_user_and_profile(
@@ -64,7 +60,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 interests=user['interests'],
                 source=user['source']
             )
-            signals.create_new_meeting_preference_typeform(
+            signals.create_new_meeting_preference_typeform.send(
                 sender=None,
                 user=user_obj,
                 time_preferences=user['time_preferences'],
