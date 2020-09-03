@@ -92,7 +92,6 @@ def create_meeting_preference_for_typeform_user(sender, user, time_preferences, 
 
     for date in dates:
         for time_preference in clean_time_preferences:
-            print(time_preference)
             start, end = time_preference.split('-')
             start = int(start.strip()) + 12
             end = int(end.strip()) + 12
