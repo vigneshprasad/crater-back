@@ -105,7 +105,6 @@ def create_user_and_profile(
             email=email,
             username=username,
             phone_number=phone_number,
-            new_phone_number=phone_number,
             name=full_name,
             source=source
         )
