@@ -216,6 +216,7 @@ def send_whatsapp_meeting_reminders(meetings=None):
 
     start_time = (now_time + datetime.timedelta(minutes=75)).time()
     end_time = (now_time + datetime.timedelta(minutes=90)).time()
+    # Getting date for the estimated start_time of the meeting.
     date = (now_time + datetime.timedelta(minutes=90)).date()
 
     meetings = models.Meeting.objects.filter(
@@ -226,12 +227,9 @@ def send_whatsapp_meeting_reminders(meetings=None):
         time_slot__start_time__lte=end_time
     ) if not meetings else meetings
 
-    logging.info(
-        'Sending Meeting Reminders for meeting between {} - {}'.format(
-            start_time, end_time
-        ),
-        extra={"meeting_ids": [meeting.pk for meeting in meetings]}
-    )
+    logging.info("Sending reminders for meetings between {} - {}. Meetings count: {}".format(
+            start_time, end_time, meetings.count()
+    ))
 
     for meeting in meetings:
         for participant in meeting.participants.all():
@@ -252,10 +250,5 @@ def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
     """
     users = services.get_opted_in_user_for_meetings() if not users else users
     # Logging info for users we are sending this to.
-    logging.info(
-        'Sending Opt In messages to {} Users'.format(
-            len(users)
-        ),
-        extra={"user_emails": [user.email for user in users]}
-    )
+    logging.info('Sending opt-in messages to {} users'.format(len(users)))
     freshchat_public.send_meeting_opt_in_messages(users)
