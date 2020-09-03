@@ -155,11 +155,13 @@ class MeetingConfig(base_model.BaseModel):
         )
 
     def clean(self):
-        # Check is end date is greater than start date.
-        if self.week_start_date >= self.week_end_date:
-            raise ValidationError('Week start should be lesser than Week end.')
+        if not self.week_start_date:
+            raise ValidationError('Week start date is required.')
+        if not self.week_end_date:
+            raise ValidationError('Week end date is required.')
 
-        # TODO: Add a validation for meeting in the same duration.
+        if self.week_start_date >= self.week_end_date:
+            raise ValidationError('Week start should be lesser than week end.')
 
     def close_meeting(self):
         self.is_registration_open = False

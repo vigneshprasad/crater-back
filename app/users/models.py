@@ -182,7 +182,8 @@ class User(AbstractUser):
                         merge_vars=data)
 
     def get_phone_number(self):
-        return self.phone_number.as_e164 if self.phone_number else self.new_phone_number.as_e164
+        """Returns phone number string if present."""
+        return self.phone_number.as_e164 if self.phone_number else None
 
     @property
     def has_profile(self):

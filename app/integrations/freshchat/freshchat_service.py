@@ -1,7 +1,6 @@
 import logging
 
 import requests
-import sentry_sdk
 from json import JSONDecodeError
 
 from celery import shared_task
@@ -54,6 +53,43 @@ class FreshChatWhatsappService:
             "code": "en"
         }
 
+    @staticmethod
+    def _can_create_user(user):
+        """Checks if we can create the user on FreshChat based
+            on the data we have on our side for the User.
+
+        Args:
+            user(User): User object being created on Freshchat.
+
+        """
+        if not user.profile:
+            return False
+
+        if not user.get_phone_number():
+            return False
+
+        return True
+
+    @staticmethod
+    def _can_send_message_to_user(user):
+        """Checks if we can send messages to User based
+            on the data provided by the user.
+
+        Args:
+            user(User): User we are sending messages to.
+
+        """
+        if not user.has_profile:
+            return False
+
+        if not user.get_phone_number():
+            return False
+
+        if not user.profile.opted_in_for_whatsapp:
+            return False
+
+        return True
+
     def get_user_details(self, user):
         """Get user details on Freshchat.
 
@@ -88,6 +124,9 @@ class FreshChatWhatsappService:
         # Added a Test {name} for testing environments.
         first_name = "Test {}".format(user.name) \
             if settings.ENVIRONMENT == settings.ENVIRONMENT_PREPROD else user.name
+
+        if not self._can_create_user(user):
+            return False
 
         data = {
             "email": user.email,
@@ -204,8 +243,8 @@ class FreshChatWhatsappService:
 
         """
 
-        if not user.profile.opted_in_for_whatsapp:
-            return True
+        if not self._can_send_message_to_user(user):
+            return False
 
         data = {
             "from": {"phone_number": self.from_phone_number},
@@ -270,6 +309,8 @@ freshchat_whatsapp_service = FreshChatWhatsappService(
 
 @shared_task
 def _get_and_process_outbound_message_after_delay(user_pk, request_id):
+    if not (user_pk and request_id):
+        return False
     user = get_user_model().objects.get(pk=user_pk)
     get_response_json = freshchat_whatsapp_service.get_outbound_message(
         request_id=request_id

@@ -40,6 +40,7 @@ def create_users_on_freshchat(users=None):
     logging.info("Count of users without freshchat: {}".format(
         users_without_freshchat_user.count()
     ))
+
     for user in users:
         if not user.has_profile:
             continue

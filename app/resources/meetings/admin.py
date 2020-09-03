@@ -52,7 +52,7 @@ class UserMeetingPreference(ModelAdmin):
 class Meeting(ModelAdmin):
     list_display = ('id', 'meeting_participants', 'time_slot', 'is_canceled')
     search_fields = ('participants__email', )
-    list_filter = ('is_canceled', )
+    list_filter = ('is_canceled', 'time_slot__start_time')
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
     @staticmethod
