@@ -30,7 +30,7 @@ class MeetingConfigAdmin(ModelAdmin):
 
 @register(models.UserMeetingPreference)
 class UserMeetingPreference(ModelAdmin):
-    list_display = ('id', 'user', 'number_of_meetings', 'objective', 'user_interests', 'user_time_slots')
+    list_display = ('id', 'user', 'number_of_meetings', 'objective', 'meeting', 'user_interests', 'user_time_slots')
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
     @staticmethod
@@ -45,7 +45,7 @@ class UserMeetingPreference(ModelAdmin):
         time_slots = obj.time_slots.all()
         if not time_slots:
             return "No Time Slots Selected."
-        return ['{} - {}'.format(time_slot.start_time, time_slot.end_time) for time_slot in time_slots]
+        return [time_slot.get_display_time() for time_slot in time_slots]
 
 
 @register(models.Meeting)

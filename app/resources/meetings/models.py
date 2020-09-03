@@ -132,7 +132,7 @@ class MeetingConfig(base_model.BaseModel):
     )
 
     def __str__(self):
-        return 'Meeting Config {} ({} - {})'.format(
+        return '{} - {} to {}'.format(
             self.pk,
             self.get_display_week_start_date(),
             self.get_display_week_end_date()
