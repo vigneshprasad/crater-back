@@ -21,3 +21,11 @@ new_meeting_config_created = Signal(providing_args=[
     "registration_end_date",
     "time_slots",
 ])
+
+
+create_new_meeting_preference_typeform = Signal(providing_args=[
+    "user",
+    "time_preferences",
+    "interests",
+    "days"
+])
