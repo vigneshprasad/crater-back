@@ -50,7 +50,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 user['time_preferences'].append(answers[i]['choice']['label'])
 
         if not user['email']:
-            return Response({'status':'No email exists'})
+            return Response({'status': 'No email exists'})
         else:
             user_obj, _ = create_user_and_profile(
                 full_name=user['name'],
@@ -60,6 +60,10 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 interests=user['interests'],
                 source=user['source']
             )
+
+            if not user['meeting_days']:
+                user['meeting_days'] = ['Thursday', 'Friday']
+
             signals.create_new_meeting_preference_typeform.send(
                 sender=None,
                 user=user_obj,
