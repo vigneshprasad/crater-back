@@ -62,7 +62,9 @@ def send_analytics_for_meeting_config_creation(sender, instance, created, *args,
 
 
 @receiver(signals.create_new_meeting_preference_typeform)
-def create_meeting_preference_for_typeform_user(sender, user, time_preferences, interests, days, *args, **kwargs):
+def create_meeting_preference_for_typeform_user(
+        sender, user, time_preferences, interests, days, objective, *args, **kwargs
+):
 
     clean_time_preferences = []
     for time_preference in time_preferences:
@@ -71,6 +73,11 @@ def create_meeting_preference_for_typeform_user(sender, user, time_preferences, 
     meeting_config = models.MeetingConfig.objects.filter(
         is_active=False
     ).last()
+
+    objective_value = choices.OBJECTIVE_CHOICES[0][0]
+    for key, value in choices.OBJECTIVE_CHOICES:
+        if value == objective:
+            objective_value = objective
 
     start_date = meeting_config.week_start_date
     end_date = meeting_config.week_end_date
@@ -106,7 +113,7 @@ def create_meeting_preference_for_typeform_user(sender, user, time_preferences, 
     meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
         meeting=meeting_config,
         user=user,
-        objective=choices.OBJECTIVE_CHOICES[0][0]
+        objective=objective_value
     )
     interests = tags_models.Interests.objects.filter(
         name__in=interests
