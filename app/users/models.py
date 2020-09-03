@@ -183,7 +183,11 @@ class User(AbstractUser):
 
     def get_phone_number(self):
         """Returns phone number string if present."""
-        return self.phone_number.as_e164 if self.phone_number else None
+        if not self.phone_number:
+            return None
+
+        return self.phone_number \
+            if isinstance(self.phone_number, str) else self.phone_number.as_e164
 
     @property
     def has_profile(self):
