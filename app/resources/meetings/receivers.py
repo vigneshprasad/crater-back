@@ -74,10 +74,10 @@ def create_meeting_preference_for_typeform_user(
         is_active=False
     ).last()
 
-    objective_value = choices.OBJECTIVE_CHOICES[0][0]
+    objective_key = choices.OBJECTIVE_CHOICES[0][0]
     for key, value in choices.OBJECTIVE_CHOICES:
         if value == objective:
-            objective_value = objective
+            objective_key = key
 
     start_date = meeting_config.week_start_date
     end_date = meeting_config.week_end_date
@@ -113,7 +113,7 @@ def create_meeting_preference_for_typeform_user(
     meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
         meeting=meeting_config,
         user=user,
-        objective=objective_value
+        objective=objective_key
     )
     interests = tags_models.Interests.objects.filter(
         name__in=interests
