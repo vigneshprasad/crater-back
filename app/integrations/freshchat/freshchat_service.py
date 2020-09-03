@@ -80,9 +80,15 @@ class FreshChatWhatsappService:
 
         """
         if not user.has_profile:
+            logging.error("Message not sent for {}. No profile".format(
+                user.email
+            ))
             return False
 
         if not user.get_phone_number():
+            logging.error("Message not sent for {}. No Phone Number".format(
+                user.email
+            ))
             return False
 
         if not user.profile.opted_in_for_whatsapp:
