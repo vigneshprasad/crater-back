@@ -307,6 +307,7 @@ freshchat_whatsapp_service = FreshChatWhatsappService(
 )
 
 
+# ------ Private Functions ------ #
 @shared_task
 def _get_and_process_outbound_message_after_delay(user_pk, request_id):
     if not (user_pk and request_id):
