@@ -124,7 +124,7 @@ def create_meeting_preference_for_typeform_user(
         meeting_preference.time_slots.add(slot)
 
 
-REMOVE_CHARS = ['PM', 'pm', 'Pm', 'pM', 'p.m.']
+REMOVE_CHARS = ['PM', 'pm', 'Pm', 'pM', 'p.m.', 'p.m', 'P.M.', 'P.M', 'P.m.', 'P.m']
 
 
 def _clean_time_preference(time_preference):
