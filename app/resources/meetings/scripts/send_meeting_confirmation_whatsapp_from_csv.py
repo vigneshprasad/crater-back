@@ -1,4 +1,3 @@
-import csv
 import datetime
 
 from users import models as user_models
@@ -6,17 +5,15 @@ from integrations.freshchat import public as freshchat_public
 
 
 def run(
-        file_name='/app/resources/meetings/data/meeting_confirmation_data.csv',
+        list_users=[],
         dry_run=True
 ):
-    reader = csv.DictReader(open(file_name))
     data = []
 
-    for row in reader:
+    for obj in list_users:
         print('Start', '-' * 80)
-        row = dict(row)
-        email = row.get('Email Address').strip()
-        time = row.get('Meeting')
+        email = obj["email"].strip()
+        time = obj["meeting"]
         datetime_obj = datetime.datetime.strptime(time, '%d/%m/%Y, %H:%M')
 
         try:

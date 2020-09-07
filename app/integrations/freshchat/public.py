@@ -39,7 +39,7 @@ def send_meeting_confirmation_messages(user_timing_list):
             template_name=constants.MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE,
             template_data=[
                 {"data": item['user'].name.title()},
+                {"data": time},
                 {"data": date},
-                {"data": time}
             ]
         )
