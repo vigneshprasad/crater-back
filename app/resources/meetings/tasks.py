@@ -252,16 +252,3 @@ def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
     # Logging info for users we are sending this to.
     logging.info('Sending opt-in messages to {} users'.format(len(users)))
     freshchat_public.send_meeting_opt_in_messages(users)
-
-
-def send_whatsapp_meeting_confirmation(user_timing_list=[]):
-    """Sends whatsapp messages for meeting confirmations."""
-    if len(user_timing_list) > 1:
-        return
-    logging.info(
-        'Sending meeting confirmation to {} Users'.format(
-            len(user_timing_list)
-        ),
-        extra={"user_emails": [user['user'].email for user in user_timing_list]}
-    )
-    freshchat_public.send_meeting_confirmation_messages(user_timing_list)

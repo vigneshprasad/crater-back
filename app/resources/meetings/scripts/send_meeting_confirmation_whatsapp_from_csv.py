@@ -1,7 +1,7 @@
 import datetime
 
 from users import models as user_models
-from integrations.freshchat import public as freshchat_public
+from integrations.freshchat import freshchat_service, constants
 
 
 def run(
@@ -35,4 +35,21 @@ def run(
     print('Total Users: {}'.format(len(data)))
 
     if not dry_run and len(data) > 0:
-        freshchat_public.send_meeting_confirmation_messages(data)
+        _send_meeting_confirmation_messages(data)
+
+
+def _send_meeting_confirmation_messages(user_timing_list):
+    """Send whatsapp message to user for meeting confirmation."""
+    print(user_timing_list)
+    for item in user_timing_list:
+        date = item['slot'].strftime('%a, %d %b %Y')
+        time = item['slot'].strftime('%I: %M %p')
+        freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+            user=item['user'],
+            template_name=constants.MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE,
+            template_data=[
+                {"data": item['user'].name.title()},
+                {"data": time},
+                {"data": date},
+            ]
+        )
