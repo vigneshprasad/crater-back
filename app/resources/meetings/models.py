@@ -89,14 +89,16 @@ class MeetingTimeSlot(base_model.BaseModel):
             self.date.strftime('%B')
         )
 
-    def get_display_time(self):
+    def get_display_time(self, join="to"):
+        return '{} {} {}'.format(self.get_display_start_time(), join, self.get_display_end_time())
+
+    def get_display_start_time(self):
         start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
+        return start_time.strftime("%I:%M %p")
+
+    def get_display_end_time(self):
         end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
-
-        display_start_time = start_time.strftime("%I:%M %p")
-        display_end_time = end_time.strftime("%I:%M %p")
-
-        return '{} to {}'.format(display_start_time, display_end_time)
+        return end_time.strftime("%I:%M %p")
 
     def __str__(self):
         return self.get_display()
@@ -129,12 +131,37 @@ class MeetingConfig(base_model.BaseModel):
         choices=choices.MEETING_TYPE_CHOICES
     )
 
-    def clean(self):
-        # Check is end date is greater than start date.
-        if self.week_start_date >= self.week_end_date:
-            raise ValidationError('Week start should be lesser than Week end.')
+    def __str__(self):
+        return '{} - {} to {}'.format(
+            self.pk,
+            self.get_display_week_start_date(),
+            self.get_display_week_end_date()
+        )
 
-        # TODO: Add a validation for meeting in the same duration.
+    def get_display_week_start_date(self):
+        return '{}, {} {}, {}'.format(
+            self.week_start_date.strftime('%A'),
+            str(self.week_start_date.day),
+            self.week_end_date.strftime('%B'),
+            self.week_start_date.year
+        )
+
+    def get_display_week_end_date(self):
+        return '{}, {} {}, {}'.format(
+            self.week_end_date.strftime('%A'),
+            str(self.week_end_date.day),
+            self.week_end_date.strftime('%B'),
+            self.week_end_date.year
+        )
+
+    def clean(self):
+        if not self.week_start_date:
+            raise ValidationError('Week start date is required.')
+        if not self.week_end_date:
+            raise ValidationError('Week end date is required.')
+
+        if self.week_start_date >= self.week_end_date:
+            raise ValidationError('Week start should be lesser than week end.')
 
     def close_meeting(self):
         self.is_registration_open = False
@@ -201,4 +228,8 @@ class Meeting(base_model.BaseModel):
         verbose_name=_('Meeting Time Slot'),
         on_delete=models.CASCADE,
         related_name='meetings'
+    )
+    is_canceled = models.BooleanField(
+        default=False,
+        verbose_name=_('Canceled')
     )

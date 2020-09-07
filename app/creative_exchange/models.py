@@ -62,14 +62,19 @@ class ExchangeRequest(TimeStampedModel):
         default=False,
         verbose_name=_('Project Completion')
     )
+    # TODO: Deprecated will be removed in future
     cover_image = models.ImageField(
         upload_to='exchange_request/cover/%Y/%m/%d/',
         verbose_name=_('Cover'),
-        null=True
+        null=True,
+        blank=True
     )
+    # TODO: Deprecated will be removed in future
     description = models.TextField(
         max_length=800,
-        verbose_name=_('Description')
+        verbose_name=_('Description'),
+        null=True,
+        blank=True
     )
     special_requirement = models.TextField(
         max_length=800,
@@ -77,6 +82,7 @@ class ExchangeRequest(TimeStampedModel):
         null=True,
         blank=True
     )
+    # TODO: Deprecated will be removed in future
     additional_information = models.TextField(
         max_length=800,
         verbose_name=_('Additional Information'),

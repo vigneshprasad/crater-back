@@ -227,6 +227,7 @@ def get_active_meetings(start_date=None, end_date=None):
 
     return models.Meeting.objects.filter(
         meeting_config__is_active=True,
+        is_canceled=False,
         time_slot__date__gte=start_date,
         time_slot__date__lte=end_date,
     )
@@ -246,8 +247,10 @@ def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
     meeting_preference_user_ids = models.UserMeetingPreference.objects.filter(
         meeting__type=meeting_type
     ).values_list('user_id', flat=True)
+
     # Creating a set.
     user_ids = set(meeting_preference_user_ids)
+
     meeting_user_ids = models.Meeting.objects.filter(
         meeting_config__type=meeting_type
     ).values_list('participants', flat=True)

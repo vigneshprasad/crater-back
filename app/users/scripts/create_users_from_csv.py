@@ -17,7 +17,7 @@ user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
 
 
 def run(
-        file_name='/app/users/data/users_data_1.csv',
+        file_name='/app/users/data/users_data_2.csv',
         dry_run=True
 ):
 
@@ -105,7 +105,6 @@ def create_user_and_profile(
             email=email,
             username=username,
             phone_number=phone_number,
-            new_phone_number=phone_number,
             name=full_name,
             source=source
         )
