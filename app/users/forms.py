@@ -9,6 +9,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
+from tags import models as tags_models
 from users.models import Admin, Profile
 from utils.fields import CachedMaterialAdminFileWidget
 
@@ -42,6 +43,14 @@ class AdminCreationForm(GroupMixin, UserCreationForm):
 
 class UserForm(GroupMixin, UserChangeForm):
     groups = GroupModelChoiceField(queryset=Group.objects.filter(name__in=['User', 'Investor']))
+    city = forms.ModelChoiceField(
+        queryset=tags_models.CityProxy.objects.all(),
+        required=False
+    )
+    objectives = forms.ModelMultipleChoiceField(
+        queryset=tags_models.Objective.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = get_user_model()
@@ -110,6 +119,15 @@ class AdminPasswordResetForm(PasswordResetForm):
 
 class ProfileForm(forms.ModelForm):
     photo = forms.ImageField(widget=CachedMaterialAdminFileWidget, required=False)
+    interests = forms.ModelMultipleChoiceField(
+        queryset=tags_models.Interests.objects.all(),
+        required=False
+    )
+    tags = forms.ModelMultipleChoiceField(
+        queryset=tags_models.Tag.objects.all(),
+        required=False
+    )
+    name = forms.CharField(max_length=100, required=False)
 
     class Meta:
         model = Profile

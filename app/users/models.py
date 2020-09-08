@@ -40,6 +40,7 @@ class User(AbstractUser):
         'tags.CityProxy',
         verbose_name=_('City'),
         null=True,
+        blank=True,
         related_name='users',
         on_delete=models.SET_NULL
     )
