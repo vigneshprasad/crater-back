@@ -328,5 +328,7 @@ def send_1_on_1_feedback_emails(meetings=None):
                 template_name=template_name,
                 content={},
                 from_email=from_email,
-                merge_vars={}
+                merge_vars={
+                    to: {'email': to}
+                }
             )
