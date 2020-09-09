@@ -275,3 +275,58 @@ def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
     # Logging info for users we are sending this to.
     logging.info('Sending opt-in messages to {} users'.format(len(users)))
     freshchat_public.send_meeting_opt_in_messages(users)
+
+
+@periodic_task(run_every=crontab(minute='*/15'))
+def send_1_on_1_feedback_emails(meetings=None):
+    """Sends whatsapp reminders for people 90 minutes before their meetings.
+
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to send this
+            reminder to. Added for testing.
+
+    """
+    now_time = datetime.datetime.now()
+
+    start_time = (now_time - datetime.timedelta(minutes=75)).time()
+    end_time = (now_time - datetime.timedelta(minutes=90)).time()
+    # Getting date for the estimated start_time of the meeting.
+    date = (now_time - datetime.timedelta(minutes=90)).date()
+
+    meetings = models.Meeting.objects.filter(
+        meeting_config__is_active=True,
+        is_canceled=False,
+        time_slot__date=date,
+        time_slot__start_time__gt=start_time,
+        time_slot__start_time__lte=end_time
+    ) if not meetings else meetings
+
+    logging.info("Sending feedback emails for meetings between {} - {}. Meetings count: {}".format(
+            start_time, end_time, meetings.count()
+    ))
+
+    for meeting in meetings:
+        if not meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+            continue
+
+        p1 = meeting.participants.all()[0]
+        p2 = meeting.participants.all()[1]
+
+        # Checking if profile exists.
+        subject = 'How was your 1:1 meeting?'
+
+        to_emails = [p1.email, p2.email]
+        from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+
+        template_name = choices.ONE_ON_ONE_FEEDBACK_EMAIL_TEMPLATE
+
+        # Sending the emails.
+        for to in to_emails:
+            p1.send_email(
+                subject=subject,
+                to=[to],
+                template_name=template_name,
+                content={},
+                from_email=from_email,
+                merge_vars={}
+            )
