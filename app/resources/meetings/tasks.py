@@ -213,15 +213,15 @@ def send_active_meetings_data_to_analytics(meetings=None):
     meetings = meetings if meetings else services.get_active_meetings()
     for meeting in meetings:
         participants = meeting.participants.all()
-        participants_emails = participants.values_list('email', flat=True)
+        participants_emails = list(participants.values_list('email', flat=True))
         for participant in meeting.participants.all():
-            signals.new_meeting_created(
+            signals.new_meeting_created.send(
                 sender=meeting.__class__,
                 user=participant,
-                time_slot=meeting.time_slot.__str__,
+                time_slot=meeting.time_slot.__str__(),
                 participants=participants_emails,
-                meeting_config=meeting.meeting_config.__str__,
-                meeting_link=meeting.meeting_config
+                meeting_config=meeting.meeting_config.__str__(),
+                meeting_link=meeting.link
             )
 
 
