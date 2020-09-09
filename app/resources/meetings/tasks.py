@@ -289,10 +289,10 @@ def send_1_on_1_feedback_emails(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    start_time = (now_time - datetime.timedelta(minutes=90)).time()
-    end_time = (now_time - datetime.timedelta(minutes=75)).time()
-    # Getting date for the estimated start_time of the meeting.
-    date = (now_time - datetime.timedelta(minutes=90)).date()
+    start_time = (now_time - datetime.timedelta(minutes=105)).time()
+    end_time = (now_time - datetime.timedelta(minutes=90)).time()
+    # Getting date for the estimated end_time of the meeting.
+    date = (now_time - datetime.timedelta(minutes=105)).date()
 
     meetings = models.Meeting.objects.filter(
         meeting_config__is_active=True,
