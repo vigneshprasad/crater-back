@@ -279,7 +279,8 @@ def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
 
 @periodic_task(run_every=crontab(minute='*/15'))
 def send_1_on_1_feedback_emails(meetings=None):
-    """Sends whatsapp reminders for people 90 minutes before their meetings.
+    """Send feedback mails for 1:1 meetings after 90 minutes of the
+        meeting.
 
     Args:
         meetings(Meeting queryset): Queryset of meeting you want to send this
@@ -288,8 +289,8 @@ def send_1_on_1_feedback_emails(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    start_time = (now_time - datetime.timedelta(minutes=75)).time()
-    end_time = (now_time - datetime.timedelta(minutes=90)).time()
+    start_time = (now_time - datetime.timedelta(minutes=90)).time()
+    end_time = (now_time - datetime.timedelta(minutes=75)).time()
     # Getting date for the estimated start_time of the meeting.
     date = (now_time - datetime.timedelta(minutes=90)).date()
 
@@ -297,8 +298,8 @@ def send_1_on_1_feedback_emails(meetings=None):
         meeting_config__is_active=True,
         is_canceled=False,
         time_slot__date=date,
-        time_slot__start_time__gt=start_time,
-        time_slot__start_time__lte=end_time
+        time_slot__end_time__gt=start_time,
+        time_slot__end_time__lte=end_time
     ) if not meetings else meetings
 
     logging.info("Sending feedback emails for meetings between {} - {}. Meetings count: {}".format(
