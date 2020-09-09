@@ -18,7 +18,7 @@ FIELDS = [
 
 
 def run(
-        file_name='/app/resources/meetings/data/meeting_data_week_10.csv',
+        file_name='/app/resources/meetings/data/meeting_data_week_11.csv',
         dry_run=True
 ):
     reader = csv.DictReader(open(file_name))
