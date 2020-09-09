@@ -67,7 +67,7 @@ def email_verified_track(sender, email_address, **kwargs):
 
 @receiver(agreement_filled)
 def agreement_filled_track(sender, user, **kwargs):
-    event=AGREEMENT_FILLED
+    event = AGREEMENT_FILLED
     analytics_track_properties={
         'city': str(user.city),
         'email': user.email,
@@ -93,20 +93,20 @@ def basic_profile_track(sender, user, request, response, **kwargs):
     for tag in tag_list:
         tags.append(tag['name'])
     analytics_track_properties['tags'] = tags
-    event=BASIC_PROFILE_CREATED
+    event = BASIC_PROFILE_CREATED
     analytics_track(user, event, analytics_track_properties)
 
 
 @receiver(service_created)
 def service_created_track(sender, user, request, response, **kwargs):
-    event=SERVICES_CREATION
+    event = SERVICES_CREATION
     analytics_track_properties=response.data
     analytics_track(user, event, analytics_track_properties)
 
 
 @receiver(phone_number_verified)
 def phone_number_verified_track(sender, user, request, **kwargs):
-    event=PHONE_NUMBER_VERIFIED
+    event = PHONE_NUMBER_VERIFIED
     analytics_track_properties={
         'phone': str(request.user.new_phone_number)
     }
