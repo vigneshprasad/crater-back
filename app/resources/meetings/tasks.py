@@ -298,8 +298,8 @@ def send_1_on_1_feedback_emails(meetings=None):
         meeting_config__is_active=True,
         is_canceled=False,
         time_slot__date=date,
-        time_slot__end_time__gt=start_time,
-        time_slot__end_time__lte=end_time
+        time_slot__end_time__gte=start_time,
+        time_slot__end_time__lt=end_time
     ) if not meetings else meetings
 
     logging.info("Sending feedback emails for meetings between {} - {}. Meetings count: {}".format(
