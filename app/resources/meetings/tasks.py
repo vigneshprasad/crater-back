@@ -10,6 +10,7 @@ from integrations.freshchat import public as freshchat_public
 from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import services
+from resources.meetings import signals
 
 
 # @periodic_task(run_every=crontab(day_of_week='sunday', hour='19', minute='00'))
@@ -199,6 +200,28 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 content={},
                 from_email=from_email,
                 merge_vars=data
+            )
+
+
+def send_active_meetings_data_to_analytics(meetings=None):
+    """Sending active meeting data to Analytics platforms.
+
+    Args:
+        meetings(list/queryset): Meeting object queryset.
+
+    """
+    meetings = meetings if meetings else services.get_active_meetings()
+    for meeting in meetings:
+        participants = meeting.participants.all()
+        participants_emails = participants.values_list('email', flat=True)
+        for participant in meeting.participants.all():
+            signals.new_meeting_created(
+                sender=meeting.__class__,
+                user=participant,
+                time_slot=meeting.time_slot.__str__,
+                participants=participants_emails,
+                meeting_config=meeting.meeting_config.__str__,
+                meeting_link=meeting.meeting_config
             )
 
 

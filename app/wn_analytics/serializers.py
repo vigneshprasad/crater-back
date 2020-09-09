@@ -12,6 +12,12 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     twitter = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
+    user_objectives = serializers.SerializerMethodField()
+    linkedin = serializers.SerializerMethodField(
+        source='profile.linkedin_url',
+        read_only=True,
+        allow_null=True
+    )
     # TODO(Nishant): Will reuse this code when Flutter app is released.
     # device_info = serializers.SerializerMethodField()
 
@@ -30,7 +36,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             'referer',
             'user_tags',
             'twitter',
-            'source'
+            'source',
+            'user_objectives'
             # 'device_info'
         )
 
@@ -77,4 +84,12 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             'os': device.get_os_info(),
             'device': device.get_device_info(),
             'device_type': device.type
+        }
+
+    @staticmethod
+    def get_user_objectives(user):
+        if not user.objectives.all():
+            return ''
+        return {
+            ','.join(objective.name for objective in user.objectives.all())
         }

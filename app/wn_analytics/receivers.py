@@ -126,7 +126,7 @@ def post_created_track(sender, user, post, **kwargs):
 
 @receiver(referred_friend)
 def referred_friend_track(sender, user, request, **kwargs):
-    event=REFERRED_FRIEND
+    event = REFERRED_FRIEND
     analytics_track_properties = {
         'referal_email':  request.data.get('email').strip(),
     }
@@ -152,6 +152,17 @@ def new_meeting_config_created_track(sender, user, **kwargs):
     kwargs.pop('signal')
 
     event = MEETING_CONFIG_CREATED
+    analytics_track_properties = kwargs
+
+    analytics_track(user, event, analytics_track_properties)
+
+
+@receiver(meetings_signals.new_meeting_created)
+def new_meeting_created_track(sender, user, **kwargs):
+    """Sending new meeting creations to Analytics."""
+    kwargs.pop('signal')
+
+    event = MEETING_CREATED
     analytics_track_properties = kwargs
 
     analytics_track(user, event, analytics_track_properties)
