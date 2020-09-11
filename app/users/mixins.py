@@ -2,6 +2,9 @@ from allauth.account.models import EmailAddress
 from django.contrib.auth import models as auth_models
 
 from . import models
+from . import choices
+
+from wn_analytics import models as wn_analytics_models
 
 
 class CheckDeviceMixin:
@@ -43,3 +46,31 @@ class CheckEmailMixin:
         if email and not self.user.email:
             self.user.email = email
             self.user.save()
+
+class SetIntentMixin:
+    serializer = None
+
+    def set_intent(self):
+        if self.user.intent:
+            return
+
+        intent = self.serializer.validated_data.get('intent', choices.INTENT_NETWORK)
+        self.user.intent = intent
+        self.user.save()
+
+
+class SetSourceMixin:
+    serializer = None
+
+    def set_source(self):
+        utm_source = self.serializer.validated_data.get('utm_source')
+        utm_campaign = self.serializer.validated_data.get('utm_campaign')
+        
+        if not (utm_source or utm_campaign):
+            return
+        
+        wn_analytics_models.UserSource.objects.create(
+            user=self.user,
+            utm_source=utm_source,
+            utm_campaign=utm_campaign
+        )

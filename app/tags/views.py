@@ -10,17 +10,22 @@ from users import permissions
 class TagViewSet(mixins.RetrieveModelMixin,
                  mixins.ListModelMixin,
                  viewsets.GenericViewSet):
-    queryset = models.Tag.objects.all().order_by(Lower('name'))
+    queryset = models.Tag.objects.filter(is_active=True).order_by(Lower('name'))
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.TagSerializer
 
 
 class ObjectiveViewSet(mixins.ListModelMixin,
                        mixins.RetrieveModelMixin,
-                       viewsets.GenericViewSet):
+                       viewsets.GenericViewSet):                       
     queryset = models.Objective.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ObjectiveSerializer
+
+    def get_queryset(self):
+        if not self.request.user:
+            return self.queryset
+        return models.Objective.objects.filter(intent=self.request.user.intent)
 
 
 class MasterClassViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

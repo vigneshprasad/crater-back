@@ -48,6 +48,14 @@ class User(AbstractUser):
         'tags.Objective',
         verbose_name=_('Objectives')
     )
+    intent = models.CharField(
+        verbose_name=_('Intent'), 
+        max_length=100,
+        null=True, 
+        blank=True,
+        choices=choices.INTENT_CHOICES,
+        default=choices.INTENT_NETWORK
+    )
     reason = models.CharField(
         max_length=400,
         verbose_name=_('Reason'),
