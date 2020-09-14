@@ -1,19 +1,25 @@
+import csv
 import datetime
+import urllib
 
 from users import models as user_models
 from integrations.freshchat import freshchat_service, constants
 
 
 def run(
-        list_users=[],
+        file_url="https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/meeting_confirmation_whatsapp.csv",
         dry_run=True
 ):
     data = []
 
-    for obj in list_users:
+    response = urllib.request.urlopen(file_url)
+    lines = [line.decode('utf-8') for line in response.readlines()]
+    reader = csv.DictReader(lines)
+
+    for row in reader:
         print('Start', '-' * 80)
-        email = obj["email"].strip()
-        time = obj["meeting"]
+        email = row["email"].strip()
+        time = row["meeting"]
         datetime_obj = datetime.datetime.strptime(time, '%d/%m/%Y, %H:%M')
 
         try:
@@ -40,7 +46,6 @@ def run(
 
 def _send_meeting_confirmation_messages(user_timing_list):
     """Send whatsapp message to user for meeting confirmation."""
-    print(user_timing_list)
     for item in user_timing_list:
         date = item['slot'].strftime('%a, %d %b %Y')
         time = item['slot'].strftime('%I: %M %p')
