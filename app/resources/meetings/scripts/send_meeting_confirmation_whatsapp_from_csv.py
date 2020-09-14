@@ -20,7 +20,7 @@ def run(
         print('Start', '-' * 80)
         email = row["email"].strip()
         time = row["meeting"]
-        datetime_obj = datetime.datetime.strptime(time, '%d/%m/%Y, %H:%M')
+        datetime_obj = datetime.datetime.strptime(time, '%d/%m/%Y %H:%M')
 
         try:
             user = user_models.User.objects.get(email=email)
@@ -48,7 +48,7 @@ def _send_meeting_confirmation_messages(user_timing_list):
     """Send whatsapp message to user for meeting confirmation."""
     for item in user_timing_list:
         date = item['slot'].strftime('%a, %d %b %Y')
-        time = item['slot'].strftime('%I: %M %p')
+        time = item['slot'].strftime('%I:%M %p')
         freshchat_service.freshchat_whatsapp_service.send_outbound_message(
             user=item['user'],
             template_name=constants.MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE,
