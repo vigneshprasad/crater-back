@@ -1,6 +1,6 @@
 import csv
 import datetime
-import urllib.request
+import urllib
 
 from resources.meetings import models
 from users import models as user_models
