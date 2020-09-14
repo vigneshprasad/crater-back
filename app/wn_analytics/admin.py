@@ -1,5 +1,5 @@
 from django.contrib.admin import register, ModelAdmin
-from .models import TrackLog, IdentifyLog
+from .models import TrackLog, IdentifyLog, UserSource
 
 @register(TrackLog)
 class TrackLogAdmin(ModelAdmin):
@@ -17,4 +17,14 @@ class IdentifyLogAdmin(ModelAdmin):
         'user',
     )
     search_fields = ['user']
+    readonly_fields = ['user']
+
+@register(UserSource)
+class UserSourceAdmin(ModelAdmin):
+    list_display = (
+        'user',
+        'utm_source',
+        'utm_campaign',
+    )
+    search_fields = ['user', 'utm_source', 'utm_campaign']
     readonly_fields = ['user']

@@ -1,6 +1,6 @@
 from rest_framework import mixins, viewsets
 from rest_framework.response import Response
-
+from resources.meetings import signals
 from services import serializers as service_serializers
 from users import permissions
 from users import models
@@ -15,37 +15,66 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         fields = form['definition']['fields']
         answers = form['answers']
         user = {
-            'email': form['hidden']['email'],
+            'email': form.get('hidden').get('email') if form.get('hidden') else None,
             'interests': [],
+            'time_preferences': [],
+            'meeting_days': [],
             'source': 'https://worknetwork.typeform.com/to/' + form['form_id']
         }
 
         for i in range(len(fields)):
             if fields[i]['ref'] == 'full_name':
                 user['name'] = answers[i]['text']
-
+            elif fields[i]['ref'] == 'email':
+                user['email'] = answers[i]['email']
             elif fields[i]['ref'] == 'phone_number':
                 user['phone_number'] = answers[i]['phone_number']
-
-            if fields[i]['ref'] == 'linkedin_url':
+            elif fields[i]['ref'] == 'meeting_days':
+                days = answers[i]['choice']['label']
+                if days == 'Both work':
+                    user['meeting_days'].append('Thursday')
+                    user['meeting_days'].append('Friday')
+                else:
+                    user['meeting_days'].append(days)
+            elif fields[i]['ref'] == 'linkedin_url':
                 user['linkedin_url'] = answers[i]['url']
-
-            if fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
+            elif fields[i]['ref'] == 'objective':
+                user['objective'] = answers[i]['choice']['label']
+            elif fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
                 for interest in answers[i]['choices']['labels']:
                     user['interests'].append(interest)
             elif fields[i]['ref'] == 'interests':
                 user['interests'].append(answers[i]['choice']['label'])
+            elif fields[i]['ref'] == 'time_preferences' and fields[i].get('allow_multiple_selections', False):
+                for preference in answers[i]['choices']['labels']:
+                    user['time_preferences'].append(preference)
+            elif fields[i]['ref'] == 'time_preferences':
+                user['time_preferences'].append(answers[i]['choice']['label'])
 
-        create_user_and_profile(
-            full_name=user['name'],
-            email=user['email'],
-            phone_number=user['phone_number'],
-            linkedin_url=user['linkedin_url'],
-            interests=user['interests'],
-            source=user['source']
-        )
+        if not user['email']:
+            return Response({'status': 'No email exists'})
+        else:
+            user_obj, _ = create_user_and_profile(
+                full_name=user['name'],
+                email=user['email'],
+                phone_number=user['phone_number'],
+                linkedin_url=user['linkedin_url'],
+                interests=user['interests'],
+                source=user['source']
+            )
 
-        return Response({'status': 'Success'})
+            if not user['meeting_days']:
+                user['meeting_days'] = ['Thursday', 'Friday']
+
+            signals.create_new_meeting_preference_typeform.send(
+                sender=None,
+                user=user_obj,
+                objective=user['objective'],
+                time_preferences=user['time_preferences'],
+                interests=user['interests'],
+                days=user['meeting_days']
+            )
+            return Response({'status': 'Success'})
 
 
 class InvestorsViewSet(mixins.ListModelMixin,
@@ -61,7 +90,6 @@ class InvestorsViewSet(mixins.ListModelMixin,
         is_approved=True,
         profile__public_profile=True
     ).order_by('name')
-
     permission_classes = [permissions.AllowAny]
     pagination_class = Pagination
     # serializer_class = serializers.ProfileSerializer

@@ -40,12 +40,21 @@ class User(AbstractUser):
         'tags.CityProxy',
         verbose_name=_('City'),
         null=True,
+        blank=True,
         related_name='users',
         on_delete=models.SET_NULL
     )
     objectives = models.ManyToManyField(
         'tags.Objective',
         verbose_name=_('Objectives')
+    )
+    intent = models.CharField(
+        verbose_name=_('Intent'), 
+        max_length=100,
+        null=True, 
+        blank=True,
+        choices=choices.INTENT_CHOICES,
+        default=choices.INTENT_NETWORK
     )
     reason = models.CharField(
         max_length=400,
@@ -180,6 +189,10 @@ class User(AbstractUser):
         self.send_email(subject='Password reset', to=[self.email],
                         template_name=choices.template_names.get('password_reset'), content={},
                         merge_vars=data)
+
+    def get_phone_number(self):
+        """Returns phone number string if present."""
+        return str(self.phone_number) if self.phone_number else None
 
     @property
     def has_profile(self):
@@ -537,6 +550,10 @@ class Profile(models.Model):
         'tags.Interests',
         verbose_name=_('Interests')
     )
+    opted_in_for_whatsapp = models.BooleanField(
+        default=True,
+        verbose_name=_('Whatsapp Messaging Enabled')
+    )
 
     class Meta:
         verbose_name = _('Profile')
@@ -552,6 +569,9 @@ class Profile(models.Model):
     def get_introduction(self):
         return (self.public_introduction
                 if self.public_introduction else self.introduction)
+
+    def get_photo_url(self):
+        return self.photo.url if self.photo else self.photo_url
 
 
 class Referral(TimeStampedModel):

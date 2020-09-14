@@ -195,7 +195,7 @@ class ExchangeQuoteSerializer(serializers.ModelSerializer):
     revisions = serializers.IntegerField(min_value=0, max_value=10)
     year_of_experience =  serializers.IntegerField(min_value=1, max_value=50)
     includes = serializers.CharField(max_length=2000, allow_blank=True)
-    additional_text = serializers.CharField(max_length=2000, allow_blank=True)
+    additional_text = serializers.CharField(max_length=2000, allow_blank=True, required=False)
     require = serializers.CharField(max_length=2000, allow_blank=True)
     exchange_request = serializers.PrimaryKeyRelatedField(queryset=models.ExchangeRequest.objects.all())
 

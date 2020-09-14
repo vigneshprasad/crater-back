@@ -1,12 +1,16 @@
 import datetime
+import logging
 from copy import copy
 
 from celery.schedules import crontab
 from celery.task import periodic_task
 from django.utils import timezone
 
-from resources.meetings import services
+from integrations.freshchat import public as freshchat_public
 from resources.meetings import choices
+from resources.meetings import models
+from resources.meetings import services
+from resources.meetings import signals
 
 
 # @periodic_task(run_every=crontab(day_of_week='sunday', hour='19', minute='00'))
@@ -156,6 +160,17 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 'linkedin_a': p1.profile.linkedin_url,
                 'linkedin_b': p2.profile.linkedin_url,
             },
+            choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION: {
+                'day': display_day,
+                'time': display_time,
+                'name_a': p1.name.title(),
+                'name_b': p2.name.title(),
+                'link': meeting.link,
+                'introduction_a': p1.profile.get_introduction(),
+                'introduction_b': p2.profile.get_introduction(),
+                'linkedin_a': p1.profile.linkedin_url,
+                'linkedin_b': p2.profile.linkedin_url,
+            }
         }
 
         # Checking if profile exists.
@@ -164,7 +179,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             p2.name.title()
         )
 
-        to_emails = [p1.email, p2.email]
+        to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
         from_email = choices.MEETINGS_INTRO_FROM_EMAIL
         # reply_to_emails is all to_emails plus the from_email.
         reply_to_emails = copy(to_emails)
@@ -185,4 +200,136 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 content={},
                 from_email=from_email,
                 merge_vars=data
+            )
+
+
+def send_active_meetings_data_to_analytics(meetings=None):
+    """Sending active meeting data to Analytics platforms.
+
+    Args:
+        meetings(list/queryset): Meeting object queryset.
+
+    """
+    meetings = meetings if meetings else services.get_active_meetings()
+    for meeting in meetings:
+        participants = meeting.participants.all()
+        participants_emails = list(participants.values_list('email', flat=True))
+        for participant in meeting.participants.all():
+            signals.new_meeting_created.send(
+                sender=meeting.__class__,
+                user=participant,
+                time_slot=meeting.time_slot.__str__(),
+                participants=participants_emails,
+                meeting_config=meeting.meeting_config.__str__(),
+                meeting_link=meeting.link
+            )
+
+
+# https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
+@periodic_task(run_every=crontab(minute='*/15'))
+def send_whatsapp_meeting_reminders(meetings=None):
+    """Sends whatsapp reminders for people 90 minutes before their meetings.
+
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to send this
+            reminder to. Added for testing.
+
+    """
+    now_time = datetime.datetime.now()
+
+    start_time = (now_time + datetime.timedelta(minutes=75)).time()
+    end_time = (now_time + datetime.timedelta(minutes=90)).time()
+    # Getting date for the estimated start_time of the meeting.
+    date = (now_time + datetime.timedelta(minutes=90)).date()
+
+    meetings = models.Meeting.objects.filter(
+        meeting_config__is_active=True,
+        is_canceled=False,
+        time_slot__date=date,
+        time_slot__start_time__gt=start_time,
+        time_slot__start_time__lte=end_time
+    ) if not meetings else meetings
+
+    logging.info("Sending reminders for meetings between {} - {}. Meetings count: {}".format(
+            start_time, end_time, meetings.count()
+    ))
+
+    for meeting in meetings:
+        for participant in meeting.participants.all():
+            freshchat_public.send_meeting_whatsapp_reminder_to_user(
+                participant,
+                meeting.time_slot.get_display_start_time()
+            )
+
+
+# @periodic_task(run_every=crontab(day_of_week='tuesday', hour='11', minute='00'))
+def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
+    """Sends whatsapp messages for opting in for next weeks meetings.
+
+    Args:
+        users(User queryset): Queryset of user you want to send this
+            message to. Added for testing.
+
+    """
+    users = services.get_opted_in_user_for_meetings() if not users else users
+    # Logging info for users we are sending this to.
+    logging.info('Sending opt-in messages to {} users'.format(len(users)))
+    freshchat_public.send_meeting_opt_in_messages(users)
+
+
+@periodic_task(run_every=crontab(minute='*/15'))
+def send_1_on_1_feedback_emails(meetings=None):
+    """Send feedback mails for 1:1 meetings after 90 minutes of the
+        meeting.
+
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to send this
+            reminder to. Added for testing.
+
+    """
+    now_time = datetime.datetime.now()
+
+    start_time = (now_time - datetime.timedelta(minutes=105)).time()
+    end_time = (now_time - datetime.timedelta(minutes=90)).time()
+    # Getting date for the estimated end_time of the meeting.
+    date = (now_time - datetime.timedelta(minutes=90)).date()
+
+    meetings = models.Meeting.objects.filter(
+        meeting_config__is_active=True,
+        is_canceled=False,
+        time_slot__date=date,
+        time_slot__end_time__gte=start_time,
+        time_slot__end_time__lt=end_time
+    ) if not meetings else meetings
+
+    logging.info("Sending feedback emails for meetings between {} - {}. Meetings count: {}".format(
+            start_time, end_time, meetings.count()
+    ))
+
+    for meeting in meetings:
+        if not meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+            continue
+
+        p1 = meeting.participants.all()[0]
+        p2 = meeting.participants.all()[1]
+
+        # Checking if profile exists.
+        subject = 'How was your 1:1 meeting?'
+
+        to_emails = [p1.email, p2.email]
+        from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+
+        template_name = choices.ONE_ON_ONE_FEEDBACK_EMAIL_TEMPLATE
+
+        # Sending the emails.
+        for to in to_emails:
+            p1.send_email(
+                subject=subject,
+                to=[to],
+                template_name=template_name,
+                content={},
+                from_email=from_email,
+                merge_vars={
+                    to: {'email': to}
+                }
             )

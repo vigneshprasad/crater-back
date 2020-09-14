@@ -165,18 +165,47 @@ def get_old_active_meeting_configs():
 
 def get_meeting_configs_with_open_registration():
     """
-    Closes registration for meeting config based on info
-    provided in the model. (registration_end_date)
+    Get meetings configs with open registration.
 
-    return:
+    Return:
+        Queryset of MeetingConfig object.
+
+    """
+    active_meeting_configs = get_active_meeting_configs()
+    if not active_meeting_configs:
+        return None
+    return active_meeting_configs.filter(
+        is_registration_open=True,
+        registration_end_date__lte=timezone.now().date()
+    )
+
+
+def get_active_meeting_configs():
+    """
+    Get active meeting configs.
+
+    Return:
         Queryset of MeetingConfig object.
 
     """
     return models.MeetingConfig.objects.filter(
-        end_date__gte=datetime.datetime.now().date(),
-        is_registration_opne=True,
-        registration_end_date__lt=timezone.now().date()
+        week_end_date__gte=datetime.datetime.now().date(),
+        is_active=True
     )
+
+
+def get_latest_active_meeting_config():
+    """
+    Get latest active meeting configs.
+
+    Return:
+        Queryset of MeetingConfig object.
+
+    """
+    active_meeting_configs = get_active_meeting_configs()
+    if not active_meeting_configs:
+        return None
+    return active_meeting_configs.last()
 
 
 def get_active_meetings(start_date=None, end_date=None):
@@ -191,13 +220,17 @@ def get_active_meetings(start_date=None, end_date=None):
         Queryset of Meeting object.
 
     """
+    latest_active_meeting_config = get_latest_active_meeting_config()
+    # Taking start and end date from the latest meeting config which is
+    # active.
     if not start_date:
-        start_date = timezone.now().date() + datetime.timedelta(days=1)
+        start_date = latest_active_meeting_config.week_start_date
     if not end_date:
-        end_date = start_date + datetime.timedelta(days=3)
+        end_date = latest_active_meeting_config.week_end_date
 
     return models.Meeting.objects.filter(
         meeting_config__is_active=True,
+        is_canceled=False,
         time_slot__date__gte=start_date,
         time_slot__date__lte=end_date,
     )
@@ -214,7 +247,17 @@ def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
         List of users opted in for the type of meeting.
 
     """
-    user_ids = models.UserMeetingPreference.objects.filter(
+    meeting_preference_user_ids = models.UserMeetingPreference.objects.filter(
         meeting__type=meeting_type
-    ).values_list('user_id')
-    return user_services.get_users_for_ids(user_ids)
+    ).values_list('user_id', flat=True)
+
+    # Creating a set.
+    user_ids = set(meeting_preference_user_ids)
+
+    meeting_user_ids = models.Meeting.objects.filter(
+        meeting_config__type=meeting_type
+    ).values_list('participants', flat=True)
+    # Updating the set with meeting_user_ids.
+    user_ids.update(meeting_user_ids)
+
+    return user_services.get_users_for_ids(list(user_ids))

@@ -9,18 +9,21 @@ from django.contrib.auth.models import Group
 from users import models
 from tags import models as tags_models
 
+FIELDS = ['Full Name', 'Email ID', 'Interests', 'Objectives', 'Introduction']
+
+default_objective = 'Meet Professionals & Founders'
 
 user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
 
 
 def run(
-        file_name='/app/users/data/users_data.csv',
+        file_name='/app/users/data/users_data_2.csv',
         dry_run=True
 ):
 
     reader = csv.DictReader(open(file_name))
     for row in reader:
-        print("Start", "*" * 80)
+        print("Start", "-" * 80)
 
         full_name = row.get('Full Name', '').strip()
         linkedin_url = _validate_url_and_return(row.get('Linkedin'))
@@ -31,6 +34,9 @@ def run(
         interests = [interest.strip() for interest in raw_interests]
         raw_objectives = row.get('Objectives', '').split(',')
         objectives = [objective.strip() for objective in raw_objectives]
+        raw_tags = row.get('Objectives', '').split(',')
+        tags = [tag.strip() for tag in raw_tags]
+        public_introduction = row.get('Introduction')
 
         if not full_name:
             print("Name not provided for the user: {}".format(email))
@@ -51,10 +57,12 @@ def run(
         print("Source: {}".format(user_source))
         print("Objectives: {}".format(objectives))
         print("Interests: {}".format(interests))
+        print("Tags: {}".format(tags))
         print("Linkedin Url: {}".format(linkedin_url))
+        print("Introduction: {}".format(public_introduction))
 
         if not dry_run:
-            user, profile = create_user_and_profile(
+            create_user_and_profile(
                 username=username,
                 full_name=full_name,
                 email=email,
@@ -62,10 +70,12 @@ def run(
                 objectives=objectives,
                 interests=interests,
                 linkedin_url=linkedin_url,
-                source=user_source
+                source=user_source,
+                tags=tags,
+                introduction=public_introduction
             )
 
-        print("End", "-"*80)
+        print("End", "-" * 80)
 
 
 def create_user_and_profile(
@@ -77,6 +87,8 @@ def create_user_and_profile(
         interests=None,
         objectives=None,
         source=None,
+        tags=None,
+        introduction=None
 ):
     user_created = False
 
@@ -93,7 +105,6 @@ def create_user_and_profile(
             email=email,
             username=username,
             phone_number=phone_number,
-            new_phone_number=phone_number,
             name=full_name,
             source=source
         )
@@ -119,7 +130,7 @@ def create_user_and_profile(
         )
 
     objectives = tags_models.Objective.objects.filter(
-        name='Meet Professionals & Founders'
+        name=default_objective
     ) if not objectives else objectives
 
     for objective in objectives:
@@ -132,6 +143,7 @@ def create_user_and_profile(
     profile_created = created
     profile.name = full_name
     profile.linkedin_url = linkedin_url
+    profile.public_introduction = introduction
     profile.save()
 
     # Adding Interests to Profile.
@@ -141,6 +153,14 @@ def create_user_and_profile(
         )
         for interest in interests:
             profile.interests.add(interest)
+
+    # Add tags to profile.
+    if tags:
+        tags = tags_models.Tag.objects.filter(
+            name__in=tags
+        )
+        for tag in tags:
+            profile.tags.add(tag)
 
     created_or_updated_user = 'Created' if user_created else 'Updated'
     print("{} user: {}".format(created_or_updated_user, user.pk))
