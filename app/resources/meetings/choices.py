@@ -13,7 +13,8 @@ DEFAULT_MEETING_TITLE = 'Meeting'
 DEFAULT_ONE_ON_ONE_MEETING_TITLE = '1:1 Meeting'
 DEFAULT_REGISTRATION_CLOSED_WEEKDAY = 1
 DEFAULT_REGISTRATION_START_AND_WEEK_START_DELTA = 5
-DEFAULT_TIME_SLOTS = {
+
+DEFAULT_MEETING_TIME_SLOTS = {
     3: [
         {
             'start_time': time(12, 00, 00),
@@ -67,6 +68,47 @@ DEFAULT_TIME_SLOTS = {
         }
     ]
 }
+
+# These slots are only used for display purposes.
+DEFAULT_DISPLAY_TIME_SLOTS = {
+    3: [
+        {
+            'start_time': time(12, 00, 00),
+            'end_time': time(14, 00, 00)
+        },
+        {
+            'start_time': time(14, 00, 00),
+            'end_time': time(16, 00, 00)
+        },
+        {
+            'start_time': time(16, 00, 00),
+            'end_time': time(18, 00, 00)
+        },
+        {
+            'start_time': time(18, 00, 00),
+            'end_time': time(20, 00, 00)
+        }
+    ],
+    4: [
+        {
+            'start_time': time(12, 00, 00),
+            'end_time': time(14, 00, 00)
+        },
+        {
+            'start_time': time(14, 00, 00),
+            'end_time': time(16, 00, 00)
+        },
+        {
+            'start_time': time(16, 00, 00),
+            'end_time': time(18, 00, 00)
+        },
+        {
+            'start_time': time(18, 00, 00),
+            'end_time': time(20, 00, 00)
+        }
+    ]
+}
+
 
 MEETING_CHOICE_1_ON_1 = '1:1'
 

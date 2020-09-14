@@ -8,7 +8,48 @@ from base import models as base_model
 from resources.meetings import choices
 
 
+class Interest(base_model.BaseModel):
+    """
+    Interest for a user who opt in for a meeting.
+
+    Note:
+        These interests are used for matching user's
+        within themselves.
+
+    """
+    name = models.CharField(max_length=255)
+    icon = models.FileField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('User Meeting Interest')
+        verbose_name_plural = _('User Meeting Interests')
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Objective(base_model.BaseModel):
+    name = models.CharField(max_length=255)
+    icon = models.FileField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('User Meeting Objective')
+        verbose_name_plural = _('User Meeting Objectives')
+        ordering = ['name']
+
+
 class TimeSlot(base_model.BaseModel):
+    """
+    Time Slots are only used for display. They define
+    the range of Meeting Time Slots available for selection.
+
+    TODO(Nishant): Change the name to Display time slots.
+
+    """
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -57,6 +98,16 @@ class TimeSlot(base_model.BaseModel):
 
 
 class MeetingTimeSlot(base_model.BaseModel):
+    """
+    Meeting Time Slots are one time use time slots
+    for meetings only.
+
+    Note:
+        These objects are created while creating
+        meeting for users and are deleted after that.
+        TODO(Nishant): Create task for deleting old objects.
+
+    """
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -83,6 +134,12 @@ class MeetingTimeSlot(base_model.BaseModel):
         return '{} - {}'.format(display_date, display_time)
 
     def get_display_day(self):
+        """Give the date in a display format.
+
+        Example:
+            Thursday, 3 September.
+
+        """
         return '{}, {} {}'.format(
             self.date.strftime('%A'),
             str(self.date.day),
@@ -106,9 +163,15 @@ class MeetingTimeSlot(base_model.BaseModel):
 
 class MeetingConfig(base_model.BaseModel):
     """
-    Resources meeting config created by admins
+    Resources meeting config created by admins.
+
+    Note:
+        This consists of all details for a meeting
+        user's can opt in for at a given time.
 
     """
+    # Title is not being used right now. But can be used in
+    # any way in the future.
     title = models.CharField(_('Title'), max_length=255)
     # Week the meeting is for.
     week_start_date = models.DateField(_('Week Start Date'), null=True, blank=False)
@@ -119,6 +182,8 @@ class MeetingConfig(base_model.BaseModel):
     registration_end_date = models.DateField(_('Registration End Date'), null=True, blank=False)
     is_registration_open = models.BooleanField(_('Registration Open'), default=True)
     is_active = models.BooleanField(_('Active Meeting'), default=True)
+    # Only used for display purposes. The actual time slots being
+    # assigned to a meeting are different.
     available_time_slots = models.ManyToManyField(
         TimeSlot,
         verbose_name=_('Available Slots'),
