@@ -37,7 +37,6 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
             user=self.request.user,
             category=serializer.validated_data['category'].name,
             title=serializer.validated_data['title'],
-            city=serializer.validated_data['city'],
             days=serializer.validated_data['days'],
             price=serializer.validated_data['extended_price']
         )
