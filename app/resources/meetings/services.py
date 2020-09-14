@@ -220,10 +220,13 @@ def get_active_meetings(start_date=None, end_date=None):
         Queryset of Meeting object.
 
     """
+    latest_active_meeting_config = get_latest_active_meeting_config()
+    # Taking start and end date from the latest meeting config which is
+    # active.
     if not start_date:
-        start_date = timezone.now().date() + datetime.timedelta(days=1)
+        start_date = latest_active_meeting_config.week_start_date
     if not end_date:
-        end_date = start_date + datetime.timedelta(days=3)
+        end_date = latest_active_meeting_config.week_end_date
 
     return models.Meeting.objects.filter(
         meeting_config__is_active=True,

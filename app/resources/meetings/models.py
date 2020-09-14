@@ -118,7 +118,6 @@ class MeetingConfig(base_model.BaseModel):
     registration_start_date = models.DateField(_('Registration Start Date'), null=True, blank=False)
     registration_end_date = models.DateField(_('Registration End Date'), null=True, blank=False)
     is_registration_open = models.BooleanField(_('Registration Open'), default=True)
-
     is_active = models.BooleanField(_('Active Meeting'), default=True)
     available_time_slots = models.ManyToManyField(
         TimeSlot,

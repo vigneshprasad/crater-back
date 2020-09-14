@@ -40,12 +40,21 @@ class User(AbstractUser):
         'tags.CityProxy',
         verbose_name=_('City'),
         null=True,
+        blank=True,
         related_name='users',
         on_delete=models.SET_NULL
     )
     objectives = models.ManyToManyField(
         'tags.Objective',
         verbose_name=_('Objectives')
+    )
+    intent = models.CharField(
+        verbose_name=_('Intent'), 
+        max_length=100,
+        null=True, 
+        blank=True,
+        choices=choices.INTENT_CHOICES,
+        default=choices.INTENT_NETWORK
     )
     reason = models.CharField(
         max_length=400,

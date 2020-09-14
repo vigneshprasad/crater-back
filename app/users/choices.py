@@ -13,6 +13,16 @@ REASON_CHOICES = (
     )
 )
 
+USER_GROUP = 'User'
+INVESTOR_GROUP = 'Investor'
+
+INTENT_NETWORK = 'network'
+INTENT_SERVICES = 'services'
+
+INTENT_CHOICES = (
+    (INTENT_NETWORK, INTENT_NETWORK.title()),
+    (INTENT_SERVICES, INTENT_SERVICES.title())
+)
 
 template_names = {
     'password_reset': 'Password reset',

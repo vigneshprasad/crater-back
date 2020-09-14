@@ -1,4 +1,4 @@
-from rest_framework import permissions
+from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
 
 
@@ -20,4 +20,16 @@ class AllowAny(permissions.BasePermission):
 
     """
     def has_permission(self, request, view):
+        return True
+
+
+class HasActiveSubscription(permissions.BasePermission):
+    """
+    Allows access only to authenticated users.
+    """
+    def has_permission(self, request, view):
+        if not bool(request.user and request.user.has_active_subscription):
+            raise exceptions.PermissionDenied
+        # if not request.user.email_verified:
+        #     raise AuthenticationFailed
         return True
