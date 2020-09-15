@@ -75,8 +75,12 @@ class NotificationViewSet(mixins.ListModelMixin,
             instance.save()
         except models.UserNotification.DoesNotExist:
             raise NotFound
+        data = serializers.NotificationSerializer(instance, **{'context': context}).data
+        count = request.user.notifications.filter(is_read=False).count()
+        data['count'] = count
+        data['pages'] = count/5 if count else None
         return Response(
-            serializers.NotificationSerializer(instance, **{'context': context}).data
+            data
         )
 
     @swagger_auto_schema(request_body=batch_notification_read)
