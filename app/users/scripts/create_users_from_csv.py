@@ -1,4 +1,5 @@
 import csv
+import urllib
 
 from allauth.account.models import EmailAddress
 from django.core.exceptions import ValidationError
@@ -17,11 +18,13 @@ user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
 
 
 def run(
-        file_name='/app/users/data/users_data_2.csv',
+        file_url='https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/new_users_csv.csv',
         dry_run=True
 ):
+    response = urllib.request.urlopen(file_url)
+    lines = [line.decode('utf-8') for line in response.readlines()]
+    reader = csv.DictReader(lines)
 
-    reader = csv.DictReader(open(file_name))
     for row in reader:
         print("Start", "-" * 80)
 

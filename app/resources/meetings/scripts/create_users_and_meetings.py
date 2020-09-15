@@ -1,5 +1,6 @@
 import csv
 import datetime
+import urllib
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -38,10 +39,12 @@ FIELDS = [
 
 
 def run(
-        file_name='/app/resources/meetings/data/1_on_1_meeting_data.csv',
+        file_url='https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/1_on_1_meeting_data.csv',
         dry_run=True
 ):
-    reader = csv.DictReader(open(file_name))
+    response = urllib.request.urlopen(file_url)
+    lines = [line.decode('utf-8') for line in response.readlines()]
+    reader = csv.DictReader(lines)
 
     meeting_config = services.get_latest_active_meeting_config()
 

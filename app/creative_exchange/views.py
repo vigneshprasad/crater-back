@@ -7,7 +7,7 @@ from order.models import Quote
 from order.serializers import QuoteSerializer
 from users import permissions
 from users.paginators import Pagination
-from . import models, serializers, filters
+from . import models, serializers, filters, signals
 
 
 class ExchangeCategoryViewSet(mixins.RetrieveModelMixin,
@@ -32,6 +32,14 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
     filter_backends = (django_filters.DjangoFilterBackend, OrderingFilter)
 
     def perform_create(self, serializer):
+        signals.request_created.send(
+            sender=None,
+            user=self.request.user,
+            category=serializer.validated_data['category'].name,
+            title=serializer.validated_data['title'],
+            days=serializer.validated_data['days'],
+            price=serializer.validated_data['extended_price']
+        )
         serializer.validated_data['user'] = self.request.user
         serializer.save()
 

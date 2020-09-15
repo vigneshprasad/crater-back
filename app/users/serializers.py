@@ -459,8 +459,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         source='user.user_services_info.professional_service_provider', required=False, read_only=True
     )
     name = serializers.CharField(
+        required=False,
         error_messages={
-            'blank': _('Please enter your name'),
             'max_length': _('Invalid name'),
         },
         max_length=100
@@ -615,8 +615,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
             Adding user group to investor if investor tag is selected
         """
-        user_tags = validated_data['tags'] if validated_data['tags'] else []
-        for tag in validated_data['tags']:
+        user_tags = validated_data.get('tags') if validated_data.get('tags') else []
+        for tag in user_tags:
             if tag.name == choices.INVESTOR_GROUP:
                 user = instance.user
                 investor_group = auth_models.Group.objects.get(name=choices.INVESTOR_GROUP)
