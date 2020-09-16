@@ -136,10 +136,15 @@ def _create_time_slots_for_date_and_slots(date, time_slots):
     slots = []
 
     for time_slot in time_slots:
+        # Creating start and end datetime fields as well.
+        start = datetime.datetime.combine(date=date, time=time_slot['start_time'])
+        end = datetime.datetime.combine(date=date, time=time_slot['end_time'])
         slot, _ = models.TimeSlot.objects.get_or_create(
             date=date,
             start_time=time_slot['start_time'],
-            end_time=time_slot['end_time']
+            end_time=time_slot['end_time'],
+            start=start,
+            end=end
         )
         slots.append(slot)
 
