@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from users import models
 from tags import models as tags_models
 
-FIELDS = ['Full Name', 'Email ID', 'Interests', 'Objectives', 'Introduction']
+FIELDS = ['Full Name', 'Email ID', 'Objectives', 'Introduction']
 
 default_objective = 'Meet Professionals & Founders'
 
@@ -32,9 +32,6 @@ def run(
         linkedin_url = _validate_url_and_return(row.get('Linkedin'))
         email = row.get('Email ID').strip()
         phone_number = row.get('Phone Number') or None
-
-        raw_interests = row.get('Interests', '').split(',')
-        interests = [interest.strip() for interest in raw_interests]
         raw_objectives = row.get('Objectives', '').split(',')
         objectives = [objective.strip() for objective in raw_objectives]
         raw_tags = row.get('Objectives', '').split(',')
@@ -59,7 +56,6 @@ def run(
         print("Phone Number: {}".format(phone_number))
         print("Source: {}".format(user_source))
         print("Objectives: {}".format(objectives))
-        print("Interests: {}".format(interests))
         print("Tags: {}".format(tags))
         print("Linkedin Url: {}".format(linkedin_url))
         print("Introduction: {}".format(public_introduction))
@@ -71,7 +67,6 @@ def run(
                 email=email,
                 phone_number=phone_number,
                 objectives=objectives,
-                interests=interests,
                 linkedin_url=linkedin_url,
                 source=user_source,
                 tags=tags,
@@ -87,7 +82,6 @@ def create_user_and_profile(
         phone_number,
         linkedin_url,
         username=None,
-        interests=None,
         objectives=None,
         source=None,
         tags=None,
@@ -148,14 +142,6 @@ def create_user_and_profile(
     profile.linkedin_url = linkedin_url
     profile.public_introduction = introduction
     profile.save()
-
-    # Adding Interests to Profile.
-    if interests:
-        interests = tags_models.Interests.objects.filter(
-            name__in=interests
-        )
-        for interest in interests:
-            profile.interests.add(interest)
 
     # Add tags to profile.
     if tags:

@@ -56,7 +56,7 @@ class TimeSlot(base_model.BaseModel):
     Time Slots are only used for display. They define
     the range of Meeting Time Slots available for selection.
 
-    TODO(Nishant): Change the name to Display time slots.
+    TODO(Nishant): Create task for deleting old objects.
 
     """
     date = models.DateField()
@@ -124,7 +124,6 @@ class MeetingTimeSlot(base_model.BaseModel):
     Note:
         These objects are created while creating
         meeting for users and are deleted after that.
-        TODO(Nishant): Create task for deleting old objects.
 
     """
     # TODO(Nishant): Deprecate this model.
@@ -316,6 +315,7 @@ class Meeting(base_model.BaseModel):
         verbose_name=_('Participants'),
     )
     link = models.URLField(null=True, blank=True)
+    # TODO(Nishant): Remove once we completely start using start and end.
     time_slot = models.ForeignKey(
         'meetings.MeetingTimeSlot',
         verbose_name=_('Meeting Time Slot'),
