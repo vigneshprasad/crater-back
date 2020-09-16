@@ -135,32 +135,22 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
         p1 = meeting.participants.all()[0]
         p2 = meeting.participants.all()[1]
 
+        # Checking if profile exists.
+        if not (p1.has_profile and p2.has_profile):
+            continue
+
         display_day = meeting.time_slot.get_display_day()
         display_time = meeting.time_slot.get_display_time()
-        data = {
-            p1.email: {
-                'day': display_day,
-                'time': display_time,
-                'name_a': p1.name.title(),
-                'name_b': p2.name.title(),
-                'link': meeting.link,
-                'introduction_a': p1.profile.get_introduction(),
-                'introduction_b': p2.profile.get_introduction(),
-                'linkedin_a': p1.profile.linkedin_url,
-                'linkedin_b': p2.profile.linkedin_url,
-            },
-            p2.email: {
-                'day': display_day,
-                'time': display_time,
-                'name_a': p1.name.title(),
-                'name_b': p2.name.title(),
-                'link': meeting.link,
-                'introduction_a': p1.profile.get_introduction(),
-                'introduction_b': p2.profile.get_introduction(),
-                'linkedin_a': p1.profile.linkedin_url,
-                'linkedin_b': p2.profile.linkedin_url,
-            },
-            choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION: {
+
+        subject = 'Introducing {} & {}'.format(
+            p1.name.title(),
+            p2.name.title()
+        )
+        to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
+        # Populating data.
+        data = {}
+        for email in to_emails:
+            data[email] = {
                 'day': display_day,
                 'time': display_time,
                 'name_a': p1.name.title(),
@@ -171,15 +161,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 'linkedin_a': p1.profile.linkedin_url,
                 'linkedin_b': p2.profile.linkedin_url,
             }
-        }
 
-        # Checking if profile exists.
-        subject = 'Introducing {} & {}'.format(
-            p1.name.title(),
-            p2.name.title()
-        )
-
-        to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
         from_email = choices.MEETINGS_INTRO_FROM_EMAIL
         # reply_to_emails is all to_emails plus the from_email.
         reply_to_emails = copy(to_emails)
@@ -203,6 +185,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             )
 
 
+@periodic_task(run_every=crontab(day_of_week='wednesday', hour='18', minute='30'))
 def send_active_meetings_data_to_analytics(meetings=None):
     """Sending active meeting data to Analytics platforms.
 
@@ -237,10 +220,10 @@ def send_whatsapp_meeting_reminders(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    start_time = (now_time + datetime.timedelta(minutes=75)).time()
-    end_time = (now_time + datetime.timedelta(minutes=90)).time()
+    start_time = (now_time + datetime.timedelta(minutes=105)).time()
+    end_time = (now_time + datetime.timedelta(minutes=120)).time()
     # Getting date for the estimated start_time of the meeting.
-    date = (now_time + datetime.timedelta(minutes=90)).date()
+    date = (now_time + datetime.timedelta(minutes=120)).date()
 
     meetings = models.Meeting.objects.filter(
         meeting_config__is_active=True,
