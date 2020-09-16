@@ -1,6 +1,6 @@
 import datetime
 
-from django.core.exceptions import ValidationError
+from django.core import exceptions
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -75,7 +75,7 @@ class TimeSlot(base_model.BaseModel):
 
     def clean(self):
         if self.start_time >= self.end_time:
-            raise ValidationError({'end': _('Start time should be lesser than End time.')})
+            raise exceptions.ValidationError({'end': _('Start time should be lesser than End time.')})
 
     def get_display(self):
         """
@@ -135,7 +135,7 @@ class MeetingTimeSlot(base_model.BaseModel):
 
     def clean(self):
         if self.start_time >= self.end_time:
-            raise ValidationError({'end': _('Start time should be lesser than End time.')})
+            raise exceptions.ValidationError({'end': _('Start time should be lesser than End time.')})
 
     def get_display(self):
         """
@@ -241,12 +241,12 @@ class MeetingConfig(base_model.BaseModel):
 
     def clean(self):
         if not self.week_start_date:
-            raise ValidationError('Week start date is required.')
+            raise exceptions.ValidationError('Week start date is required.')
         if not self.week_end_date:
-            raise ValidationError('Week end date is required.')
+            raise exceptions.ValidationError('Week end date is required.')
 
         if self.week_start_date >= self.week_end_date:
-            raise ValidationError('Week start should be lesser than week end.')
+            raise exceptions.ValidationError('Week start should be lesser than week end.')
 
     def close_meeting(self):
         self.is_registration_open = False
@@ -270,6 +270,8 @@ class UserMeetingPreference(base_model.BaseModel):
         on_delete=models.CASCADE,
         related_name='meeting_preferences'
     )
+    # Should denote the latest meeting_config the user
+    # has opted in for.
     meeting = models.ForeignKey(
         MeetingConfig,
         verbose_name=_('Meeting Config'),
@@ -277,10 +279,16 @@ class UserMeetingPreference(base_model.BaseModel):
         related_name='user_preferences'
     )
     number_of_meetings = models.PositiveIntegerField(default=1)
-    objective = models.CharField(max_length=255, choices=choices.OBJECTIVE_CHOICES)
+    # Only one objective can be selected for a each weeks meeting.
+    objective = models.ForeignKey(
+        Objective,
+        verbose_name=_('Meeting Objective'),
+        on_delete=models.CASCADE,
+    )
     interests = models.ManyToManyField(
-        'tags.Interests',
-        verbose_name=_('Interests'),
+        Interest,
+        verbose_name=_('Meeting Interests'),
+        on_delete=models.CASCADE,
     )
     time_slots = models.ManyToManyField(
         TimeSlot,
