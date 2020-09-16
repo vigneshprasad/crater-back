@@ -17,7 +17,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
                         mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
     queryset = models.Order.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.OrderSerializer
     pagination_class = paginators.Pagination
     filterset_fields = ['status']
@@ -35,7 +35,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.PaymentOrdersSerialier,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=False
     )
     def pay(self, request):
@@ -98,7 +98,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.GetPaymentIntentSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=False
     )
     def get_payment_intent(self, request):
@@ -127,7 +127,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.CheckPaymentIntentSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=False
     )
     def check_payment_intent(self, request):
@@ -154,7 +154,7 @@ class BuyerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.ReviewSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def add_review(self, request, pk):
@@ -185,7 +185,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
     queryset = models.Order.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.OrderSerializer
     pagination_class = paginators.Pagination
     filterset_fields = ['status']
@@ -199,7 +199,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.AcceptOrderSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def accept(self, request, pk):
@@ -233,7 +233,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.EmptySerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def cancel(self, request, pk):
@@ -252,7 +252,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.EmptySerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def done(self, request, pk):
@@ -271,7 +271,7 @@ class SellerOrderViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.AttachCompletedFileSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def attach(self, request, pk):
@@ -300,7 +300,7 @@ class CartOrderViewSet(mixins.RetrieveModelMixin,
                        # mixins.CreateModelMixin,
                        viewsets.GenericViewSet):
     queryset = models.Order.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.OrderSerializer
     pagination_class = paginators.Pagination
     filterset_fields = ['status']
@@ -333,7 +333,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
                         mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
     queryset = models.Quote.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.QuoteSerializer
     pagination_class = paginators.Pagination
     filterset_fields = ['status']
@@ -351,7 +351,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.EmptySerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def accept(self, request, pk):
@@ -380,7 +380,7 @@ class BuyerQuoteViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.EmptySerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def cancel(self, request, pk):
@@ -401,7 +401,7 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
     queryset = models.Quote.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.QuoteSerializer
     pagination_class = paginators.Pagination
     filterset_fields = ['status']
@@ -415,7 +415,7 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.ProvideQuoteSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def provide(self, request, pk):
@@ -441,7 +441,7 @@ class SellerQuoteViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.EmptySerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def cancel(self, request, pk):
@@ -463,7 +463,7 @@ class BuyerFundingRequestViewSet(mixins.RetrieveModelMixin,
                                  mixins.CreateModelMixin,
                                  viewsets.GenericViewSet):
     queryset = models.FundingRequest.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.FundingRequestSerializer
     pagination_class = paginators.Pagination
 
@@ -482,7 +482,7 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
                                     mixins.ListModelMixin,
                                     viewsets.GenericViewSet):
     queryset = models.FundingRequest.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.FundingRequestSerializer
     pagination_class = paginators.Pagination
 
@@ -495,7 +495,7 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.FundingRequestCommentsSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def accept(self, request, pk):
@@ -517,7 +517,7 @@ class InvestorFundingRequestViewSet(mixins.RetrieveModelMixin,
     @action(
         methods=['post'],
         serializer_class=serializers.FundingRequestCommentsSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, permissions.HasActiveSubscription],
         detail=True
     )
     def cancel(self, request, pk):

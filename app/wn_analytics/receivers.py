@@ -2,6 +2,7 @@ from django.dispatch import receiver
 from .models import TrackLog, IdentifyLog
 from community.posts.signals import post_created
 from resources.meetings import signals as meetings_signals
+from creative_exchange import signals as creative_exchange_signals
 from users.models import User
 from users.signals import basic_profile_created, user_signed_up, service_created, phone_number_verified, user_updated, agreement_filled, referred_friend, email_verified
 from utils.segment_service import segment_service
@@ -163,6 +164,16 @@ def new_meeting_created_track(sender, user, **kwargs):
     kwargs.pop('signal')
 
     event = MEETING_CREATED
+    analytics_track_properties = kwargs
+
+    analytics_track(user, event, analytics_track_properties)
+
+@receiver(creative_exchange_signals.request_created)
+def creative_exchange_request_created_track(sender, user, **kwargs):
+    """Sending new Creative Exchange Request to Analytics."""
+    kwargs.pop('signal')
+
+    event = CREATIVE_EXCHANGE_REQUEST_CREATED
     analytics_track_properties = kwargs
 
     analytics_track(user, event, analytics_track_properties)

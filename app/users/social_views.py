@@ -8,11 +8,11 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from users.appleid.views import AppleOAuth2Adapter
-from .mixins import CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin
+from .mixins import CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin, SetIntentMixin, SetSourceMixin
 from .serializers import SocialLoginSerializer, ConnectSerializer, AppleSocialLoginSerializer
 
 
-class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
+class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin, SetIntentMixin, SetSourceMixin):
     """
     https://accounts.google.com/o/oauth2/auth?&client_id=468382212295-5e5ti698mjf4oruhneavnob13r58b80e.apps.googleusercontent.com&redirect_uri=http://127.0.0.1:8001/oauth/complete/google-oauth2&response_type=token&scope=https://www.googleapis.com/auth/userinfo.email
     """
@@ -26,10 +26,12 @@ class GoogleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmail
         self.check_device()
         self.check_group()
         self.check_email()
+        self.set_intent()
+        self.set_source()
         return self.get_response()
 
 
-class FacebookLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
+class FacebookLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin, SetIntentMixin, SetSourceMixin):
     """
     https://www.facebook.com/v2.2/dialog/oauth?client_id=1866118480133387&redirect_uri=https://www.domain.com/login&display=popup&response_type=code%20token
     """
@@ -41,10 +43,12 @@ class FacebookLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEma
         self.check_device()
         self.check_group()
         self.check_email()
+        self.set_intent()
+        self.set_source()
         return self.get_response()
 
 
-class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
+class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin, SetIntentMixin, SetSourceMixin):
     """
     https://www.facebook.com/v2.2/dialog/oauth?client_id=1866118480133387&redirect_uri=https://www.domain.com/login&display=popup&response_type=code%20token
     """
@@ -62,10 +66,12 @@ class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEma
         self.check_device()
         self.check_group()
         self.check_email()
+        self.set_intent()
+        self.set_source()
         return self.get_response()
 
 
-class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin):
+class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin, SetIntentMixin, SetSourceMixin):
     adapter_class = AppleOAuth2Adapter
     serializer_class = AppleSocialLoginSerializer
 
@@ -74,6 +80,8 @@ class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailM
         self.check_device()
         self.check_group()
         self.check_email()
+        self.set_intent()
+        self.set_source()
         self.set_fullname()
         return response
 

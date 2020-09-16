@@ -25,9 +25,11 @@ from utils import messages
 from utils.fields import Base64FileField
 from utils.instagram_service import instagram_service
 from . import models
+from . import choices
 from .validators import password_validate_symbols
 from .signals import agreement_filled, email_verified
 from .services import get_social_account_info
+from wn_analytics import models as wn_analytics_models
 
 UserModel = get_user_model()
 
@@ -161,6 +163,12 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         },
         max_length=100
     )
+    intent = serializers.ChoiceField(
+        choices=choices.INTENT_CHOICES,
+        default=choices.INTENT_NETWORK
+    )
+    utm_campaign = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    utm_source = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     role = serializers.ChoiceField(
         choices=(
             ('user', 'User'),
@@ -196,17 +204,28 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         return {
             'username': self.validated_data.get('username', ''),
             'password1': self.validated_data.get('password', ''),
-            'email': self.validated_data.get('email', '')
+            'email': self.validated_data.get('email', ''),
+            'utm_source': self.validated_data.get('utm_source', None),
+            'utm_campaign': self.validated_data.get('utm_campaign', None)
         }
 
     def save(self, request):
         adapter = get_adapter()
         user = adapter.new_user(request)
         user.referer = self._get_referer()
+        user.intent = self._get_intent()
         self.cleaned_data = self.get_cleaned_data()
         adapter.save_user(request, user, self, commit=False)
         self.custom_signup(request, user)
         user.save()
+        utm_source = self.cleaned_data.get('utm_source')
+        utm_campaign = self.cleaned_data.get('utm_campaign')
+        if utm_source or utm_campaign:
+            wn_analytics_models.UserSource.objects.create(
+                user=user,
+                utm_source=utm_source,
+                utm_campaign=utm_campaign
+            )
         self.add_to_group(user)
         self.check_device(user)
         setup_user_email(request, user, [])
@@ -233,6 +252,9 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         except (cryptography.fernet.InvalidToken, AttributeError):
             return None
 
+    def _get_intent(self):
+        return self.validated_data.get('intent', choices.INTENT_NETWORK)
+
     def check_device(self, user):
         os_id = self.validated_data.get('os_id', '')
         if user and os_id:
@@ -251,6 +273,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     unread_notifications = serializers.SerializerMethodField()
     social_account = serializers.SerializerMethodField()
     linkedin_url = serializers.URLField(source="profile.linkedin_url", read_only=True, default=None)
+    tag_list = TagSerializer(source='profile.tags', many=True, read_only=True, allow_null=True, required=False)
 
 
     class Meta:
@@ -268,10 +291,10 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'role',
             'full_registered',
             'has_profile',
-            'has_introduction',
             'has_bank_details',
             'has_services',
             'has_active_subscription',
+            'intent',
             'linkedin_url',
             'active_subscription_membership',
             'pan_card',
@@ -281,12 +304,12 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'is_approved',
             'objectives',
             'objectives_items',
-            'social_account'
+            'social_account',
+            'tag_list',
         )
         read_only_fields = (
             'full_registered',
             'has_profile',
-            'has_introduction',
             'has_bank_details',
             'has_services',
             'phone_number_verified',
@@ -294,6 +317,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             'phone_number',
             'objectives_items',
             'role',
+            'intent',
             'has_active_subscription',
             'active_subscription_membership',
             'pan_card_size',
@@ -435,8 +459,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         source='user.user_services_info.professional_service_provider', required=False, read_only=True
     )
     name = serializers.CharField(
+        required=False,
         error_messages={
-            'blank': _('Please enter your name'),
             'max_length': _('Invalid name'),
         },
         max_length=100
@@ -475,6 +499,15 @@ class ProfileSerializer(serializers.ModelSerializer):
         },
         allow_blank=True,
         allow_null=True,
+        required=False
+    )
+    public_introduction = serializers.CharField(
+        max_length=1024, 
+        error_messages={
+            'max_length': _('Max symbols exceeded'),
+        },
+        allow_null=True, 
+        allow_blank=True, 
         required=False
     )
     photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True, required=False)
@@ -519,6 +552,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'tags',
             'tag_list',
             'public_profile',
+            'public_introduction',
             'cover_thumbnail',
             'cover_transcoder',
             'is_cover_video'
@@ -577,6 +611,37 @@ class ProfileSerializer(serializers.ModelSerializer):
             if not cls.get_is_cover_video(profile):
                 return profile.cover.file.url
 
+    def update(self, instance, validated_data):
+        """
+            Adding user group to investor if investor tag is selected
+        """
+        user_tags = validated_data.get('tags') if validated_data.get('tags') else []
+        for tag in user_tags:
+            if tag.name == choices.INVESTOR_GROUP:
+                user = instance.user
+                investor_group = auth_models.Group.objects.get(name=choices.INVESTOR_GROUP)
+                user_group = auth_models.Group.objects.get(name=choices.USER_GROUP)
+                user.groups.add(investor_group)
+                user.groups.remove(user_group)
+                user.save()
+        super().update(instance, validated_data)
+        return instance
+
+    def create(self, validated_data):
+        """
+            Adding user group to investor if investor tag is selected
+        """
+        user_tags = validated_data['tags'] if validated_data['tags'] else []
+        for tag in user_tags:
+            if tag.name == choices.INVESTOR_GROUP:
+                user = validated_data['user']
+                investor_group = auth_models.Group.objects.get(name=choices.INVESTOR_GROUP)
+                user_group = auth_models.Group.objects.get(name=choices.USER_GROUP)
+                user.groups.add(investor_group)
+                user.groups.remove(user_group)
+                user.save()
+        profile = super().create(validated_data)
+        return profile
 
 class LogoutSerializer(serializers.Serializer):
     os_id = serializers.CharField(required=False, allow_blank=False, allow_null=True)
@@ -584,6 +649,13 @@ class LogoutSerializer(serializers.Serializer):
 
 class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
     os_id = serializers.CharField(required=False, allow_blank=False)
+    intent = serializers.ChoiceField(
+        choices=choices.INTENT_CHOICES,
+        required=False, 
+        allow_null=True
+    )
+    utm_campaign = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    utm_source = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     role = serializers.ChoiceField(
         choices=(
             ('user', 'User'),

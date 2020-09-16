@@ -1,13 +1,13 @@
 from django_filters import rest_framework as django_filters
 from rest_framework import viewsets, mixins
-from users import permissions
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from order.models import Quote
 from order.serializers import QuoteSerializer
+from users import permissions
 from users.paginators import Pagination
-from . import models, serializers, filters
+from . import models, serializers, filters, signals
 
 
 class ExchangeCategoryViewSet(mixins.RetrieveModelMixin,
@@ -23,7 +23,7 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
                              mixins.CreateModelMixin,
                              viewsets.GenericViewSet):
     queryset = models.ExchangeRequest.objects.filter(is_deleted=False).exclude(quotes__status='approved').order_by('-id')
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.ExchangeRequestSerializer
     pagination_class = Pagination
     detail_serializer_class = serializers.DetailExchangeRequestSerializer
@@ -32,6 +32,14 @@ class ExchangeRequestViewSet(mixins.RetrieveModelMixin,
     filter_backends = (django_filters.DjangoFilterBackend, OrderingFilter)
 
     def perform_create(self, serializer):
+        signals.request_created.send(
+            sender=None,
+            user=self.request.user,
+            category=serializer.validated_data['category'].name,
+            title=serializer.validated_data['title'],
+            days=serializer.validated_data['days'],
+            price=serializer.validated_data['extended_price']
+        )
         serializer.validated_data['user'] = self.request.user
         serializer.save()
 
@@ -46,7 +54,7 @@ class MyExchangeRequestViewSet(mixins.RetrieveModelMixin,
                                mixins.ListModelMixin,
                                viewsets.GenericViewSet):
     queryset = models.ExchangeRequest.objects.none()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.ExchangeRequestSerializer
     pagination_class = Pagination
     detail_serializer_class = serializers.DetailExchangeRequestSerializer
@@ -69,7 +77,7 @@ class ExchangeQuoteViewSet(mixins.CreateModelMixin,
                            mixins.RetrieveModelMixin,
                            viewsets.GenericViewSet):
     queryset = Quote.objects.none()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = serializers.ExchangeQuoteSerializer
     pagination_class = Pagination
 
@@ -90,7 +98,7 @@ class MyRequestsQuotesViewSet(mixins.ListModelMixin,
                               mixins.RetrieveModelMixin,
                               viewsets.GenericViewSet):
     queryset = Quote.objects.none()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.HasActiveSubscription]
     serializer_class = QuoteSerializer
     pagination_class = Pagination
     filterset_fields = ['exchange_request']

@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from locations.models import City
 from base import models as base_models
+from users import choices
 
 
 class Tag(models.Model):
@@ -11,6 +12,7 @@ class Tag(models.Model):
         verbose_name=_('Name')
     )
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = _('User Tag')
@@ -40,6 +42,14 @@ class Interests(base_models.BaseModel):
 class Objective(base_models.BaseModel):
     name = models.CharField(max_length=255)
     icon = models.FileField(blank=True, null=True)
+    intent = models.CharField(
+        verbose_name=_('Intent'), 
+        max_length=100,
+        null=True, 
+        blank=True,
+        choices=choices.INTENT_CHOICES,
+        default=choices.INTENT_NETWORK
+    )
     redirect_url = models.URLField(
         verbose_name=_('Redirect URL'),
         null=True,

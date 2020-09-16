@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from users.models import User
+from wn_analytics.models import UserSource
 from tags.serializers import TagSerializer
 
 
@@ -12,6 +13,12 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     phone = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
     user_objectives = serializers.SerializerMethodField(
+        read_only=True
+    )
+    utm_source = serializers.SerializerMethodField(
+        read_only=True
+    )
+    utm_campaign = serializers.SerializerMethodField(
         read_only=True
     )
     linkedin = serializers.CharField(
@@ -28,6 +35,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             'city',
             'work_city',
             'phone',
+            'intent',
             'email_verified',
             'phone_number_verified',
             'social_auth',
@@ -36,7 +44,9 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             'twitter',
             'source',
             'user_objectives',
-            'linkedin'
+            'linkedin',
+            'utm_source',
+            'utm_campaign',
         )
 
     @staticmethod
@@ -56,6 +66,18 @@ class UserTraitsSerializer(serializers.ModelSerializer):
         if not (user.has_profile and user.profile.work_city):
             return None
         return user.profile.work_city.name
+
+    @staticmethod
+    def get_utm_source(user):
+        source = UserSource.objects.filter(user=user).last()    
+        if source:
+            return source.utm_source
+
+    @staticmethod
+    def get_utm_campaign(user):
+        source = UserSource.objects.filter(user=user).last()     
+        if source:
+            return source.utm_campaign
 
     @staticmethod
     def get_user_tags(user):

@@ -1,5 +1,6 @@
 import csv
 import datetime
+import urllib
 
 from resources.meetings import models
 from users import models as user_models
@@ -18,10 +19,12 @@ FIELDS = [
 
 
 def run(
-        file_name='/app/resources/meetings/data/meeting_data_week_11.csv',
+        file_url='https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/meeting_data_week_10.csv',
         dry_run=True
 ):
-    reader = csv.DictReader(open(file_name))
+    response = urllib.request.urlopen(file_url)
+    lines = [line.decode('utf-8') for line in response.readlines()]
+    reader = csv.DictReader(lines)
 
     meeting_config = services.get_latest_active_meeting_config()
 

@@ -35,7 +35,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = 'person'
     list_display = ('name', 'email', 'group', 'date_joined', 'status', 'is_active', 'is_approved', 'action')
     list_editable = ['is_active', 'is_approved']
-    search_fields = ('name', 'email')
+    search_fields = ('name', 'email', 'phone_number')
     list_filter = ('is_active', GroupNameUserFilter, 'is_approved')
     form = UserForm
     fieldsets = (
@@ -43,7 +43,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             'fields': (('is_active', 'groups'), ('is_approved', 'is_service_approved'),),
         }),
         ('User Data', {
-            'fields': (('name', 'email'), ('city', 'phone_number'), ('referer', 'phone_number_verified'), 'rating',
+            'fields': (('name', 'email'), ('city', 'phone_number'), ('referer', 'phone_number_verified'), ('rating', 'intent'),
                        'objectives', 'source'),
         }),
     )
