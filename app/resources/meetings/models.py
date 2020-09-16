@@ -30,6 +30,15 @@ class Interest(base_model.BaseModel):
 
 
 class Objective(base_model.BaseModel):
+    """
+    Objective for a user who wants to do meetings
+    on the platform.
+
+
+    Note:
+        This is different from platform wide objectives.
+
+    """
     name = models.CharField(max_length=255)
     icon = models.FileField(blank=True, null=True)
 
@@ -53,6 +62,16 @@ class TimeSlot(base_model.BaseModel):
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
+    # Will use DateTimeFields going forward instead of
+    # date, start_time and end_time.
+    start = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    end = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     def clean(self):
         if self.start_time >= self.end_time:
@@ -108,6 +127,8 @@ class MeetingTimeSlot(base_model.BaseModel):
         TODO(Nishant): Create task for deleting old objects.
 
     """
+    # TODO(Nishant): Deprecate this model.
+
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -292,6 +313,18 @@ class Meeting(base_model.BaseModel):
         verbose_name=_('Meeting Time Slot'),
         on_delete=models.CASCADE,
         related_name='meetings'
+    )
+    # Will start using start and end fields instead of
+    # time_slots in the future.
+    start = models.DateTimeField(
+        verbose_name=_('Meeting Start Time'),
+        null=True,
+        blank=True
+    )
+    end = models.DateTimeField(
+        verbose_name=_('Meeting End Time'),
+        null=True,
+        blank=True
     )
     is_canceled = models.BooleanField(
         default=False,
