@@ -22,6 +22,7 @@ class Interest(base_model.BaseModel):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        # TODO(Nishant): Rename it to Meeting Interest
         verbose_name = _('User Meeting Interest')
         verbose_name_plural = _('User Meeting Interests')
         ordering = ['name']
@@ -48,6 +49,7 @@ class Objective(base_model.BaseModel):
         return self.name
 
     class Meta:
+        # TODO(Nishant): Rename it to Meeting Objective
         verbose_name = _('User Meeting Objective')
         verbose_name_plural = _('User Meeting Objectives')
         ordering = ['name']
@@ -260,6 +262,7 @@ class MeetingConfig(base_model.BaseModel):
 
 
 class UserMeetingPreference(base_model.BaseModel):
+    # TODO(Nishant): Rename it to MeetingPreference
     """
     User meeting preference as selected by user
     for a meeting config.
