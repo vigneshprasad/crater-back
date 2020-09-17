@@ -281,6 +281,7 @@ class UserMeetingPreference(base_model.BaseModel):
     )
     number_of_meetings = models.PositiveIntegerField(default=1)
     # Only one objective can be selected for a each weeks meeting.
+    objective = models.CharField(max_length=255, choices=choices.OBJECTIVE_CHOICES)
     objectives = models.ForeignKey(
         Objective,
         verbose_name=_('Meeting Objective'),
