@@ -372,8 +372,7 @@ def run(dry_run=True):
                     old_objective_name = name
 
             objective_name = old_objective_name if old_objective_name else "Meet Interesting People"
-
-
+            
             new_objective = models.Objective.objects.filter(
                 name=objective_name
             ).last()
