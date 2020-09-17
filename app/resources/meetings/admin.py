@@ -3,6 +3,16 @@ from django.contrib.admin import ModelAdmin, register
 from resources.meetings import models
 
 
+@register(models.Interest)
+class MeetingInterestAdmin(ModelAdmin):
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+
+
+@register(models.Objective)
+class MeetingObjectiveAdmin(ModelAdmin):
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+
+
 @register(models.TimeSlot)
 class TimeSlotAdmin(ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
@@ -30,7 +40,7 @@ class MeetingConfigAdmin(ModelAdmin):
 
 @register(models.UserMeetingPreference)
 class UserMeetingPreference(ModelAdmin):
-    list_display = ('id', 'user', 'number_of_meetings', 'objective', 'meeting', 'user_interests', 'user_time_slots')
+    list_display = ('id', 'user', 'number_of_meetings', 'meeting', 'user_interests', 'user_time_slots')
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
     @staticmethod

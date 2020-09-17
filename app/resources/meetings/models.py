@@ -281,15 +281,16 @@ class UserMeetingPreference(base_model.BaseModel):
     )
     number_of_meetings = models.PositiveIntegerField(default=1)
     # Only one objective can be selected for a each weeks meeting.
-    objective = models.ForeignKey(
+    objectives = models.ForeignKey(
         Objective,
         verbose_name=_('Meeting Objective'),
         on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     interests = models.ManyToManyField(
         Interest,
         verbose_name=_('Meeting Interests'),
-        on_delete=models.CASCADE,
     )
     time_slots = models.ManyToManyField(
         TimeSlot,
