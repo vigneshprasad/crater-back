@@ -550,6 +550,10 @@ class Profile(models.Model):
         default=True,
         verbose_name=_('Whatsapp Messaging Enabled')
     )
+    interests = models.ManyToManyField(
+        'tags.Interests',
+        verbose_name=_('Interests')
+    )
 
     class Meta:
         verbose_name = _('Profile')
