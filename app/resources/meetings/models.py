@@ -19,6 +19,7 @@ class Interest(base_model.BaseModel):
     """
     name = models.CharField(max_length=255)
     icon = models.FileField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = _('User Meeting Interest')
@@ -41,6 +42,7 @@ class Objective(base_model.BaseModel):
     """
     name = models.CharField(max_length=255)
     icon = models.FileField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -102,7 +104,7 @@ class TimeSlot(base_model.BaseModel):
         )
 
     def get_display_time(self, join="to"):
-        return '{} {} {}'.format(self.get_display_start_time(), join ,self.get_display_end_time())
+        return '{} {} {}'.format(self.get_display_start_time(), join, self.get_display_end_time())
 
     def get_display_start_time(self):
         start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
@@ -301,14 +303,6 @@ class Meeting(base_model.BaseModel):
         verbose_name=_('Meeting Config'),
         on_delete=models.CASCADE,
         related_name='meetings'
-    )
-    organiser = models.ForeignKey(
-        'users.User',
-        verbose_name=_('Organiser'),
-        on_delete=models.CASCADE,
-        related_name='meetings',
-        null=True,
-        blank=True
     )
     participants = models.ManyToManyField(
         'users.User',
