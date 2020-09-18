@@ -1,5 +1,5 @@
 import csv
-import urllib
+from urllib import request as urllib_request
 
 from allauth.account.models import EmailAddress
 from django.core.exceptions import ValidationError
@@ -10,18 +10,23 @@ from django.contrib.auth.models import Group
 from users import models
 from tags import models as tags_models
 
-FIELDS = ['Full Name', 'Email ID', 'Objectives', 'Introduction']
+FIELDS = [
+    'Full Name',
+    'Email ID',
+    'Objectives',
+    'Introduction'
+]
 
-default_objective = 'Meet Professionals & Founders'
+DEFAULT_OBJECTIVE = 'Meet Professionals & Founders'
 
-user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
+USER_SOURCE = 'https://worknetwork.typeform.com/to/MNbvcw7y'
 
 
 def run(
         file_url='https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/new_users_csv.csv',
         dry_run=True
 ):
-    response = urllib.request.urlopen(file_url)
+    response = urllib_request.urlopen(file_url)
     lines = [line.decode('utf-8') for line in response.readlines()]
     reader = csv.DictReader(lines)
 
@@ -54,7 +59,7 @@ def run(
         print("Username: {}".format(username))
         print("Name: {}".format(full_name))
         print("Phone Number: {}".format(phone_number))
-        print("Source: {}".format(user_source))
+        print("Source: {}".format(USER_SOURCE))
         print("Objectives: {}".format(objectives))
         print("Tags: {}".format(tags))
         print("Linkedin Url: {}".format(linkedin_url))
@@ -68,7 +73,7 @@ def run(
                 phone_number=phone_number,
                 objectives=objectives,
                 linkedin_url=linkedin_url,
-                source=user_source,
+                source=USER_SOURCE,
                 tags=tags,
                 introduction=public_introduction
             )
@@ -127,7 +132,7 @@ def create_user_and_profile(
         )
 
     objectives = tags_models.Objective.objects.filter(
-        name=default_objective
+        name=DEFAULT_OBJECTIVE
     ) if not objectives else objectives
 
     for objective in objectives:

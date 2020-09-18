@@ -1,6 +1,6 @@
 import csv
 import datetime
-import urllib
+from urllib import request as urllib_request
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -15,7 +15,7 @@ def run(
         file_url='https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/meeting_preference.csv',
         dry_run=True
 ):
-    response = urllib.request.urlopen(file_url)
+    response = urllib_request.urlopen(file_url)
     lines = [line.decode('utf-8') for line in response.readlines()]
     reader = csv.DictReader(lines)
 
