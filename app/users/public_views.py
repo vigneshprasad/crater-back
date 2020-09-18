@@ -59,7 +59,6 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 email=user['email'],
                 phone_number=user['phone_number'],
                 linkedin_url=user['linkedin_url'],
-                interests=user['interests'],
                 source=user['source']
             )
 
