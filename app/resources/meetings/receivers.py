@@ -6,7 +6,6 @@ from django.dispatch import receiver
 from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import signals
-from tags import models as tags_models
 from users import services as users_services
 
 
@@ -115,7 +114,7 @@ def create_meeting_preference_for_typeform_user(
         user=user,
         objective=objective_key
     )
-    interests = tags_models.Interests.objects.filter(
+    interests = models.Interest.objects.filter(
         name__in=interests
     )
     for interest in interests or []:
