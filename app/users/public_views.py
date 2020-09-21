@@ -76,9 +76,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             return Response({'status': 'Success'})
 
 
-class InvestorsViewSet(mixins.ListModelMixin,
-                       mixins.RetrieveModelMixin,
-                       viewsets.GenericViewSet):
+class InvestorsViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = models.User.objects.select_related('profile').filter(
         groups__name='Investor',
         # bank_details__isnull=False,
