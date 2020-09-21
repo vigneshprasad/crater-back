@@ -9,7 +9,7 @@ from integrations.freshchat import freshchat_service
 
 FIELDS = [
     "Email",
-    "Meeting Time (%m/%d%/%Y %H:%M)"
+    "Meeting Time (%d/%m%/%y %H:%M)"
 ]
 
 
@@ -28,7 +28,7 @@ def run(
 
         email = row["Email"].strip()
         meeting_time = row["Meeting Time"]
-        meeting_datetime = datetime.datetime.strptime(meeting_time, '%m/%d/%Y %H:%M')
+        meeting_datetime = datetime.datetime.strptime(meeting_time, '%d/%m/%y %H:%M')
 
         try:
             user = user_models.User.objects.get(email=email)

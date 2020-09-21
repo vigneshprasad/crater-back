@@ -10,7 +10,7 @@ from resources.meetings import services
 FIELDS = [
     'Email A',
     'Email B',
-    'Meeting Time (%m/%d%/%Y %H:%M)',
+    'Meeting Time (%d/%m%/%y %H:%M)',
     'Meeting Link',
     'Introduction A',
     'Introduction B'
@@ -66,7 +66,7 @@ def run(
             print('*' * 5, 'User Does Not Exist{}'.format(email_b))
 
         # Meeting Time Populations
-        meeting_datetime = datetime.datetime.strptime(meeting_time, '%m/%d/%Y %H:%M')
+        meeting_datetime = datetime.datetime.strptime(meeting_time, '%d/%m/%y %H:%M')
         date = meeting_datetime.date
         time_slot = None
         start = meeting_datetime
