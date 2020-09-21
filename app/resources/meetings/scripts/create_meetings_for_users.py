@@ -67,7 +67,7 @@ def run(
 
         # Meeting Time Populations
         meeting_datetime = datetime.datetime.strptime(meeting_time, '%d/%m/%y %H:%M')
-        date = meeting_datetime.date
+        date = meeting_datetime.date()
         time_slot = None
         start = meeting_datetime
         end = meeting_datetime + datetime.timedelta(minutes=30)
