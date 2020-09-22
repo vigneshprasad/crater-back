@@ -69,15 +69,16 @@ def _send_meeting_confirmation_messages(user_timing_list):
     """Send whatsapp message to user for meeting confirmation."""
     for item in user_timing_list:
         date = item['start_slot'].strftime('%a, %d %b %Y')
+        final_date = "{} ({})".format(date, item["message"])
         start_time = item['start_slot'].strftime('%I:%M %p')
         end_time = item['end_slot'].strftime('%I:%M %p')
-        time = "{} - {} ({})".format(start_time, end_time, item["message"])
+        time = "{} - {}".format(start_time, end_time)
         freshchat_service.freshchat_whatsapp_service.send_outbound_message(
             user=item['user'],
             template_name=constants.MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE,
             template_data=[
                 {"data": item['user'].name.title()},
                 {"data": time},
-                {"data": date},
+                {"data": final_date},
             ]
         )
