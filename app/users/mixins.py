@@ -74,3 +74,11 @@ class SetSourceMixin:
             utm_source=utm_source,
             utm_campaign=utm_campaign
         )
+
+
+class PhoneVerifiedMixin:
+    serializer = None
+
+    def set_phone_verified(self):
+        self.user.phone_number_verified = True
+        self.user.save()
