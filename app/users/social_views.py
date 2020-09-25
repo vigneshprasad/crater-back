@@ -76,14 +76,14 @@ class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailM
     serializer_class = AppleSocialLoginSerializer
 
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+        super().post(request, *args, **kwargs)
         self.check_device()
         self.check_group()
         self.check_email()
         self.set_intent()
         self.set_source()
         self.set_fullname()
-        return response
+        return self.get_response()
 
     def set_fullname(self):
         first_name = self.serializer.validated_data.get('first_name', '')
