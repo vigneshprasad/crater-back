@@ -75,6 +75,7 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
             'meeting',
             'number_of_meetings',
             'objective',
+            'objectives',
             'interests',
             'time_slots'
         )
@@ -83,13 +84,14 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
 class MeetingSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = models.UserMeetingPreference
+        model = models.Meeting
         fields = (
             'pk',
-            'meeting'
-            'user',
-            'organiser',
+            'meeting_config',
             'participants',
             'link',
-            'time_slot'
+            'time_slot',
+            'start',
+            'end',
+            'is_canceled'
         )

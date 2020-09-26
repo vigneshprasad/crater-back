@@ -151,6 +151,20 @@ def _create_time_slots_for_date_and_slots(date, time_slots):
     return slots
 
 
+def get_latest_old_meeting_config():
+    """
+    Returns last meeting config whose week_end_date
+    is less than today i.e closed.
+
+    return:
+        Meeting object.
+
+    """
+    return models.MeetingConfig.objects.filter(
+        week_end_date__lt=timezone.now().date()
+    ).order_by('-week_end_date').first()
+
+
 def get_old_active_meeting_configs():
     """
     Returns active meeting configs whose week_end_date
