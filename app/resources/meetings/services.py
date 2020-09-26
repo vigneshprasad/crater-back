@@ -18,11 +18,15 @@ def get_objectives_list():
 
 
 def get_interest_list():
-    interests = tags_serializers.InterestsSerializer(
-        data=tags_models.Interests.objects.all(), many=True
-    )
-    interests.is_valid()
-    return interests.data
+    interests = models.Interest.objects.filter(is_active=True)
+    data = []
+    for interest in interests:
+        data.append({
+            "pk": interest.pk,
+            "name": interest.name,
+            "icon": interest.icon.url if interest.icon else None,
+        })
+    return data
 
 
 def create_meeting_config_for_time_period(
