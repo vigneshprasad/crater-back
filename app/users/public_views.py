@@ -19,6 +19,8 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'interests': [],
             'time_preferences': [],
             'meeting_days': [],
+            'utm_source': form.get('hidden').get('utm_source') if form.get('hidden') else None,
+            'utm_campaign': form.get('hidden').get('utm_campaign') if form.get('hidden') else None,
             'source': 'https://worknetwork.typeform.com/to/' + form['form_id']
         }
 

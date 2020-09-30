@@ -4,7 +4,7 @@ from community.posts.signals import post_created
 from resources.meetings import signals as meetings_signals
 from creative_exchange import signals as creative_exchange_signals
 from users.models import User
-from users.signals import basic_profile_created, user_signed_up, service_created, phone_number_verified, user_updated, agreement_filled, referred_friend, email_verified
+from users.signals import basic_profile_created, user_signed_up, service_created, phone_number_verified, user_updated, objectives_added, referred_friend, email_verified
 from utils.segment_service import segment_service
 from wn_analytics.constants import *
 from wn_analytics.utils import get_user_traits
@@ -66,13 +66,13 @@ def email_verified_track(sender, email_address, **kwargs):
     analytics_track(user, event, analytics_track_properties)
 
 
-@receiver(agreement_filled)
-def agreement_filled_track(sender, user, **kwargs):
-    event = AGREEMENT_FILLED
+@receiver(objectives_added)
+def objectives_added_track(sender, user, objectives, **kwargs):
+    event = OBJECTIVES_ADDED
     analytics_track_properties={
-        'city': str(user.city),
+        'objectives': objectives,
         'email': user.email,
-        'role': user.role
+        'intent': user.intent
     }
     analytics_track(user, event, analytics_track_properties)
 

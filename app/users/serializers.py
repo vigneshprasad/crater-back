@@ -27,7 +27,7 @@ from utils.instagram_service import instagram_service
 from . import models
 from . import choices
 from .validators import password_validate_symbols
-from .signals import agreement_filled, email_verified
+from .signals import objectives_added, email_verified
 from .services import get_social_account_info
 from wn_analytics import models as wn_analytics_models
 
@@ -364,10 +364,14 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         super().update(instance, validated_data)
         new_email = instance.email
         new_city = instance.city
-        if (old_city is None) and new_city != old_city:
-            agreement_filled.send(
+        if (len(validated_data['objectives']) > 0):
+            objectives=[]
+            for objective in validated_data['objectives']:
+                objectives.append(objective.name)
+            objectives_added.send(
                 sender=self.__class__,
-                user=instance
+                user=instance,
+                objectives=objectives
             )
         if old_email != new_email:
             instance.send_verify_email()
