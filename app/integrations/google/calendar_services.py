@@ -9,7 +9,7 @@ from integrations.google import constants
 class GoogleCalendarService:
 
     SCOPES = constants.CALENDAR_SCOPES
-    SERVICE_ACCOUNT_FILE = constants.SERVICE_ACCOUNT_FILE
+    GOOGLE_API_CREDENTIALS = constants.GOOGLE_API_CREDENTIALS
     GOOGLE_API_VERSION = constants.GOOGLE_API_VERSION
     SERVICE_NAME = constants.CALENDAR_SERVICE_NAME
 
@@ -17,13 +17,15 @@ class GoogleCalendarService:
         self.conference_data_version = conference_data_version
         self.send_updates = send_updates
         self.calendar_id = calendar_id
+        self.service = self._build_service()
 
     def _get_credentials(self):
         """Build credentials for Google API access."""
-        initial_credentials = service_account.Credentials.from_service_account_file(
-            self.SERVICE_ACCOUNT_FILE,
+        initial_credentials = service_account.Credentials.from_service_account_info(
+            self.GOOGLE_API_CREDENTIALS,
             scopes=self.SCOPES
         )
+
         # Signing the G suite user as hello@worknetwork.in. Every google API will be
         # accessed with the provided account.
         final_credentials = initial_credentials.with_subject(self.calendar_id)
@@ -39,6 +41,11 @@ class GoogleCalendarService:
         )
         return service
 
+    def get_events(self):
+        return self.service.events().list(
+            calendarId=self.calendar_id,
+        ).execute()
+
     def create_event(
             self,
             start_datetime,
@@ -48,6 +55,7 @@ class GoogleCalendarService:
             description=None,
 
     ):
+
         request_body = {
             "summary": summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS,
             "description": description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS,
@@ -71,20 +79,17 @@ class GoogleCalendarService:
             }
         }
 
-        service = self._build_service()
-        event = service.events().insert(
+        event = self.service.events().insert(
             calendarId=self.calendar_id,
             body=request_body,
             sendUpdates=self.send_updates,
             conferenceDataVersion=self.conference_data_version
         ).execute()
-        print(event)
         hangout_link = event.get('hangoutLink', '')
         return hangout_link
 
     def update_event(self, event_id, patch_body):
-        service = self._build_service()
-        event_patch = service.events().patch(
+        event_patch = self.service.events().patch(
             calendarId=self.calendar_id,
             eventId=event_id,
             body=patch_body,
