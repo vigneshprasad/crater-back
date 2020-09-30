@@ -18,3 +18,4 @@ redis_data/
 db_data/
 db_backups/
 docker/environments
+credentials.json
