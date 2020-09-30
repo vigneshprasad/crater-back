@@ -8,9 +8,10 @@ from rest_framework.response import Response
 from rest_framework import mixins, viewsets
 
 from users import permissions
-from resources.meetings import models
+from resources.meetings import models, choices
 from resources.meetings import serializers
 from resources.meetings import services
+from resources.meetings import tasks
 
 
 class UserMeetingPreferencePublicViewSet(
@@ -109,7 +110,6 @@ class MeetingViewSetPublicViewSet(
             "meeting_config": meeting_config.id,
             "participants": data["participants"],
             "time_slot": time_slot.id,
-            "link": data["meeting_link"],
             "start": start,
             "end": end,
             "is_canceled": data.get("is_canceled", False)
@@ -117,7 +117,6 @@ class MeetingViewSetPublicViewSet(
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-        print(serializer.validated_data)
         self.perform_create(serializer)
 
         return Response(serializer.data)
@@ -148,18 +147,61 @@ class MeetingViewSetPublicViewSet(
 
         return Response(final_response)
 
+
+class MeetingVCommunicationViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.MeetingSerializer
+    queryset = models.Meeting.objects.all()
+    permission_classes = [permissions.AllowAny]
+
     @action(
-        methods=['patch'],
+        methods=['get', 'post'],
         serializer_class=serializers.MeetingSerializer,
         permission_classes=[permissions.AllowAny],
         detail=False
     )
-    def batch_update(self, request):
-        queryset = self.get_queryset()
-        print(request.body)
-        data = json.loads(request.body)["bulk_update_data"]
-        meeting_ids = [d["id"] for d in data]
-        print(data)
-        for update_data in data:
-            queryset = queryset.filter(id__in=meeting_ids).update(**update_data)
-        return Response([])
+    def send_intro_emails(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            all_active_meetings = services.get_active_meetings()
+            all_data = []
+            for active_meeting in all_active_meetings:
+                if not active_meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+                    continue
+
+                p1 = active_meeting.participants.all()[0]
+                p2 = active_meeting.participants.all()[1]
+
+                # Checking if profile exists.
+                if not (p1.has_profile and p2.has_profile):
+                    continue
+
+                display_day = active_meeting.time_slot.get_display_day()
+                display_time = active_meeting.time_slot.get_display_time()
+
+                subject = 'Introducing {} & {}'.format(
+                    p1.name.title(),
+                    p2.name.title()
+                )
+                data = {
+                    'meeting_id': active_meeting.id,
+                    'day': display_day,
+                    'time': display_time,
+                    'name_a': p1.name.title(),
+                    'name_b': p2.name.title(),
+                    'link': active_meeting.link,
+                    'introduction_a': p1.profile.get_introduction(),
+                    'introduction_b': p2.profile.get_introduction(),
+                    'linkedin_a': p1.profile.linkedin_url,
+                    'linkedin_b': p2.profile.linkedin_url,
+                }
+                all_data.append(data)
+            return Response(all_data)
+
+        if request.method == 'POST':
+            tasks.send_1_on_1_meeting_intro_emails()
+
+        return Response({'status': 'SUCCESS'})

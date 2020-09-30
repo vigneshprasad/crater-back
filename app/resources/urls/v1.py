@@ -1,5 +1,5 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from resources.curated_articles.views import CuratedArticleViewSet
 from resources.events.views import EventViewSet, RSVPDViewSet, CommentViewSet
@@ -17,10 +17,18 @@ router.register('articles', CuratedArticleViewSet)
 router.register('masterclasses', MaterClassViewSet)
 router.register('meetings', meeting_views.MeetingConfigViewSet)
 router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSet)
-router.register('actual_meeting', meeting_public_views.MeetingViewSetPublicViewSet)
-router.register('retool_meeting_preferences', meeting_public_views.UserMeetingPreferencePublicViewSet)
 
+# Separate router for public API's.
+public_router = SimpleRouter()
+public_router.register('meeting', meeting_public_views.MeetingViewSetPublicViewSet)
+public_router.register('meeting/preference', meeting_public_views.UserMeetingPreferencePublicViewSet)
+public_router.register(
+    'meeting/communication',
+    meeting_public_views.MeetingVCommunicationViewSet,
+    basename='meeting_communications'
+)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('public/', include(public_router.urls))
 ]

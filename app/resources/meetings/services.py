@@ -242,6 +242,8 @@ def get_active_meetings(start_date=None, end_date=None):
 
     """
     latest_active_meeting_config = get_latest_active_meeting_config()
+    if not latest_active_meeting_config:
+        return False
     # Taking start and end date from the latest meeting config which is
     # active.
     if not start_date:
