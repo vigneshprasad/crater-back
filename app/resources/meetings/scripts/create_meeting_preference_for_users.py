@@ -1,6 +1,6 @@
 import csv
 import datetime
-import urllib
+from urllib import request as urllib_request
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -11,11 +11,20 @@ from tags import models as tags_models
 from users import models as user_models
 
 
+FIELDS = [
+    "Email",
+    "Time Preference (2-4, 4-6)",
+    "Linkedin",
+    "Interests",
+    "Introduction"
+]
+
+
 def run(
         file_url='https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/meeting_preference.csv',
         dry_run=True
 ):
-    response = urllib.request.urlopen(file_url)
+    response = urllib_request.urlopen(file_url)
     lines = [line.decode('utf-8') for line in response.readlines()]
     reader = csv.DictReader(lines)
 
@@ -37,8 +46,8 @@ def run(
     for row in reader:
         print('Start', '-' * 80)
         row = dict(row)
-        email = row.get('Email Address').strip()
-        time_preferences = row.get('User Time preference', '')
+        email = row.get('Email').strip()
+        time_preferences = row.get('Time Preference', '')
         linkedin_url = _validate_url_and_return(row.get('Linkedin'))
         public_introduction = row.get('Introduction')
         interests = row.get('Interests', '')

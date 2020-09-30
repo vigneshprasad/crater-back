@@ -1,5 +1,5 @@
 import csv
-import urllib
+from urllib import request as urllib_request
 
 from allauth.account.models import EmailAddress
 from django.core.exceptions import ValidationError
@@ -10,18 +10,23 @@ from django.contrib.auth.models import Group
 from users import models
 from tags import models as tags_models
 
-FIELDS = ['Full Name', 'Email ID', 'Interests', 'Objectives', 'Introduction']
+FIELDS = [
+    'Full Name',
+    'Email ID',
+    'Objectives',
+    'Introduction'
+]
 
-default_objective = 'Meet Professionals & Founders'
+DEFAULT_OBJECTIVE = 'Meet Professionals & Founders'
 
-user_source = 'https://worknetwork.typeform.com/to/MNbvcw7y'
+USER_SOURCE = 'https://worknetwork.typeform.com/to/MNbvcw7y'
 
 
 def run(
         file_url='https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/new_users_csv.csv',
         dry_run=True
 ):
-    response = urllib.request.urlopen(file_url)
+    response = urllib_request.urlopen(file_url)
     lines = [line.decode('utf-8') for line in response.readlines()]
     reader = csv.DictReader(lines)
 
@@ -32,9 +37,6 @@ def run(
         linkedin_url = _validate_url_and_return(row.get('Linkedin'))
         email = row.get('Email ID').strip()
         phone_number = row.get('Phone Number') or None
-
-        raw_interests = row.get('Interests', '').split(',')
-        interests = [interest.strip() for interest in raw_interests]
         raw_objectives = row.get('Objectives', '').split(',')
         objectives = [objective.strip() for objective in raw_objectives]
         raw_tags = row.get('Objectives', '').split(',')
@@ -57,9 +59,8 @@ def run(
         print("Username: {}".format(username))
         print("Name: {}".format(full_name))
         print("Phone Number: {}".format(phone_number))
-        print("Source: {}".format(user_source))
+        print("Source: {}".format(USER_SOURCE))
         print("Objectives: {}".format(objectives))
-        print("Interests: {}".format(interests))
         print("Tags: {}".format(tags))
         print("Linkedin Url: {}".format(linkedin_url))
         print("Introduction: {}".format(public_introduction))
@@ -71,9 +72,8 @@ def run(
                 email=email,
                 phone_number=phone_number,
                 objectives=objectives,
-                interests=interests,
                 linkedin_url=linkedin_url,
-                source=user_source,
+                source=USER_SOURCE,
                 tags=tags,
                 introduction=public_introduction
             )
@@ -87,7 +87,6 @@ def create_user_and_profile(
         phone_number,
         linkedin_url,
         username=None,
-        interests=None,
         objectives=None,
         source=None,
         tags=None,
@@ -133,7 +132,7 @@ def create_user_and_profile(
         )
 
     objectives = tags_models.Objective.objects.filter(
-        name=default_objective
+        name=DEFAULT_OBJECTIVE
     ) if not objectives else objectives
 
     for objective in objectives:
@@ -148,14 +147,6 @@ def create_user_and_profile(
     profile.linkedin_url = linkedin_url
     profile.public_introduction = introduction
     profile.save()
-
-    # Adding Interests to Profile.
-    if interests:
-        interests = tags_models.Interests.objects.filter(
-            name__in=interests
-        )
-        for interest in interests:
-            profile.interests.add(interest)
 
     # Add tags to profile.
     if tags:

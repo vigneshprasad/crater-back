@@ -546,13 +546,13 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
-    interests = models.ManyToManyField(
-        'tags.Interests',
-        verbose_name=_('Interests')
-    )
     opted_in_for_whatsapp = models.BooleanField(
         default=True,
         verbose_name=_('Whatsapp Messaging Enabled')
+    )
+    interests = models.ManyToManyField(
+        'tags.Interests',
+        verbose_name=_('Interests')
     )
 
     class Meta:

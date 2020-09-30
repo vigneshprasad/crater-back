@@ -61,7 +61,6 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 email=user['email'],
                 phone_number=user['phone_number'],
                 linkedin_url=user['linkedin_url'],
-                interests=user['interests'],
                 source=user['source']
             )
 
@@ -79,9 +78,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             return Response({'status': 'Success'})
 
 
-class InvestorsViewSet(mixins.ListModelMixin,
-                       mixins.RetrieveModelMixin,
-                       viewsets.GenericViewSet):
+class InvestorsViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = models.User.objects.select_related('profile').filter(
         groups__name='Investor',
         # bank_details__isnull=False,

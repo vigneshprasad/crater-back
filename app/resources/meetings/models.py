@@ -1,6 +1,6 @@
 import datetime
 
-from django.core.exceptions import ValidationError
+from django.core import exceptions
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -8,62 +8,78 @@ from base import models as base_model
 from resources.meetings import choices
 
 
-class TimeSlot(base_model.BaseModel):
-    date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+class Interest(base_model.BaseModel):
+    """
+    Interest for a user who opt in for a meeting.
 
-    def clean(self):
-        if self.start_time >= self.end_time:
-            raise ValidationError({'end': _('Start time should be lesser than End time.')})
+    Note:
+        These interests are used for matching user's
+        within themselves.
 
-    def get_display(self):
-        """
-        This is the display state for a time slot.
+    """
+    name = models.CharField(max_length=255)
+    icon = models.FileField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
-        Args:
-            self(TimeSlot)
-
-        return:
-            str: String display for the time slot.
-                ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
-
-        """
-        display_time = self.get_display_time()
-        display_date = self.get_display_day()
-
-        return '{} - {}'.format(display_date, display_time)
-
-    def get_display_day(self):
-        return '{}, {} {}'.format(
-            self.date.strftime('%A'),
-            str(self.date.day),
-            self.date.strftime('%B')
-        )
-
-    def get_display_time(self, join="to"):
-        return '{} {} {}'.format(self.get_display_start_time(), join ,self.get_display_end_time())
-
-    def get_display_start_time(self):
-        start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
-        return start_time.strftime("%I:%M %p")
-
-    def get_display_end_time(self):
-        end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
-        return end_time.strftime("%I:%M %p")
+    class Meta:
+        # TODO(Nishant): Rename it to Meeting Interest
+        verbose_name = _('User Meeting Interest')
+        verbose_name_plural = _('User Meeting Interests')
+        ordering = ['name']
 
     def __str__(self):
-        return self.get_display()
+        return self.name
 
 
-class MeetingTimeSlot(base_model.BaseModel):
+class Objective(base_model.BaseModel):
+    """
+    Objective for a user who wants to do meetings
+    on the platform.
+
+
+    Note:
+        This is different from platform wide objectives.
+
+    """
+    name = models.CharField(max_length=255)
+    icon = models.FileField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        # TODO(Nishant): Rename it to Meeting Objective
+        verbose_name = _('User Meeting Objective')
+        verbose_name_plural = _('User Meeting Objectives')
+        ordering = ['name']
+
+
+class TimeSlot(base_model.BaseModel):
+    """
+    Time Slots are only used for display. They define
+    the range of Meeting Time Slots available for selection.
+
+    TODO(Nishant): Create task for deleting old objects.
+
+    """
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
+    # Will use DateTimeFields going forward instead of
+    # date, start_time and end_time.
+    start = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    end = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     def clean(self):
         if self.start_time >= self.end_time:
-            raise ValidationError({'end': _('Start time should be lesser than End time.')})
+            raise exceptions.ValidationError({'end': _('Start time should be lesser than End time.')})
 
     def get_display(self):
         """
@@ -104,11 +120,82 @@ class MeetingTimeSlot(base_model.BaseModel):
         return self.get_display()
 
 
-class MeetingConfig(base_model.BaseModel):
+class MeetingTimeSlot(base_model.BaseModel):
     """
-    Resources meeting config created by admins
+    Meeting Time Slots are one time use time slots
+    for meetings only.
+
+    Note:
+        These objects are created while creating
+        meeting for users and are deleted after that.
 
     """
+    # TODO(Nishant): Deprecate this model.
+
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def clean(self):
+        if self.start_time >= self.end_time:
+            raise exceptions.ValidationError({'end': _('Start time should be lesser than End time.')})
+
+    def get_display(self):
+        """
+        This is the display state for a time slot.
+
+        Args:
+            self(TimeSlot)
+
+        return:
+            str: String display for the time slot.
+                ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
+
+        """
+        display_time = self.get_display_time()
+        display_date = self.get_display_day()
+
+        return '{} - {}'.format(display_date, display_time)
+
+    def get_display_day(self):
+        """Give the date in a display format.
+
+        Example:
+            Thursday, 3 September.
+
+        """
+        return '{}, {} {}'.format(
+            self.date.strftime('%A'),
+            str(self.date.day),
+            self.date.strftime('%B')
+        )
+
+    def get_display_time(self, join="to"):
+        return '{} {} {}'.format(self.get_display_start_time(), join, self.get_display_end_time())
+
+    def get_display_start_time(self):
+        start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
+        return start_time.strftime("%I:%M %p")
+
+    def get_display_end_time(self):
+        end_time = datetime.datetime.strptime(str(self.end_time), "%H:%M:%S")
+        return end_time.strftime("%I:%M %p")
+
+    def __str__(self):
+        return self.get_display()
+
+
+class MeetingConfig(base_model.BaseModel):
+    """
+    Resources meeting config created by admins.
+
+    Note:
+        This consists of all details for a meeting
+        user's can opt in for at a given time.
+
+    """
+    # Title is not being used right now. But can be used in
+    # any way in the future.
     title = models.CharField(_('Title'), max_length=255)
     # Week the meeting is for.
     week_start_date = models.DateField(_('Week Start Date'), null=True, blank=False)
@@ -119,6 +206,8 @@ class MeetingConfig(base_model.BaseModel):
     registration_end_date = models.DateField(_('Registration End Date'), null=True, blank=False)
     is_registration_open = models.BooleanField(_('Registration Open'), default=True)
     is_active = models.BooleanField(_('Active Meeting'), default=True)
+    # Only used for display purposes. The actual time slots being
+    # assigned to a meeting are different.
     available_time_slots = models.ManyToManyField(
         TimeSlot,
         verbose_name=_('Available Slots'),
@@ -155,12 +244,12 @@ class MeetingConfig(base_model.BaseModel):
 
     def clean(self):
         if not self.week_start_date:
-            raise ValidationError('Week start date is required.')
+            raise exceptions.ValidationError('Week start date is required.')
         if not self.week_end_date:
-            raise ValidationError('Week end date is required.')
+            raise exceptions.ValidationError('Week end date is required.')
 
         if self.week_start_date >= self.week_end_date:
-            raise ValidationError('Week start should be lesser than week end.')
+            raise exceptions.ValidationError('Week start should be lesser than week end.')
 
     def close_meeting(self):
         self.is_registration_open = False
@@ -173,6 +262,7 @@ class MeetingConfig(base_model.BaseModel):
 
 
 class UserMeetingPreference(base_model.BaseModel):
+    # TODO(Nishant): Rename it to MeetingPreference
     """
     User meeting preference as selected by user
     for a meeting config.
@@ -184,6 +274,8 @@ class UserMeetingPreference(base_model.BaseModel):
         on_delete=models.CASCADE,
         related_name='meeting_preferences'
     )
+    # Should denote the latest meeting_config the user
+    # has opted in for.
     meeting = models.ForeignKey(
         MeetingConfig,
         verbose_name=_('Meeting Config'),
@@ -191,10 +283,18 @@ class UserMeetingPreference(base_model.BaseModel):
         related_name='user_preferences'
     )
     number_of_meetings = models.PositiveIntegerField(default=1)
+    # Only one objective can be selected for a each weeks meeting.
     objective = models.CharField(max_length=255, choices=choices.OBJECTIVE_CHOICES)
+    objectives = models.ForeignKey(
+        Objective,
+        verbose_name=_('Meeting Objective'),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
     interests = models.ManyToManyField(
-        'tags.Interests',
-        verbose_name=_('Interests'),
+        Interest,
+        verbose_name=_('Meeting Interests'),
     )
     time_slots = models.ManyToManyField(
         TimeSlot,
@@ -209,24 +309,29 @@ class Meeting(base_model.BaseModel):
         on_delete=models.CASCADE,
         related_name='meetings'
     )
-    organiser = models.ForeignKey(
-        'users.User',
-        verbose_name=_('Organiser'),
-        on_delete=models.CASCADE,
-        related_name='meetings',
-        null=True,
-        blank=True
-    )
     participants = models.ManyToManyField(
         'users.User',
         verbose_name=_('Participants'),
     )
     link = models.URLField(null=True, blank=True)
+    # TODO(Nishant): Remove once we completely start using start and end.
     time_slot = models.ForeignKey(
         'meetings.MeetingTimeSlot',
         verbose_name=_('Meeting Time Slot'),
         on_delete=models.CASCADE,
         related_name='meetings'
+    )
+    # Will start using start and end fields instead of
+    # time_slots in the future.
+    start = models.DateTimeField(
+        verbose_name=_('Meeting Start Time'),
+        null=True,
+        blank=True
+    )
+    end = models.DateTimeField(
+        verbose_name=_('Meeting End Time'),
+        null=True,
+        blank=True
     )
     is_canceled = models.BooleanField(
         default=False,

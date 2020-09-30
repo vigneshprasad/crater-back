@@ -18,11 +18,15 @@ def get_objectives_list():
 
 
 def get_interest_list():
-    interests = tags_serializers.InterestsSerializer(
-        data=tags_models.Interests.objects.all(), many=True
-    )
-    interests.is_valid()
-    return interests.data
+    interests = models.Interest.objects.filter(is_active=True)
+    data = []
+    for interest in interests:
+        data.append({
+            "pk": interest.pk,
+            "name": interest.name,
+            "icon": interest.icon.url if interest.icon else None,
+        })
+    return data
 
 
 def create_meeting_config_for_time_period(
@@ -98,23 +102,22 @@ def create_default_time_slots(start_date, end_date):
     date = start_date
 
     while date <= end_date:
-
         weekday = date.weekday()
-        time_slots_for_weekday = choices.DEFAULT_TIME_SLOTS.get(weekday)
+        time_slots_for_weekday = choices.DEFAULT_DISPLAY_TIME_SLOTS.get(weekday)
 
+        # If there are no time slots for that date, increment the date.
         if not time_slots_for_weekday:
             date += datetime.timedelta(days=1)
             continue
-        time_slots = create_time_slots_for_date_and_slots(date, time_slots_for_weekday)
 
-        for time_slot in time_slots:
-            all_time_slots.append(time_slot)
+        time_slots = _create_time_slots_for_date_and_slots(date, time_slots_for_weekday)
+        all_time_slots += time_slots
         date += datetime.timedelta(days=1)
 
     return all_time_slots
 
 
-def create_time_slots_for_date_and_slots(date, time_slots):
+def _create_time_slots_for_date_and_slots(date, time_slots):
     """
     Create time slots for a particular date and time slots
     info.
@@ -137,11 +140,15 @@ def create_time_slots_for_date_and_slots(date, time_slots):
     slots = []
 
     for time_slot in time_slots:
-
+        # Creating start and end datetime fields as well.
+        start = datetime.datetime.combine(date=date, time=time_slot['start_time'])
+        end = datetime.datetime.combine(date=date, time=time_slot['end_time'])
         slot, _ = models.TimeSlot.objects.get_or_create(
-                date=date,
-                start_time=time_slot['start_time'],
-                end_time=time_slot['end_time']
+            date=date,
+            start_time=time_slot['start_time'],
+            end_time=time_slot['end_time'],
+            start=start,
+            end=end
         )
         slots.append(slot)
 
@@ -150,8 +157,8 @@ def create_time_slots_for_date_and_slots(date, time_slots):
 
 def get_old_active_meeting_configs():
     """
-    Closes meetings based on info provided
-    in the model. (week_end_date)
+    Returns active meeting configs whose week_end_date
+    is less than today.
 
     return:
         Queryset of meetings.

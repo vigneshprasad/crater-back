@@ -1,47 +1,59 @@
 import csv
 import datetime
-import urllib
+from urllib import request as urllib_request
 
 from users import models as user_models
-from integrations.freshchat import freshchat_service, constants
+from integrations.freshchat import constants
+from integrations.freshchat import freshchat_service
+
+
+FIELDS = [
+    "Email",
+    "Meeting Time (%d/%m%/%y %H:%M)"
+]
 
 
 def run(
         file_url="https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/meeting_confirmation_whatsapp.csv",
         dry_run=True
 ):
-    data = []
+    meeting_confirmation_data = []
 
-    response = urllib.request.urlopen(file_url)
+    response = urllib_request.urlopen(file_url)
     lines = [line.decode('utf-8') for line in response.readlines()]
     reader = csv.DictReader(lines)
 
     for row in reader:
         print('Start', '-' * 80)
-        email = row["email"].strip()
-        time = row["meeting"]
-        datetime_obj = datetime.datetime.strptime(time, '%d/%m/%Y %H:%M')
+
+        email = row["Email"].strip()
+        meeting_time = row["Meeting Time"]
+        meeting_datetime = datetime.datetime.strptime(meeting_time, '%d/%m/%y %H:%M')
 
         try:
             user = user_models.User.objects.get(email=email)
             print('User {}'.format(user.email))
-            print('Slot {}'.format(datetime_obj))
-            obj = {
+            print('Slot {}'.format(meeting_datetime))
+            meeting_confirmation = {
                 'user': user,
-                'slot': datetime_obj
+                'slot': meeting_datetime
             }
-            data.append(obj)
+            meeting_confirmation_data.append(meeting_confirmation)
         except user_models.User.DoesNotExist:
             print('User not available for {}'.format(email))
             continue
 
         print('End', '-' * 80)
 
-    print('Meta', '-' * 80)
-    print('Total Users: {}'.format(len(data)))
+    print('*'*80)
+    print('Total Users: {}'.format(len(meeting_confirmation_data)))
+    print('*' * 80)
 
-    if not dry_run and len(data) > 0:
-        _send_meeting_confirmation_messages(data)
+    if not len(meeting_confirmation_data):
+        print("No Meeting Data Found.")
+
+    if not dry_run:
+        _send_meeting_confirmation_messages(meeting_confirmation_data)
 
 
 def _send_meeting_confirmation_messages(user_timing_list):
