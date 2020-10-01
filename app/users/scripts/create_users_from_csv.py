@@ -10,6 +10,8 @@ from django.contrib.auth.models import Group
 from users import models
 from tags import models as tags_models
 
+from wn_analytics import models as wn_analytics_models
+
 FIELDS = [
     'Full Name',
     'Email ID',
@@ -90,7 +92,9 @@ def create_user_and_profile(
         objectives=None,
         source=None,
         tags=None,
-        introduction=None
+        introduction=None,
+        utm_source=None,
+        utm_campaign=None,
 ):
     user_created = False
 
@@ -108,7 +112,7 @@ def create_user_and_profile(
             username=username,
             phone_number=phone_number,
             name=full_name,
-            source=source
+            source=source,
         )
         user.set_unusable_password()
         user.save()
@@ -131,12 +135,22 @@ def create_user_and_profile(
             name__in=objectives
         )
 
+    # Creating Analytics Object
+    if utm_source or utm_campaign:
+        wn_analytics_models.UserSource.objects.create(
+            user=user,
+            utm_source=utm_source,
+            utm_campaign=utm_campaign
+        )
+
     objectives = tags_models.Objective.objects.filter(
         name=DEFAULT_OBJECTIVE
     ) if not objectives else objectives
 
     for objective in objectives:
         user.objectives.add(objective)
+
+    user.save()
 
     # Creating Profile
     profile, created = models.Profile.objects.get_or_create(

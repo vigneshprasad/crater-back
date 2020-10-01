@@ -61,7 +61,9 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 email=user['email'],
                 phone_number=user['phone_number'],
                 linkedin_url=user['linkedin_url'],
-                source=user['source']
+                source=user['source'],
+                utm_source=user['utm_source'],
+                utm_campaign=user['utm_campaign']
             )
 
             if not user['meeting_days']:
