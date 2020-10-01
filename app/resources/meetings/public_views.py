@@ -171,7 +171,6 @@ class MeetingCommunicationViewSet(
         permission_classes=[permissions.AllowAny],
         detail=False
     )
-
     # TODO(Nishant): Take list of meeting ids to send emails to a subset of meetings.
     def send_intro_emails(self, request, *args, **kwargs):
         if request.method == 'GET':

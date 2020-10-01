@@ -24,7 +24,7 @@ public_router.register('meeting', meeting_public_views.MeetingViewSetPublicViewS
 public_router.register('meeting/preference', meeting_public_views.UserMeetingPreferencePublicViewSet)
 public_router.register(
     'meeting/communication',
-    meeting_public_views.MeetingVCommunicationViewSet,
+    meeting_public_views.MeetingCommunicationViewSet,
     basename='meeting_communications'
 )
 
