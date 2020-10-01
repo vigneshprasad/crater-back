@@ -206,7 +206,8 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
             'password1': self.validated_data.get('password', ''),
             'email': self.validated_data.get('email', ''),
             'utm_source': self.validated_data.get('utm_source', None),
-            'utm_campaign': self.validated_data.get('utm_campaign', None)
+            'utm_campaign': self.validated_data.get('utm_campaign', None),
+            'name': self.validated_data.get('name', None)
         }
 
     def save(self, request):
@@ -217,9 +218,16 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         self.cleaned_data = self.get_cleaned_data()
         adapter.save_user(request, user, self, commit=False)
         self.custom_signup(request, user)
-        user.save()
         utm_source = self.cleaned_data.get('utm_source')
         utm_campaign = self.cleaned_data.get('utm_campaign')
+        name = self.cleaned_data.get('name')
+        if name:
+            name_list = name.split()
+            first_name = name[0]
+            last_name = name[1:]
+            user.first_name = name_list[0]
+            user.last_name = ' '.join(name_list[1:])
+        user.save()
         if utm_source or utm_campaign:
             wn_analytics_models.UserSource.objects.create(
                 user=user,
