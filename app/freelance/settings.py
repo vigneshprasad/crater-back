@@ -312,6 +312,9 @@ OLD_PASSWORD_FIELD_ENABLED = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 MANDRILL_API_KEY = os.getenv('MANDRILL_API_KEY', 'pAoVah9eVDu70a2yxajeBg')
+# Using because Mandrill sends error if it can't send emails because of various
+# user side reasons. We don't these error since we can't do anything about them.
+MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@fwmail.scenario-projects.com')
 
 

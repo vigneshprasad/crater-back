@@ -3,7 +3,6 @@ import json
 
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import mixins, viewsets
 
@@ -106,6 +105,14 @@ class MeetingViewSetPublicViewSet(
             end_time=end_time
         )
         meeting_config = services.get_latest_active_meeting_config()
+        if not meeting_config:
+            return Response(
+                status=400,
+                data={
+                    "message": "No active meeting config is present."
+                }
+            )
+
         data = {
             "meeting_config": meeting_config.id,
             "participants": data["participants"],
@@ -148,7 +155,7 @@ class MeetingViewSetPublicViewSet(
         return Response(final_response)
 
 
-class MeetingVCommunicationViewSet(
+class MeetingCommunicationViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
@@ -164,6 +171,8 @@ class MeetingVCommunicationViewSet(
         permission_classes=[permissions.AllowAny],
         detail=False
     )
+
+    # TODO(Nishant): Take list of meeting ids to send emails to a subset of meetings.
     def send_intro_emails(self, request, *args, **kwargs):
         if request.method == 'GET':
             all_active_meetings = services.get_active_meetings()
