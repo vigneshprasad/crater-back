@@ -18,17 +18,28 @@ router.register('masterclasses', MaterClassViewSet)
 router.register('meetings', meeting_views.MeetingConfigViewSet)
 router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSet)
 
-# Separate router for public API's.
-public_router = SimpleRouter()
-public_router.register('meetings', meeting_public_views.MeetingViewSetPublicViewSet)
-public_router.register('meetings/preference', meeting_public_views.UserMeetingPreferencePublicViewSet)
-public_router.register(
-    'meetings/communication',
-    meeting_public_views.MeetingCommunicationViewSet,
-    basename='meeting_communications'
-)
+public_url_patters = [
+    path(
+        'meetings',
+        meeting_public_views.MeetingViewSetPublicViewSet.as_view(
+            {'get': 'list', 'post': 'create'}
+        )
+    ),
+    path(
+        'meetings/preference',
+        meeting_public_views.UserMeetingPreferencePublicViewSet.as_view(
+            {'get': 'list', 'post': 'create'}
+        )
+    ),
+    path(
+        'meetings/communication',
+        meeting_public_views.MeetingCommunicationViewSet.as_view(
+            {'get': 'send_intro_emails', 'post': 'send_intro_emails'}
+        )
+    )
+]
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('public/', include(public_router.urls))
+    path('public/', include(public_url_patters))
 ]
