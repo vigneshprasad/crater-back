@@ -27,7 +27,7 @@ from utils.instagram_service import instagram_service
 from . import models
 from . import choices
 from .validators import password_validate_symbols
-from .signals import agreement_filled, email_verified
+from .signals import objectives_added, email_verified
 from .services import get_social_account_info
 from wn_analytics import models as wn_analytics_models
 
@@ -206,7 +206,8 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
             'password1': self.validated_data.get('password', ''),
             'email': self.validated_data.get('email', ''),
             'utm_source': self.validated_data.get('utm_source', None),
-            'utm_campaign': self.validated_data.get('utm_campaign', None)
+            'utm_campaign': self.validated_data.get('utm_campaign', None),
+            'name': self.validated_data.get('name', None)
         }
 
     def save(self, request):
@@ -217,9 +218,16 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         self.cleaned_data = self.get_cleaned_data()
         adapter.save_user(request, user, self, commit=False)
         self.custom_signup(request, user)
-        user.save()
         utm_source = self.cleaned_data.get('utm_source')
         utm_campaign = self.cleaned_data.get('utm_campaign')
+        name = self.cleaned_data.get('name')
+        if name:
+            name_list = name.split()
+            first_name = name[0]
+            last_name = name[1:]
+            user.first_name = name_list[0]
+            user.last_name = ' '.join(name_list[1:])
+        user.save()
         if utm_source or utm_campaign:
             wn_analytics_models.UserSource.objects.create(
                 user=user,
@@ -364,10 +372,14 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         super().update(instance, validated_data)
         new_email = instance.email
         new_city = instance.city
-        if (old_city is None) and new_city != old_city:
-            agreement_filled.send(
+        if (len(validated_data['objectives']) > 0):
+            objectives=[]
+            for objective in validated_data['objectives']:
+                objectives.append(objective.name)
+            objectives_added.send(
                 sender=self.__class__,
-                user=instance
+                user=instance,
+                objectives=objectives
             )
         if old_email != new_email:
             instance.send_verify_email()

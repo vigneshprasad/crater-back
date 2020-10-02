@@ -98,10 +98,11 @@ def send_opt_in_reminder_for_new_meetings(opted_in_users=None):
     opted_in_users = services.get_opted_in_user_for_meetings() \
         if not opted_in_users else opted_in_users
     template = choices.ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE
+
     for user in opted_in_users:
         data = {
             user.email: {
-                'name': user.name.title()
+                'name': user.get_display_first_name()
             }
         }
         subject = "Signup for new connections this week"
@@ -153,8 +154,8 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             data[email] = {
                 'day': display_day,
                 'time': display_time,
-                'name_a': p1.name.title(),
-                'name_b': p2.name.title(),
+                'name_a': p1.get_display_first_name(),
+                'name_b': p2.get_display_first_name(),
                 'link': meeting.link,
                 'introduction_a': p1.profile.get_introduction(),
                 'introduction_b': p2.profile.get_introduction(),

@@ -25,8 +25,9 @@ user_signed_up = Signal(providing_args=[
     "user",
 ])
 
-agreement_filled = Signal(providing_args=[
+objectives_added = Signal(providing_args=[
     "user",
+    "objectives",
 ])
 
 email_verified = Signal(providing_args=[

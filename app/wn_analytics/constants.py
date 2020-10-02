@@ -1,5 +1,6 @@
 USER_CREATED = "signup_user"
 AGREEMENT_FILLED = "accept_agreement"
+OBJECTIVES_ADDED = "objectives_added"
 EMAIL_VERIFIED = "signup_email_verified"
 BASIC_PROFILE_CREATED = "signup_basic_profile"
 SERVICES_CREATION = "signup_services_user"
