@@ -61,9 +61,7 @@ def _send_meeting_confirmation_messages(user_timing_list):
     for item in user_timing_list:
         date = item['slot'].strftime('%a, %d %b %Y')
         time = item['slot'].strftime('%I:%M %p')
-        name = item['user'].first_name.title()
-        if name == '':
-            name=['user'].name.title()
+        name = item['user'].get_display_first_name
         freshchat_service.freshchat_whatsapp_service.send_outbound_message(
             user=item['user'],
             template_name=constants.MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE,
