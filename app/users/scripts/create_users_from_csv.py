@@ -16,7 +16,9 @@ FIELDS = [
     'Full Name',
     'Email ID',
     'Objectives',
-    'Introduction'
+    'Introduction',
+    'Phone Number',
+    'Linkedin Url'
 ]
 
 DEFAULT_OBJECTIVE = 'Meet Professionals & Founders'

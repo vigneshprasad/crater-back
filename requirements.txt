@@ -43,3 +43,13 @@ uvicorn==0.11.5
 analytics-python==1.2.9
 sentry-sdk==0.16.1
 django-user-agents==0.4.0
+google-api-python-client==1.12.2
+
+idna~=2.10
+requests~=2.24.0
+six~=1.15.0
+botocore~=1.13.50
+pytz~=2020.1
+coreapi~=2.3.3
+asgiref~=3.2.10
+kombu~=4.6.11

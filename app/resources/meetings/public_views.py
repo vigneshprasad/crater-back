@@ -1,0 +1,215 @@
+import datetime
+import json
+
+from django.contrib.auth import get_user_model
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import mixins, viewsets
+
+from users import permissions
+from resources.meetings import models, choices
+from resources.meetings import serializers
+from resources.meetings import services
+from resources.meetings import tasks
+
+
+class UserMeetingPreferencePublicViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.UserMeetingPreferenceSerializer
+    queryset = models.UserMeetingPreference.objects.all()
+    permission_classes = [permissions.AllowAny]
+    filterset_fields = ['meeting']
+
+    def list(self, request, *args, **kwargs):
+        response = super(UserMeetingPreferencePublicViewSet, self).list(request, *args, **kwargs)
+        final_response = []
+        for data in response.data:
+            response_dict = dict(data)
+            user = get_user_model().objects.get(
+                uuid=response_dict["user"]
+            )
+            try:
+                objectives = models.Objective.objects.get(
+                    id=response_dict["objectives"]
+                ).name if response_dict["objective"] else None
+            except models.Objective.DoesNotExist:
+                objectives = None
+
+            interests = models.Interest.objects.filter(
+                id__in=response_dict["interests"]
+            )
+            interests_names = ', '.join([interest.name for interest in interests])
+
+            time_slots = models.TimeSlot.objects.filter(
+                id__in=response_dict["time_slots"]
+            )
+            time_slots_display = ',\n'.join([time_slot.get_display() for time_slot in time_slots])
+            new_data = {
+                "pk": response_dict["pk"],
+                "uuid": user.uuid,
+                "email": user.email,
+                "number_of_meetings": response_dict["number_of_meetings"],
+                "objective": response_dict["objective"],
+                "new_objective": objectives,
+                "interests": interests_names,
+                "time_slots": time_slots_display
+            }
+            final_response.append(new_data)
+
+        return Response(final_response)
+
+
+class MeetingViewSetPublicViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+
+    serializer_class = serializers.MeetingSerializer
+    queryset = models.Meeting.objects.all()
+    permission_classes = [permissions.AllowAny]
+    filterset_fields = ['meeting_config']
+
+    def create(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        try:
+            meeting_date = datetime.datetime.strptime(data["date"], "%d/%m/%Y")
+            start_time = datetime.datetime.strptime(data["start_time"], "%H:%M").time()
+            end_time = datetime.datetime.strptime(data["end_time"], "%H:%M").time()
+            start = datetime.datetime.combine(meeting_date, start_time)
+            end = datetime.datetime.combine(meeting_date, end_time)
+        except ValueError:
+            return Response(
+                status=400,
+                data={
+                    "message": "Please input proper for date and time."
+                }
+            )
+
+        if start_time > end_time:
+            return Response(
+                status=400,
+                data={
+                    "message": "Start time should be greater that end time."
+                }
+            )
+
+        time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
+            date=meeting_date,
+            start_time=start_time,
+            end_time=end_time
+        )
+        meeting_config = services.get_latest_active_meeting_config()
+        if not meeting_config:
+            return Response(
+                status=400,
+                data={
+                    "message": "No active meeting config is present."
+                }
+            )
+
+        data = {
+            "meeting_config": meeting_config.id,
+            "participants": data["participants"],
+            "time_slot": time_slot.id,
+            "start": start,
+            "end": end,
+            "is_canceled": data.get("is_canceled", False)
+        }
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response(serializer.data)
+
+    def list(self, request, *args, **kwargs):
+        response = super(MeetingViewSetPublicViewSet, self).list(request, *args, **kwargs)
+        final_response = []
+        for data in response.data:
+            response_dict = dict(data)
+            participants_emails = get_user_model().objects.filter(
+                    uuid__in=response_dict["participants"]
+                ).values_list('email', flat=True)
+            time_slot = models.MeetingTimeSlot.objects.get(id=response_dict["time_slot"])
+            date = time_slot.date
+            start_time = time_slot.start_time
+            end_time = time_slot.end_time
+            data = {
+                "id": response_dict["pk"],
+                "meeting_config": response_dict["meeting_config"],
+                "participants": ", ".join(participants_emails),
+                "meeting_link": response_dict["link"],
+                "date": date,
+                "start_time": start_time,
+                "end_time": end_time,
+                "canceled": response_dict["is_canceled"]
+            }
+            final_response.append(data)
+
+        return Response(final_response)
+
+
+class MeetingCommunicationViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.MeetingSerializer
+    queryset = models.Meeting.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    @action(
+        methods=['get', 'post'],
+        serializer_class=serializers.MeetingSerializer,
+        permission_classes=[permissions.AllowAny],
+        detail=False
+    )
+    # TODO(Nishant): Take list of meeting ids to send emails to a subset of meetings.
+    def send_intro_emails(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            all_active_meetings = services.get_active_meetings()
+            all_data = []
+            for active_meeting in all_active_meetings:
+                if not active_meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+                    continue
+
+                p1 = active_meeting.participants.all()[0]
+                p2 = active_meeting.participants.all()[1]
+
+                # Checking if profile exists.
+                if not (p1.has_profile and p2.has_profile):
+                    continue
+
+                display_day = active_meeting.time_slot.get_display_day()
+                display_time = active_meeting.time_slot.get_display_time()
+
+                subject = 'Introducing {} & {}'.format(
+                    p1.name.title(),
+                    p2.name.title()
+                )
+                data = {
+                    'meeting_id': active_meeting.id,
+                    'day': display_day,
+                    'time': display_time,
+                    'name_a': p1.name.title(),
+                    'name_b': p2.name.title(),
+                    'link': active_meeting.link,
+                    'introduction_a': p1.profile.get_introduction(),
+                    'introduction_b': p2.profile.get_introduction(),
+                    'linkedin_a': p1.profile.linkedin_url,
+                    'linkedin_b': p2.profile.linkedin_url,
+                }
+                all_data.append(data)
+            return Response(all_data)
+
+        if request.method == 'POST':
+            tasks.send_1_on_1_meeting_intro_emails()
+
+        return Response({'status': 'SUCCESS'})

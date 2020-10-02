@@ -5,6 +5,7 @@ from django.dispatch import receiver
 
 from resources.meetings import choices
 from resources.meetings import models
+from resources.meetings import services
 from resources.meetings import signals
 from users import services as users_services
 
@@ -68,11 +69,9 @@ def create_meeting_preference_for_typeform_user(
     clean_time_preferences = []
     for time_preference in time_preferences:
         clean_time_preferences.append(_clean_time_preference(time_preference))
-
-    meeting_config = models.MeetingConfig.objects.filter(
-        is_active=False
-    ).last()
-
+    # Was adding users to the previous config according to the script.
+    # Changed it to add user's to current meeting.
+    meeting_config = services.get_latest_active_meeting_config()
     # Get respective objectives for User Meeting Preference.
     objective_value = choices.OBJECTIVE_CHOICES[0][1]
     objective_key = choices.OBJECTIVE_CHOICES[0][0]

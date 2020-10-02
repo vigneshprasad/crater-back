@@ -311,7 +311,10 @@ OLD_PASSWORD_FIELD_ENABLED = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-MANDRILL_API_KEY = os.getenv('MANDRILL_API_KEY', 'Q23YKb071AurOhmYLY5Hew')
+MANDRILL_API_KEY = os.getenv('MANDRILL_API_KEY', 'pAoVah9eVDu70a2yxajeBg')
+# Using because Mandrill sends error if it can't send emails because of various
+# user side reasons. We don't these error since we can't do anything about them.
+MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@fwmail.scenario-projects.com')
 
 
@@ -390,6 +393,34 @@ FRESHCHAT_MESSAGING_PHONE_NUMBER = os.getenv('FRESHCHAT_MESSAGING_PHONE_NUMBER')
 FRESHCHAT_WHATSAPP_NAMESPACE = os.getenv('FRESHCHAT_WHATSAPP_NAMESPACE')
 FRESHCHAT_ACCESS_TOKEN = os.getenv('FRESHCHAT_ACCESS_TOKEN')
 
-
+# All environment variables.
 ENVIRONMENT = os.getenv('ENVIRONMENT')
 ENVIRONMENT_PREPROD = "preprod"
+ENVIRONMENT_PROD = "prod"
+ENVIRONMENT_STAGE = "stage"
+ENVIRONMENT_DEV = "dev"
+
+GOOGLE_API_ACCOUNT_TYPE = os.getenv('GOOGLE_API_ACCOUNT_TYPE', '')
+GOOGLE_API_PROJECT_ID = os.getenv('GOOGLE_API_PROJECT_ID', '')
+GOOGLE_API_PRIVATE_KEY_ID = os.getenv('GOOGLE_API_PRIVATE_KEY_ID', '')
+GOOGLE_API_PRIVATE_KEY = os.getenv('GOOGLE_API_PRIVATE_KEY', '')
+GOOGLE_API_CLIENT_EMAIL = os.getenv('GOOGLE_API_CLIENT_EMAIL', '')
+GOOGLE_API_CLIENT_ID = os.getenv('GOOGLE_API_CLIENT_ID', '')
+GOOGLE_API_AUTH_URI = os.getenv('GOOGLE_API_AUTH_URI', '')
+GOOGLE_API_TOKEN_URI = os.getenv('GOOGLE_API_TOKEN_URI', '')
+GOOGLE_API_AUTH_PROVIDER_CERT_URL = os.getenv('GOOGLE_API_AUTH_PROVIDER_CERT_URL', '')
+GOOGLE_API_CLIENT_CERT_URL = os.getenv('GOOGLE_API_CLIENT_CERT_URL', '')
+
+# Google credentials to access API.
+GOOGLE_API_CREDENTIALS = {
+  "type": GOOGLE_API_ACCOUNT_TYPE,
+  "project_id": GOOGLE_API_PROJECT_ID,
+  "private_key_id": GOOGLE_API_PRIVATE_KEY_ID,
+  "private_key": GOOGLE_API_PRIVATE_KEY,
+  "client_email": GOOGLE_API_CLIENT_EMAIL,
+  "client_id": GOOGLE_API_CLIENT_ID,
+  "auth_uri": GOOGLE_API_AUTH_URI,
+  "token_uri": GOOGLE_API_TOKEN_URI,
+  "auth_provider_x509_cert_url": GOOGLE_API_AUTH_PROVIDER_CERT_URL,
+  "client_x509_cert_url": GOOGLE_API_CLIENT_CERT_URL
+}
