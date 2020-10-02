@@ -102,7 +102,7 @@ def send_opt_in_reminder_for_new_meetings(opted_in_users=None):
     for user in opted_in_users:
         data = {
             user.email: {
-                'name': user.get_display_first_name
+                'name': user.get_display_first_name()
             }
         }
         subject = "Signup for new connections this week"
@@ -154,8 +154,8 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             data[email] = {
                 'day': display_day,
                 'time': display_time,
-                'name_a': p1.get_display_first_name,
-                'name_b': p2.get_display_first_name,
+                'name_a': p1.get_display_first_name(),
+                'name_b': p2.get_display_first_name(),
                 'link': meeting.link,
                 'introduction_a': p1.profile.get_introduction(),
                 'introduction_b': p2.profile.get_introduction(),

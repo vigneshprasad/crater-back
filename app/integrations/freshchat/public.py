@@ -31,5 +31,5 @@ def send_meeting_opt_in_messages(users):
         freshchat_service.freshchat_whatsapp_service.send_outbound_message(
             user=user,
             template_name=constants.MEETING_OPT_IN_REMINDER_TEMPLATE,
-            template_data=[{"data": user.name.title()}]
+            template_data=[{"data": user.get_display_first_name()}]
         )

@@ -256,7 +256,6 @@ class User(AbstractUser):
         )
         return status
 
-    @property 
     def get_display_first_name(self):
         return self.first_name.title() if self.first_name else self.name.title()
 
