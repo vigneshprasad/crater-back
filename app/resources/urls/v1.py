@@ -20,10 +20,10 @@ router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSe
 
 # Separate router for public API's.
 public_router = SimpleRouter()
-public_router.register('meeting', meeting_public_views.MeetingViewSetPublicViewSet)
-public_router.register('meeting/preference', meeting_public_views.UserMeetingPreferencePublicViewSet)
+public_router.register('meetings', meeting_public_views.MeetingViewSetPublicViewSet)
+public_router.register('meetings/preference', meeting_public_views.UserMeetingPreferencePublicViewSet)
 public_router.register(
-    'meeting/communication',
+    'meetings/communication',
     meeting_public_views.MeetingCommunicationViewSet,
     basename='meeting_communications'
 )
