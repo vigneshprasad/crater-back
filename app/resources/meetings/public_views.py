@@ -19,7 +19,7 @@ class UserMeetingPreferencePublicViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
-    serializer_class = serializers.UserMeetingPreferenceSerializer
+    serializer_class = serializers.PublicMeetingPreferenceSerializer
     queryset = models.UserMeetingPreference.objects.all()
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['meeting']

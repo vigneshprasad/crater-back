@@ -65,7 +65,23 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
         return user_preference
 
 
-class UserMeetingPreferenceSerializer(serializers.ModelSerializer):
+class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserMeetingPreference
+        fields = (
+            'pk',
+            'user',
+            'meeting',
+            'number_of_meetings',
+            'objective',
+            'objectives',
+            'interests',
+            'time_slots'
+        )
+
+
+class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UserMeetingPreference
