@@ -23,7 +23,7 @@ class MeetingTimeSlotAdmin(ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
 
-@register(models.MeetingConfig)
+@register(models.Config)
 class MeetingConfigAdmin(ModelAdmin):
     list_display = (
         'id',
@@ -38,7 +38,7 @@ class MeetingConfigAdmin(ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
 
 
-@register(models.UserMeetingPreference)
+@register(models.MeetingPreference)
 class UserMeetingPreference(ModelAdmin):
     list_display = ('id', 'user', 'number_of_meetings', 'meeting', 'user_interests', 'user_time_slots')
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')

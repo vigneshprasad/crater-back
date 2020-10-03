@@ -185,7 +185,7 @@ class MeetingTimeSlot(base_model.BaseModel):
         return self.get_display()
 
 
-class MeetingConfig(base_model.BaseModel):
+class Config(base_model.BaseModel):
     """
     Resources meeting config created by admins.
 
@@ -261,8 +261,7 @@ class MeetingConfig(base_model.BaseModel):
         self.save()
 
 
-class UserMeetingPreference(base_model.BaseModel):
-    # TODO(Nishant): Rename it to MeetingPreference
+class MeetingPreference(base_model.BaseModel):
     """
     User meeting preference as selected by user
     for a meeting config.
@@ -276,8 +275,9 @@ class UserMeetingPreference(base_model.BaseModel):
     )
     # Should denote the latest meeting_config the user
     # has opted in for.
+    # TODO(Abhishek): Rename to config after users on old app upgrade to new version
     meeting = models.ForeignKey(
-        MeetingConfig,
+        Config,
         verbose_name=_('Meeting Config'),
         on_delete=models.CASCADE,
         related_name='user_preferences'
@@ -303,8 +303,8 @@ class UserMeetingPreference(base_model.BaseModel):
 
 
 class Meeting(base_model.BaseModel):
-    meeting_config = models.ForeignKey(
-        MeetingConfig,
+    config = models.ForeignKey(
+        Config,
         verbose_name=_('Meeting Config'),
         on_delete=models.CASCADE,
         related_name='meetings'

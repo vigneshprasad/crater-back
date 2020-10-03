@@ -4,8 +4,6 @@ from django.utils import timezone
 
 from resources.meetings import models
 from resources.meetings import choices
-from tags import serializers as tags_serializers
-from tags import models as tags_models
 from users import services as user_services
 
 
@@ -71,7 +69,7 @@ def create_meeting_config_for_time_period(
     if not registration_end_date:
         registration_end_date = end_date
 
-    meeting_config, _ = models.MeetingConfig.objects.get_or_create(
+    meeting_config, _ = models.Config.objects.get_or_create(
         week_start_date=start_date,
         week_end_date=end_date,
         registration_start_date=registration_start_date,
@@ -178,7 +176,7 @@ def get_old_active_meeting_configs():
         Queryset of meetings.
 
     """
-    return models.MeetingConfig.objects.filter(
+    return models.Config.objects.filter(
         is_active=True,
         week_end_date__lt=timezone.now().date()
     )
@@ -209,7 +207,7 @@ def get_active_meeting_configs():
         Queryset of MeetingConfig object.
 
     """
-    return models.MeetingConfig.objects.filter(
+    return models.Config.objects.filter(
         week_end_date__gte=datetime.datetime.now().date(),
         is_active=True
     )
@@ -270,7 +268,7 @@ def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
         List of users opted in for the type of meeting.
 
     """
-    meeting_preference_user_ids = models.UserMeetingPreference.objects.filter(
+    meeting_preference_user_ids = models.MeetingPreference.objects.filter(
         meeting__type=meeting_type
     ).values_list('user_id', flat=True)
 
@@ -284,3 +282,43 @@ def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
     user_ids.update(meeting_user_ids)
 
     return user_services.get_users_for_ids(list(user_ids))
+
+
+def get_user_meeting_info(meeting):
+    """
+    Get user info to be show for Meeting get call.
+
+    Args:
+        meeting(Meeting): Meeting Object.
+
+    Return:
+        List of user info.
+
+    """
+    data = []
+    if meeting.participants.count() < 1:
+        return data
+
+    for user in meeting.participants.all():
+        data.append({
+            'pk': user.pk,
+            'name': user.name,
+            'introduction': user.profile.get_introduction(),
+            'photo': user.profile.get_photo_url(),
+        })
+    return data
+
+
+def get_meeting_config_time_slots(meeting):
+    all_slots = meeting.available_time_slots.all()
+    available_slots = {}
+    for slot in all_slots:
+        date_str = str(slot.date)
+        if not available_slots.get(date_str):
+            available_slots[date_str] = []
+        available_slots[date_str].append({
+            'pk': slot.pk,
+            'start': slot.start_time,
+            'end': slot.end_time
+        })
+    return available_slots

@@ -10,7 +10,7 @@ from resources.meetings import signals
 from users import services as users_services
 
 
-@receiver(post_save, sender=models.UserMeetingPreference)
+@receiver(post_save, sender=models.MeetingPreference)
 def send_analytics_for_user_meeting_preference(sender, instance, created, *args, **kwargs):
     time_slots = instance.time_slots.all()
     all_time_slots = []
@@ -35,7 +35,7 @@ def send_analytics_for_user_meeting_preference(sender, instance, created, *args,
     )
 
 
-@receiver(post_save, sender=models.MeetingConfig)
+@receiver(post_save, sender=models.Config)
 def send_analytics_for_meeting_config_creation(sender, instance, created, *args, **kwargs):
     if not created:
         return
@@ -114,7 +114,7 @@ def create_meeting_preference_for_typeform_user(
             )
             user_time_slots.append(time_slot)
 
-    meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
+    meeting_preference, _ = models.MeetingPreference.objects.get_or_create(
         meeting=meeting_config,
         user=user,
         objective=objective_key,

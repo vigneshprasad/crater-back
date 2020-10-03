@@ -20,7 +20,7 @@ class UserMeetingPreferencePublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.UserMeetingPreferenceSerializer
-    queryset = models.UserMeetingPreference.objects.all()
+    queryset = models.MeetingPreference.objects.all()
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['meeting']
 
@@ -73,7 +73,7 @@ class MeetingViewSetPublicViewSet(
     serializer_class = serializers.MeetingSerializer
     queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
-    filterset_fields = ['meeting_config']
+    filterset_fields = ['config']
 
     def create(self, request, *args, **kwargs):
         data = json.loads(request.body)

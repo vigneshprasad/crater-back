@@ -128,7 +128,7 @@ def update_public_introduction(user, introduction):
 
 def create_meeting(meeting_config, meeting_link, time_slot, participants, start=None, end=None):
     meeting, created = models.Meeting.objects.get_or_create(
-        meeting_config=meeting_config,
+        config=meeting_config,
         link=meeting_link,
         time_slot=time_slot,
         start=start,

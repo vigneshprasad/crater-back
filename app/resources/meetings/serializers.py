@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 from resources.meetings import models
@@ -13,7 +15,7 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
     user_preferences = serializers.SerializerMethodField()
 
     class Meta:
-        model = models.MeetingConfig
+        model = models.Config
         fields = (
             'pk',
             'title',
@@ -29,18 +31,7 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_available_time_slots(meeting):
-        all_slots = meeting.available_time_slots.all()
-        available_slots = {}
-        for slot in all_slots:
-            date_str = str(slot.date)
-            if not available_slots.get(date_str):
-                available_slots[date_str] = []
-            available_slots[date_str].append({
-                'pk': slot.pk,
-                'start': slot.start_time,
-                'end': slot.end_time
-            })
-        return available_slots
+        return services.get_meeting_config_time_slots(meeting)
 
     @staticmethod
     def get_objectives(meeting):
@@ -68,7 +59,7 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
 class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
     class Meta:
-        model = models.UserMeetingPreference
+        model = models.MeetingPreference
         fields = (
             'pk',
             'user',
@@ -82,16 +73,76 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
 
 
 class MeetingSerializer(serializers.ModelSerializer):
+    is_past = serializers.SerializerMethodField()
+    participants = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Meeting
         fields = (
             'pk',
-            'meeting_config',
+            'config',
             'participants',
             'link',
             'time_slot',
             'start',
             'end',
-            'is_canceled'
+            'is_canceled',
+            'is_past',
+            'start',
+            'end',
         )
+
+    @staticmethod
+    def get_is_past(meeting):
+        now = datetime.datetime.now()
+        time_slot = datetime.datetime.combine(meeting.time_slot.date, meeting.time_slot
+                                              .end_time)
+        if time_slot >= now:
+            return False
+        return True
+
+    @staticmethod
+    def get_participants(meeting):
+        return services.get_user_meeting_info(meeting)
+
+
+class MeetingObjectiveSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Objective
+        fields = (
+            'pk',
+            'name',
+            'icon',
+        )
+
+
+class MeetingInterestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Interest
+        fields = (
+            'pk',
+            'name',
+            'icon',
+        )
+
+
+class MeetingConfigV2Serializer(serializers.ModelSerializer):
+    available_time_slots = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Config
+        fields = (
+            'pk',
+            'title',
+            'week_start_date',
+            'week_end_date',
+            'is_registration_open',
+            'is_active',
+            'available_time_slots',
+        )
+
+    @staticmethod
+    def get_available_time_slots(meeting):
+        return services.get_meeting_config_time_slots(meeting)

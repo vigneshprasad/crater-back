@@ -28,7 +28,7 @@ def run(
     lines = [line.decode('utf-8') for line in response.readlines()]
     reader = csv.DictReader(lines)
 
-    meeting_config = models.MeetingConfig.objects.filter(
+    meeting_config = models.Config.objects.filter(
         is_active=False
     ).last()
 
@@ -92,7 +92,7 @@ def create_user_meeting_preference(
     if not objective:
         objective = choices.OBJECTIVE_CHOICES[0][0]
 
-    meeting_preference, _ = models.UserMeetingPreference.objects.get_or_create(
+    meeting_preference, _ = models.MeetingPreference.objects.get_or_create(
         meeting=meeting_config,
         user=user,
         objective=objective,

@@ -15,11 +15,18 @@ router.register('rsvpd', RSVPDViewSet)
 router.register('comments', CommentViewSet)
 router.register('articles', CuratedArticleViewSet)
 router.register('masterclasses', MaterClassViewSet)
+# TODO(Abhishek): to be deprecated once 1.5.0 mobile app version is obsolete
 router.register('meetings', meeting_views.MeetingConfigViewSet)
 router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSet)
 
+router.register('meetings/meeting', meeting_views.MeetingViewSet)
+router.register('meetings/config', meeting_views.MeetingConfigV2ViewSet)
+router.register('meetings/objectives', meeting_views.MeetingObjectivesViewSet)
+router.register('meetings/interests', meeting_views.MeetingInterestsViewSet)
+router.register('meetings/preferences', meeting_views.UserMeetingPreferenceViewSet)
+
 # Separate router for public API's.
-public_router = SimpleRouter()
+public_router = DefaultRouter()
 public_router.register('meetings', meeting_public_views.MeetingViewSetPublicViewSet)
 public_router.register('meetings/preference', meeting_public_views.UserMeetingPreferencePublicViewSet)
 public_router.register(

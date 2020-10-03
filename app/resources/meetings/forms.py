@@ -6,5 +6,5 @@ from resources.meetings import models
 class MeetingConfigForm(forms.ModelForm):
 
     class Meta:
-        model = models.MeetingConfig
+        model = models.Config
         fields = '__all__'
