@@ -1,13 +1,11 @@
 import datetime
 import logging
-import pytz
 from copy import copy
 
 from celery.schedules import crontab
 from celery.task import periodic_task
 from django.utils import timezone
 
-from freelance.settings import TIME_ZONE
 from integrations.freshchat import public as freshchat_public
 from resources.meetings import choices
 from resources.meetings import models
@@ -318,32 +316,4 @@ def send_1_on_1_feedback_emails(meetings=None):
                 merge_vars={
                     to: {'email': to}
                 }
-            )
-
-
-def send_whatsapp_1_on_1_meeting_time_confirmation(meetings=None):
-    """Send confirmation of time slot whatsapp message to meeting participants
-
-    Args:
-        meetings(Meeting queryset): Queryset of meeting you want to send this
-            reminder to. Added for testing.
-
-    """
-    meetings = services.get_active_meetings() if not meetings else meetings
-
-    local_tz = pytz.timezone(TIME_ZONE)
-
-    for meeting in meetings:
-        for participant in meeting.participants.all():
-            if meeting.start and meeting.end:
-                local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
-                local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
-            else:
-                local_start_datetime = datetime.datetime.combine(meeting.time_slot.date, meeting.time_slot.start_time)
-                local_end_datetime = datetime.datetime.combine(meeting.time_slot.date, meeting.time_slot.end_time)
-
-            freshchat_public.send_meeting_time_confirmation(
-                participant,
-                local_start_datetime,
-                local_end_datetime
             )
