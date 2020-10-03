@@ -65,7 +65,7 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
         return user_preference
 
 
-class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
+class UserMeetingPreferenceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UserMeetingPreference
