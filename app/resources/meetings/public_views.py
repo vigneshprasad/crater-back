@@ -13,19 +13,19 @@ from resources.meetings import services
 from resources.meetings import tasks
 
 
-class UserMeetingPreferencePublicViewSet(
+class MeetingPreferencePublicViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
-    serializer_class = serializers.UserMeetingPreferenceSerializer
+    serializer_class = serializers.PublicMeetingPreferenceSerializer
     queryset = models.MeetingPreference.objects.all()
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['meeting']
 
     def list(self, request, *args, **kwargs):
-        response = super(UserMeetingPreferencePublicViewSet, self).list(request, *args, **kwargs)
+        response = super(MeetingPreferencePublicViewSet, self).list(request, *args, **kwargs)
         final_response = []
         for data in response.data:
             response_dict = dict(data)

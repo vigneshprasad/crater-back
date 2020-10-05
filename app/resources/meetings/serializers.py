@@ -72,6 +72,22 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
         )
 
 
+class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserMeetingPreference
+        fields = (
+            'pk',
+            'user',
+            'meeting',
+            'number_of_meetings',
+            'objective',
+            'objectives',
+            'interests',
+            'time_slots'
+        )
+
+
 class MeetingSerializer(serializers.ModelSerializer):
     is_past = serializers.SerializerMethodField()
     participants = serializers.SerializerMethodField()
