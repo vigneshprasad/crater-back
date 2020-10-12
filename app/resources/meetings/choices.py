@@ -73,38 +73,38 @@ DEFAULT_MEETING_TIME_SLOTS = {
 DEFAULT_DISPLAY_TIME_SLOTS = {
     3: [
         {
-            'start_time': time(12, 00, 00),
-            'end_time': time(14, 00, 00)
-        },
-        {
             'start_time': time(14, 00, 00),
-            'end_time': time(16, 00, 00)
+            'end_time': time(14, 30, 00)
         },
         {
             'start_time': time(16, 00, 00),
-            'end_time': time(18, 00, 00)
+            'end_time': time(16, 30, 00)
         },
         {
             'start_time': time(18, 00, 00),
-            'end_time': time(20, 00, 00)
+            'end_time': time(18, 30, 00)
+        },
+        {
+            'start_time': time(20, 00, 00),
+            'end_time': time(20, 30, 00)
         }
     ],
     4: [
         {
-            'start_time': time(12, 00, 00),
-            'end_time': time(14, 00, 00)
-        },
-        {
             'start_time': time(14, 00, 00),
-            'end_time': time(16, 00, 00)
+            'end_time': time(14, 30, 00)
         },
         {
             'start_time': time(16, 00, 00),
-            'end_time': time(18, 00, 00)
+            'end_time': time(16, 30, 00)
         },
         {
             'start_time': time(18, 00, 00),
-            'end_time': time(20, 00, 00)
+            'end_time': time(18, 30, 00)
+        },
+        {
+            'start_time': time(20, 00, 00),
+            'end_time': time(20, 30, 00)
         }
     ]
 }
