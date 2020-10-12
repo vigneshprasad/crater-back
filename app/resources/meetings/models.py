@@ -290,11 +290,9 @@ class MeetingPreference(base_model.BaseModel):
         null=True,
         blank=True
     )
-    objectives = models.ForeignKey(
+    objectives = models.ManyToManyField(
         Objective,
         verbose_name=_('Meeting Objective'),
-        on_delete=models.CASCADE,
-        null=True,
         blank=True
     )
     interests = models.ManyToManyField(

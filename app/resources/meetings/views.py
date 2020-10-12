@@ -58,7 +58,7 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
                 if choice[0] == objective:
                     try:
                         objective_model = models.Objective.objects.get(name=choice[1], is_active=True)
-                        request.data['objectives'] = objective_model.pk
+                        request.data['objectives'] = [objective_model.pk]
                     except models.Objective.DoesNotExist:
                         pass
         return request
