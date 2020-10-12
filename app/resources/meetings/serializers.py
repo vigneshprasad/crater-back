@@ -75,7 +75,7 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
 class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = models.UserMeetingPreference
+        model = models.MeetingPreference
         fields = (
             'pk',
             'user',
