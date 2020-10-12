@@ -372,7 +372,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         super().update(instance, validated_data)
         new_email = instance.email
         new_city = instance.city
-        if (len(validated_data['objectives']) > 0):
+        if validated_data.get('objectives') and (len(validated_data.get('objectives')) > 0):
             objectives=[]
             for objective in validated_data['objectives']:
                 objectives.append(objective.name)

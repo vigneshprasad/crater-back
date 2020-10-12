@@ -53,14 +53,15 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
     def _add_objectives_to_request(self):
         request = self.request
         objective = request.data.get('objective')
-        if objective:
-            for choice in choices.OBJECTIVE_CHOICES:
-                if choice[0] == objective:
-                    try:
-                        objective_model = models.Objective.objects.get(name=choice[1], is_active=True)
-                        request.data['objectives'] = [objective_model.pk]
-                    except models.Objective.DoesNotExist:
-                        pass
+        if not objective:
+            return request
+        for choice in choices.OBJECTIVE_CHOICES:
+            if choice[0] == objective:
+                try:
+                    objective_model = models.Objective.objects.get(name=choice[1], is_active=True)
+                    request.data['objectives'] = [objective_model.pk]
+                except models.Objective.DoesNotExist:
+                    pass
         return request
 
     def update(self, request, *args, **kwargs):
