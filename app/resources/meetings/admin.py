@@ -40,8 +40,21 @@ class MeetingConfigAdmin(ModelAdmin):
 
 @register(models.MeetingPreference)
 class UserMeetingPreference(ModelAdmin):
-    list_display = ('id', 'user', 'number_of_meetings', 'meeting', 'user_interests', 'user_time_slots')
-    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+    list_display = (
+        'id',
+        'user',
+        'number_of_meetings',
+        'meeting',
+        'user_interests',
+        'user_time_slots',
+        'user_campaign',
+        'created_at'
+    )
+    exclude = ('deleted_at', 'updated_at', 'is_deleted')
+
+    @staticmethod
+    def user_campaign(obj):
+        return obj.user.source
 
     @staticmethod
     def user_interests(obj):

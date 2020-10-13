@@ -241,7 +241,7 @@ def get_active_meetings(start_date=None, end_date=None):
     """
     latest_active_meeting_config = get_latest_active_meeting_config()
     if not latest_active_meeting_config:
-        return False
+        return []
     # Taking start and end date from the latest meeting config which is
     # active.
     if not start_date:
@@ -250,7 +250,7 @@ def get_active_meetings(start_date=None, end_date=None):
         end_date = latest_active_meeting_config.week_end_date
 
     return models.Meeting.objects.filter(
-        meeting_config__is_active=True,
+        config__is_active=True,
         is_canceled=False,
         time_slot__date__gte=start_date,
         time_slot__date__lte=end_date,
@@ -276,7 +276,7 @@ def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
     user_ids = set(meeting_preference_user_ids)
 
     meeting_user_ids = models.Meeting.objects.filter(
-        meeting_config__type=meeting_type
+        config__type=meeting_type
     ).values_list('participants', flat=True)
     # Updating the set with meeting_user_ids.
     user_ids.update(meeting_user_ids)

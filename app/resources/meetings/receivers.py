@@ -118,8 +118,10 @@ def create_meeting_preference_for_typeform_user(
         meeting=meeting_config,
         user=user,
         objective=objective_key,
-        objectives=objective_obj
     )
+
+    meeting_preference.objectives.add(objective_obj)
+
     interests = models.Interest.objects.filter(
         name__in=interests
     )

@@ -77,16 +77,15 @@ class ProfileViewSet(mixins.CreateModelMixin,
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        if not instance:
+            raise NotFound()
         photo = instance.photo
         if not photo:
             photo = instance.photo_url
-
-        if instance:
-            serializer = self.get_serializer(instance)
-            data = serializer.data
-            data['photo'] = photo.url if hasattr(photo, 'url') else photo
-            return Response(data)
-        raise NotFound()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data['photo'] = photo.url if hasattr(photo, 'url') else photo
+        return Response(data)
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
