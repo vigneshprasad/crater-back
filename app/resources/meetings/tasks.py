@@ -229,7 +229,7 @@ def send_whatsapp_meeting_reminders(meetings=None):
     date = (now_time + datetime.timedelta(minutes=120)).date()
 
     meetings = models.Meeting.objects.filter(
-        meeting_config__is_active=True,
+        config__is_active=True,
         is_canceled=False,
         time_slot__date=date,
         time_slot__start_time__gt=start_time,
@@ -281,7 +281,7 @@ def send_1_on_1_feedback_emails(meetings=None):
     date = (now_time - datetime.timedelta(minutes=90)).date()
 
     meetings = models.Meeting.objects.filter(
-        meeting_config__is_active=True,
+        config__is_active=True,
         is_canceled=False,
         time_slot__date=date,
         time_slot__end_time__gte=start_time,
