@@ -87,7 +87,7 @@ class PhoneVerifiedMixin:
 class SetLinkedInMixin:
     serializer = None
 
-    def set_linked_in(self):
+    def set_linkedin(self):
         if self.user.has_profile:
             self.user.profile.linkedin_url = choices.DEFAULT_LINKED_IN_URL
             self.user.profile.save()

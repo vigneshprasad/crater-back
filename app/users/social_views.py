@@ -94,7 +94,7 @@ class AppleLogin(
         self.set_source()
         self.set_phone_verified()
         self.set_fullname()
-        self.set_linked_in()
+        self.set_linkedin()
         return self.get_response()
 
     def set_fullname(self):
