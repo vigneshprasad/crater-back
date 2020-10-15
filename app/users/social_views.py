@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from users.appleid.views import AppleOAuth2Adapter
 from .mixins import CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin, SetIntentMixin, SetSourceMixin, \
-    PhoneVerifiedMixin
+    PhoneVerifiedMixin, SetLinkedInMixin
 from .serializers import SocialLoginSerializer, ConnectSerializer, AppleSocialLoginSerializer
 
 
@@ -72,8 +72,16 @@ class LinkedinLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEma
         return self.get_response()
 
 
-class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailMixin, SetIntentMixin,
-                 SetSourceMixin, PhoneVerifiedMixin):
+class AppleLogin(
+    SocialLoginView,
+    CheckDeviceMixin,
+    CheckGroupMixin,
+    CheckEmailMixin,
+    SetIntentMixin,
+    SetSourceMixin,
+    PhoneVerifiedMixin,
+    SetLinkedInMixin
+):
     adapter_class = AppleOAuth2Adapter
     serializer_class = AppleSocialLoginSerializer
 
@@ -86,6 +94,7 @@ class AppleLogin(SocialLoginView, CheckDeviceMixin, CheckGroupMixin, CheckEmailM
         self.set_source()
         self.set_phone_verified()
         self.set_fullname()
+        self.set_linked_in()
         return self.get_response()
 
     def set_fullname(self):

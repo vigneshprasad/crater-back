@@ -33,6 +33,8 @@ template_names = {
     'one_month_subs_warning': 'One month subs warning'
 }
 
+DEFAULT_LINKED_IN_URL = 'https://www.no-information.com/'
+
 
 ADMIN_USER_EMAIL = 'admin@admin.com'
 

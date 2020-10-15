@@ -15,7 +15,7 @@ from resources.meetings import services
 from resources.meetings import signals
 
 
-@periodic_task(run_every=crontab(day_of_week='tuesday', hour='12', minute='00'))
+@periodic_task(run_every=crontab(day_of_week='sunday', hour='23', minute='00'))
 def create_weekly_one_on_one_meeting_config(
         week_start_date=None,
         week_end_date=None,
@@ -44,7 +44,7 @@ def create_weekly_one_on_one_meeting_config(
     if not week_start_date:
         week_start_date = timezone.now().date() + datetime.timedelta(days=1)
     if not week_end_date:
-        week_end_date = week_start_date + datetime.timedelta(days=5)
+        week_end_date = week_start_date + datetime.timedelta(days=7)
     # Registration starts a few days early.
     registration_start_date = week_start_date - datetime.timedelta(
         days=choices.DEFAULT_REGISTRATION_START_AND_WEEK_START_DELTA
