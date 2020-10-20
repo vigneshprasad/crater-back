@@ -7,6 +7,7 @@ from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
+from consumers.chat import signals as chat_signals
 from users import services as users_services
 
 
@@ -138,3 +139,12 @@ def _clean_time_preference(time_preference):
     for i in REMOVE_CHARS:
         time_preference = time_preference.replace(i, '')
     return time_preference
+
+
+@receiver(post_save, sender=models.Meeting)
+def create_meeting_for_users(sender, instance, created, *args, **kwargs):
+    if created:
+        chat_signals.create_chat_for_meeting.send(
+            sender=instance,
+            participants=instance.participants.all(),
+        )
