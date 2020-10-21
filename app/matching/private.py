@@ -24,16 +24,29 @@ def get_user_info(user):
 def get_match_score_between_users(user1, user2):
     """Get a matching score between two users."""
 
+    engine_ran = 0
+
     engine_1_score = get_interest_objective_to_tag_score_for_users(user1, user2)
+    engine_ran += (1 if engine_1_score else 0)
+
     print("Engine 1 Score (Interest-Objective to Tag) : {}".format(engine_1_score))
+
     engine_2_score = get_tag_to_tag_score_for_users(user1, user2)
+    engine_ran += (1 if engine_1_score else 0)
+
     print("Engine 2 Score (Tag to Tag) : {}".format(engine_2_score))
+
     engine_3_score = get_objective_to_objective_score_for_users(user1, user2)
+    engine_ran += (1 if engine_1_score else 0)
+
     print("Engine 3 Score (Objective to Objective) : {}".format(engine_3_score))
+
     engine_4_score = get_intro_score_for_users(user1, user2)
+    engine_ran += (1 if engine_1_score else 0)
+
     print("Engine 4 Score (Intro Text Matching) : {}".format(engine_3_score))
 
-    return (engine_1_score*1 + engine_2_score*1 + engine_3_score*1 + engine_4_score*1)/4
+    return (engine_1_score*1 + engine_2_score*1 + engine_3_score*1 + engine_4_score*1)/engine_ran
 
 
 def get_objective_to_objective_score_for_users(user1, user2):
@@ -45,7 +58,7 @@ def get_objective_to_objective_score_for_users(user1, user2):
         # Get latest meeting preferences filled by the user, if not return.
         latest_meeting_preference = services.get_latest_meeting_preference(user)
         if not latest_meeting_preference:
-            continue
+            return 0
 
         objectives = latest_meeting_preference.objectives.all().values_list("name", flat=True)
         objectives_count = objectives.count()
@@ -56,6 +69,9 @@ def get_objective_to_objective_score_for_users(user1, user2):
         to_meeting_preference = services.get_latest_meeting_preference(to_user)
         to_objectives = to_meeting_preference.objectives.all().values_list("name", flat=True)
         to_objectives_count = to_objectives.count()
+
+        if not (objectives_count and to_objectives_count):
+            return 0
 
         score_for_objectives = 0
         # Get score for all objectives against each other.
@@ -96,6 +112,9 @@ def get_tag_to_tag_score_for_users(user1, user2):
         to_tags = to_user.profile.tags.all().values_list("name", flat=True)
         to_tags_count = to_tags.count()
 
+        if not (tags_count and to_tags_count):
+            return 0
+
         score_for_tag = 0
 
         for tag in tags:
@@ -134,10 +153,13 @@ def get_interest_objective_to_tag_score_for_users(user1, user2):
     for user in users:
         latest_meeting_preference = services.get_latest_meeting_preference(user)
         if not latest_meeting_preference:
-            continue
+            return 0
 
         interests = latest_meeting_preference.interests.all()
         objectives = latest_meeting_preference.objectives.all()
+        # If the user doesn't have interest or objectives, return 0.
+        if not (interests and objectives):
+            return 0
 
         interest_objective_map = []
         # Create interest-objective map for scoring.
@@ -151,6 +173,11 @@ def get_interest_objective_to_tag_score_for_users(user1, user2):
         to_user = user2 if user == user1 else user1
         to_user_tags = to_user.profile.tags.all().values_list("name", flat=True)
         to_user_tags_count = to_user_tags.count()
+
+        # If the user doesn't have tags, return 0.
+        if not to_user_tags_count:
+            return 0
+
 
         aggregate_score = 0
         max_score = 0
@@ -191,8 +218,10 @@ def get_intro_score_for_users(user1, user2):
     intro_list = []
     lemmantizer = WordNetLemmatizer()
 
+    if not (user1.profile.get_introduction() and user2.profile.get_introduction()):
+        return 0
+
     for user in users:
-        print(user.profile.get_introduction())
         words = nltk.word_tokenize(user.profile.get_introduction())
         words = [lemmantizer.lemmatize(word, pos='v') for word in words]
         intro_list.append(' '.join(words).lower())

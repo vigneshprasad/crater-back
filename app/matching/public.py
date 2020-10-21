@@ -14,6 +14,6 @@ def get_top_matches_for_user(user):
         user_match_score_map[user.email] = match_score
 
     # Sorting the user match score.
-    sorted_user_match_score_map = {k: v for k, v in sorted(a.items(), key=lambda item: item[1])}
+    sorted_user_match_score_map = {k: v for k, v in sorted(user_match_score_map.items(), key=lambda item: item[1])}
     # Return top 10 users.
     return dict(islice(sorted_user_match_score_map.items(), 10))
