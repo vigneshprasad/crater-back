@@ -206,7 +206,7 @@ def get_intro_score_for_users(user, user2):
     intro_list = []
     lemmantizer = WordNetLemmatizer()
 
-    if not (user1.profile.get_introduction() and user2.profile.get_introduction()):
+    if not (user.profile.get_introduction() and user2.profile.get_introduction()):
         return 0
 
     for user in users:
