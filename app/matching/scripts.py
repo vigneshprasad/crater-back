@@ -73,6 +73,9 @@ def map_objectives_to_new_model_field(dry_run=True):
 
         objective_key = preference.objective
         print("Old Objective Key: {}".format(objective_key))
+        if not objective_key:
+            continue
+
         objective_choice_dict = dict(meeting_choices.OBJECTIVE_CHOICES)
         objective_value = objective_choice_dict.get(objective_key)
         print("Actual Objective Value: {}".format(objective_value))

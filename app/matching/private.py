@@ -130,7 +130,8 @@ def get_tag_to_tag_score_for_users(user1, user2):
                 score_for_to_tag += score_map_for_tag.get(to_tag, 0.1)
             # Getting average for each tag score based of how many to_tags are present for each tag.
             score_for_tag += (score_for_to_tag/to_tags_count)
-
+        if not tags_count:
+            return 0
         # Averaging the score based on the number of user's tags we have calculated the score for.
         users_tag_score += (score_for_tag/tags_count)
 
@@ -177,7 +178,6 @@ def get_interest_objective_to_tag_score_for_users(user1, user2):
         # If the user doesn't have tags, return 0.
         if not to_user_tags_count:
             return 0
-
 
         aggregate_score = 0
         max_score = 0
