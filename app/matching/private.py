@@ -1,0 +1,178 @@
+from matching import constants
+
+from resources.meetings import services
+
+
+def get_user_info(user):
+    """Prints users data used in the engines for visualisation."""
+    print("TAGS")
+    print(list(user.profile.tags.all().values_list("name", flat=True)))
+    latest_meeting_preference = services.get_latest_meeting_preference(user)
+    if not latest_meeting_preference:
+        return
+    print("OBJECTIVES")
+    print(list(latest_meeting_preference.objectives.all().values_list("name", flat=True)))
+    print("INTERESTS")
+    print(list(latest_meeting_preference.interests.all().values_list("name", flat=True)))
+
+
+def get_match_score_between_users(user1, user2):
+    """Get a matching score between two users."""
+
+    engine_1_score = get_interest_objective_to_tag_score_for_users(user1, user2)
+    print("Engine 1 Score: {}".format(engine_1_score))
+    engine_2_score = get_tag_to_tag_score_for_users(user1, user2)
+    print("Engine 2 Score: {}".format(engine_2_score))
+    engine_3_score = get_objective_to_objective_score_for_users(user1, user2)
+    print("Engine 3 Score: {}".format(engine_3_score))
+
+    return (engine_1_score*1 + engine_2_score*1 + engine_3_score*1)/3
+
+
+def get_objective_to_objective_score_for_users(user1, user2):
+    """Creates a match score between two user's based on their meeting objectives."""
+    users = [user1, user2]
+
+    score_for_users = 0
+    for user in users:
+        # Get latest meeting preferences filled by the user, if not return.
+        latest_meeting_preference = services.get_latest_meeting_preference(user)
+        if not latest_meeting_preference:
+            continue
+
+        objectives = latest_meeting_preference.objectives.all().values_list("name", flat=True)
+        objectives_count = objectives.count()
+
+        to_user = user2 if user == user1 else user1
+
+        # Get meeting preference for the other user and objectives from that.
+        to_meeting_preference = services.get_latest_meeting_preference(to_user)
+        to_objectives = to_meeting_preference.objectives.all().values_list("name", flat=True)
+        to_objectives_count = to_objectives.count()
+
+        score_for_objectives = 0
+        # Get score for all objectives against each other.
+
+        for objective in objectives:
+            score_for_to_objectives = 0
+
+            for to_objective in to_objectives:
+                # Handling the case where some objectives won't have the scoring dicts. So
+                # mapping the old objectives to new ones and then getting score.
+                get_score_map_for_objective = constants.OBJECTIVE_TO_OBJECTIVE_SCORES.get(objective)
+
+                if not get_score_map_for_objective:
+                    objective = constants.OLD_OBJECTIVES_TO_NEW_OBJECTIVES_MAP.get(objective)
+                    get_score_map_for_objective = constants.OBJECTIVE_TO_OBJECTIVE_SCORES.get(objective)
+
+                score_for_to_objectives += get_score_map_for_objective.get(to_objective)\
+                    if get_score_map_for_objective else 0.1
+
+            # Averaging out based on the number of objectives the score was accounted for.
+            score_for_objectives = score_for_to_objectives/to_objectives_count
+
+        score_for_users += (score_for_objectives/objectives_count)
+
+    return score_for_users/len(users)
+
+
+def get_tag_to_tag_score_for_users(user1, user2):
+    """Creates a match score for users based on their tags."""
+    users = [user1, user2]
+    users_tag_score = 0
+
+    for user in users:
+        tags = user.profile.tags.all().values_list("name", flat=True)
+        tags_count = tags.count()
+        # Getting the other user's tag for scoring.
+        to_user = user2 if user == user1 else user1
+        to_tags = to_user.profile.tags.all().values_list("name", flat=True)
+        to_tags_count = to_tags.count()
+
+        score_for_tag = 0
+
+        for tag in tags:
+            # If score map for tags is not present, give default 0.1 score for the tag.
+            score_map_for_tag = constants.TAG_TO_TAG_SCORES.get(tag)
+            if not score_map_for_tag:
+                score_for_tag += 0.1
+                continue
+
+            score_for_to_tag = 0
+
+            for to_tag in to_tags:
+                score_for_to_tag += score_map_for_tag.get(to_tag, 0.1)
+            # Getting average for each tag score based of how many to_tags are present for each tag.
+            score_for_tag += (score_for_to_tag/to_tags_count)
+
+        # Averaging the score based on the number of user's tags we have calculated the score for.
+        users_tag_score += (score_for_tag/tags_count)
+
+    # Returning average score, diving by 2 for 2 users.
+    return users_tag_score/2
+
+
+def get_interest_objective_to_tag_score_for_users(user1, user2):
+    """Creates a match score for users based on interest-objective to tag match up for users.
+
+    Note:
+        Creating both average and max scores for this engine, only returns the max score for now.
+
+    """
+    users = [user1, user2]
+
+    score_for_users = 0
+    max_score_for_users = 0
+
+    for user in users:
+        latest_meeting_preference = services.get_latest_meeting_preference(user)
+        if not latest_meeting_preference:
+            continue
+
+        interests = latest_meeting_preference.interests.all()
+        objectives = latest_meeting_preference.objectives.all()
+
+        interest_objective_map = []
+        # Create interest-objective map for scoring.
+        for interest in interests:
+            for objective in objectives:
+                # Handling old interest and objective mapping to new ones.
+                new_objective = constants.OLD_OBJECTIVES_TO_NEW_OBJECTIVES_MAP.get(objective.name) or objective.name
+                new_interest = constants.OLD_INTERESTS_TO_NEW_INTERESTS_MAP.get(interest.name) or interest.name
+                interest_objective_map.append("{} - {}".format(new_interest, new_objective))
+
+        to_user = user2 if user == user1 else user1
+        to_user_tags = to_user.profile.tags.all().values_list("name", flat=True)
+        to_user_tags_count = to_user_tags.count()
+
+        aggregate_score = 0
+        max_score = 0
+
+        # For each interest-objective key pull out score with respect to the other user.
+        for interest_objective in interest_objective_map:
+            max_score_per_interest_objective = 0
+            tags_score_dict = constants.INTEREST_OBJECTIVE_TAG_SCORE.get(interest_objective)
+            if not tags_score_dict:
+                aggregate_score += 0.1
+                max_score_per_interest_objective = max(max_score_per_interest_objective, 0.1)
+                max_score += max_score_per_interest_objective
+                continue
+
+            # Add score from all tags that are present.
+            tags_score = 0
+            for tag in to_user_tags:
+                score = float(tags_score_dict.get(tag, 0.1))
+                tags_score += score
+                max_score_per_interest_objective = max(
+                    max_score_per_interest_objective,
+                    score
+                )
+
+            aggregate_score += (tags_score/to_user_tags_count)
+            max_score += max_score_per_interest_objective
+
+        average_score = aggregate_score/len(interest_objective_map)
+        max_score_for_users += max_score/len(interest_objective_map)
+        score_for_users += average_score
+
+    return max_score_for_users/len(users)
