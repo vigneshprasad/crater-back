@@ -1,6 +1,11 @@
 from matching import constants
 
 from resources.meetings import services
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
+from nltk.stem.wordnet import WordNetLemmatizer
+import nltk
+import numpy as np
 
 
 def get_user_info(user):
@@ -95,7 +100,7 @@ def get_tag_to_tag_score_for_users(user1, user2):
             # If score map for tags is not present, give default 0.1 score for the tag.
             score_map_for_tag = constants.TAG_TO_TAG_SCORES.get(tag)
             if not score_map_for_tag:
-                score_for_tag += 0.1
+                tags_count -= 1
                 continue
 
             score_for_to_tag = 0
@@ -109,7 +114,7 @@ def get_tag_to_tag_score_for_users(user1, user2):
         users_tag_score += (score_for_tag/tags_count)
 
     # Returning average score, diving by 2 for 2 users.
-    return users_tag_score/2
+    return users_tag_score/len(users)
 
 
 def get_interest_objective_to_tag_score_for_users(user1, user2):
@@ -169,10 +174,38 @@ def get_interest_objective_to_tag_score_for_users(user1, user2):
                 )
 
             aggregate_score += (tags_score/to_user_tags_count)
-            max_score += max_score_per_interest_objective
+            max_score = max(max_score, max_score_per_interest_objective)
 
         average_score = aggregate_score/len(interest_objective_map)
-        max_score_for_users += max_score/len(interest_objective_map)
+        max_score_for_users = max(max_score, max_score_for_users)
         score_for_users += average_score
 
     return max_score_for_users/len(users)
+
+
+def get_intro_score_for_users(user1, user2):
+    """Creates a score between users based on users intros."""
+    users = [user1, user2]
+    intro_list = []
+    lemmantizer = WordNetLemmatizer()
+
+    for user in users:
+        print(user.profile.get_introduction())
+        words = nltk.word_tokenize(user.profile.get_introduction())
+        words = [lemmantizer.lemmatize(word, pos='v') for word in words]
+        intro_list.append(' '.join(words).lower())
+
+    vector = TfidfVectorizer(min_df=1, stop_words='english')
+    try:
+        vector_transform = vector.fit_transform(intro_list)
+    except ValueError:
+        # This is to handle if intro's are not meaningful and contain only stop words.
+        return 0.1
+
+    pairwise_similarity = vector_transform * vector_transform.T
+    array = pairwise_similarity.toarray()
+    np.fill_diagonal(array, 0)
+
+    # Averaging the score for user intros.
+    average_score_for_user_intros = (array[0][1] + array[1][0])/len(users)
+    return average_score_for_user_intros
