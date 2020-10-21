@@ -1,11 +1,11 @@
+import nltk
+import numpy
+from nltk.stem.wordnet import WordNetLemmatizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 from matching import constants
 
 from resources.meetings import services
-from sklearn.feature_extraction.text import TfidfVectorizer
-import pandas as pd
-from nltk.stem.wordnet import WordNetLemmatizer
-import nltk
-import numpy as np
 
 
 def get_user_info(user):
@@ -204,7 +204,7 @@ def get_intro_score_for_users(user1, user2):
 
     pairwise_similarity = vector_transform * vector_transform.T
     array = pairwise_similarity.toarray()
-    np.fill_diagonal(array, 0)
+    numpy.fill_diagonal(array, 0)
 
     # Averaging the score for user intros.
     average_score_for_user_intros = (array[0][1] + array[1][0])/len(users)
