@@ -39,7 +39,7 @@ def get_match_score_between_users(user1, user2):
     return (engine_1_score*1 + engine_2_score*1 + engine_3_score*1 + engine_4_score*1) / 4
 
 
-def get_objective_to_objective_score_for_users(user1, user2):
+def get_objective_to_objective_score_for_users(user, user2):
     """Creates a match score between two user's based on their meeting objectives."""
     
     # Get latest meeting preferences filled by the user, if not return.
@@ -89,7 +89,7 @@ def get_objective_to_objective_score_for_users(user1, user2):
     return score_for_users
 
 
-def get_tag_to_tag_score_for_users(user1, user2):
+def get_tag_to_tag_score_for_users(user, user2):
     """Creates a match score for users based on their tags."""
     users_tag_score = 0
 
@@ -127,7 +127,8 @@ def get_tag_to_tag_score_for_users(user1, user2):
 
     return users_tag_score
 
-def get_interest_objective_to_tag_score_for_users(user1, user2):
+
+def get_interest_objective_to_tag_score_for_users(user, user2):
     """Creates a match score for users based on interest-objective to tag match up for users.
 
     Note:
@@ -199,7 +200,7 @@ def get_interest_objective_to_tag_score_for_users(user1, user2):
     return max_score_for_users
 
 
-def get_intro_score_for_users(user1, user2):
+def get_intro_score_for_users(user, user2):
     """Creates a score between users based on users intros."""
     users = [user1, user2]
     intro_list = []
@@ -214,8 +215,6 @@ def get_intro_score_for_users(user1, user2):
             return 0
         words = [lemmantizer.lemmatize(word, pos='v') for word in words]
         intro_list.append(' '.join(words).lower())
-
-    uf 
 
     vector = TfidfVectorizer(min_df=1, stop_words='english')
     try:

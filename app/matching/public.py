@@ -37,6 +37,7 @@ def get_top_matches(user):
 
     return dict(islice(sorted_user_match_score_map.items(), 10))
 
+
 def get_top_matches_for_user(user):
     """Returns top 10 matches for a user without taking into account the other users preferences."""
     opted_in_users = meeting_service.get_opted_in_user_for_meetings()
