@@ -34,4 +34,3 @@ def get_top_matches_for_user(user):
         print('End', '*' * 30)
 
     return dict(islice(sorted_user_match_score_map.items(), 10))
-g
