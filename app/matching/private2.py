@@ -202,7 +202,7 @@ def get_interest_objective_to_tag_score_for_users(user, user2):
 
 def get_intro_score_for_users(user, user2):
     """Creates a score between users based on users intros."""
-    users = [user1, user2]
+    users = [user, user2]
     intro_list = []
     lemmantizer = WordNetLemmatizer()
 
