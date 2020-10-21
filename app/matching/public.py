@@ -1,5 +1,7 @@
 from itertools import islice
 
+from django.contrib.auth import get_user_model
+
 from matching import private
 from resources.meetings import services as meeting_service
 
@@ -28,7 +30,7 @@ def get_top_matches_for_user(user):
     private.get_user_info(user)
     for email, score in final_results.items():
         print('Start', '*'*30)
-        matched_user = opted_in_users.filter(email=email)
+        matched_user = get_user_model().objects.get(email=email)
         print('Match Score: {}'.format(score))
         private.get_user_info(matched_user)
         print('End', '*' * 30)
