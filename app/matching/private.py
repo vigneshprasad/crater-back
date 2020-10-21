@@ -25,13 +25,15 @@ def get_match_score_between_users(user1, user2):
     """Get a matching score between two users."""
 
     engine_1_score = get_interest_objective_to_tag_score_for_users(user1, user2)
-    print("Engine 1 Score: {}".format(engine_1_score))
+    print("Engine 1 Score (Interest-Objective to Tag) : {}".format(engine_1_score))
     engine_2_score = get_tag_to_tag_score_for_users(user1, user2)
-    print("Engine 2 Score: {}".format(engine_2_score))
+    print("Engine 2 Score (Tag to Tag) : {}".format(engine_2_score))
     engine_3_score = get_objective_to_objective_score_for_users(user1, user2)
-    print("Engine 3 Score: {}".format(engine_3_score))
+    print("Engine 3 Score (Objective to Objective) : {}".format(engine_3_score))
+    engine_4_score = get_intro_score_for_users(user1, user2)
+    print("Engine 4 Score (Intro Text Matching) : {}".format(engine_3_score))
 
-    return (engine_1_score*1 + engine_2_score*1 + engine_3_score*1)/3
+    return (engine_1_score*1 + engine_2_score*1 + engine_3_score*1 + engine_4_score*1)/4
 
 
 def get_objective_to_objective_score_for_users(user1, user2):
@@ -200,7 +202,7 @@ def get_intro_score_for_users(user1, user2):
         vector_transform = vector.fit_transform(intro_list)
     except ValueError:
         # This is to handle if intro's are not meaningful and contain only stop words.
-        return 0.1
+        return 0
 
     pairwise_similarity = vector_transform * vector_transform.T
     array = pairwise_similarity.toarray()
