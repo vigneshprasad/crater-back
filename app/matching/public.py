@@ -10,10 +10,14 @@ def get_top_matches_for_user(user):
     user_match_score_map = {}
 
     for opted_user in opted_in_users:
+        if not opted_user.has_profile:
+            continue
         match_score = private.get_match_score_between_users(user, opted_user)
-        user_match_score_map[user.email] = match_score
+        user_match_score_map[opted_user.email] = match_score
 
     # Sorting the user match score.
-    sorted_user_match_score_map = {k: v for k, v in sorted(user_match_score_map.items(), key=lambda item: item[1])}
+    sorted_user_match_score_map = {k: v for k, v in sorted(
+        user_match_score_map.items(), key=lambda item: item[1], reverse=True
+    )}
     # Return top 10 users.
     return dict(islice(sorted_user_match_score_map.items(), 10))

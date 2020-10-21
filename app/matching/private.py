@@ -27,24 +27,27 @@ def get_match_score_between_users(user1, user2):
     engine_ran = 0
 
     engine_1_score = get_interest_objective_to_tag_score_for_users(user1, user2)
-    engine_ran += (1 if engine_1_score else 0)
+    engine_ran = (engine_ran + 1) if engine_1_score else engine_ran
 
     print("Engine 1 Score (Interest-Objective to Tag) : {}".format(engine_1_score))
 
     engine_2_score = get_tag_to_tag_score_for_users(user1, user2)
-    engine_ran += (1 if engine_1_score else 0)
+    engine_ran = (engine_ran + 1) if engine_2_score else engine_ran
 
     print("Engine 2 Score (Tag to Tag) : {}".format(engine_2_score))
 
     engine_3_score = get_objective_to_objective_score_for_users(user1, user2)
-    engine_ran += (1 if engine_1_score else 0)
+    engine_ran = (engine_ran + 1) if engine_3_score else engine_ran
 
     print("Engine 3 Score (Objective to Objective) : {}".format(engine_3_score))
 
     engine_4_score = get_intro_score_for_users(user1, user2)
-    engine_ran += (1 if engine_1_score else 0)
+    engine_ran = (engine_ran + 1) if engine_4_score else engine_ran
 
-    print("Engine 4 Score (Intro Text Matching) : {}".format(engine_3_score))
+    print("Engine 4 Score (Intro Text Matching) : {}".format(engine_4_score))
+
+    if not engine_ran:
+        return 0
 
     return (engine_1_score*1 + engine_2_score*1 + engine_3_score*1 + engine_4_score*1)/engine_ran
 
@@ -67,6 +70,9 @@ def get_objective_to_objective_score_for_users(user1, user2):
 
         # Get meeting preference for the other user and objectives from that.
         to_meeting_preference = services.get_latest_meeting_preference(to_user)
+        if not to_meeting_preference:
+            return 0
+
         to_objectives = to_meeting_preference.objectives.all().values_list("name", flat=True)
         to_objectives_count = to_objectives.count()
 

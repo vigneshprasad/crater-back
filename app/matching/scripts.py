@@ -79,7 +79,7 @@ def map_objectives_to_new_model_field(dry_run=True):
         objective_choice_dict = dict(meeting_choices.OBJECTIVE_CHOICES)
         objective_value = objective_choice_dict.get(objective_key)
         print("Actual Objective Value: {}".format(objective_value))
-        new_objective = constants.OLD_OBJECTIVES_TO_NEW_OBJECTIVES_MAP.get(objective_value)
+        new_objective = constants.OLD_OBJECTIVES_TO_NEW_OBJECTIVES_MAP.get(objective_value) or objective_value
         print("New Objective Value: {}".format(new_objective))
 
         if not dry_run:
