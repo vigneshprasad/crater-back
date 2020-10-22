@@ -6,8 +6,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
+from base.models import BaseModel
 
 from utils.storage_backends import PrivateMediaStorage
+from .choices import MESSAGE_EMAIL_NOTIFICATION_STATE
 
 
 class Message(TimeStampedModel):
@@ -89,6 +91,29 @@ class LastSeen(TimeStampedModel):
         verbose_name = _('User last activity')
         verbose_name_plural = _('User last activities')
         db_table = 'last_seen'
+
+
+class MessageEmailNotification(BaseModel):
+    message = models.ForeignKey(
+        Message,
+        related_name='email_notification',
+        on_delete=models.CASCADE,
+        verbose_name=_('Message Email Notification')
+    )
+    sender = models.ForeignKey(
+        get_user_model(),
+        related_name='sender_email_notification',
+        on_delete=models.CASCADE,
+    )
+    receiver = models.ForeignKey(
+        get_user_model(),
+        related_name='receiver_email_notification',
+        on_delete=models.CASCADE,
+    )
+    state = models.CharField(
+        choices=MESSAGE_EMAIL_NOTIFICATION_STATE,
+        max_length=255
+    )
 
 
 @receiver(post_save, sender=Message)

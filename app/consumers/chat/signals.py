@@ -25,3 +25,7 @@ new_chat_points_signal = Signal(providing_args=[
     "rule_key",
     "base_factor"
 ])
+
+create_chat_for_meeting = Signal(providing_args=[
+    "participants",
+])

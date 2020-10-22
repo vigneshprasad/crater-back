@@ -42,7 +42,7 @@ def create_weekly_one_on_one_meeting_config(
     title = choices.DEFAULT_ONE_ON_ONE_MEETING_TITLE
     # timezone.now() will provide Sunday's date. Since both are UTC.
     if not week_start_date:
-        week_start_date = timezone.now().date() + datetime.timedelta(days=1)
+        week_start_date = timezone.now().date() + datetime.timedelta(days=8)
     if not week_end_date:
         week_end_date = week_start_date + datetime.timedelta(days=choices.DEFAULT_MEETING_WEEK_DURATION)
     # Registration starts a few days early.
