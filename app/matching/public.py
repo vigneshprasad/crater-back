@@ -2,7 +2,8 @@ from itertools import islice
 
 from django.contrib.auth import get_user_model
 
-from matching import engines
+from matching.engines import user_match_engine
+from matching.engines import best_match_engine
 from resources.meetings import services as meeting_service
 
 
@@ -23,7 +24,7 @@ def get_top_matches_for_user(user):
         if not opted_user.has_profile:
             continue
 
-        match_score = engines.user_match_engine.get_match_score_between_users(user, opted_user)
+        match_score = user_match_engine.get_match_score_between_users(user, opted_user)
         user_match_score_map[opted_user.email] = match_score
 
     # Removing user's match with the user itself.
@@ -65,7 +66,7 @@ def get_top_users_for_user(user):
     for opted_user in opted_in_users:
         if not opted_user.has_profile:
             continue
-        match_score = engines.best_match_engine.get_match_score_between_users(user, opted_user)
+        match_score = best_match_engine.get_match_score_between_users(user, opted_user)
         user_match_score_map[opted_user.email] = match_score
 
     # Removing user's match with the user itself.
