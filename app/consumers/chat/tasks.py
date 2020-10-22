@@ -38,6 +38,9 @@ def send_email_for_unread_messages(self):
             user_sender = get_user_model().objects.get(pk=sender)
             subject = 'New Message from {}'.format(user_sender.name)
             notifications_to_send = notifications.filter(sender=sender, receiver=receiver)
+            introduction = ' '
+            if user_sender.profile.get_introduction():
+                introduction = '{}...'.format(user_sender.profile.get_introduction()[:120])
             unread_count = len(notifications_to_send)
             user_receiver.send_email(
                 subject=subject,
@@ -49,7 +52,7 @@ def send_email_for_unread_messages(self):
                     user_receiver.email: {
                         'name': user_sender.name,
                         'unread_count': unread_count,
-                        'introduction': user_sender.profile.get_introduction(),
+                        'introduction': introduction,
                         'chat_link': 'https://{}/dashboard/inbox?active={}'.format(FRONT_URL, user_sender.pk),
                         'profile_link': 'https://{}/profile?p={}'.format(FRONT_URL, user_sender.pk),
                         'contact_us': 'https://{}/dashboard/help'.format(FRONT_URL),

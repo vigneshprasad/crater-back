@@ -107,6 +107,12 @@ DEFAULT_DISPLAY_TIME_SLOTS = {
             'start_time': time(20, 00, 00),
             'end_time': time(20, 30, 00)
         }
+    ],
+    5: [
+        {
+            'start_time': time(16, 00, 00),
+            'end_time': time(16, 30, 00)
+        }
     ]
 }
 
