@@ -10,24 +10,28 @@ NEW_CHAT_POINTS_KEY = 10
 
 @receiver(post_save, sender=Message)
 def send_new_chat_signal(sender, instance, created, *args, **kwargs):
-    if created:
-        message_sender = instance.sender
-        message_receiver = instance.receiver
-        is_new_chat = Message.objects.filter(sender=message_sender, receiver=message_receiver)
+    if not created:
+        return
 
-        MessageEmailNotification.objects.create(
-            sender=message_sender,
-            message=instance,
-            receiver=message_receiver,
-            state=MESSAGE_EMAIL_NOTIFICATION_STATE[0]
-        )
+    message_sender = instance.sender
+    message_receiver = instance.receiver
+    is_new_chat = Message.objects.filter(sender=message_sender, receiver=message_receiver)
 
-        if len(is_new_chat) == 1:
-            new_chat_points_signal.send(
-                sender=instance.__class__,
-                user=message_sender,
-                rule_key=NEW_CHAT_POINTS_KEY
-            )
+    MessageEmailNotification.objects.create(
+        sender=message_sender,
+        message=instance,
+        receiver=message_receiver,
+        state=MESSAGE_EMAIL_NOTIFICATION_STATE[0]
+    )
+
+    if not len(is_new_chat) == 1:
+        return
+
+    new_chat_points_signal.send(
+        sender=instance.__class__,
+        user=message_sender,
+        rule_key=NEW_CHAT_POINTS_KEY
+    )
 
 
 @receiver(create_chat_for_meeting)

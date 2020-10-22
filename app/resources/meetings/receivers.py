@@ -143,8 +143,10 @@ def _clean_time_preference(time_preference):
 
 @receiver(post_save, sender=models.Meeting)
 def create_meeting_for_users(sender, instance, created, *args, **kwargs):
-    if created:
-        chat_signals.create_chat_for_meeting.send(
-            sender=instance,
-            participants=instance.participants.all(),
-        )
+    if not created:
+        return
+
+    chat_signals.create_chat_for_meeting.send(
+        sender=instance,
+        participants=instance.participants.all(),
+    )

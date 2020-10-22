@@ -102,12 +102,12 @@ class MessageEmailNotification(BaseModel):
     )
     sender = models.ForeignKey(
         get_user_model(),
-        related_name='message_sender',
+        related_name='sender_email_notification',
         on_delete=models.CASCADE,
     )
     receiver = models.ForeignKey(
         get_user_model(),
-        related_name='message_receiver',
+        related_name='receiver_email_notification',
         on_delete=models.CASCADE,
     )
     state = models.CharField(
