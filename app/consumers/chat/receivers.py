@@ -45,6 +45,7 @@ def create_chat_messages_for_meeting(sender, participants, *args, **kwargs):
         for message_receiver in participants:
             if message_sender == message_receiver:
                 continue
+
             content = "(Automated message): Hi {}, here is a quick introduction about me".format(message_receiver.name)
             Message.objects.create(
                 message=content,

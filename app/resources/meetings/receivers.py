@@ -1,6 +1,6 @@
 import datetime
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
 from resources.meetings import choices
@@ -141,12 +141,11 @@ def _clean_time_preference(time_preference):
     return time_preference
 
 
-@receiver(post_save, sender=models.Meeting)
-def create_meeting_for_users(sender, instance, created, *args, **kwargs):
-    if not created:
-        return
+@receiver(m2m_changed, sender=models.Meeting.participants.through)
+def create_meeting_for_users(sender, instance, *args, **kwargs):
 
-    chat_signals.create_chat_for_meeting.send(
-        sender=instance,
-        participants=instance.participants.all(),
-    )
+    if kwargs.get('action') == 'post_add':
+        chat_signals.create_chat_for_meeting.send(
+            sender=instance,
+            participants=instance.participants.all(),
+        )
