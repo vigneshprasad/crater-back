@@ -130,3 +130,4 @@ def get_user_info(user):
     user_info["interests"] = user_interests
 
     return user_info
+
