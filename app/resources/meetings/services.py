@@ -322,3 +322,7 @@ def get_meeting_config_time_slots(meeting):
             'end': slot.end_time
         })
     return available_slots
+
+
+def get_latest_meeting_preference(user):
+    return models.MeetingPreference.objects.filter(user=user).last()
