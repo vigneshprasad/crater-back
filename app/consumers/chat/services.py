@@ -10,8 +10,9 @@ from django.db.models import Q
 from django.db.models.functions import Lower
 
 from consumers.chat.models import LastSeen
-from consumers.chat.models import Message, ChatStarredUser
+from consumers.chat.models import Message, ChatStarredUser, MessageEmailNotification
 from consumers.chat.serializers import MessageSerializer, UserChatSerializer
+from .choices import MESSAGE_EMAIL_NOTIFICATION_STATE
 
 
 @database_sync_to_async
@@ -122,6 +123,8 @@ def get_read_user_messages_ids_by_user(user, sender):
     """
     messages = Message.objects.filter(receiver_id=user, sender_id=sender, is_support=False, is_read=False)
     message_ids = list(messages.values_list('id', flat=True))
+    email_message_notifications = MessageEmailNotification.objects.filter(message_id__in=message_ids)
+    email_message_notifications.update(state=MESSAGE_EMAIL_NOTIFICATION_STATE[2])
     messages.update(is_read=True)
     return message_ids
 

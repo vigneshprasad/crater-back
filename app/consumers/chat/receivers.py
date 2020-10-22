@@ -1,9 +1,9 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .services import create_message
-from .models import Message
+from .models import Message, MessageEmailNotification
 from .signals import new_chat_points_signal, create_chat_for_meeting
+from .choices import MESSAGE_EMAIL_NOTIFICATION_STATE
 
 NEW_CHAT_POINTS_KEY = 10
 
@@ -12,8 +12,16 @@ NEW_CHAT_POINTS_KEY = 10
 def send_new_chat_signal(sender, instance, created, *args, **kwargs):
     if created:
         message_sender = instance.sender
-        message_reciever = instance.receiver
-        is_new_chat = Message.objects.filter(sender=message_sender, receiver=message_reciever)
+        message_receiver = instance.receiver
+        is_new_chat = Message.objects.filter(sender=message_sender, receiver=message_receiver)
+
+        MessageEmailNotification.objects.create(
+            sender=message_sender,
+            message=instance,
+            receiver=message_receiver,
+            state=MESSAGE_EMAIL_NOTIFICATION_STATE[0]
+        )
+
         if len(is_new_chat) == 1:
             new_chat_points_signal.send(
                 sender=instance.__class__,
