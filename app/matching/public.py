@@ -25,7 +25,7 @@ def get_top_matches_for_user(user):
             continue
 
         match_score = user_match_engine.get_match_score_between_users(user, opted_user)
-        user_match_score_map[opted_user.email] = match_score.get('final_score')
+        user_match_score_map[opted_user.email] = match_score.get('final_score', 0)
 
     # Removing user's match with the user itself.
     user_match_score_map.pop(user.email)
@@ -67,7 +67,7 @@ def get_top_users_for_user(user):
         if not opted_user.has_profile:
             continue
         match_score = best_match_engine.get_match_score_between_users(user, opted_user)
-        user_match_score_map[opted_user.email] = match_score.get('final_score')
+        user_match_score_map[opted_user.email] = match_score.get('final_score', 0)
 
     # Removing user's match with the user itself.
     user_match_score_map.pop(user.email)
