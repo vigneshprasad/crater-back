@@ -35,7 +35,10 @@ def get_top_matches_for_user(user):
         user_match_score_map[opted_user.email] = final_match_score
 
     # Removing user's match with the user itself.
-    user_match_score_map.pop(user.email)
+    try:
+        user_match_score_map.pop(user.email)
+    except KeyError:
+        pass
 
     # Sorting the user match score.
     sorted_user_match_score_map = {k: v for k, v in sorted(
@@ -85,7 +88,10 @@ def get_top_users_for_user(user):
         user_match_score_map[opted_user.email] = final_match_score
 
     # Removing user's match with the user itself.
-    user_match_score_map.pop(user.email)
+    try:
+        user_match_score_map.pop(user.email)
+    except KeyError:
+        pass
 
     # Sorting the user match score.
     sorted_user_match_score_map = {k: v for k, v in sorted(
@@ -129,11 +135,12 @@ def get_user_info(user):
         "introduction": None
     }
 
-    user_tags = ",".join(list(user.profile.tags.all().values_list("name", flat=True)))
-    user_info["tags"] = user_tags
+    if user.has_profile:
+        user_tags = ",".join(list(user.profile.tags.all().values_list("name", flat=True)))
+        user_info["tags"] = user_tags
 
-    user_introduction = user.profile.get_introduction() if user.has_profile else None
-    user_info["introduction"] = user_introduction
+        user_introduction = user.profile.get_introduction() if user.has_profile else None
+        user_info["introduction"] = user_introduction
 
     latest_meeting_preference = meeting_service.get_latest_meeting_preference(user)
     if not latest_meeting_preference:
