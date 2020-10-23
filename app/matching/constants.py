@@ -15,3 +15,4 @@ OLD_INTERESTS_TO_NEW_INTERESTS_MAP = {
 }
 
 DEFAULT_INTRO_MULTIPLIER = 4
+KEZIAH_TYPEFORM = "https://worknetwork.typeform.com/to/ltoxdMaX"
