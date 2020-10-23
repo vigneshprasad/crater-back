@@ -12,7 +12,6 @@ def get_user_score(user):
     source_based_score = get_user_score_based_on_source(user)
     user_score += source_based_score
 
-
     return user_score
 
 
@@ -21,19 +20,20 @@ def get_user_score_based_on_tags(user):
     user_tag_score = 0
 
     if not user.has_profile:
-        return user_tag_score
+        return 100
 
     tags = user.profile.tags.all().values_list("name", flat=True)
     tags_count = len(tags)
 
     if not tags:
-        return user_tag_score
+        return 100
 
     for tag in tags:
         user_tag_score += scoring_constants.BASE_TAG_SCORES_FOR_USER.get(tag, 100)
 
     #  Returning average tag score for user. To keep similarity between user's with
     # difference number of tags.
+
     return user_tag_score / tags_count
 
 
