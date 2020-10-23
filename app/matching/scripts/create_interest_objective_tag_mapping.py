@@ -3,12 +3,12 @@ import csv
 from matching.engines import scoring_constants
 
 
-def run(dry_run):
+def run(dry_run=False):
     """Curates a dictionary of dictionaries from Interest objectives tags engine CSV."""
 
     csv_file = open('/app/matching/data/interest_objectives_tag_map_scores.csv', mode='r')
     csv_reader = csv.DictReader(csv_file)
-    final_dictionary = {}
+    interest_objectives_to_tag_scores = {}
 
     for row in csv_reader:
 
@@ -21,10 +21,10 @@ def run(dry_run):
         for tag in all_tags:
             tag_score_dict[tag] = float(row.get(tag)) or 0.1
 
-        final_dictionary[interest_objective] = tag_score_dict
+        interest_objectives_to_tag_scores[interest_objective] = tag_score_dict
 
     if not dry_run:
         # Update the interest objective tag score map.
-        scoring_constants.INTEREST_OBJECTIVE_TAG_SCORE = final_dictionary
+        scoring_constants.INTEREST_OBJECTIVE_TAG_SCORE = interest_objectives_to_tag_scores
 
-    return final_dictionary
+    return interest_objectives_to_tag_scores

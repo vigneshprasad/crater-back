@@ -2053,6 +2053,7 @@ OBJECTIVE_TO_OBJECTIVE_SCORES = {
         "Meet Interesting People": 0.9
     }
 }
+
 INTEREST_OBJECTIVE_TAG_SCORE = {
     "Lawyers - Brainstorm with Peers": {
         "Accountant": "0.3",
@@ -6312,4 +6313,47 @@ INTEREST_OBJECTIVE_TAG_SCORE = {
         "Principal": 0.1,
         "Vice President": 0.1
     }
+}
+
+BASE_TAG_SCORES_FOR_USER = {
+    "Founder": 200,
+    "CEO ": 200,
+    "Investor ": 200,
+    "COO": 175,
+    "CTO": 200,
+    "Investment fund": 200,
+    "Principal": 200,
+    "Co-founder": 200,
+    "CFO": 175,
+    "Entrepreneur": 175,
+    "Startup": 175,
+    "Board Member": 175,
+    "Director": 175,
+    "Owner": 175,
+    "Partner": 175,
+    "President": 175,
+    "Vice President": 175,
+    "Brand Advisor": 150,
+    "Designer": 150,
+    "Finance Specialist": 150,
+    "Financial Advisor": 150,
+    "Financial Analyst": 150,
+    "Lawyer": 150,
+    "Marketing Agency": 150,
+    "Software Engineer": 150,
+    "Associate": 150,
+    "Consultant": 150,
+    "Graphic Designer": 125,
+    "Growth hacker": 125,
+    "Influencer": 125,
+    "Journalist": 125,
+    "UI/UX Designer": 125,
+    "Writer": 125,
+    "Accountant": 100,
+    "Professional": 100,
+    "Sales Specialist": 100,
+    "Videographer": 100,
+    "Intern": 75,
+    "Manager": 75,
+    "Company Secretary": 75
 }
