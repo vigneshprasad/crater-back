@@ -44,6 +44,11 @@ class Objective(base_model.BaseModel):
     name = models.CharField(max_length=255)
     icon = models.FileField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    type = models.CharField(
+        max_length=255,
+        choices=choices.OBJECTIVE_TYPES,
+        default=choices.OBJECTIVE_TYPES[0][0],
+    )
 
     def __str__(self):
         return self.name

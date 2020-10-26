@@ -1,4 +1,5 @@
 from datetime import time
+from django.utils.translation import ugettext_lazy as _
 
 OBJECTIVE_CHOICES = [
     ('meet_interesting_people', 'Meet Interesting People'),
@@ -8,6 +9,11 @@ OBJECTIVE_CHOICES = [
     ('mentor_people', 'Mentor People'),
     ('find_mentors', 'Find Mentors')
 ]
+
+OBJECTIVE_TYPES = (
+    ('looking_for', _('Looking For')),
+    ('looking_to', _('Looking To'))
+)
 
 DEFAULT_MEETING_TITLE = 'Meeting'
 DEFAULT_ONE_ON_ONE_MEETING_TITLE = '1:1 Meeting'

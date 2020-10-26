@@ -132,6 +132,7 @@ class MeetingObjectiveSerializer(serializers.ModelSerializer):
             'pk',
             'name',
             'icon',
+            'type',
         )
 
 

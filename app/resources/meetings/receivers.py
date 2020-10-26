@@ -3,7 +3,6 @@ import datetime
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
-from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
@@ -66,7 +65,6 @@ def send_analytics_for_meeting_config_creation(sender, instance, created, *args,
 def create_meeting_preference_for_typeform_user(
         sender, user, time_preferences, interests, days, objective, *args, **kwargs
 ):
-
     clean_time_preferences = []
     for time_preference in time_preferences:
         clean_time_preferences.append(_clean_time_preference(time_preference))
@@ -74,14 +72,7 @@ def create_meeting_preference_for_typeform_user(
     # Changed it to add user's to current meeting.
     meeting_config = services.get_latest_active_meeting_config()
     # Get respective objectives for User Meeting Preference.
-    objective_value = choices.OBJECTIVE_CHOICES[0][1]
-    objective_key = choices.OBJECTIVE_CHOICES[0][0]
-    for key, value in choices.OBJECTIVE_CHOICES:
-        if value == objective:
-            objective_key = key
-            objective_value = value
-
-    objective_obj = models.Objective.objects.filter(name=objective_value).last()
+    objective_objs = models.Objective.objects.filter(name__in=objective)
 
     # Calculate time slots for the data provided.
     start_date = meeting_config.week_start_date
@@ -118,10 +109,10 @@ def create_meeting_preference_for_typeform_user(
     meeting_preference, _ = models.MeetingPreference.objects.get_or_create(
         meeting=meeting_config,
         user=user,
-        objective=objective_key,
     )
 
-    meeting_preference.objectives.add(objective_obj)
+    for obj in objective_objs:
+        meeting_preference.objectives.add(obj)
 
     interests = models.Interest.objects.filter(
         name__in=interests
