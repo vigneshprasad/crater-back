@@ -101,10 +101,17 @@ def get_tag_to_tag_score_for_users(user, user2):
     """Creates a match score for users based on their tags."""
     users_tag_score = 0
 
+    if not user.has_profile:
+        return 0
+
     tags = user.profile.tags.all().values_list("name", flat=True)
     tags_count = tags.count()
     # Getting the other user's tag for scoring.
     to_user = user2
+
+    if not user.has_profile:
+        return 0
+
     to_tags = to_user.profile.tags.all().values_list("name", flat=True)
     to_tags_count = to_tags.count()
 
@@ -212,6 +219,9 @@ def get_intro_score_for_users(user, user2):
     users = [user, user2]
     intro_list = []
     lemmantizer = WordNetLemmatizer()
+
+    if not (user.has_profile and user2.has_profile):
+        return 0
 
     if not (user.profile.get_introduction() and user2.profile.get_introduction()):
         return 0

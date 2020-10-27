@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 from matching.engines import user_match_engine
 from matching.engines import best_match_engine
+from matching.engines import users_scoring
 from resources.meetings import services as meeting_service
 
 
@@ -16,19 +17,28 @@ def get_top_matches_for_user(user):
             being matched.
 
     """
+    # user_score = users_scoring.get_user_score(user)
     opted_in_users = meeting_service.get_opted_in_user_for_meetings()
     user_match_score_map = {}
 
     for opted_user in opted_in_users:
-
         if not opted_user.has_profile:
             continue
 
         match_score = user_match_engine.get_match_score_between_users(user, opted_user)
-        user_match_score_map[opted_user.email] = match_score.get('final_score', 0)
+        # opted_user_score = users_scoring.get_user_score(opted_user)
+        match_score = match_score.get('final_score', 0)
+
+        # Getting complete score after using user's score with match score of the two users.
+        final_match_score = match_score
+
+        user_match_score_map[opted_user.email] = final_match_score
 
     # Removing user's match with the user itself.
-    user_match_score_map.pop(user.email)
+    try:
+        user_match_score_map.pop(user.email)
+    except KeyError:
+        pass
 
     # Sorting the user match score.
     sorted_user_match_score_map = {k: v for k, v in sorted(
@@ -60,17 +70,28 @@ def get_top_users_for_user(user):
             other user might want to meet someone else based on his preferences.
 
     """
+    # user_score = users_scoring.get_user_score(user)
     opted_in_users = meeting_service.get_opted_in_user_for_meetings()
     user_match_score_map = {}
 
     for opted_user in opted_in_users:
         if not opted_user.has_profile:
             continue
+
         match_score = best_match_engine.get_match_score_between_users(user, opted_user)
-        user_match_score_map[opted_user.email] = match_score.get('final_score', 0)
+        # opted_user_score = users_scoring.get_user_score(opted_user)
+        match_score = match_score.get('final_score', 0)
+
+        # Getting complete score after using user's score with match score of the two users.
+        final_match_score = match_score
+
+        user_match_score_map[opted_user.email] = final_match_score
 
     # Removing user's match with the user itself.
-    user_match_score_map.pop(user.email)
+    try:
+        user_match_score_map.pop(user.email)
+    except KeyError:
+        pass
 
     # Sorting the user match score.
     sorted_user_match_score_map = {k: v for k, v in sorted(
@@ -114,11 +135,12 @@ def get_user_info(user):
         "introduction": None
     }
 
-    user_tags = ",".join(list(user.profile.tags.all().values_list("name", flat=True)))
-    user_info["tags"] = user_tags
+    if user.has_profile:
+        user_tags = ",".join(list(user.profile.tags.all().values_list("name", flat=True)))
+        user_info["tags"] = user_tags
 
-    user_introduction = user.profile.get_introduction() if user.has_profile else None
-    user_info["introduction"] = user_introduction
+        user_introduction = user.profile.get_introduction() if user.has_profile else None
+        user_info["introduction"] = user_introduction
 
     latest_meeting_preference = meeting_service.get_latest_meeting_preference(user)
     if not latest_meeting_preference:
