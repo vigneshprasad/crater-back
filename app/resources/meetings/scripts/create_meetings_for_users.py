@@ -5,13 +5,13 @@ from urllib import request as urllib_request
 from resources.meetings import models
 from users import models as user_models
 from resources.meetings import services
+from integrations.google.public import create_calendar_event_for_meeting
 
 
 FIELDS = [
     'Email A',
     'Email B',
     'Meeting Time (%d/%m%/%y %H:%M)',
-    'Meeting Link',
     'Introduction A',
     'Introduction B'
 ]
@@ -45,7 +45,6 @@ def run(
         email_a = row.get('Email A').strip()
         email_b = row.get('Email B').strip()
         meeting_time = row.get('Meeting Time').strip()
-        meeting_link = row.get('Meeting Link').strip()
         introduction_a = row.get('Introduction A')
         introduction_b = row.get('Introduction B')
 
@@ -90,10 +89,6 @@ def run(
             print('Time Slot for Meeting:', time_slot.get_display()) \
                 if time_slot else print('*' * 5, 'No Time Slot missing for meeting')
 
-        # Check if meeting link is present.
-        print('Meeting Link: {}'.format(meeting_link)) \
-            if meeting_link else print('*' * 5, 'Add Meeting Link')
-
         if not dry_run:
             if not (user_a and user_b):
                 print('*' * 5, "User's are not present")
@@ -104,7 +99,6 @@ def run(
 
             meeting = create_meeting(
                 meeting_config,
-                meeting_link,
                 time_slot,
                 start=start,
                 end=end,
@@ -126,10 +120,9 @@ def update_public_introduction(user, introduction):
     profile.save()
 
 
-def create_meeting(meeting_config, meeting_link, time_slot, participants, start=None, end=None):
+def create_meeting(meeting_config, time_slot, participants, start=None, end=None):
     meeting, created = models.Meeting.objects.get_or_create(
         config=meeting_config,
-        link=meeting_link,
         time_slot=time_slot,
         start=start,
         end=end
@@ -138,5 +131,14 @@ def create_meeting(meeting_config, meeting_link, time_slot, participants, start=
     if created:
         for participant in participants:
             meeting.participants.add(participant)
+
+        meeting_link = create_calendar_event_for_meeting(meeting)
+
+        # Check if meeting link is present.
+        print('Meeting Link: {}'.format(meeting_link)) \
+            if meeting_link else print('*' * 5, 'Add Meeting Link')
+
+        meeting.link = meeting_link
+        meeting.save()
 
     return meeting

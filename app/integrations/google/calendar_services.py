@@ -59,15 +59,15 @@ class GoogleCalendarService:
             "summary": summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS,
             "description": description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS,
             "start": {
-                "dateTime": start_datetime.iso_format(),
+                "dateTime": start_datetime.isoformat(),
                 "timeZone": constants.DEFAULT_TIMEZONE
             },
             "end": {
-                "dateTime": end_datetime.iso_format(),
+                "dateTime": end_datetime.isoformat(),
                 "timeZone": constants.DEFAULT_TIMEZONE
             },
             "recurrence": [],
-            "attendees": [{"email": user.email for user in users}],
+            "attendees": [{"email": user.email} for user in users],
             "conferenceData": {
                 "createRequest": {
                     "conferenceSolutionKey": {
