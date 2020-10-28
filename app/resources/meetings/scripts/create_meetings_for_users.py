@@ -121,24 +121,23 @@ def update_public_introduction(user, introduction):
 
 
 def create_meeting(meeting_config, time_slot, participants, start=None, end=None):
-    meeting, created = models.Meeting.objects.get_or_create(
+    meeting = models.Meeting.objects.create(
         config=meeting_config,
         time_slot=time_slot,
         start=start,
         end=end
     )
 
-    if created:
-        for participant in participants:
-            meeting.participants.add(participant)
+    for participant in participants:
+        meeting.participants.add(participant)
 
-        meeting_link = create_calendar_event_for_meeting(meeting)
+    meeting_link = create_calendar_event_for_meeting(meeting)
 
-        # Check if meeting link is present.
-        print('Meeting Link: {}'.format(meeting_link)) \
-            if meeting_link else print('*' * 5, 'Add Meeting Link')
+    # Check if meeting link is present.
+    print('Meeting Link: {}'.format(meeting_link)) \
+        if meeting_link else print('*' * 5, 'Add Meeting Link')
 
-        meeting.link = meeting_link
-        meeting.save()
+    meeting.link = meeting_link
+    meeting.save()
 
     return meeting
