@@ -38,7 +38,7 @@ def get_match_score_between_users(user1, user2):
     engine_4_score = get_intro_score_for_users(user1, user2)
     all_scores["introduction_text_score"] = engine_4_score
 
-    final_score = (engine_1_score*1 + engine_2_score*1 + engine_3_score*1 + engine_4_score*1) / 4
+    final_score = (engine_1_score*1 + engine_2_score*1 + engine_3_score*0.5 + engine_4_score*4) / 4
     all_scores["final_score"] = final_score
 
     # Print for testing and visualisation.
