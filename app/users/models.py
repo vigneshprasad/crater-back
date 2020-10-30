@@ -186,7 +186,7 @@ class User(AbstractUser):
                 'token': default_token_generator.make_token(self)
             }
         }
-        self.send_email(subject='Password reset', to=[self.email],
+        self.send_email(subject='Password reset', to=[self.email], from_email=choices.PASSWORD_RESET_FROM_EMAIL,
                         template_name=choices.template_names.get('password_reset'), content={},
                         merge_vars=data)
 

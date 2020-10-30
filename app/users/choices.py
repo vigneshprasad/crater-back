@@ -45,3 +45,5 @@ OS_NAME_WEB = 'WEB'
 
 DEVICE_NAME_OTHER = 'Other'
 DEVICE_NAME_WEB = 'WEB'
+
+PASSWORD_RESET_FROM_EMAIL = "set-password@worknetwork.in"
