@@ -1,17 +1,18 @@
-Objectives,Build a team,Find a job,Explore job opportunities,Find investment opportunities,Explore investment opportunities,Build investor relations,Advise & Mentor,Mentor People,Learn from industry experts,Find Mentors,Build business relationships,Start a Company,Business Development,Explore shared interests,Brainstorm with Peers,Meet Interesting People
-Build a team,0.3,0.9,0.9,0.5,0.5,0.2,0.4,0.4,0.3,0.3,0.6,0.6,0.6,0.5,0.5,0.5
-Find a job,0.9,0.2,0.2,0.4,0.4,0.1,0.7,0.7,0.3,0.3,0.6,0.6,0.6,0.5,0.5,0.5
-Explore job opportunities,0.9,0.2,0.2,0.4,0.4,0.1,0.7,0.7,0.3,0.3,0.6,0.6,0.6,0.5,0.5,0.5
-Find investment opportunities,0.5,0.1,0.1,0.4,0.4,0.9,0.5,0.5,0.2,0.2,0.6,0.6,0.6,0.4,0.4,0.4
-Explore investment opportunities,0.5,0.1,0.1,0.4,0.4,0.9,0.5,0.5,0.2,0.2,0.6,0.6,0.6,0.4,0.4,0.4
-Build investor relations,0.3,0.1,0.1,0.9,0.9,0.4,0.4,0.4,0.3,0.3,0.5,0.5,0.5,0.4,0.4,0.4
-Advise & Mentor,0.6,0.6,0.6,0.5,0.5,0.4,0.1,0.1,0.9,0.9,0.6,0.6,0.6,0.6,0.6,0.6
-Mentor People,0.6,0.6,0.6,0.5,0.5,0.4,0.1,0.1,0.9,0.9,0.6,0.6,0.6,0.6,0.6,0.6
-Learn from industry experts,0.4,0.2,0.2,0.6,0.6,0.2,0.9,0.9,0.5,0.5,0.5,0.5,0.5,0.6,0.6,0.6
-Find Mentors,0.4,0.2,0.2,0.6,0.6,0.2,0.9,0.9,0.5,0.5,0.5,0.5,0.5,0.6,0.6,0.6
-Build business relationships,0.6,0.4,0.4,0.7,0.7,0.6,0.8,0.8,0.6,0.6,0.9,0.9,0.9,0.9,0.9,0.9
-Start a Company,0.6,0.4,0.4,0.7,0.7,0.6,0.8,0.8,0.6,0.6,0.9,0.9,0.9,0.9,0.9,0.9
-Business Development,0.6,0.4,0.4,0.7,0.7,0.6,0.8,0.8,0.6,0.6,0.9,0.9,0.9,0.9,0.9,0.9
-Explore shared interests,0.6,0.5,0.5,0.6,0.6,0.4,0.7,0.7,0.5,0.5,0.7,0.7,0.7,0.9,0.9,0.9
-Brainstorm with Peers,0.6,0.5,0.5,0.6,0.6,0.4,0.7,0.7,0.5,0.5,0.7,0.7,0.7,0.9,0.9,0.9
-Meet Interesting People,0.6,0.5,0.5,0.6,0.6,0.4,0.7,0.7,0.5,0.5,0.7,0.7,0.7,0.9,0.9,0.9
+Objectives,Acquire customers,Explore work & other partnerships,Explore job opportunities,Provide Job opportunities,Find a mentor,Mentor others,Invest in companies / make investor introductions,Make investor relations,Share my industry expertise,Learn about specific industries,Share product or technical knowledge,Speak with product or technical experts,Meet Interesting People,Explore new perspectives,Mentor People,Start a Company,Explore shared interests
+Acquire customers,0.3,0.9,0.2,0.5,0.1,0.2,0.3,0.1,0.2,0.5,0.2,0.4,0.3,0.3,0.2,0.4,0.3
+Explore work & other partnerships,0.9,0.3,0.2,0.6,0.2,0.3,0.4,0.1,0.3,0.4,0.2,0.4,0.3,0.3,0.3,0.4,0.3
+Explore job opportunities,0.2,0.5,0.2,0.9,0.1,0.4,0.2,0.2,0.5,0.2,0.4,0.1,0.3,0.3,0.4,0.4,0.3
+Provide Job opportunities,0.5,0.4,0.9,0.2,0.3,0.2,0.4,0.1,0.4,0.2,0.4,0.1,0.3,0.3,0.2,0.2,0.3
+Find a mentor,0.1,0.2,0.1,0.3,0.2,0.9,0.4,0.2,0.6,0.1,0.5,0.2,0.5,0.4,0.9,0.2,0.5
+Mentor others,0.2,0.3,0.3,0.1,0.9,0.3,0.2,0.4,0.1,0.5,0.1,0.5,0.4,0.4,0.3,0.5,0.4
+Invest in companies / make investor introductions,0.1,0.3,0.2,0.4,0.4,0.1,0.5,0.9,0.2,0.2,0.3,0.2,0.3,0.3,0.1,0.6,0.2
+Make investor relations,0.1,0.2,0.2,0.2,0.1,0.4,0.9,0.4,0.4,0.2,0.2,0.1,0.3,0.3,0.4,0.2,0.2
+Share my industry expertise,0.2,0.4,0.3,0.2,0.5,0.2,0.3,0.2,0.4,0.9,0.1,0.6,0.4,0.5,0.2,0.3,0.4
+Learn about specific industries,0.1,0.3,0.1,0.3,0.1,0.5,0.2,0.2,0.9,0.4,0.8,0.2,0.5,0.4,0.6,0.3,0.5
+Share product or technical knowledge,0.2,0.4,0.1,0.2,0.5,0.2,0.2,0.3,0.2,0.7,0.4,0.9,0.6,0.6,0.2,0.5,0.6
+Speak with product or technical experts,0.2,0.3,0.1,0.2,0.1,0.5,0.2,0.2,0.8,0.2,0.9,0.2,0.4,0.3,0.6,0.3,0.4
+Meet Interesting People,0.1,0.2,0.2,0.4,0.2,0.5,0.5,0.2,0.7,0.3,0.7,0.3,0.7,0.9,0.6,0.5,0.7
+Explore new perspectives,0.1,0.2,0.2,0.4,0.2,0.5,0.5,0.2,0.7,0.3,0.7,0.3,0.9,0.7,0.6,0.5,0.7
+Mentor People,0.2,0.3,0.3,0.1,0.9,0.3,0.2,0.4,0.1,0.5,0.1,0.5,0.4,0.4,0.3,0.5,0.4
+Start a Company,0.1,0.3,0.4,0.1,0.1,0.5,0.8,0.2,0.3,0.2,0.5,0.2,0.3,0.3,0.5,0.3,0.4
+Explore shared interests,0.1,0.2,0.2,0.4,0.2,0.5,0.5,0.2,0.7,0.3,0.7,0.3,0.9,0.7,0.6,0.5,0.7
