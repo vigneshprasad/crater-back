@@ -39,7 +39,7 @@ def get_match_score_between_users(user1, user2):
     engine_4_score = get_intro_score_for_users(user1, user2)
     all_scores["introduction_text_score"] = engine_4_score
 
-    final_score = (engine_1_score*1 + engine_2_score*1 + engine_3_score*0.5 + engine_4_score*4) / 4
+    final_score = (engine_1_score + engine_2_score + engine_3_score + engine_4_score) / 4
     all_scores["final_score"] = final_score
 
     # Print for testing and visualisation.
@@ -98,7 +98,7 @@ def get_objective_to_objective_score_for_users(user1, user2):
 
         score_for_users += (score_for_objectives/objectives_count)
 
-    return score_for_users / len(users)
+    return score_for_users / len(users) * constants.DEFAULT_OBJECTIVE_MULTIPLIER
 
 
 def get_tag_to_tag_score_for_users(user1, user2):
@@ -232,8 +232,13 @@ def get_intro_score_for_users(user1, user2):
     if not (user1.profile.get_introduction() and user2.profile.get_introduction()):
         return 0
 
+    user_intro_len = len(nltk.word_tokenize(user.profile.get_introduction()))
+    user2_intro_len = len(nltk.word_tokenize(user2.profile.get_introduction()))
+
     for user in users:
         words = nltk.word_tokenize(user.profile.get_introduction())
+        if words < constants.INTRO_MIN_LENGTH:
+            return 0
         words = [lemmantizer.lemmatize(word, pos='v') for word in words]
         intro_list.append(' '.join(words).lower())
 
@@ -248,7 +253,25 @@ def get_intro_score_for_users(user1, user2):
     array = pairwise_similarity.toarray()
     numpy.fill_diagonal(array, 0)
 
+    # Handling small intros 
+    if user_intro_len > constants.INTRO_REDUCTION_LENGTH:
+        intro_len_factor = 1
+    else:
+        # The number 10 has been chosen arbitrarily here and can be
+        # potentially tweaked. Current idea is that it is a sigmoid 
+        # function with a mean chosen as half of 20. 
+        intro_len_factor = 1 / (1 + numpy.exp(-(user_intro_len / (constants.INTRO_REDUCTION_LENGTH / 2))))
+
+        # Handling small intros 
+    if user_intro_len2 > constants.INTRO_REDUCTION_LENGTH:
+        intro_len_factor2 = 1
+    else:
+        # The number 10 has been chosen arbitrarily here and can be
+        # potentially tweaked. Current idea is that it is a sigmoid 
+        # function with a mean chosen as half of 20. 
+        intro_len_factor2 = 1 / (1 + numpy.exp(-(user_intro_len2 / (constants.INTRO_REDUCTION_LENGTH / 2))))
+
     # Averaging the score for user intros.
-    average_score_for_user_intros = (array[0][1] + array[1][0])/len(users)
+    average_score_for_user_intros = (array[0][1] + array[1][0])/len(users) * intro_len_factor * intro_len_factor2
 
     return average_score_for_user_intros * constants.DEFAULT_INTRO_MULTIPLIER
