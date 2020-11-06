@@ -39,7 +39,10 @@ def get_match_score_between_users(user1, user2):
     engine_4_score = get_intro_score_for_users(user1, user2)
     all_scores["introduction_text_score"] = engine_4_score
 
-    final_score = (engine_1_score + engine_2_score + engine_3_score + engine_4_score) / 4
+    engine_5_score = get_sector_score_for_users(user1, user2)
+    all_scores["sector_score"] = engine_4_score
+
+    final_score = (engine_1_score + engine_2_score + engine_3_score + engine_4_score + engine_5_score ) / 5
     all_scores["final_score"] = final_score
 
     # Print for testing and visualisation.
@@ -232,7 +235,7 @@ def get_intro_score_for_users(user1, user2):
     if not (user1.profile.get_introduction() and user2.profile.get_introduction()):
         return 0
 
-    user_intro_len = len(nltk.word_tokenize(user.profile.get_introduction()))
+    user_intro_len = len(nltk.word_tokenize(user1.profile.get_introduction()))
     user2_intro_len = len(nltk.word_tokenize(user2.profile.get_introduction()))
 
     for user in users:
@@ -275,3 +278,114 @@ def get_intro_score_for_users(user1, user2):
     average_score_for_user_intros = (array[0][1] + array[1][0])/len(users) * intro_len_factor * intro_len_factor2
 
     return average_score_for_user_intros * constants.DEFAULT_INTRO_MULTIPLIER
+
+def get_sector_score_for_users(user1, user2):
+    """Creates a score between users based on users intros."""
+
+    user1_sector = {
+        "Accounts": 0,
+        "Agriculture": 0,
+        "AI": 0,
+        "Bio": 0,
+        "Chemical": 0,
+        "Computer": 0,
+        "Consulting": 0,
+        "Data": 0,
+        "Design": 0,
+        "ECommerce": 0,
+        "Education": 0,
+        "Electrical": 0,
+        "Electrical": 0,
+        "Energy": 0,
+        "Environment": 0,
+        "Event": 0,
+        "Fashion": 0,
+        "Film": 0,
+        "Financial": 0,
+        "Food": 0,
+        "Gaming": 0,
+        "Healthcare": 0,
+        "HR": 0,
+        "Investor": 0,
+        "Law": 0,
+        "Marketing": 0,
+        "Mechanical": 0,
+        "Media": 0,
+        "Mental Health": 0,
+        "Photography": 0,
+        "Politics": 0,
+        "Product": 0,
+        "Real Estate": 0,
+        "Social": 0,
+        "Startup": 0,
+        "Travel": 0,
+    }
+    user2_sector = {
+        "Accounts": 0,
+        "Agriculture": 0,
+        "AI": 0,
+        "Bio": 0,
+        "Chemical": 0,
+        "Computer": 0,
+        "Consulting": 0,
+        "Data": 0,
+        "Design": 0,
+        "ECommerce": 0,
+        "Education": 0,
+        "Electrical": 0,
+        "Electrical": 0,
+        "Energy": 0,
+        "Environment": 0,
+        "Event": 0,
+        "Fashion": 0,
+        "Film": 0,
+        "Financial": 0,
+        "Food": 0,
+        "Gaming": 0,
+        "Healthcare": 0,
+        "HR": 0,
+        "Investor": 0,
+        "Law": 0,
+        "Marketing": 0,
+        "Mechanical": 0,
+        "Media": 0,
+        "Mental Health": 0,
+        "Photography": 0,
+        "Politics": 0,
+        "Product": 0,
+        "Real Estate": 0,
+        "Social": 0,
+        "Startup": 0,
+        "Travel": 0,
+    }
+
+    lemmantizer = WordNetLemmatizer()
+
+    if not (user1.has_profile and user2.has_profile):
+        return 0
+
+    if not (user1.profile.get_introduction() and user2.profile.get_introduction()):
+        return 0
+
+    words = nltk.word_tokenize(user1.profile.get_introduction())
+    words = [lemmantizer.lemmatize(word, pos='v') for word in words]
+    for word in words:
+        if word in scoring_constants.KEYWORDS_SECTOR:
+            sector = scoring_constants.KEYWORDS_SECTOR[word]
+            user1_sector[sector] = user1_sector[sector] + 1 
+
+    words = nltk.word_tokenize(user2.profile.get_introduction())
+    words = [lemmantizer.lemmatize(word, pos='v') for word in words]
+    for word in words:
+        if word in scoring_constants.KEYWORDS_SECTOR:
+            sector = scoring_constants.KEYWORDS_SECTOR[word]
+            user2_sector[sector] = user2_sector[sector] + 1 
+
+    v1 = list(user1_sector.values())
+    v2 = list(user2_sector.values())
+
+    cosine = numpy.dot(v1, v2) / (numpy.sqrt(numpy.dot(v1,v1)) * numpy.sqrt(numpy.dot(v2,v2)))
+    if numpy.isnan(cosine):
+        cosine = 0
+
+    return cosine * constants.DEFAULT_SECTOR_MULTIPLIER
