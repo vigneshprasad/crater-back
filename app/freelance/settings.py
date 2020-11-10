@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'adminsortable2',
     'filefield_cache',
     'django_user_agents',
+    'colorfield',
 
     'base',
     'users',
@@ -98,6 +99,7 @@ INSTALLED_APPS = [
     'resources.curated_articles',
     'resources.masterclasses',
     'resources.meetings',
+    'rewards',
     'payment',
     'points',
     'wn_analytics',
