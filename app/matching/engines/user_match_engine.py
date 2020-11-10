@@ -240,7 +240,7 @@ def get_intro_score_for_users(user1, user2):
 
     for user in users:
         words = nltk.word_tokenize(user.profile.get_introduction())
-        if words < constants.INTRO_MIN_LENGTH:
+        if len(words) < constants.INTRO_MIN_LENGTH:
             return 0
         words = [lemmantizer.lemmatize(word, pos='v') for word in words]
         intro_list.append(' '.join(words).lower())
