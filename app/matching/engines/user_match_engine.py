@@ -265,17 +265,8 @@ def get_intro_score_for_users(user1, user2):
         # function with a mean chosen as half of 20. 
         intro_len_factor = 1 / (1 + numpy.exp(-(user_intro_len / (constants.INTRO_REDUCTION_LENGTH / 2))))
 
-        # Handling small intros 
-    if user_intro_len2 > constants.INTRO_REDUCTION_LENGTH:
-        intro_len_factor2 = 1
-    else:
-        # The number 10 has been chosen arbitrarily here and can be
-        # potentially tweaked. Current idea is that it is a sigmoid 
-        # function with a mean chosen as half of 20. 
-        intro_len_factor2 = 1 / (1 + numpy.exp(-(user_intro_len2 / (constants.INTRO_REDUCTION_LENGTH / 2))))
-
     # Averaging the score for user intros.
-    average_score_for_user_intros = (array[0][1] + array[1][0])/len(users) * intro_len_factor * intro_len_factor2
+    average_score_for_user_intros = (array[0][1]) * intro_len_factor
 
     return average_score_for_user_intros * constants.DEFAULT_INTRO_MULTIPLIER
 
