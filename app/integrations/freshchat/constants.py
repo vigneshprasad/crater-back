@@ -12,7 +12,7 @@ MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE = "confirmation_of_appointment"
 MEETING_CONFIRMATION_WITH_EMAIL_SENT="meeting_confirmation_email"
 MEETING_REMINDER_FRESHCHAT_TEMPLATE = "appointment_reminder"
 MEETING_OPT_IN_REMINDER_TEMPLATE = "confirming_meeting"
-MEETING_CONFIRMATION_INTENT="confirmation_of_1:1_intent"
+MEETING_CONFIRMATION_INTENT="confirmation_of_11_intent"
 FRESHCHAT_DEFAULT_PROVIDER = "whatsapp"
 REGISTRATION_CONFIRMATION="registration_confirmation"
 
