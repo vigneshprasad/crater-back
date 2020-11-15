@@ -33,3 +33,15 @@ Unfortunately, the meeting scheduled for {{2}} has been canceled. I sincerely ap
 9.confirming_meeting
 Hey {{1}},
 Since you opted in for a 1:1 meeting. Wanted to confirm if you would like to have a meeting in the coming week.
+
+10.registration_confirmation
+Hey,
+Thank you for registering for a 1:1 networking meeting with WorkNetwork. We will organize the meeting based on the preferences you shared & share the details on {1}
+
+11.confirmation_of_1:1_intent
+Hey, 
+I wanted to check in to see if you would like to opt-in for a 1:1 networking meeting next week? 
+
+12.meeting_confirmation_email
+Hey, 
+We have set up your 1:1 meeting for {1} at {2}. We have sent an email with an introduction to your match, alongside the meeting link & other details.
