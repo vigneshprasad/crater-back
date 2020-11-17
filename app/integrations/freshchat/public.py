@@ -5,6 +5,8 @@ from datetime import datetime
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 
+from freelance.settings import FRONT_URL
+
 
 def send_meeting_whatsapp_reminder_to_user(user, time):
     """Send whatsapp message to user for upcoming meeting.
@@ -32,8 +34,8 @@ def send_meeting_opt_in_messages(users):
     for user in users:
         freshchat_service.freshchat_whatsapp_service.send_outbound_message(
             user=user,
-            template_name=constants.MEETING_OPT_IN_REMINDER_TEMPLATE,
-            template_data=[{"data": user.get_display_first_name()}]
+            template_name=constants.MEETING_CONFIRMATION_INTENT,
+            template_data=[]
         )
 
 
@@ -56,10 +58,28 @@ def send_meeting_time_confirmation(user, start_time, end_time):
     time = "{} - {}".format(start_time, end_time)
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE,
+        template_name=constants.MEETING_CONFIRMATION_WITH_EMAIL_SENT,
         template_data=[
-            {"data": user.name},
-            {"data": time},
             {"data": date},
+            {"data": time},
+        ]
+    )
+
+
+def send_registration_confirmation(user):
+    """Send a message once user has created a meeting preference
+
+    Args:
+        user(User): User to whom this message will go.
+    """
+    logging.info("Send a message to a user who has created a meeting preference".format(
+        user.email,
+    ))
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.REGISTRATION_CONFIRMATION,
+        template_data= [
+            {"data": 'https://{}/meetings'.format(FRONT_URL) }
         ]
     )
