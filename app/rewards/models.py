@@ -60,13 +60,20 @@ class Package(base_model.BaseModel):
         related_name='packages',
         verbose_name=_('Package Provider')
     )
-    long_desc = models.CharField(
+    long_desc = models.TextField(
         verbose_name=_('Long Description'),
-        max_length=800,
     )
     is_active = models.BooleanField(
         verbose_name=_('is Active'),
         default=True,
+    )
+    is_dark = models.BooleanField(
+        verbose_name=_('Dark Theme'),
+        default=True,
+    )
+    show_on_web = models.BooleanField(
+        verbose_name=_('Show on Web'),
+        default=False,
     )
 
     @property

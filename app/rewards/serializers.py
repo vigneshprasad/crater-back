@@ -3,7 +3,19 @@ from rest_framework import serializers
 from rewards import models
 
 
+class PackageProviderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.PackageProvider
+        fields = (
+            'name',
+            'description',
+            'logo',
+        )
+
+
 class PackageSerializer(serializers.ModelSerializer):
+    provider = PackageProviderSerializer()
 
     class Meta:
         model = models.Package
@@ -20,6 +32,8 @@ class PackageSerializer(serializers.ModelSerializer):
             'provider',
             'long_desc',
             'points_conversion',
+            'is_dark',
+            'show_on_web',
         )
 
 
