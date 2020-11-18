@@ -120,7 +120,7 @@ class PackageRequest(base_model.BaseModel):
 
     def clean(self):
         if self.point_applied > self.requested_by.points.points:
-            raise exceptions.ValidationError({'end': _('Points Applied cannot be greater than points help by user.')})
+            raise exceptions.ValidationError({'end': _('Points Applied cannot be greater than points held by user.')})
         if self.point_applied > (self.package.max_discount_points * self.quantity):
             raise exceptions.ValidationError({'end': _('Points Applied cannot be greater than max points for package.')})
 
