@@ -204,8 +204,9 @@ class VerificationView(viewsets.GenericViewSet):
             )
             request.user.phone_number = request.user.new_phone_number
             request.user.new_phone_number = ''
-        request.user.phone_number_verified = True
-        request.user.save()
+
+        request.user.set_phone_number_verified()
+
         return Response({'status': messages.PHONE_NUMBER_SUCCESSFULLY_VERIFIED})
 
     @action(methods=['post'], detail=False)
