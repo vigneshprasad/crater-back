@@ -15,6 +15,7 @@ from community.comments.signals import comment_created_points, comment_created_p
 from community.groups.signals import follower_recieved_signal
 from consumers.chat.receivers import new_chat_points_signal
 from order.signals import service_complete_buyer_points_signal, service_complete_seller_points_signal
+from rewards.signals import package_request_created
 
 User = get_user_model()
 
@@ -57,4 +58,27 @@ def apply_user_points(sender, rule_key, user, base_factor=1, bonus=0, bonus_fact
         base_factor=base_factor,
         bonus_points_value=bonus,
         bonus_factor=bonus_factor
+    )
+
+
+@receiver(package_request_created)
+def apply_package_creation_points(sender, user, points_applied, **kwargs):
+    package_rules_key = 14
+    user_points, user_points_created = UserPoints.objects.get_or_create(
+        user=user
+    )
+    try:
+        points_rule = PointsRule.objects.get(key=package_rules_key)
+    except PointsRule.DoesNotExist:
+        raise NotFound
+
+    user_points.points = user_points.points + (points_rule.points_value * (-points_applied))
+    user_points.save()
+    PointsLog.objects.create(
+        user=user,
+        action=points_rule,
+        base_points_value=points_rule.points_value,
+        base_factor=(-points_applied),
+        bonus_points_value=0,
+        bonus_factor=1,
     )

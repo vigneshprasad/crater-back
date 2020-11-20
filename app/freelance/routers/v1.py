@@ -15,4 +15,5 @@ urlpatterns = [
     path('payments/', include('payment.urls.v1', namespace='payments')),
     path('points/', include('points.urls.v1', namespace='points')),
     path('chat/', include('consumers.chat.api_urls.v1', namespace='chat')),
+    path('rewards/', include('rewards.urls.v1', namespace='rewards')),
 ]

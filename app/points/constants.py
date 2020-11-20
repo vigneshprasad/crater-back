@@ -12,4 +12,5 @@ POINTS_RULES = [
     {"key": 11, "desc": "Completed service buyer", "points_value": 100},
     {"key": 12, "desc": "Completed service seller", "points_value": 100},
     {"key": 13, "desc": "Referral success", "points_value": 50},
+    {"key": 14, "desc": "Package redeemed", "points_value": 1},
 ]
