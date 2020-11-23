@@ -108,7 +108,7 @@ def service_created_track(sender, user, request, response, **kwargs):
 @receiver(phone_number_verified)
 def phone_number_verified_track(sender, user, request, **kwargs):
     event = PHONE_NUMBER_VERIFIED
-    analytics_track_properties={
+    analytics_track_properties = {
         'phone': str(request.user.new_phone_number)
     }
     analytics_track(user, event, analytics_track_properties)
@@ -117,8 +117,8 @@ def phone_number_verified_track(sender, user, request, **kwargs):
 # TODO CREATE SIGNAL AT VIEW LEVEL
 @receiver(post_created)
 def post_created_track(sender, user, post, **kwargs):
-    event=POST_CREATED
-    analytics_track_properties={
+    event = POST_CREATED
+    analytics_track_properties = {
         'message': post.message,
         'post_id': post.pk
     }
