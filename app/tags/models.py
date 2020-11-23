@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from locations.models import City
 from base import models as base_models
 from users import choices
+from .choices import FAQ_CATEGORY_CHOICES
 
 
 class Tag(models.Model):
@@ -204,3 +205,19 @@ class WorkCityProxy(City):
         verbose_name = _('Work City')
         verbose_name_plural = _('02. Work Cities')
         ordering = ['order', 'name']
+
+
+class Faq(base_models.BaseModel):
+    category = models.CharField(
+        choices=FAQ_CATEGORY_CHOICES,
+        verbose_name=_('Category'),
+        max_length=255,
+    )
+    question = models.TextField(verbose_name=_('Question'))
+    answer = models.TextField(verbose_name=_('Answer'))
+    order = models.PositiveIntegerField(verbose_name=_('Order'))
+
+    class Meta:
+        verbose_name = _('FAQ')
+        verbose_name_plural = _('FAQs')
+        ordering = ['order']

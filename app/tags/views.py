@@ -1,10 +1,12 @@
 from rest_framework import viewsets, mixins
 from django.db.models.functions import Lower
-
+from rest_framework.response import Response
 from . import models, serializers
+
 from .serializers import ArticleTagSerializer, ArticleWebsiteSerializer
 from .services import get_websites
 from users import permissions
+from rest_framework.decorators import action
 
 
 class TagViewSet(mixins.RetrieveModelMixin,
@@ -66,3 +68,19 @@ class WebsiteViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = ArticleWebsiteSerializer
     queryset = get_websites()
     permission_classes = [permissions.IsAuthenticated]
+
+
+class FaqViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    serializer_class = serializers.FaqSerializer
+    queryset = models.Faq.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(
+        methods=['GET'],
+        detail=False,
+    )
+    def points(self, request):
+        data = self.get_queryset().filter(category='points').order_by('order')
+        serializer = self.get_serializer(data=data, many=True)
+        serializer.is_valid()
+        return Response(serializer.data)
