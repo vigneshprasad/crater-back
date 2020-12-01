@@ -347,3 +347,31 @@ def send_whatsapp_1_on_1_meeting_time_confirmation(meetings=None):
                 local_start_datetime,
                 local_end_datetime
             )
+
+
+def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
+    """ Send whatsapp with rsvp link to all active meetings
+
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to send this
+            reminder to. Added for testing.
+
+    """
+    meetings = services.get_active_meetings() if not meetings else meetings
+
+    for meeting in meetings:
+        for participant in meeting.participants.all():
+            try:
+                rsvp = models.MeetingRSVP.objects.get(
+                    participant=participant,
+                    meeting=meeting,
+                )
+            except models.MeetingRSVP.DoesNotExist:
+                print('{} Meeting RSVP data missing'.format(participant.email))
+                continue
+
+            if not rsvp.status == choices.MEETING_RSVP_STATUS_CHOICES[0][0]:
+                freshchat_public.send_meeting_confirmation_rsvp(
+                    user=participant,
+                    meeting=meeting,
+                )

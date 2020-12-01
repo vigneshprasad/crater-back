@@ -76,6 +76,13 @@ DEFAULT_MEETING_TIME_SLOTS = {
     ]
 }
 
+MEETING_RSVP_STATUS_CHOICES = (
+    ('attending', _('Attending')),
+    ('pending', _('Pending')),
+    ('not_attending', _('Not Attending')),
+    ('reschedule', _('Reschedule')),
+)
+
 # These slots are only used for display purposes.
 DEFAULT_DISPLAY_TIME_SLOTS = {
     3: [
