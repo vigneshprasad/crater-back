@@ -20,3 +20,14 @@ DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS = "Hi, your 1:1 meeting has been schedule
                                          "please send an email on that thread to all participants. "
 DEFAULT_TIMEZONE = "Asia/Kolkata"
 HANGOUT_MEET = "hangoutsMeet"
+
+
+CALENDAR_RESPONSE_STATUSES = (
+    ('needsAction', 'needsAction'),
+    ('declined', 'declined'),
+    ('tentative', 'tentative'),
+    ('accepted', 'accepted')
+)
+
+PENDING_CALENDAR_STATUSES = ['needsAction', 'declined', 'tentative']
+ACCEPTED_CALENDAR_STATUSES = ['accepted']
