@@ -1,10 +1,12 @@
+from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from users import permissions
-from .models import UserPoints
+from .models import UserPoints, PointsRule
 from rewards.models import Package
+from points import serializers
 
 
 class UserPointsViewSet(GenericViewSet):
@@ -28,3 +30,9 @@ class UserPointsViewSet(GenericViewSet):
             'money_value': user_points.points * max_conversion
         }
         return Response(response_data)
+
+
+class PointsRuleViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = serializers.PointsRuleSerializer
+    queryset = PointsRule.objects.all()
+    permission_classes = [permissions.IsAuthenticated]

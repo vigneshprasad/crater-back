@@ -75,6 +75,10 @@ class Package(base_model.BaseModel):
         verbose_name=_('Show on Web'),
         default=False,
     )
+    order = models.PositiveIntegerField(
+        verbose_name=_('Order'),
+        default=0,
+    )
 
     @property
     def points_conversion(self):

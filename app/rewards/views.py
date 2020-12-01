@@ -10,7 +10,7 @@ from rewards import serializers
 class PackagesViewSet(mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,
                       GenericViewSet):
-    queryset = models.Package.objects.filter(is_active=True)
+    queryset = models.Package.objects.filter(is_active=True).order_by('order')
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.PackageSerializer
 

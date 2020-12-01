@@ -15,6 +15,7 @@ router.register('industries', views.IndustryViewSet)
 router.register('funding', views.FundingViewSet)
 router.register('companies', views.CompanyViewSet)
 router.register('objectives', views.ObjectiveViewSet)
+router.register('faq', views.FaqViewSet)
 
 public_router = routers.SimpleRouter()
 public_router.register('industries', public_views.IndustryViewSet)
