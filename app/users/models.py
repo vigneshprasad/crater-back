@@ -156,6 +156,20 @@ class User(AbstractUser):
         db_table = 'users'
         ordering = ('date_joined',)
 
+    def set_phone_number_verified(self):
+        """Marks a users phone number as verified.
+
+        Note:
+            For now marking user approved and service approved
+                if the user's phone number is verified.
+
+        """
+        self.phone_number_verified = True
+        self.is_approved = True
+        self.is_service_approved = True
+
+        self.save()
+
     @staticmethod
     def send_email(
             subject,

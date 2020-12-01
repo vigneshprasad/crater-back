@@ -4,7 +4,7 @@ from django.contrib.admin import register
 from django.utils.safestring import mark_safe
 from tags import models
 from tags.models import Tag, ArticleTag, MasterClassTag, Industry, Funding, Company, CityProxy, WorkCityProxy, EventTag, \
-    SourceWebsite, Interests
+    SourceWebsite, Interests, Faq
 from utils.mixins import ViewActionMixin
 
 
@@ -115,3 +115,14 @@ class CityTagAdmin(TagAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_work=True)
 
+
+@register(Faq)
+class FaqAdmin(admin.ModelAdmin):
+    fields = (
+        'category',
+        'question',
+        'answer',
+        'order',
+    )
+    list_display = ('category', 'question')
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')

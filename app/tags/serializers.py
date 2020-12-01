@@ -69,3 +69,16 @@ class ArticleWebsiteSerializer(serializers.ModelSerializer):
             'name',
             'url',
         )
+
+
+class FaqSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Faq
+        fields = (
+            'pk',
+            'category',
+            'question',
+            'answer',
+            'order',
+        )

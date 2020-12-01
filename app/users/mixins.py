@@ -80,8 +80,7 @@ class PhoneVerifiedMixin:
     serializer = None
 
     def set_phone_verified(self):
-        self.user.phone_number_verified = True
-        self.user.save()
+        self.user.set_phone_number_verified()
 
 
 class SetLinkedInMixin:
