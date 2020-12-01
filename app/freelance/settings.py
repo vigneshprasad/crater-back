@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     'creative_exchange',
     'notifications',
     'dashboard',
+    'matching'
 ]
 
 SITE_ID = 1
