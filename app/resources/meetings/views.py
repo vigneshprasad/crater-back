@@ -1,10 +1,10 @@
-from rest_framework.response import Response
 from rest_framework import mixins, viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from cryptography.fernet import InvalidToken
 
 from users import permissions
-from resources.meetings import models
-from resources.meetings import serializers
-from resources.meetings import choices
+from resources.meetings import models, choices, serializers, services
 
 
 class MeetingConfigViewSet(mixins.ListModelMixin,
@@ -112,3 +112,50 @@ class MeetingConfigV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             return Response(None, status=status.HTTP_204_NO_CONTENT)
         serialized = self.get_serializer(instance)
         return Response(serialized.data)
+
+
+class MeetingRSVPViewSet(viewsets.GenericViewSet):
+    serializer_class = serializers.MeetingRSVPSerializer
+    queryset = models.MeetingRSVP.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def attending(self, request):
+        data = request.data.get('meeting')
+
+        if not data:
+            return self.generate_bad_request({
+                'error': 'Query data missing',
+            })
+
+        try:
+            user, meeting = services.get_user_meeting_from_url(data)
+            rsvp = models.MeetingRSVP.objects.get(
+                meeting=meeting,
+                participant=user,
+            )
+            rsvp.status = choices.MEETING_RSVP_STATUS_CHOICES[0][0]
+            rsvp.save()
+            serialized = self.get_serializer(rsvp)
+            return Response(data=serialized.data)
+
+        except InvalidToken:
+            return self.generate_bad_request({
+                'error': 'Incorrect query string',
+            })
+        except models.MeetingRSVP.DoesNotExist:
+            return self.generate_bad_request({
+                'error': 'Meeting not found',
+            })
+        except models.Meeting.DoesNotExist:
+            return self.generate_bad_request({
+                'error': 'User not found',
+            })
+
