@@ -84,3 +84,10 @@ class Meeting(ModelAdmin):
         if not users:
             return 'No users added'
         return ', '.join([user.email for user in users])
+
+
+@register(models.MeetingRSVP)
+class MeetingRsvp(ModelAdmin):
+    list_display = ('id', 'meeting', 'participant', 'status')
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+    search_fields = ['participant__email']

@@ -165,3 +165,16 @@ class MeetingConfigV2Serializer(serializers.ModelSerializer):
     @staticmethod
     def get_available_time_slots(meeting):
         return services.get_meeting_config_time_slots(meeting)
+
+
+class MeetingRSVPSerializer(serializers.ModelSerializer):
+    meeting = MeetingSerializer()
+
+    class Meta:
+        model = models.MeetingRSVP
+        fields = (
+            'pk',
+            'meeting',
+            'participant',
+            'status',
+        )

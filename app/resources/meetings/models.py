@@ -2,6 +2,7 @@ import datetime
 
 from django.core import exceptions
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
@@ -345,3 +346,31 @@ class Meeting(base_model.BaseModel):
         default=False,
         verbose_name=_('Canceled')
     )
+
+
+class MeetingRSVP(base_model.BaseModel):
+    """
+    Meeting RSVP for a user for a specific meeting
+
+    """
+    meeting = models.ForeignKey(
+        'meetings.Meeting',
+        verbose_name=_('Meeting'),
+        related_name='rsvps',
+        on_delete=models.CASCADE,
+    )
+    participant = models.ForeignKey(
+        get_user_model(),
+        verbose_name=_('Meeting Participant'),
+        related_name='meeting_rsvps',
+        on_delete=models.CASCADE,
+    )
+    status = models.CharField(
+        max_length=255,
+        verbose_name=_("Status"),
+        choices=choices.MEETING_RSVP_STATUS_CHOICES,
+        default=choices.MEETING_RSVP_STATUS_CHOICES[1][0],
+    )
+
+    class Meta:
+        unique_together = ['meeting', 'participant']

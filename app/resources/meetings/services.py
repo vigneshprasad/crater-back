@@ -1,10 +1,13 @@
 import datetime
 
 from django.utils import timezone
+from cryptography.fernet import Fernet
 
+from freelance.settings import FERNET_KEY
 from resources.meetings import models
 from resources.meetings import choices
 from users import services as user_services
+from django.contrib.auth import get_user_model
 
 
 def get_objectives_list():
@@ -326,3 +329,28 @@ def get_meeting_config_time_slots(meeting):
 
 def get_latest_meeting_preference(user):
     return models.MeetingPreference.objects.filter(user=user).last()
+
+
+def get_user_meeting_from_url(query):
+    """
+    Get user and meeting object from the query string param of the url
+
+    Args:
+        query(String): query param from url created
+
+    Returns:
+        user(User): User object reference for rsvp
+        meeting(Meeting): Meeting object reference for rsvp
+
+    """
+    f = Fernet(FERNET_KEY)
+    decrypted_message = f.decrypt(query.encode()).decode()
+    [user_id, meeting_id] = decrypted_message.split('|')
+    try:
+        user = get_user_model().objects.get(pk=user_id)
+        meeting = models.Meeting.objects.get(pk=meeting_id)
+        return user, meeting
+    except models.Meeting.DoesNotExist:
+        raise models.Meeting.DoesNotExist
+    except get_user_model().DoesNotExist:
+        raise get_user_model().DoesNotExist

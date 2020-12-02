@@ -4,6 +4,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from integrations.google import constants
+from integrations.google import models
 
 
 class GoogleCalendarService:
@@ -46,15 +47,27 @@ class GoogleCalendarService:
             calendarId=self.calendar_id,
         ).execute()
 
+    def get_event(self, event_id):
+        """Gets a specific event from Google calendar API."""
+        try:
+            return self.service.events().get(
+                calendarId=self.calendar_id,
+                eventId=event_id
+            ).execute()
+        except Exception:
+            return {}
+
     def create_event(
             self,
             start_datetime,
             end_datetime,
             users,
+            meeting,
             summary=None,
             description=None,
 
     ):
+        request_id = str(uuid.uuid4())
         request_body = {
             "summary": summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS,
             "description": description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS,
@@ -73,7 +86,7 @@ class GoogleCalendarService:
                     "conferenceSolutionKey": {
                         "type": constants.HANGOUT_MEET
                     },
-                    "requestId": str(uuid.uuid4()),
+                    "requestId": request_id,
                 }
             }
         }
@@ -85,7 +98,9 @@ class GoogleCalendarService:
             conferenceDataVersion=self.conference_data_version
         ).execute()
         hangout_link = event.get('hangoutLink', '')
-        return hangout_link
+        event_id = event.get('id', '')
+
+        return event_id, hangout_link
 
     def update_event(self, event_id, patch_body):
         event_patch = self.service.events().patch(
@@ -102,49 +117,3 @@ google_calendar_service = GoogleCalendarService(
     send_updates=constants.SEND_UPDATE_TO_ALL,
     calendar_id=constants.DEFAULT_CALENDAR_ID
 )
-
-# sample_data_with_meet_link = {
-#     'kind': 'calendar#event',
-#     'etag': '"3201802885511000"',
-#     'id': 'rvhf3534lg7ltqkpelv97miia4',
-#     'status': 'confirmed',
-#     'htmlLink': 'https://www.google.com/calendar/event?eid'
-#                 '=cnZoZjM1MzRsZzdsdHFrcGVsdjk3bWlpYTQgaGVsbG9Ad29ya25ldHdvcmsuaW4',
-#     'created': '2020-09-22T08:56:46.000Z',
-#     'updated': '2020-09-25T12:44:38.803Z',
-#     'summary': '1:1 WorkNetwork ',
-#     'description': '50',
-#     'creator': {'email': 'hello@worknetwork.in', 'self': True},
-#     'organizer': {'email': 'hello@worknetwork.in', 'self': True},
-#     'start': {'dateTime': '2020-09-25T19:00:00+05:30'},
-#     'end': {'dateTime': '2020-09-25T19:30:00+05:30'},
-#     'iCalUID': 'rvhf3534lg7ltqkpelv97miia4@google.com',
-#     'sequence': 1,
-#     'attendees': [{'email': 'mayuresh@brainizen.com',
-#                    'responseStatus': 'needsAction'},
-#                   {'email': 'bhawna.bhatnagar27@gmail.com', 'responseStatus': 'accepted'}],
-#     'hangoutLink': 'https://meet.google.com/ybz-dxqy-usz',
-#     'conferenceData': {
-#         'createRequest': {'requestId': 'aabf9774-1818-4719-ada4-368900e1f3ff',
-#                           'conferenceSolutionKey': {'type': 'hangoutsMeet'},
-#                           'status': {'statusCode': 'success'}},
-#         'entryPoints': [{'entryPointType': 'video',
-#                          'uri': 'https://meet.google.com/ybz-dxqy-usz',
-#                          'label': 'meet.google.com/ybz-dxqy-usz'},
-#                         {'entryPointType': 'more',
-#                          'uri': 'https://tel.meet/ybz-dxqy-usz?pin=6344064333790',
-#                          'pin': '6344064333790'},
-#                         {'regionCode': 'US',
-#                          'entryPointType': 'phone',
-#                          'uri': 'tel:+1-985-387-5676',
-#                          'label': '+1 985-387-5676',
-#                          'pin': '227027939'}],
-#         'conferenceSolution': {'key': {'type': 'hangoutsMeet'},
-#                                'name': 'Google Meet',
-#                                'iconUri': 'https://lh5.googleusercontent.com/proxy'
-#                                           '/bWvYBOb7O03a7HK5iKNEAPoUNPEXH1CHZjuOkiqxHx8OtyVn9sZ6Ktl8hfqBNQUUbCDg6T2unn'
-#                                           'sHx7RSkCyhrKgHcdoosAW8POQJm_ZEvZU9ZfAE7mZIBGr_tDlF8Z_rSzXcjTffVXg3M46v'},
-#         'conferenceId': 'ybz-dxqy-usz',
-#         'signature': 'ADR/mfMssWaR5ue8YJ9EOaQMVM4g'},
-#     'reminders': {'useDefault': False}
-# }
