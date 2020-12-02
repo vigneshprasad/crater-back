@@ -15,39 +15,46 @@ from matching.engines import scoring_constants
 from resources.meetings import services as meeting_services
 
 
-def get_match_score_between_users(user1, user2):
-    """Get a matching score between two users."""
+def get_best_score_between_users(user1, user2):
+    """Get score for user1 matching with user2.
 
-    all_scores = {
-        "final_score": 0,
-        "interest_objective_to_tag_score": 0,
-        "tag_to_tag_score": 0,
-        "objective_to_objective_score": 0,
-        "introduction_text_score": 0
+    Note:
+        This function doesn't take into consideration the
+            score for both users meeting each other, but
+            calculates score for user1 to be matched with
+            user2 and not vice versa.
+
+    """
+
+    detailed_score = {
+        constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: 0,
+        constants.TAG_TO_TAG_ENGINE: 0,
+        constants.OBJECTIVE_TO_OBJECTIVE_ENGINE: 0,
+        constants.INTRODUCTION_TEXT_ENGINE: 0,
+        constants.SECTOR_MATCH_ENGINE: 0
     }
 
     engine_1_score = get_interest_objective_to_tag_score_for_users(user1, user2)
-    all_scores["interest_objective_to_tag_score"] = engine_1_score
+    detailed_score[constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE] = round(engine_1_score, 2)
 
     engine_2_score = get_tag_to_tag_score_for_users(user1, user2)
-    all_scores["tag_to_tag_score"] = engine_2_score
+    detailed_score[constants.TAG_TO_TAG_ENGINE] = round(engine_2_score, 2)
 
     engine_3_score = get_objective_to_objective_score_for_users(user1, user2)
-    all_scores["objective_to_objective_score"] = engine_3_score
+    detailed_score[constants.OBJECTIVE_TO_OBJECTIVE_ENGINE] = round(engine_3_score, 2)
 
     engine_4_score = get_intro_score_for_users(user1, user2)
-    all_scores["introduction_text_score"] = engine_4_score
+    detailed_score[constants.INTRODUCTION_TEXT_ENGINE] = round(engine_4_score, 2)
 
     engine_5_score = get_sector_score_for_users(user1, user2)
-    all_scores["sector_score"] = engine_4_score
+    detailed_score[constants.SECTOR_MATCH_ENGINE] = round(engine_5_score, 2)
 
-    final_score = (engine_1_score + engine_2_score + engine_3_score + engine_4_score + engine_5_score ) / 5
-    all_scores["final_score"] = final_score
+    match_score = round((engine_1_score + engine_2_score + engine_3_score + engine_4_score + engine_5_score) / 5, 2)
 
     # Print for testing and visualisation.
-    print("User {} best matched with {} has a score of: {}".format(user1.email, user2.email, final_score))
+    print("User {} best matched with {} has a score of: {}".format(user1.email, user2.email, match_score))
 
-    return all_scores
+    return match_score, detailed_score
 
 
 def get_objective_to_objective_score_for_users(user, user2):
@@ -290,7 +297,6 @@ def get_sector_score_for_users(user1, user2):
         "ECommerce": 0,
         "Education": 0,
         "Electrical": 0,
-        "Electrical": 0,
         "Energy": 0,
         "Environment": 0,
         "Event": 0,
@@ -327,7 +333,6 @@ def get_sector_score_for_users(user1, user2):
         "Design": 0,
         "ECommerce": 0,
         "Education": 0,
-        "Electrical": 0,
         "Electrical": 0,
         "Energy": 0,
         "Environment": 0,

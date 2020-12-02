@@ -79,7 +79,7 @@ def send_registration_confirmation(user):
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.REGISTRATION_CONFIRMATION,
-        template_data= [
-            {"data": 'https://{}/meetings'.format(FRONT_URL) }
+        template_data=[
+            {"data": 'https://{}/meetings'.format(FRONT_URL)}
         ]
     )

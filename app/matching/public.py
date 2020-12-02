@@ -2,6 +2,7 @@ from itertools import islice
 
 from django.contrib.auth import get_user_model
 
+from matching import constants
 from matching.engines import user_match_engine
 from matching.engines import best_match_engine
 from matching.engines import users_scoring
@@ -25,14 +26,10 @@ def get_top_matches_for_user(user):
         if not opted_user.has_profile:
             continue
 
-        match_score = user_match_engine.get_match_score_between_users(user, opted_user)
+        final_score, detailed_score = user_match_engine.get_match_score_between_users(user, opted_user)
         # opted_user_score = users_scoring.get_user_score(opted_user)
-        match_score = match_score.get('final_score', 0)
 
-        # Getting complete score after using user's score with match score of the two users.
-        final_match_score = match_score
-
-        user_match_score_map[opted_user.email] = final_match_score
+        user_match_score_map[opted_user.email] = [final_score, detailed_score]
 
     # Removing user's match with the user itself.
     try:
@@ -48,12 +45,18 @@ def get_top_matches_for_user(user):
     # Return top 10 users.
     results = dict(islice(sorted_user_match_score_map.items(), 10))
     final_results = []
-    for email, score in results.items():
+    for email, score_list in results.items():
         matched_user = get_user_model().objects.get(email=email)
         data = {
             "email": email,
-            "match_score": score,
-            "user_info": get_user_info(matched_user)
+            "match_score": score_list[0],
+            "user_info": get_user_info(matched_user),
+            # These are detailed score details.
+            constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: score_list[1].get(constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE),
+            constants.TAG_TO_TAG_ENGINE: score_list[1].get(constants.TAG_TO_TAG_ENGINE),
+            constants.OBJECTIVE_TO_OBJECTIVE_ENGINE: score_list[1].get(constants.OBJECTIVE_TO_OBJECTIVE_ENGINE),
+            constants.INTRODUCTION_TEXT_ENGINE: score_list[1].get(constants.INTRODUCTION_TEXT_ENGINE),
+            constants.SECTOR_MATCH_ENGINE: score_list[1].get(constants.SECTOR_MATCH_ENGINE)
         }
         final_results.append(data)
 
@@ -78,14 +81,9 @@ def get_top_users_for_user(user):
         if not opted_user.has_profile:
             continue
 
-        match_score = best_match_engine.get_match_score_between_users(user, opted_user)
+        final_score, detailed_score = best_match_engine.get_best_score_between_users(user, opted_user)
         # opted_user_score = users_scoring.get_user_score(opted_user)
-        match_score = match_score.get('final_score', 0)
-
-        # Getting complete score after using user's score with match score of the two users.
-        final_match_score = match_score
-
-        user_match_score_map[opted_user.email] = final_match_score
+        user_match_score_map[opted_user.email] = [final_score, detailed_score]
 
     # Removing user's match with the user itself.
     try:
@@ -108,12 +106,18 @@ def get_top_users_for_user(user):
             "user_info": get_user_info(user)
         }
     ]
-    for email, score in results.items():
+    for email, score_list in results.items():
         matched_user = get_user_model().objects.get(email=email)
         data = {
             "email": email,
-            "match_score": score,
-            "user_info": get_user_info(matched_user)
+            "match_score": score_list[0],
+            "user_info": get_user_info(matched_user),
+            # These are detailed score details.
+            constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: score_list[1].get(constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE),
+            constants.TAG_TO_TAG_ENGINE: score_list[1].get(constants.TAG_TO_TAG_ENGINE),
+            constants.OBJECTIVE_TO_OBJECTIVE_ENGINE: score_list[1].get(constants.OBJECTIVE_TO_OBJECTIVE_ENGINE),
+            constants.INTRODUCTION_TEXT_ENGINE: score_list[1].get(constants.INTRODUCTION_TEXT_ENGINE),
+            constants.SECTOR_MATCH_ENGINE: score_list[1].get(constants.SECTOR_MATCH_ENGINE)
         }
         final_results.append(data)
 

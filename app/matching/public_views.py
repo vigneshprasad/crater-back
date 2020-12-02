@@ -21,20 +21,20 @@ class TopMatchesPublicViewSet(
     queryset = models.MatchScore.objects.all()
     permission_classes = [permissions.AllowAny]
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     body = json.loads(request.body)
-    #     user_id = body['user_id']
-    #     try:
-    #         user = get_user_model().objects.get(pk=user_id)
-    #     except get_user_model().DoesNotExist:
-    #         return Response(
-    #             status=400,
-    #             data={
-    #                 "message": "Selected user is not valid."
-    #             }
-    #         )
-    #
-    #     top_matches_data = public.get_top_matches_for_user(user)
-    #
-    #     return Response(top_matches_data)
-    #
+    def list(self, request, *args, **kwargs):
+        user_id = request.query_params.get("user_id")
+        print(user_id)
+        try:
+            user = get_user_model().objects.get(pk=user_id)
+        except get_user_model().DoesNotExist:
+            return Response(
+                status=400,
+                data={
+                    "message": "Selected user is not valid."
+                }
+            )
+
+        top_matches_data = public.get_top_matches_for_user(user)
+
+        return Response(top_matches_data)
+

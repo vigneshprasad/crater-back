@@ -16,4 +16,5 @@ urlpatterns = [
     path('points/', include('points.urls.v1', namespace='points')),
     path('chat/', include('consumers.chat.api_urls.v1', namespace='chat')),
     path('rewards/', include('rewards.urls.v1', namespace='rewards')),
+    path('matching/', include('matching.urls.v1', namespace='matching')),
 ]

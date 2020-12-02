@@ -21,3 +21,10 @@ DEFAULT_INTRO_MULTIPLIER = 10
 DEFAULT_OBJECTIVE_MULTIPLIER = 0.5
 DEFAULT_SECTOR_MULTIPLIER = 2
 KEZIAH_TYPEFORM = "https://worknetwork.typeform.com/to/ltoxdMaX"
+
+# Engines.
+INTEREST_TO_OBJECTIVE_TAG_ENGINE = "interest_objective_to_tag"
+TAG_TO_TAG_ENGINE = "tag_to_tag"
+OBJECTIVE_TO_OBJECTIVE_ENGINE = "objective_to_objective"
+INTRODUCTION_TEXT_ENGINE = "introduction_text"
+SECTOR_MATCH_ENGINE = "sector_match"
