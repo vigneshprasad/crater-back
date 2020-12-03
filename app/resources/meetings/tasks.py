@@ -2,7 +2,6 @@ import datetime
 import logging
 import pytz
 from copy import copy
-from django.db.models import Q
 
 from celery.schedules import crontab
 from celery.task import periodic_task
