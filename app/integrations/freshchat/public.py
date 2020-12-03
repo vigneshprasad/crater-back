@@ -117,6 +117,7 @@ def send_meeting_rsvp_reminder(user, meeting):
     Args:
         user(User): User to whom this message will go.
         meeting(Meeting): Meeting for which message confirmation goes
+
     """
 
     url = create_public_url(user, meeting)

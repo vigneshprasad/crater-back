@@ -2,12 +2,13 @@ import datetime
 import logging
 import pytz
 from copy import copy
+from django.db.models import Q
 
 from celery.schedules import crontab
 from celery.task import periodic_task
 from django.utils import timezone
 
-from freelance.settings import TIME_ZONE
+from freelance.settings import TIME_ZONE, CONTACT_US_URL, WEBSITE_URL, FRONT_URL
 from integrations.freshchat import public as freshchat_public
 from resources.meetings import choices
 from resources.meetings import models
@@ -379,7 +380,7 @@ def send_whatsapp_1_on_1_rsvp_confirmation(meetings=None):
                 )
 
 
-@periodic_task(run_every=crontab(hour=12, minute=0))
+@periodic_task(run_every=crontab(hour=11, minute=30))
 def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
     """ Send whatsapp reminder with Rsvp link
     
@@ -404,24 +405,15 @@ def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
     ))
 
     for meeting in meetings:
-        for participant in meeting.participants.all():
-            try:
-                rsvp = models.MeetingRSVP.objects.get(
-                    participant=participant,
-                    meeting=meeting,
-                )
-            except models.MeetingRSVP.DoesNotExist:
-                logging.info('{} Meeting RSVP data missing'.format(participant.email))
-                continue
-
+        for rsvp in meeting.rsvps.all():
             # Dont send whatsapp if rsvp status is not pending
             if not rsvp.status == choices.MEETING_RSVP_STATUS_PENDING:
                 continue
 
-            freshchat_public.send_meeting_rsvp_reminder(participant, meeting)
+            freshchat_public.send_meeting_rsvp_reminder(rsvp.participant, meeting)
 
 
-@periodic_task(crontab(minute='*/15'))
+@periodic_task(run_every=crontab(minute='*/15'))
 def update_meeting_rsvp_status_from_google(meetings=None):
     """
     Update the Meetings Rsvp Status for participants of all upcoming meetings
@@ -433,23 +425,15 @@ def update_meeting_rsvp_status_from_google(meetings=None):
     meetings = services.get_active_meetings() if not meetings else meetings
 
     for meeting in meetings:
-        for participant in meeting.participants.all():
-            try:
-                rsvp = models.MeetingRSVP.objects.get(
-                    participant=participant,
-                    meeting=meeting,
-                )
-            except models.MeetingRSVP.DoesNotExist:
-                logging.info('{} Meeting RSVP data missing'.format(participant.email))
-                continue
+        for rsvp in meeting.rsvps.all():
 
             # Dont update data if rsvp status is attending
             if rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
                 continue
-            google_public.get_and_update_rsvp_status(rsvp, meeting.id)
+            google_public.get_and_update_rsvp_status(rsvp)
 
 
-@periodic_task(crontab(hour=2, minute=30))
+@periodic_task(run_every=crontab(hour=2, minute=30))
 def cancel_meetings_for_no_rsvp(meetings=None):
     """ Cancel meetings if participant rsvp status is pending or not attending
 
@@ -470,7 +454,72 @@ def cancel_meetings_for_no_rsvp(meetings=None):
             if rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES:
                 meeting.is_canceled = True
                 meeting.save()
-
-                # TODO(Abhishek) - Send Email regarding meeting cancellation
-
+                _send_meeting_cancellation_email(meeting)
                 break
+
+
+def _send_meeting_cancellation_email(meeting):
+    """ Sends meeting cancellation email for meeting
+
+    Args:
+        meeting(Meeting): Meeting object to send email for
+
+    """
+
+    # For one on one meetings there are only two participants
+    # allowed.
+    if not meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+        return
+
+    p1_rsvp = meeting.rsvps.all()[0]
+    p2_rsvp = meeting.rsvps.all()[1]
+
+    p1_rsvp_declined = p1_rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES
+    p2_rsvp_declined = p2_rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES
+
+    to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
+    subject = "1:1 Meeting Cancelled"
+    template = choices.ONE_ON_ONE_MEETING_CANCELED_TEMPLATE
+    display_day = meeting.time_slot.get_display_day()
+    display_time = meeting.time_slot.get_display_time()
+
+    if p1_rsvp_declined and p2_rsvp_declined:
+        declined_string = "{} & {}".format(p1_rsvp.participant.email, p2_rsvp.participant.email)
+    elif p1_rsvp_declined:
+        declined_string = p1_rsvp.participant.email
+    else:
+        declined_string = p2_rsvp.participant.email
+
+    message_link = 'https://{}/dashboard/inbox'.format(FRONT_URL)
+    rsvp_link = 'https://{}/meetings/'.format(FRONT_URL)
+
+    data = {}
+    for email in to_emails:
+        data[email] = {
+            'day': display_day,
+            'time': display_time,
+            'declined_users': declined_string,
+            'message_link': message_link,
+            'rsvp_link': rsvp_link,
+            'contact_us': CONTACT_US_URL,
+            'website_url': WEBSITE_URL,
+        }
+
+    from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+    # reply_to_emails is all to_emails plus the from_email.
+    reply_to_emails = copy(to_emails)
+    reply_to_emails.append(from_email)
+
+    for to in to_emails:
+        reply_to = copy(reply_to_emails)
+        # Popping the to email from reply_to emails.
+        reply_to.pop(reply_to_emails.index(to))
+        p1_rsvp.participant.send_email(
+            subject=subject,
+            template_name=template,
+            to=[to],
+            from_email=from_email,
+            content={},
+            merge_vars=data,
+            reply_to=reply_to,
+        )

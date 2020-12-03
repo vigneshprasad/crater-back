@@ -41,7 +41,7 @@ def create_calendar_event_for_meeting(meeting):
     return hangout_link
 
 
-def get_and_update_rsvp_status(meeting_rsvp, meeting_id):
+def get_and_update_rsvp_status(meeting_rsvp):
     """ Get Status and update status of meetings rsvp object via google api
 
     Args:
@@ -52,7 +52,7 @@ def get_and_update_rsvp_status(meeting_rsvp, meeting_id):
     user = meeting_rsvp.participant
     google_calendar_event = models.GoogleCalendarEvent.objects.filter(
         user=user,
-        meeting_id=meeting_id,
+        meeting_id=meeting_rsvp.meeting.id,
     ).last()
 
     # If there is no calendar event in the future, return.
