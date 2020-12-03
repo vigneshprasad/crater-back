@@ -37,4 +37,3 @@ class TopMatchesPublicViewSet(
         top_matches_data = public.get_top_matches_for_user(user)
 
         return Response(top_matches_data)
-

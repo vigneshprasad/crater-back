@@ -49,8 +49,8 @@ def get_top_matches_for_user(user):
         matched_user = get_user_model().objects.get(email=email)
         data = {
             "email": email,
+            "user_id": matched_user.pk,
             "match_score": score_list[0],
-            "user_info": get_user_info(matched_user),
             # These are detailed score details.
             constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: score_list[1].get(constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE),
             constants.TAG_TO_TAG_ENGINE: score_list[1].get(constants.TAG_TO_TAG_ENGINE),
@@ -110,8 +110,8 @@ def get_top_users_for_user(user):
         matched_user = get_user_model().objects.get(email=email)
         data = {
             "email": email,
+            "user_id": matched_user.pk,
             "match_score": score_list[0],
-            "user_info": get_user_info(matched_user),
             # These are detailed score details.
             constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: score_list[1].get(constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE),
             constants.TAG_TO_TAG_ENGINE: score_list[1].get(constants.TAG_TO_TAG_ENGINE),

@@ -28,7 +28,6 @@ class PublicTopMatchesSerializer(serializers.Serializer):
 
     @staticmethod
     def get_all_score(user):
-        print(user)
         return public.get_top_matches_for_user(user)
 
     def create(self, validated_data):
