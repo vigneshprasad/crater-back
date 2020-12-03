@@ -337,6 +337,8 @@ SEGMENT_WRITE_KEY = os.getenv('SEGMENT_WRITE_KEY', '6RqLquK0M8YzTVdhHJz3C5NSa0Tq
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 FRONT_URL = os.getenv('FRONT_URL', 'front-dev-freelance.scenario-projects.com')
+CONTACT_US_URL = 'https://{}/dashboard/help'.format(FRONT_URL)
+WEBSITE_URL = 'https://{}'.format(FRONT_URL)
 
 MP4_PIPELINE_ID = os.getenv('MP4_PIPELINE_ID', '1577369677921-qwavil')
 MP4_TRANSCODER_PRESET_ID = os.getenv('MP4_TRANSCODER_PRESET_ID', '1351620000001-000010')

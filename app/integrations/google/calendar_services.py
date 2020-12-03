@@ -4,7 +4,6 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from integrations.google import constants
-from integrations.google import models
 
 
 class GoogleCalendarService:
@@ -18,7 +17,10 @@ class GoogleCalendarService:
         self.conference_data_version = conference_data_version
         self.send_updates = send_updates
         self.calendar_id = calendar_id
-        self.service = self._build_service()
+        try:
+            self.service = self._build_service()
+        except ValueError:
+            self.service = None
 
     def _get_credentials(self):
         """Build credentials for Google API access."""
@@ -43,12 +45,16 @@ class GoogleCalendarService:
         return service
 
     def get_events(self):
+        if not self.service:
+            return None
         return self.service.events().list(
             calendarId=self.calendar_id,
         ).execute()
 
     def get_event(self, event_id):
         """Gets a specific event from Google calendar API."""
+        if not self.service:
+            return None
         try:
             return self.service.events().get(
                 calendarId=self.calendar_id,
@@ -67,6 +73,9 @@ class GoogleCalendarService:
             description=None,
 
     ):
+        if not self.service:
+            return None
+
         request_id = str(uuid.uuid4())
         request_body = {
             "summary": summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS,
@@ -103,6 +112,9 @@ class GoogleCalendarService:
         return event_id, hangout_link
 
     def update_event(self, event_id, patch_body):
+        if not self.service:
+            return None
+
         event_patch = self.service.events().patch(
             calendarId=self.calendar_id,
             eventId=event_id,

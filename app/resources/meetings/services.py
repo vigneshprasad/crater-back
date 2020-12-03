@@ -224,10 +224,16 @@ def get_latest_active_meeting_config():
         Queryset of MeetingConfig object.
 
     """
+    now = datetime.datetime.now().date()
+    start = now - datetime.timedelta(days=now.weekday())
+    end = start + datetime.timedelta(days=6)
     active_meeting_configs = get_active_meeting_configs()
     if not active_meeting_configs:
         return None
-    return active_meeting_configs.last()
+    return active_meeting_configs.filter(
+        week_start_date__gte=start,
+        week_end_date__lte=end,
+    ).last()
 
 
 def get_active_meetings(start_date=None, end_date=None):

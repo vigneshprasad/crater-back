@@ -109,3 +109,23 @@ def send_meeting_confirmation_rsvp(user, meeting):
             {"data": url},
         ]
     )
+
+
+def send_meeting_rsvp_reminder(user, meeting):
+    """ Send a message reminding to rsvp for meeting
+
+    Args:
+        user(User): User to whom this message will go.
+        meeting(Meeting): Meeting for which message confirmation goes
+
+    """
+
+    url = create_public_url(user, meeting)
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.MEETING_REMINDER_RSVP_LINK,
+        template_data=[
+            {"data": url}
+        ]
+    )

@@ -1,20 +1,8 @@
-from django.utils import timezone
-
 from integrations.google import constants
-from integrations.google import models
 from integrations.google.calendar_services import google_calendar_service
 
 
-def get_and_update_response_status_for_user(user):
-
-    google_calendar_event = models.GoogleCalendarEvent.objects.filter(
-        user=user,
-        ends_at__gt=timezone.now(),
-    ).last()
-
-    # If there is no calendar event in the future, return.
-    if not google_calendar_event:
-        return
+def get_and_update_event_status_for_event(google_calendar_event):
 
     # If the calendar status is already in accepted status, don't do anything.
     if google_calendar_event.status in constants.ACCEPTED_CALENDAR_STATUSES:
@@ -30,7 +18,7 @@ def get_and_update_response_status_for_user(user):
     status = constants.CALENDAR_RESPONSE_STATUSES[0][0]
 
     for attendee in attendees:
-        if attendee.get('email') == user.email:
+        if attendee.get('email') == google_calendar_event.user.email:
             status = attendee.get('responseStatus')
 
     # Update status in the model with the latest status.
