@@ -76,11 +76,21 @@ DEFAULT_MEETING_TIME_SLOTS = {
     ]
 }
 
+MEETING_RSVP_STATUS_ATTENDING = 'attending'
+MEETING_RSVP_STATUS_PENDING = 'pending'
+MEETING_RSVP_STATUS_NOT_ATTENDING = 'not_attending'
+MEETING_RSVP_STATUS_RESCHEDULE = 'reschedule'
+
+MEETING_UNCONFIRMED_STATUSES = [
+    MEETING_RSVP_STATUS_PENDING,
+    MEETING_RSVP_STATUS_NOT_ATTENDING,
+]
+
 MEETING_RSVP_STATUS_CHOICES = (
-    ('attending', _('Attending')),
-    ('pending', _('Pending')),
-    ('not_attending', _('Not Attending')),
-    ('reschedule', _('Reschedule')),
+    (MEETING_RSVP_STATUS_ATTENDING, _(MEETING_RSVP_STATUS_ATTENDING.title())),
+    (MEETING_RSVP_STATUS_PENDING, _(MEETING_RSVP_STATUS_PENDING.title())),
+    (MEETING_RSVP_STATUS_NOT_ATTENDING, _(MEETING_RSVP_STATUS_NOT_ATTENDING.title())),
+    (MEETING_RSVP_STATUS_RESCHEDULE, _(MEETING_RSVP_STATUS_RESCHEDULE.title())),
 )
 
 # These slots are only used for display purposes.

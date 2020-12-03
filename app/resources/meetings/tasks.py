@@ -13,6 +13,7 @@ from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
+from integrations.google import public as google_public
 
 
 @periodic_task(run_every=crontab(day_of_week='sunday', hour='17', minute='30'))
@@ -321,6 +322,7 @@ def send_1_on_1_feedback_emails(meetings=None):
             )
 
 
+# TODO(Abhishek) - Deprecate once we move to new message with Rsvp link
 def send_whatsapp_1_on_1_meeting_time_confirmation(meetings=None):
     """Send confirmation of time slot whatsapp message to meeting participants
 
@@ -349,7 +351,7 @@ def send_whatsapp_1_on_1_meeting_time_confirmation(meetings=None):
             )
 
 
-def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
+def send_whatsapp_1_on_1_rsvp_confirmation(meetings=None):
     """ Send whatsapp with rsvp link to all active meetings
 
     Args:
@@ -367,11 +369,108 @@ def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
                     meeting=meeting,
                 )
             except models.MeetingRSVP.DoesNotExist:
-                print('{} Meeting RSVP data missing'.format(participant.email))
+                logging.info('{} Meeting RSVP data missing'.format(participant.email))
                 continue
 
-            if not rsvp.status == choices.MEETING_RSVP_STATUS_CHOICES[0][0]:
+            if not rsvp.status == choices.MEETING_RSVP_STATUS_PENDING:
                 freshchat_public.send_meeting_confirmation_rsvp(
                     user=participant,
                     meeting=meeting,
                 )
+
+
+@periodic_task(run_every=crontab(hour=12, minute=0))
+def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
+    """ Send whatsapp reminder with Rsvp link
+    
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to send this
+            reminder to. Added for testing.
+
+    """
+    now_time = datetime.datetime.now()
+
+    # Getting date for the for next day.
+    date = (now_time + datetime.timedelta(days=1)).date()
+
+    meetings = models.Meeting.objects.filter(
+        config__is_active=True,
+        is_canceled=False,
+        time_slot__date=date,
+    ) if not meetings else meetings
+
+    logging.info("Sending rsvp reminders for meetings on {}. Meetings count: {}".format(
+        date, meetings.count()
+    ))
+
+    for meeting in meetings:
+        for participant in meeting.participants.all():
+            try:
+                rsvp = models.MeetingRSVP.objects.get(
+                    participant=participant,
+                    meeting=meeting,
+                )
+            except models.MeetingRSVP.DoesNotExist:
+                logging.info('{} Meeting RSVP data missing'.format(participant.email))
+                continue
+
+            # Dont send whatsapp if rsvp status is not pending
+            if not rsvp.status == choices.MEETING_RSVP_STATUS_PENDING:
+                continue
+
+            freshchat_public.send_meeting_rsvp_reminder(participant, meeting)
+
+
+@periodic_task(crontab(minute='*/15'))
+def update_meeting_rsvp_status_from_google(meetings=None):
+    """
+    Update the Meetings Rsvp Status for participants of all upcoming meetings
+
+    meetings(Meeting queryset): Queryset of meeting you want to update rsvp status for
+        participants.
+
+    """
+    meetings = services.get_active_meetings() if not meetings else meetings
+
+    for meeting in meetings:
+        for participant in meeting.participants.all():
+            try:
+                rsvp = models.MeetingRSVP.objects.get(
+                    participant=participant,
+                    meeting=meeting,
+                )
+            except models.MeetingRSVP.DoesNotExist:
+                logging.info('{} Meeting RSVP data missing'.format(participant.email))
+                continue
+
+            # Dont update data if rsvp status is attending
+            if rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
+                continue
+            google_public.get_and_update_rsvp_status(rsvp, meeting.id)
+
+
+@periodic_task(crontab(hour=2, minute=30))
+def cancel_meetings_for_no_rsvp(meetings=None):
+    """ Cancel meetings if participant rsvp status is pending or not attending
+
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to cancel.
+
+    """
+    today = datetime.datetime.now().date()
+
+    meetings = models.Meeting.objects.filter(
+        config__is_active=True,
+        is_canceled=False,
+        time_slot__date=today,
+    ) if not meetings else meetings
+
+    for meeting in meetings:
+        for rsvp in meeting.rsvps.all():
+            if rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES:
+                meeting.is_canceled = True
+                meeting.save()
+
+                # TODO(Abhishek) - Send Email regarding meeting cancellation
+
+                break

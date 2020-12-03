@@ -136,10 +136,10 @@ def _clean_time_preference(time_preference):
 def create_meeting_for_users(sender, instance, *args, **kwargs):
 
     if kwargs.get('action') == 'post_add':
-        for participant in instance.participants.all():
+        for participant in kwargs['pk_set']:
             models.MeetingRSVP.objects.create(
                 meeting=instance,
-                participant=participant,
+                participant_id=participant,
             )
 
         chat_signals.create_chat_for_meeting.send(
