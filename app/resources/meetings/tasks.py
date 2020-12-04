@@ -444,7 +444,7 @@ def cancel_meetings_for_no_rsvp(meetings=None):
 
     for meeting in meetings:
         for rsvp in meeting.rsvps.all():
-            if rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES:
+            if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
                 meeting.is_canceled = True
                 meeting.save()
                 _send_meeting_cancellation_email(meeting)
@@ -518,8 +518,8 @@ def _send_meeting_cancellation_email(meeting):
     p1_rsvp = meeting.rsvps.all()[0]
     p2_rsvp = meeting.rsvps.all()[1]
 
-    p1_rsvp_declined = p1_rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES
-    p2_rsvp_declined = p2_rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES
+    p1_rsvp_declined = p1_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
+    p2_rsvp_declined = p2_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
 
     to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
     subject = "1:1 Meeting Cancelled"

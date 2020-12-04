@@ -170,7 +170,7 @@ def on_save_meeting_rsvp(sender, instance, created, *args, **kwargs):
     all_attending = True
 
     for rsvp in meeting.rsvps.all():
-        if rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES:
+        if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
             all_attending = False
 
     # If all users for meeting are not attending meeting, return
@@ -178,7 +178,23 @@ def on_save_meeting_rsvp(sender, instance, created, *args, **kwargs):
         return
 
     # Send meeting confirmed email to all participants
-    _send_meeting_confirmed_email(meeting)
+    meeting.status = choices.MEETING_STATUS_CONFIRMED
+    meeting.save()
+
+
+@receiver(post_save, sender=models.Meeting)
+def check_and_send_confirmed_meeting_email(sender, instance, created, *args, **kwargs):
+    previous_status = instance._Meeting__previous_status
+    current_status = instance.status
+
+    # If meeting is not confirmed, return
+    if current_status != choices.MEETING_STATUS_CONFIRMED:
+        return
+
+    if previous_status == choices.MEETING_STATUS_CONFIRMED:
+        return
+
+    _send_meeting_confirmed_email(instance)
 
 
 def _send_meeting_confirmed_email(meeting):
