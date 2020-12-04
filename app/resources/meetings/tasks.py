@@ -451,6 +451,7 @@ def cancel_meetings_for_no_rsvp(meetings=None):
                 break
 
 
+@periodic_task(run_every=crontab(day_of_week='monday', hour=2, minute=30))
 def send_weekly_meeting_rewards_email(users=None):
     users = get_user_model().objects.all() if not users else users
 
