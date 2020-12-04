@@ -18,6 +18,7 @@ router.register('masterclasses', MaterClassViewSet)
 # TODO(Abhishek): to be deprecated once 1.5.0 mobile app version is obsolete
 router.register('meetings', meeting_views.MeetingConfigViewSet)
 router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSet)
+router.register('past-meeting-preferences', meeting_views.PastUserMeetingPreferenceViewSet)
 
 router.register('meetings/meeting', meeting_views.MeetingViewSet)
 router.register('meetings/config', meeting_views.MeetingConfigV2ViewSet)
