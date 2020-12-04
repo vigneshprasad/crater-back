@@ -11,7 +11,10 @@ from resources.meetings import signals
 from resources.meetings import choices
 from consumers.chat import signals as chat_signals
 from users import services as users_services
+from django.contrib.auth import get_user_model
 
+
+MEETING_ADD_USER_POINTS_KEY = 15
 
 @receiver(post_save, sender=models.MeetingPreference)
 def send_analytics_for_user_meeting_preference(sender, instance, created, *args, **kwargs):
@@ -140,6 +143,16 @@ def create_meeting_for_users(sender, instance, *args, **kwargs):
 
     if kwargs.get('action') == 'post_add':
         for participant in kwargs['pk_set']:
+            try:
+                user = get_user_model().objects.get(pk=participant)
+                signals.new_user_assigned_to_meeting.send(
+                    sender=instance,
+                    user=user,
+                    rule_key=MEETING_ADD_USER_POINTS_KEY,
+                    base_factor=1,
+                )
+            except get_user_model().DoesNotExist:
+                continue
             models.MeetingRSVP.objects.create(
                 meeting=instance,
                 participant_id=participant,

@@ -5,8 +5,9 @@ from rest_framework.response import Response
 
 from users import permissions
 from .models import UserPoints, PointsRule
-from rewards.models import Package
+from rewards.services import get_max_rewards_rs_conversion
 from points import serializers
+from points import constants
 
 
 class UserPointsViewSet(GenericViewSet):
@@ -20,11 +21,7 @@ class UserPointsViewSet(GenericViewSet):
     def my(self, request):
         user = request.user
         user_points = UserPoints.objects.get(user=user)
-        packages = Package.objects.filter(is_active=True)
-        max_conversion = 0
-        for package in packages:
-            if package.points_conversion > max_conversion:
-                max_conversion = package.points_conversion
+        max_conversion = get_max_rewards_rs_conversion()
         response_data = {
             'points': user_points.points,
             'money_value': user_points.points * max_conversion
@@ -34,5 +31,5 @@ class UserPointsViewSet(GenericViewSet):
 
 class PointsRuleViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = serializers.PointsRuleSerializer
-    queryset = PointsRule.objects.all()
+    queryset = PointsRule.objects.filter(key__in=constants.RULES_KEYS_FOR_API)
     permission_classes = [permissions.IsAuthenticated]
