@@ -1,4 +1,5 @@
 import logging
+import pytz
 
 from datetime import datetime
 
@@ -6,7 +7,7 @@ from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat.services import create_public_url
 
-from freelance.settings import FRONT_URL
+from freelance.settings import FRONT_URL, TIME_ZONE
 
 
 def send_meeting_whatsapp_reminder_to_user(user, time):
@@ -94,9 +95,14 @@ def send_meeting_confirmation_rsvp(user, meeting):
         meeting(Meeting): Meeting for which message confirmation goes
     """
 
+    local_tz = pytz.timezone(TIME_ZONE)
+
+    local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
+    local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
+
     date = meeting.start.strftime('%a, %d %b %Y')
-    start_time = meeting.start.strftime('%I:%M %p')
-    end_time = meeting.end.strftime('%I:%M %p')
+    start_time = local_start_datetime.strftime('%I:%M %p')
+    end_time = local_end_datetime.strftime('%I:%M %p')
     time = "{} - {}".format(start_time, end_time)
     url = create_public_url(user, meeting)
 

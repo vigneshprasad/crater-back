@@ -2,7 +2,6 @@ import datetime
 import logging
 import pytz
 from copy import copy
-from django.db.models import Q
 
 from celery.schedules import crontab
 from celery.task import periodic_task
@@ -363,19 +362,10 @@ def send_whatsapp_1_on_1_rsvp_confirmation(meetings=None):
     meetings = services.get_active_meetings() if not meetings else meetings
 
     for meeting in meetings:
-        for participant in meeting.participants.all():
-            try:
-                rsvp = models.MeetingRSVP.objects.get(
-                    participant=participant,
-                    meeting=meeting,
-                )
-            except models.MeetingRSVP.DoesNotExist:
-                logging.info('{} Meeting RSVP data missing'.format(participant.email))
-                continue
-
-            if not rsvp.status == choices.MEETING_RSVP_STATUS_PENDING:
+        for rsvp in meeting.rsvps.all():
+            if rsvp.status == choices.MEETING_RSVP_STATUS_PENDING:
                 freshchat_public.send_meeting_confirmation_rsvp(
-                    user=participant,
+                    user=rsvp.participant,
                     meeting=meeting,
                 )
 
