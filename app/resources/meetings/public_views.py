@@ -30,8 +30,29 @@ class MeetingConfigPublicViewSet(
         detail=False
     )
     def bulk_create(self, request, *args, **kwargs):
-        data = json.loads(request.body)
-        return Response()
+        """Bulk create meetings preferences from Retool."""
+
+        all_preferences_data = json.loads(request.body)
+
+        for preference_data in all_preferences_data:
+            email = preference_data.get("Email")
+            if not email:
+                continue
+
+            try:
+                user = get_user_model().objects.get(email=email)
+            except get_user_model().DoesNotExist:
+                continue
+
+            objectives_list = preference_data.get("Objectives", [])
+            interests_list = preference_data.get("Interests", [])
+
+            objectives = models.Objective.objects.filter(name__in=objectives_list)
+            interests = models.Interest.objects.filter(name__in=interests_list)
+
+            # Parse Time slots from uploaded file and handle meeting preference creation.
+
+        return Response({"status": "success"})
 
 
 class MeetingPreferencePublicViewSet(
