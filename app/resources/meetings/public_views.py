@@ -104,6 +104,7 @@ class MeetingViewSetPublicViewSet(
             start_time=start_time,
             end_time=end_time
         )
+
         meeting_config = services.get_latest_active_meeting_config()
         if not meeting_config:
             return Response(
@@ -114,7 +115,7 @@ class MeetingViewSetPublicViewSet(
             )
 
         data = {
-            "meeting_config": meeting_config.id,
+            "config": meeting_config.id,
             "participants": data["participants"],
             "time_slot": time_slot.id,
             "start": start,
