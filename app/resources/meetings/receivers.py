@@ -1,11 +1,14 @@
 import datetime
+from copy import copy
 
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
+from freelance.settings import FRONT_URL, WEBSITE_URL, CONTACT_US_URL
 from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
+from resources.meetings import choices
 from consumers.chat import signals as chat_signals
 from users import services as users_services
 
@@ -136,13 +139,88 @@ def _clean_time_preference(time_preference):
 def create_meeting_for_users(sender, instance, *args, **kwargs):
 
     if kwargs.get('action') == 'post_add':
-        for participant in instance.participants.all():
+        for participant in kwargs['pk_set']:
             models.MeetingRSVP.objects.create(
                 meeting=instance,
-                participant=participant,
+                participant_id=participant,
             )
 
         chat_signals.create_chat_for_meeting.send(
             sender=instance,
             participants=instance.participants.all(),
+        )
+
+
+@receiver(post_save, sender=models.MeetingRSVP)
+def on_save_meeting_rsvp(sender, instance, created, *args, **kwargs):
+    meeting = instance.meeting
+    all_attending = True
+
+    for rsvp in meeting.rsvps.all():
+        if rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES:
+            all_attending = False
+
+    # If all users for meeting are not attending meeting, return
+    if not all_attending:
+        return
+
+    # Send meeting confirmed email to all participants
+    _send_meeting_confirmed_email(meeting)
+
+
+def _send_meeting_confirmed_email(meeting):
+    """ Sends meeting confirmed email to all participants
+
+    Args:
+        meeting(Meeting): Meeting for which confirmation email is sent
+
+    """
+
+    # For one on one meetings there are only two participants
+    # allowed.
+    if not meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+        return
+
+    p1 = meeting.participants.all()[0]
+    p2 = meeting.participants.all()[1]
+
+    subject = "1:1 Meeting Confirmed"
+    to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
+
+    message_link = 'https://{}/dashboard/inbox'.format(FRONT_URL)
+    display_day = meeting.time_slot.get_display_day()
+    display_time = meeting.time_slot.get_display_time()
+
+    data = {}
+    for email in to_emails:
+        data[email] = {
+            'day': display_day,
+            'time': display_time,
+            'link': meeting.link,
+            'message_link': message_link,
+            'meeting_link': meeting.link,
+            'contact_us': CONTACT_US_URL,
+            'website_url': WEBSITE_URL,
+        }
+
+    from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+    # reply_to_emails is all to_emails plus the from_email.
+    reply_to_emails = copy(to_emails)
+    reply_to_emails.append(from_email)
+
+    template_name = choices.ONE_ON_ONE_MEETING_CONFIRMED_TEMPLATE
+
+    # Sending the emails.
+    for to in to_emails:
+        reply_to = copy(reply_to_emails)
+        # Popping the to email from reply_to emails.
+        reply_to.pop(reply_to_emails.index(to))
+        p1.send_email(
+            subject=subject,
+            to=[to],
+            reply_to=reply_to,
+            template_name=template_name,
+            content={},
+            from_email=from_email,
+            merge_vars=data
         )

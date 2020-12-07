@@ -2,6 +2,7 @@ from cryptography.fernet import Fernet
 
 from freelance.settings import FRONT_URL, FERNET_KEY
 
+from utils.tiny_url_service import tiny_url_service
 
 def create_public_url(user, meeting):
     """
@@ -13,4 +14,5 @@ def create_public_url(user, meeting):
     f = Fernet(FERNET_KEY)
     encrypted_message = f.encrypt(message.encode())
     url = 'https://{}/public/rsvp?p={}'.format(FRONT_URL, encrypted_message.decode())
-    return url
+    short_url = tiny_url_service.shorten(url)
+    return short_url

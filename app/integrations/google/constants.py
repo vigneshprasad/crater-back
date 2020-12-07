@@ -1,5 +1,7 @@
 from django.conf import settings
 
+from resources.meetings import choices
+
 # Google API constants.
 GOOGLE_API_CREDENTIALS = settings.GOOGLE_API_CREDENTIALS
 GOOGLE_API_VERSION = "v3"
@@ -28,6 +30,13 @@ CALENDAR_RESPONSE_STATUSES = (
     ('tentative', 'tentative'),
     ('accepted', 'accepted')
 )
+
+CALENDAR_RESPONSE_TO_MEETING_RSVP_STATUS_MAP = {
+    'needsAction': choices.MEETING_RSVP_STATUS_PENDING,
+    'declined': choices.MEETING_RSVP_STATUS_NOT_ATTENDING,
+    'tentative': choices.MEETING_RSVP_STATUS_PENDING,
+    'accepted': choices.MEETING_RSVP_STATUS_ATTENDING,
+}
 
 PENDING_CALENDAR_STATUSES = ['needsAction', 'declined', 'tentative']
 ACCEPTED_CALENDAR_STATUSES = ['accepted']
