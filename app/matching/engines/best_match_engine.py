@@ -284,6 +284,7 @@ def get_intro_score_for_users(user, user2):
 def get_sector_score_for_users(user1, user2):
     """Creates a score between users based on users intros."""
 
+    # TODO(Nishant): Create these from KEYWORDS_SECTOR.values() or store as constants.
     user1_sector = {
         "Accounts": 0,
         "Agriculture": 0,
@@ -369,23 +370,31 @@ def get_sector_score_for_users(user1, user2):
 
     words = nltk.word_tokenize(user1.profile.get_introduction())
     words = [lemmantizer.lemmatize(word, pos='v') for word in words]
+
     for word in words:
-        if word in scoring_constants.KEYWORDS_SECTOR:
-            sector = scoring_constants.KEYWORDS_SECTOR[word]
-            user1_sector[sector] = user1_sector[sector] + 1 
+
+        if word not in scoring_constants.KEYWORDS_SECTOR.keys():
+            continue
+
+        sector = scoring_constants.KEYWORDS_SECTOR[word]
+        user1_sector[sector] = user1_sector[sector] + 1
 
     words = nltk.word_tokenize(user2.profile.get_introduction())
     words = [lemmantizer.lemmatize(word, pos='v') for word in words]
+
     for word in words:
-        if word in scoring_constants.KEYWORDS_SECTOR:
-            sector = scoring_constants.KEYWORDS_SECTOR[word]
-            user2_sector[sector] = user2_sector[sector] + 1 
+        if word not in scoring_constants.KEYWORDS_SECTOR.keys():
+            continue
+
+        sector = scoring_constants.KEYWORDS_SECTOR[word]
+        user2_sector[sector] = user2_sector[sector] + 1
 
     v1 = list(user1_sector.values())
     v2 = list(user2_sector.values())
 
-    cosine = numpy.dot(v1, v2) / (numpy.sqrt(numpy.dot(v1,v1)) * numpy.sqrt(numpy.dot(v2,v2)))
+    cosine = numpy.dot(v1, v2) / (numpy.sqrt(numpy.dot(v1, v1)) * numpy.sqrt(numpy.dot(v2, v2)))
 
     if numpy.isnan(cosine):
-        cosine = 0
+        return 0
+
     return cosine * constants.DEFAULT_SECTOR_MULTIPLIER
