@@ -72,6 +72,48 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
         )
 
 
+class MeetingObjectiveSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Objective
+        fields = (
+            'pk',
+            'name',
+            'icon',
+            'type',
+        )
+
+
+class MeetingInterestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Interest
+        fields = (
+            'pk',
+            'name',
+            'icon',
+        )
+
+
+#TODO: Need to deprecate this and handle on mobile with one serializer
+class PastUserMeetingPreferenceSerializer(serializers.ModelSerializer):
+    objectives = MeetingObjectiveSerializer(many=True)
+    interests = MeetingInterestSerializer(many=True)
+
+    class Meta:
+        model = models.MeetingPreference
+        fields = (
+            'pk',
+            'user',
+            'meeting',
+            'number_of_meetings',
+            'objective',
+            'objectives',
+            'interests',
+            'time_slots'
+        )
+
+
 class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -122,29 +164,6 @@ class MeetingSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_participants(meeting):
         return services.get_user_meeting_info(meeting)
-
-
-class MeetingObjectiveSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.Objective
-        fields = (
-            'pk',
-            'name',
-            'icon',
-            'type',
-        )
-
-
-class MeetingInterestSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.Interest
-        fields = (
-            'pk',
-            'name',
-            'icon',
-        )
 
 
 class MeetingConfigV2Serializer(serializers.ModelSerializer):
