@@ -15,6 +15,7 @@ from community.comments.signals import comment_created_points, comment_created_p
 from community.groups.signals import follower_recieved_signal
 from consumers.chat.receivers import new_chat_points_signal
 from order.signals import service_complete_buyer_points_signal, service_complete_seller_points_signal
+from resources.meetings.signals import new_user_assigned_to_meeting
 from rewards.signals import package_request_created
 
 User = get_user_model()
@@ -41,6 +42,7 @@ def create_user_points(sender, instance, created, *args, **kwargs):
 @receiver(service_complete_buyer_points_signal)
 @receiver(service_complete_seller_points_signal)
 @receiver(referal_success_points_signal)
+@receiver(new_user_assigned_to_meeting)
 def apply_user_points(sender, rule_key, user, base_factor=1, bonus=0, bonus_factor=1, **kwargs):
     user_points, user_points_created = UserPoints.objects.get_or_create(
         user=user

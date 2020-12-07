@@ -11,7 +11,10 @@ from resources.meetings import signals
 from resources.meetings import choices
 from consumers.chat import signals as chat_signals
 from users import services as users_services
+from django.contrib.auth import get_user_model
 
+
+MEETING_ADD_USER_POINTS_KEY = 15
 
 @receiver(post_save, sender=models.MeetingPreference)
 def send_analytics_for_user_meeting_preference(sender, instance, created, *args, **kwargs):
@@ -140,6 +143,16 @@ def create_meeting_for_users(sender, instance, *args, **kwargs):
 
     if kwargs.get('action') == 'post_add':
         for participant in kwargs['pk_set']:
+            try:
+                user = get_user_model().objects.get(pk=participant)
+                signals.new_user_assigned_to_meeting.send(
+                    sender=instance,
+                    user=user,
+                    rule_key=MEETING_ADD_USER_POINTS_KEY,
+                    base_factor=1,
+                )
+            except get_user_model().DoesNotExist:
+                continue
             models.MeetingRSVP.objects.create(
                 meeting=instance,
                 participant_id=participant,
@@ -157,7 +170,7 @@ def on_save_meeting_rsvp(sender, instance, created, *args, **kwargs):
     all_attending = True
 
     for rsvp in meeting.rsvps.all():
-        if rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES:
+        if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
             all_attending = False
 
     # If all users for meeting are not attending meeting, return
@@ -165,7 +178,23 @@ def on_save_meeting_rsvp(sender, instance, created, *args, **kwargs):
         return
 
     # Send meeting confirmed email to all participants
-    _send_meeting_confirmed_email(meeting)
+    meeting.status = choices.MEETING_STATUS_CONFIRMED
+    meeting.save()
+
+
+@receiver(post_save, sender=models.Meeting)
+def check_and_send_confirmed_meeting_email(sender, instance, created, *args, **kwargs):
+    previous_status = instance._Meeting__previous_status
+    current_status = instance.status
+
+    # If meeting is not confirmed, return
+    if current_status != choices.MEETING_STATUS_CONFIRMED:
+        return
+
+    if previous_status == choices.MEETING_STATUS_CONFIRMED:
+        return
+
+    _send_meeting_confirmed_email(instance)
 
 
 def _send_meeting_confirmed_email(meeting):

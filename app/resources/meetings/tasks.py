@@ -14,6 +14,9 @@ from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
 from integrations.google import public as google_public
+from django.contrib.auth import get_user_model
+from rewards.services import get_max_rewards_rs_conversion
+from points import models as points_models
 
 
 @periodic_task(run_every=crontab(day_of_week='sunday', hour='17', minute='30'))
@@ -441,11 +444,62 @@ def cancel_meetings_for_no_rsvp(meetings=None):
 
     for meeting in meetings:
         for rsvp in meeting.rsvps.all():
-            if rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES:
+            if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
                 meeting.is_canceled = True
                 meeting.save()
                 _send_meeting_cancellation_email(meeting)
                 break
+
+
+@periodic_task(run_every=crontab(day_of_week='monday', hour=2, minute=30))
+def send_weekly_meeting_rewards_email(users=None):
+    users = get_user_model().objects.all() if not users else users
+
+    meeting_points_value = points_models.PointsRule.objects.get(key=15).points_value
+
+    for user in users:
+        now = datetime.datetime.now().date()
+        week_start_date = now - datetime.timedelta(days=7)
+        week_end_date = now - datetime.timedelta(days=1)
+
+        meetings = user.meeting_set.filter(
+            is_canceled=False,
+            time_slot__date__gte=week_start_date,
+            time_slot__date__lte=week_end_date,
+        )
+
+        # If no meetings last week. continue
+        if not meetings:
+            continue
+
+        # Send email to user
+        subject = 'You have earned new rewards'
+        template = choices.MEETING_WEEKLY_REWARDS_TEMPLATE
+        from_email = choices.MEETING_REWARDS_FROM_EMAIL
+        rewards_link = ''
+
+        max_conversion = get_max_rewards_rs_conversion()
+        week_rs_value = int(len(meetings) * meeting_points_value * max_conversion)
+        total_points = user.points.points
+        total_rs_value = int(user.points.points * max_conversion)
+
+        data = {user.email: {
+            'week_rs_value': week_rs_value,
+            'total_points': total_points,
+            'total_rs_value': total_rs_value,
+            'contact_us': CONTACT_US_URL,
+            'website_url': WEBSITE_URL,
+            'rewards_link': rewards_link,
+        }}
+
+        user.send_email(
+            subject=subject,
+            template_name=template,
+            to=[user.email],
+            from_email=from_email,
+            content={},
+            merge_vars=data,
+        )
 
 
 def _send_meeting_cancellation_email(meeting):
@@ -464,8 +518,8 @@ def _send_meeting_cancellation_email(meeting):
     p1_rsvp = meeting.rsvps.all()[0]
     p2_rsvp = meeting.rsvps.all()[1]
 
-    p1_rsvp_declined = p1_rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES
-    p2_rsvp_declined = p2_rsvp.status in choices.MEETING_UNCONFIRMED_STATUSES
+    p1_rsvp_declined = p1_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
+    p2_rsvp_declined = p2_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
 
     to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
     subject = "1:1 Meeting Cancelled"

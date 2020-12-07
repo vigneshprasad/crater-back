@@ -346,6 +346,16 @@ class Meeting(base_model.BaseModel):
         default=False,
         verbose_name=_('Canceled')
     )
+    status = models.CharField(
+        verbose_name=_('Meeting Status'),
+        choices=choices.MEETING_STATUS_CHOICES,
+        default=choices.MEETING_STATUS_PENDING,
+        max_length=32,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(Meeting, self).__init__(*args, **kwargs)
+        self.__previous_status = self.status
 
 
 class MeetingRSVP(base_model.BaseModel):

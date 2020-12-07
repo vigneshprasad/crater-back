@@ -13,4 +13,13 @@ POINTS_RULES = [
     {"key": 12, "desc": "Completed service seller", "points_value": 100},
     {"key": 13, "desc": "Referral success", "points_value": 50},
     {"key": 14, "desc": "Package redeemed", "points_value": 1},
+    {"key": 15, "desc": "Take a meeting", "points_value": 100},
+]
+
+RULES_KEYS_FOR_API = [
+    1,
+    2,
+    10,
+    13,
+    15,
 ]
