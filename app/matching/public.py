@@ -124,6 +124,11 @@ def get_top_users_for_user(user):
     return final_results
 
 
+def get_user_matching_score(user):
+    """Returns user score for matching."""
+    return users_scoring.get_user_score(user)
+
+
 def get_user_info(user):
     """Returns users data used in the engines for visualisation.
 
