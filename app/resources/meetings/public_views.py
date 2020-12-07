@@ -13,6 +13,27 @@ from resources.meetings import services
 from resources.meetings import tasks
 
 
+class MeetingConfigPublicViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.ConfigPublicSerializer
+    queryset = models.Config.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    @action(
+        methods=['post'],
+        serializer_class=serializers.MeetingSerializer,
+        permission_classes=[permissions.AllowAny],
+        detail=False
+    )
+    def bulk_create(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        return Response()
+
+
 class MeetingPreferencePublicViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -33,11 +54,14 @@ class MeetingPreferencePublicViewSet(
                 uuid=response_dict["user"]
             )
             try:
-                objectives = models.Objective.objects.get(
-                    id=response_dict["objectives"]
-                ).name if response_dict["objective"] else None
+                objectives = models.Objective.objects.filter(
+                    id__in=response_dict["objectives"]
+                ) if response_dict["objectives"] else None
             except models.Objective.DoesNotExist:
                 objectives = None
+
+            looking_for_objectives = objectives.filter(type=choices.OBJECTIVE_TYPES[0]) if objectives else ""
+            looking_to_objectives = objectives.filter(type=choices.OBJECTIVE_TYPES[1]) if objectives else ""
 
             interests = models.Interest.objects.filter(
                 id__in=response_dict["interests"]
@@ -52,9 +76,8 @@ class MeetingPreferencePublicViewSet(
                 "pk": response_dict["pk"],
                 "uuid": user.uuid,
                 "email": user.email,
-                "number_of_meetings": response_dict["number_of_meetings"],
-                "objective": response_dict["objective"],
-                "new_objective": objectives,
+                "looking_for": [looking_for.name for looking_for in looking_for_objectives],
+                "looking_to": [looking_to.name for looking_to in looking_to_objectives],
                 "interests": interests_names,
                 "time_slots": time_slots_display
             }

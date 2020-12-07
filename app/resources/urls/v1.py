@@ -34,6 +34,12 @@ public_url_patters = [
         )
     ),
     path(
+        'meetings/config',
+        meeting_public_views.MeetingConfigPublicViewSet.as_view(
+            {'get': 'list', 'post': 'bulk_create'}
+        )
+    ),
+    path(
         'meetings/preference',
         meeting_public_views.MeetingPreferencePublicViewSet.as_view(
             {'get': 'list', 'post': 'create'}

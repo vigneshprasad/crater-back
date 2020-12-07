@@ -8,6 +8,20 @@ from resources.meetings import services
 from community.mixins import SetCreatorRequestDataMixin
 
 
+class ConfigPublicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Config
+        fields = (
+            'pk',
+            'title',
+            'week_start_date',
+            'week_end_date',
+            'is_registration_open',
+            'is_active'
+        )
+
+
 class MeetingConfigSerializer(serializers.ModelSerializer):
     available_time_slots = serializers.SerializerMethodField()
     objectives = serializers.SerializerMethodField()
