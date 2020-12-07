@@ -38,3 +38,9 @@ new_meeting_created = Signal([
     "meeting_config",
     "meeting_link"
 ])
+
+new_user_assigned_to_meeting = Signal(providing_args=[
+    "user",
+    "rule_key",
+    "base_factor"
+])
