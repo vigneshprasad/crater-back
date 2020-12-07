@@ -156,6 +156,24 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
         to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
         # Populating data.
         data = {}
+        p1_objective_one = None
+        p1_objective_two = None
+        p2_objective_one = None
+        p2_objective_two = None
+
+        p1_prefs = p1.meeting_preferences.filter(meeting=meeting.config).last()
+        p2_prefs = p2.meeting_preferences.filter(meeting=meeting.config).last()
+
+        if p1_prefs:
+            p1_objective_one = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first().name
+            p1_objective_two = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first().name
+
+        if p2_prefs:
+            p2_objective_one = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first().name
+            p2_objective_two = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first().name
+
+        p1_objective_one = None
+
         for email in to_emails:
             data[email] = {
                 'day': display_day,
@@ -167,6 +185,12 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 'introduction_b': p2.profile.get_introduction(),
                 'linkedin_a': p1.profile.linkedin_url,
                 'linkedin_b': p2.profile.linkedin_url,
+                **({'objective_one_a': p1_objective_one} if p1_objective_one is not None else {}),
+                **({'objective_two_a': p1_objective_two} if p1_objective_two is not None else {}),
+                **({'objective_one_b': p2_objective_one} if p2_objective_one is not None else {}),
+                **({'objective_two_b': p2_objective_two} if p2_objective_two is not None else {}),
+                'contact_us': CONTACT_US_URL,
+                'website_url': WEBSITE_URL,
             }
 
         from_email = choices.MEETINGS_INTRO_FROM_EMAIL
