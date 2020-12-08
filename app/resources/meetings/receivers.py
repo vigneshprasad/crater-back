@@ -233,8 +233,8 @@ def _send_meeting_confirmed_email(meeting):
             'website_url': WEBSITE_URL,
         }
 
-    from_email = choices.MEETING_STATUS_FROM_EMAIL
-    
+    from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
+
     # reply_to_emails is all to_emails plus the from_email.
     reply_to_emails = copy(to_emails)
     reply_to_emails.append(from_email)

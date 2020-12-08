@@ -171,7 +171,9 @@ ONE_ON_ONE_MEETING_CONFIRMED_TEMPLATE = "1:1 Meeting Confirmed"
 ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE = '1:1 Opt In'
 MEETING_WEEKLY_REWARDS_TEMPLATE = 'Meeting Points Weekly'
 MEETINGS_INTRO_FROM_EMAIL = 'keziah@worknetwork.in'
-MEETING_STATUS_FROM_EMAIL = 'meetings@worknetwork.in'
+MEETING_COMMUNICATION_FROM_EMAI
+
+L = 'meetings@worknetwork.in'
 MEETINGS_OPT_IN_FROM_EMAIL = 'hello@worknetwork.in'
 EXTRA_EMAIL_FOR_INTRO_VERIFICATION = 'hello@worknetwork.in'
 MEETING_REWARDS_FROM_EMAIL = 'rewards@worknetwork.in'
