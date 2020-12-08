@@ -244,6 +244,7 @@ def get_paginated_users(page=1, search=None, _filter=None, latest_messages=None,
     qs = get_user_model().objects.prefetch_related('sender_messages', 'receiver_messages').filter(
         is_active=True, is_staff=False, is_superuser=False, groups__name__in=['User', 'Investor']
     ).exclude(pk=uuid)
+
     if not qs:
         return None, None
 

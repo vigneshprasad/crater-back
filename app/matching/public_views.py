@@ -1,3 +1,5 @@
+import random
+
 import nltk
 
 from django.contrib.auth import get_user_model
@@ -25,6 +27,7 @@ class TopMatchesPublicViewSet(
 
     def list(self, request, *args, **kwargs):
         user_id = request.query_params.get("user_id")
+        user_id = str(random.choices(list(get_user_model().objects.all().values_list('pk')))[0][0])
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
