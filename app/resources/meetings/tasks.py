@@ -165,12 +165,18 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
         p2_prefs = p2.meeting_preferences.filter(meeting=meeting.config).last()
 
         if p1_prefs:
-            p1_objective_one = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first().name
-            p1_objective_two = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first().name
+            p1_objective_looking_to = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0])
+            p1_objective_looking_for = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0])
+
+            p1_objective_one = p1_objective_looking_to.first().name if p1_objective_looking_to else None
+            p1_objective_two = p1_objective_looking_for.first().name if p1_objective_looking_for else None
 
         if p2_prefs:
-            p2_objective_one = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first().name
-            p2_objective_two = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first().name
+            p2_objective_looking_to = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0])
+            p2_objective_looking_for = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0])
+
+            p2_objective_one = p2_objective_looking_to.first().name if p2_objective_looking_to else None
+            p2_objective_two = p2_objective_looking_for.first().name if p2_objective_looking_for else None
 
         for email in to_emails:
             data[email] = {

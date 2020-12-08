@@ -10,6 +10,8 @@ OBJECTIVE_CHOICES = [
     ('find_mentors', 'Find Mentors')
 ]
 
+# Looking for means what you want to gain from the meeting.
+# Looking to means what can you help people with.
 OBJECTIVE_TYPES = (
     ('looking_for', _('Looking For')),
     ('looking_to', _('Looking To'))
