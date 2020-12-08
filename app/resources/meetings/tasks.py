@@ -172,8 +172,6 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             p2_objective_one = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first().name
             p2_objective_two = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first().name
 
-        p1_objective_one = None
-
         for email in to_emails:
             data[email] = {
                 'day': display_day,
