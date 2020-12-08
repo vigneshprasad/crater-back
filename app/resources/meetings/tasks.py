@@ -249,10 +249,10 @@ def send_whatsapp_meeting_reminders(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    start_time = (now_time + datetime.timedelta(minutes=105)).time()
-    end_time = (now_time + datetime.timedelta(minutes=120)).time()
+    start_time = (now_time + datetime.timedelta(minutes=135)).time()
+    end_time = (now_time + datetime.timedelta(minutes=150)).time()
     # Getting date for the estimated start_time of the meeting.
-    date = (now_time + datetime.timedelta(minutes=120)).date()
+    date = (now_time + datetime.timedelta(minutes=150)).date()
 
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
