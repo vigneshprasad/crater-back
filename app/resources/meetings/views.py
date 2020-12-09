@@ -36,6 +36,18 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
     queryset = models.MeetingPreference.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
+    @action(
+        methods=['GET'],
+        detail=False,
+    )
+    def past(self, request):
+        user = request.user
+        instance = models.MeetingPreference.objects.filter(user=user).last()
+        if not instance:
+            return Response(None, status=status.HTTP_204_NO_CONTENT)
+        serialized = serializers.PastUserMeetingPreferenceSerializer(instance)
+        return Response(serialized.data)
+
     def list(self, request, *args, **kwargs):
         user = request.user
         active_meeting = models.Config.objects.filter(
@@ -71,19 +83,6 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
     def create(self, request, *args, **kwargs):
         request = self._add_objectives_to_request()
         return super(UserMeetingPreferenceViewSet, self).create(request, *args, **kwargs)
-
-class PastUserMeetingPreferenceViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    serializer_class = serializers.PastUserMeetingPreferenceSerializer
-    queryset = models.MeetingPreference.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-    def list(self, request, *args, **kwargs):
-        user = request.user
-        instance = models.MeetingPreference.objects.filter(user=user).last()
-        if not instance:
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
-        serialized = self.get_serializer(instance)
-        return Response(serialized.data)
 
 
 class MeetingViewSet(mixins.ListModelMixin,

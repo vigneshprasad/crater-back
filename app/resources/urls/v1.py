@@ -20,7 +20,6 @@ router.register('meetings', meeting_views.MeetingConfigViewSet)
 router.register('meeting-preferences', meeting_views.UserMeetingPreferenceViewSet)
 
 router.register('meetings/meeting', meeting_views.MeetingViewSet)
-router.register('meetings/past/preferences', meeting_views.PastUserMeetingPreferenceViewSet)
 router.register('meetings/config', meeting_views.MeetingConfigV2ViewSet)
 router.register('meetings/objectives', meeting_views.MeetingObjectivesViewSet)
 router.register('meetings/interests', meeting_views.MeetingInterestsViewSet)
