@@ -14,10 +14,7 @@ class MeetingConfigViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        instance = self.get_queryset().filter(
-            is_active=True,
-            is_registration_open=True
-        ).last()
+        instance = services.get_latest_active_meeting_config()
         # If there is no active meeting with registration open
         # return and empty response.
         if not instance:

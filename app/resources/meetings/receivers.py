@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 
 MEETING_ADD_USER_POINTS_KEY = 15
 
+
 @receiver(post_save, sender=models.MeetingPreference)
 def send_analytics_for_user_meeting_preference(sender, instance, created, *args, **kwargs):
     time_slots = instance.time_slots.all()
@@ -232,7 +233,8 @@ def _send_meeting_confirmed_email(meeting):
             'website_url': WEBSITE_URL,
         }
 
-    from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+    from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
+
     # reply_to_emails is all to_emails plus the from_email.
     reply_to_emails = copy(to_emails)
     reply_to_emails.append(from_email)
