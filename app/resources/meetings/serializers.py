@@ -70,22 +70,6 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
         return user_preference
 
 
-class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
-
-    class Meta:
-        model = models.MeetingPreference
-        fields = (
-            'pk',
-            'user',
-            'meeting',
-            'number_of_meetings',
-            'objective',
-            'objectives',
-            'interests',
-            'time_slots'
-        )
-
-
 class MeetingObjectiveSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -109,8 +93,7 @@ class MeetingInterestSerializer(serializers.ModelSerializer):
         )
 
 
-#TODO: Need to deprecate this and handle on mobile with one serializer
-class PastUserMeetingPreferenceSerializer(serializers.ModelSerializer):
+class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     objectives = MeetingObjectiveSerializer(many=True)
     interests = MeetingInterestSerializer(many=True)
 

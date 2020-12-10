@@ -45,7 +45,7 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
         instance = models.MeetingPreference.objects.filter(user=user).last()
         if not instance:
             return Response(None, status=status.HTTP_204_NO_CONTENT)
-        serialized = serializers.PastUserMeetingPreferenceSerializer(instance)
+        serialized = self.get_serializer(instance)
         return Response(serialized.data)
 
     def list(self, request, *args, **kwargs):
