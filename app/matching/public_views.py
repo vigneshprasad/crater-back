@@ -1,5 +1,3 @@
-import random
-
 import nltk
 
 from django.contrib.auth import get_user_model
@@ -8,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import mixins, viewsets
 
 from users import permissions
+from matching import constants
 from matching import public
 from matching import models
 from matching import serializers
@@ -21,13 +20,12 @@ class TopMatchesPublicViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
-    serializer_class = serializers.PublicTopMatchesSerializer
-    queryset = models.MatchScore.objects.all()
+    serializer_class = serializers.UserToUserMatchScoreSerializer
+    queryset = models.UserToUserMatchScore.objects.all()
     permission_classes = [permissions.AllowAny]
 
     def list(self, request, *args, **kwargs):
         user_id = request.query_params.get("user_id")
-        user_id = str(random.choices(list(get_user_model().objects.all().values_list('pk')))[0][0])
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
@@ -38,9 +36,23 @@ class TopMatchesPublicViewSet(
                 }
             )
 
-        top_matches_data = public.get_top_matches_for_user(user)
+        user_to_user_scores = models.UserToUserMatchScore.objects.filter(primary_user=user).order_by('score')
+        final_response = []
 
-        return Response(top_matches_data)
+        for user_to_user_score in user_to_user_scores:
+            detailed_score = user_to_user_score.detailed_score or {}
+            data = {
+                'user_id': user_to_user_score.matched_user.pk,
+                'email': user_to_user_score.matched_user.email,
+                'match_score': user_to_user_score.score,
+                constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: detailed_score.get(constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE, 0),
+                constants.TAG_TO_TAG_ENGINE: detailed_score.get(constants.TAG_TO_TAG_ENGINE, 0),
+                constants.OBJECTIVE_TO_OBJECTIVE_ENGINE: detailed_score.get(constants.OBJECTIVE_TO_OBJECTIVE_ENGINE),
+                constants.INTRODUCTION_TEXT_ENGINE: detailed_score.get(constants.INTRODUCTION_TEXT_ENGINE),
+            }
+            final_response.append(data)
+
+        return Response(final_response)
 
     @action(
         methods=['get'],
@@ -48,7 +60,9 @@ class TopMatchesPublicViewSet(
         detail=False,
     )
     def user_info(self, request, *args, **kwargs):
+
         user_id = request.query_params.get("user_id")
+
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
@@ -58,7 +72,7 @@ class TopMatchesPublicViewSet(
                     "message": "Selected user is not valid."
                 }
             )
-
         user_info = public.get_user_info(user)
 
         return Response(user_info)
+

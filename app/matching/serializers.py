@@ -6,26 +6,23 @@ from matching import models
 from matching import public
 
 
-class MatchScoreSerializer(serializers.ModelSerializer):
+class UserScoreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = models.MatchScore
+        model = models.UserScore
         fields = (
             'user',
             'score'
         )
 
 
-class PublicTopMatchesSerializer(serializers.Serializer):
+class UserToUserMatchScoreSerializer(serializers.ModelSerializer):
 
-    all_score = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_all_score(user):
-        return public.get_top_matches_for_user(user)
-
-    def create(self, validated_data):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
+    class Meta:
+        model = models.UserToUserMatchScore
+        fields = (
+            'primary_user',
+            'secondary_user',
+            'score',
+            'detailed_score'
+        )

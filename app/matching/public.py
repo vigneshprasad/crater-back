@@ -138,7 +138,7 @@ def get_user_info(user):
     """
 
     user_info = {
-        "name": user.get_full_name().title(),
+        "name": user.get_display_first_name(),
         "phone_number": user.get_phone_number(),
         "linkedin": user.profile.linkedin_url,
         "source": user.source,

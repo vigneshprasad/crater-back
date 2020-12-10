@@ -144,6 +144,7 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
+    score = models.PositiveIntegerField(default=0)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
