@@ -165,12 +165,18 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
         p2_prefs = p2.meeting_preferences.filter(meeting=meeting.config).last()
 
         if p1_prefs:
-            p1_objective_one = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first().name
-            p1_objective_two = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first().name
+            p1_objective_looking_to = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0])
+            p1_objective_looking_for = p1_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0])
+
+            p1_objective_one = p1_objective_looking_to.first().name if p1_objective_looking_to else None
+            p1_objective_two = p1_objective_looking_for.first().name if p1_objective_looking_for else None
 
         if p2_prefs:
-            p2_objective_one = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first().name
-            p2_objective_two = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first().name
+            p2_objective_looking_to = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0])
+            p2_objective_looking_for = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0])
+
+            p2_objective_one = p2_objective_looking_to.first().name if p2_objective_looking_to else None
+            p2_objective_two = p2_objective_looking_for.first().name if p2_objective_looking_for else None
 
         for email in to_emails:
             data[email] = {
@@ -191,7 +197,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
                 'website_url': WEBSITE_URL,
             }
 
-        from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+        from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
         # reply_to_emails is all to_emails plus the from_email.
         reply_to_emails = copy(to_emails)
         reply_to_emails.append(from_email)
@@ -249,10 +255,10 @@ def send_whatsapp_meeting_reminders(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    start_time = (now_time + datetime.timedelta(minutes=105)).time()
-    end_time = (now_time + datetime.timedelta(minutes=120)).time()
+    start_time = (now_time + datetime.timedelta(minutes=135)).time()
+    end_time = (now_time + datetime.timedelta(minutes=150)).time()
     # Getting date for the estimated start_time of the meeting.
-    date = (now_time + datetime.timedelta(minutes=120)).date()
+    date = (now_time + datetime.timedelta(minutes=150)).date()
 
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
@@ -329,7 +335,7 @@ def send_1_on_1_feedback_emails(meetings=None):
         subject = 'How was your 1:1 meeting?'
 
         to_emails = [p1.email, p2.email]
-        from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+        from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
 
         template_name = choices.ONE_ON_ONE_FEEDBACK_EMAIL_TEMPLATE
 
@@ -571,7 +577,7 @@ def _send_meeting_cancellation_email(meeting):
             'website_url': WEBSITE_URL,
         }
 
-    from_email = choices.MEETINGS_INTRO_FROM_EMAIL
+    from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
     # reply_to_emails is all to_emails plus the from_email.
     reply_to_emails = copy(to_emails)
     reply_to_emails.append(from_email)
