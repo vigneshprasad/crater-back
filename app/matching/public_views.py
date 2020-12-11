@@ -47,8 +47,8 @@ class TopMatchesPublicViewSet(
                 'match_score': user_to_user_score.score,
                 constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: detailed_score.get(constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE, 0),
                 constants.TAG_TO_TAG_ENGINE: detailed_score.get(constants.TAG_TO_TAG_ENGINE, 0),
-                constants.OBJECTIVE_TO_OBJECTIVE_ENGINE: detailed_score.get(constants.OBJECTIVE_TO_OBJECTIVE_ENGINE),
-                constants.INTRODUCTION_TEXT_ENGINE: detailed_score.get(constants.INTRODUCTION_TEXT_ENGINE),
+                constants.OBJECTIVE_TO_OBJECTIVE_ENGINE: detailed_score.get(constants.OBJECTIVE_TO_OBJECTIVE_ENGINE, 0),
+                constants.INTRODUCTION_TEXT_ENGINE: detailed_score.get(constants.INTRODUCTION_TEXT_ENGINE, 0),
             }
             final_response.append(data)
 
@@ -60,9 +60,8 @@ class TopMatchesPublicViewSet(
         detail=False,
     )
     def user_info(self, request, *args, **kwargs):
-
+        """Get user's info based on the algorithm."""
         user_id = request.query_params.get("user_id")
-
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:

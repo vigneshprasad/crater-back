@@ -21,8 +21,8 @@ class UserToUserMatchScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.UserToUserMatchScore
         fields = (
-            'primary_user',
-            'secondary_user',
+            'user',
+            'matched_user',
             'score',
             'detailed_score'
         )
