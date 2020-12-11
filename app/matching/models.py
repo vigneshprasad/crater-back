@@ -5,7 +5,7 @@ from django.db import models
 from base import models as base_models
 
 
-class MatchScore(base_models.BaseModel):
+class UserScore(base_models.BaseModel):
 
     user = models.ForeignKey(
         get_user_model(),
@@ -13,7 +13,26 @@ class MatchScore(base_models.BaseModel):
         on_delete=models.CASCADE
     )
     score = models.PositiveIntegerField()
-    # The score breakdown for the overall score i.e score from different engines.
-    score_breakdown = JSONField(null=True, blank=True)
-    # The weightage from different engines applied.
-    score_weightages = JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return '{} - {}'.format(self.user, self.score)
+
+
+class UserToUserMatchScore(base_models.BaseModel):
+
+    user = models.ForeignKey(
+        get_user_model(),
+        related_name='matching_scores',
+        on_delete=models.CASCADE
+    )
+    matched_user = models.ForeignKey(
+        get_user_model(),
+
+        on_delete=models.CASCADE
+    )
+    score = models.FloatField(
+        null=True,
+        blank=True,
+        default=None
+    )
+    detailed_score = JSONField(blank=True, null=True)

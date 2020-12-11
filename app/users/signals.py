@@ -17,6 +17,7 @@ def set_referrer_relation(sender, instance, *args, **kwargs):
     if instance.referer:
         Referral.objects.get_or_create(user=instance)
 
+
 user_updated = Signal(providing_args=[
     "user",
 ])

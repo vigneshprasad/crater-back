@@ -39,7 +39,7 @@ def get_top_matches_for_user(user):
 
     # Sorting the user match score.
     sorted_user_match_score_map = {k: v for k, v in sorted(
-        user_match_score_map.items(), key=lambda item: item[1], reverse=True
+        user_match_score_map.items(), key=lambda item: item[0], reverse=True
     )}
 
     # Return top 10 users.
@@ -93,7 +93,7 @@ def get_top_users_for_user(user):
 
     # Sorting the user match score.
     sorted_user_match_score_map = {k: v for k, v in sorted(
-        user_match_score_map.items(), key=lambda item: item[1], reverse=True
+        user_match_score_map.items(), key=lambda item: item[0], reverse=True
     )}
 
     # Get top 10 users.
@@ -138,7 +138,7 @@ def get_user_info(user):
     """
 
     user_info = {
-        "name": user.get_full_name().title(),
+        "name": user.get_display_first_name(),
         "phone_number": user.get_phone_number(),
         "linkedin": user.profile.linkedin_url,
         "source": user.source,

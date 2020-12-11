@@ -26,34 +26,14 @@ router.register('meetings/interests', meeting_views.MeetingInterestsViewSet)
 router.register('meetings/preferences', meeting_views.UserMeetingPreferenceViewSet)
 router.register('meetings/rsvp', meeting_views.MeetingRSVPViewSet)
 
-public_url_patters = [
-    path(
-        'meetings',
-        meeting_public_views.MeetingViewSetPublicViewSet.as_view(
-            {'get': 'list', 'post': 'create'}
-        )
-    ),
-    path(
-        'meetings/config',
-        meeting_public_views.MeetingConfigPublicViewSet.as_view(
-            {'get': 'list', 'post': 'bulk_create'}
-        )
-    ),
-    path(
-        'meetings/preference',
-        meeting_public_views.MeetingPreferencePublicViewSet.as_view(
-            {'get': 'list', 'post': 'create'}
-        )
-    ),
-    path(
-        'meetings/communication',
-        meeting_public_views.MeetingCommunicationViewSet.as_view(
-            {'get': 'send_intro_emails', 'post': 'send_intro_emails'}
-        )
-    )
-]
+public_router = DefaultRouter()
+
+public_router.register('meetings', meeting_public_views.MeetingViewSetPublicViewSet)
+public_router.register('meetings/config', meeting_public_views.MeetingConfigPublicViewSet)
+public_router.register('meetings/preference', meeting_public_views.MeetingPreferencePublicViewSet)
+public_router.register('meetings/communication', meeting_public_views.MeetingCommunicationViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('public/', include(public_url_patters))
+    path('public/', include(public_router.urls))
 ]

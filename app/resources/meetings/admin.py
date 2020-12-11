@@ -92,3 +92,4 @@ class MeetingRsvp(ModelAdmin):
     list_display = ('id', 'meeting', 'participant', 'status')
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
     search_fields = ['participant__email']
+    list_filter = ('status', 'created_at')

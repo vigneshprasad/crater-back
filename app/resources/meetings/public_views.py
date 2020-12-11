@@ -59,6 +59,7 @@ class MeetingPreferencePublicViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.PublicMeetingPreferenceSerializer
@@ -106,11 +107,16 @@ class MeetingPreferencePublicViewSet(
 
         return Response(final_response)
 
+    def retrieve(self, request, *args, **kwargs):
+        response = super(MeetingPreferencePublicViewSet, self).retrieve(request, *args, **kwargs)
+        return response
+
 
 class MeetingViewSetPublicViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
 
@@ -196,6 +202,49 @@ class MeetingViewSetPublicViewSet(
                 "canceled": response_dict["is_canceled"]
             }
             final_response.append(data)
+
+        return Response(final_response)
+
+    def retrieve(self, request, *args, **kwargs):
+        request_user_id = kwargs['pk']
+        response = super(MeetingViewSetPublicViewSet, self).list(request, *args, **kwargs)
+
+        final_response = []
+
+        for data in response.data:
+
+            start = data.get('start')
+            start_datetime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%fZ")
+            end = data.get('end')
+            end_datetime = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
+            meeting_link = data.get('link')
+            user = None
+
+            participants = data.get('participants')
+
+            for participant in participants:
+                if str(participant.get('pk')) == request_user_id:
+                    continue
+                user = get_user_model().objects.get(pk=participant.get('pk'))
+
+            if not user:
+                continue
+
+            meeting_date = start_datetime.strftime("%Y-%m-%d")
+            start_time = start_datetime.strftime("%H:%M")
+            end_time = end_datetime.strftime("%H:%M")
+
+            user_data = {
+                "config": data.get("config"),
+                "meeting_date": meeting_date,
+                "start_time": start_time,
+                "end_time": end_time,
+                "email": user.email,
+                "meeting_link": meeting_link,
+                "status": data.get("status")
+            }
+
+            final_response.append(user_data)
 
         return Response(final_response)
 

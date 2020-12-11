@@ -279,7 +279,7 @@ def get_intro_score_for_users(user1, user2):
 
 
 def get_sector_score_for_users(user1, user2):
-    """Creates a score between users based on users intros."""
+    """Creates a score between users based on information in user introductions."""
 
     # TODO(Nishant): Create these from KEYWORDS_SECTOR.values() or store as constants.
     user1_sector = {
