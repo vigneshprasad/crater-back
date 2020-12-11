@@ -25,7 +25,7 @@ def run(
     lines = [line.decode('utf-8') for line in response.readlines()]
     reader = csv.DictReader(lines)
 
-    meeting_config = services.get_latest_active_meeting_config()
+    meeting_config = services.get_current_week_meeting_config()
 
     if not meeting_config:
         print('No Active meeting')

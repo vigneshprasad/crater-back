@@ -77,7 +77,7 @@ def create_meeting_preference_for_typeform_user(
         clean_time_preferences.append(_clean_time_preference(time_preference))
     # Was adding users to the previous config according to the scripts.
     # Changed it to add user's to current meeting.
-    meeting_config = services.get_latest_active_meeting_config()
+    meeting_config = services.get_current_week_meeting_config()
     # Get respective objectives for User Meeting Preference.
     objective_objs = models.Objective.objects.filter(name__in=objective)
 
