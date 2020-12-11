@@ -288,6 +288,7 @@ class MeetingPreference(base_model.BaseModel):
         on_delete=models.CASCADE,
         related_name='user_preferences'
     )
+    number_of_meetings_per_month = models.PositiveIntegerField(default=2)
     number_of_meetings = models.PositiveIntegerField(default=1)
     # Only one objective can be selected for a each weeks meeting.
     objective = models.CharField(
