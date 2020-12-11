@@ -115,7 +115,7 @@ class MeetingPublicViewSet(
             end_time=end_time
         )
 
-        meeting_config = services.get_latest_active_meeting_config()
+        meeting_config = services.get_current_week_meeting_config()
         if not meeting_config:
             return Response(
                 status=400,

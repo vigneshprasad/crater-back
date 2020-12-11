@@ -44,6 +44,7 @@ class UserMeetingPreference(ModelAdmin):
         'id',
         'user',
         'number_of_meetings',
+        'number_of_meetings_per_month',
         'meeting',
         'user_interests',
         'user_time_slots',
