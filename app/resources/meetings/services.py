@@ -216,6 +216,20 @@ def get_active_meeting_configs():
     )
 
 
+def get_current_week_meeting_config():
+    """
+    Get current week active meeting config
+    (Used for Meeting Preferences Api and meeting config Api)
+
+    Returns:
+        Queryset of MeetingConfig object.
+    """
+    active_meeting_configs = get_active_meeting_configs()
+    if not active_meeting_configs:
+        return None
+    return active_meeting_configs.last()
+
+
 def get_latest_active_meeting_config():
     """
     Get latest active meeting configs.

@@ -14,7 +14,7 @@ class MeetingConfigViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        instance = services.get_latest_active_meeting_config()
+        instance = services.get_current_week_meeting_config()
         # If there is no active meeting with registration open
         # return and empty response.
         if not instance:
@@ -42,6 +42,9 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
         instance = models.MeetingPreference.objects.filter(user=user).last()
         if not instance:
             return Response(None, status=status.HTTP_204_NO_CONTENT)
+        config = services.get_current_week_meeting_config()
+        slot_start_times = list(instance.time_slots.all().values_list('start_time', flat=True).distinct())
+        instance.time_slots.set(config.available_time_slots.all().filter(start_time__in=slot_start_times))
         serialized = self.get_serializer(instance)
         return Response(serialized.data)
 
@@ -113,10 +116,7 @@ class MeetingConfigV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        instance = self.get_queryset().filter(
-            is_active=True,
-            is_registration_open=True
-        ).last()
+        instance = services.get_current_week_meeting_config()
         if not instance:
             return Response(None, status=status.HTTP_204_NO_CONTENT)
         serialized = self.get_serializer(instance)
