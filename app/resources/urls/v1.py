@@ -29,7 +29,8 @@ router.register('meetings/rsvp', meeting_views.MeetingRSVPViewSet)
 
 public_router = DefaultRouter()
 
-public_router.register('meetings', meeting_public_views.MeetingViewSetPublicViewSet)
+
+public_router.register('meetings/meeting', meeting_public_views.MeetingPublicViewSet)
 public_router.register('meetings/config', meeting_public_views.MeetingConfigPublicViewSet)
 public_router.register('meetings/preference', meeting_public_views.MeetingPreferencePublicViewSet)
 public_router.register('meetings/communication', meeting_public_views.MeetingCommunicationViewSet)

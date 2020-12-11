@@ -10,62 +10,28 @@ from users import permissions
 from resources.meetings import models, choices
 from resources.meetings import serializers
 from resources.meetings import services
-from resources.meetings import tasks
+
 
 
 class MeetingConfigPublicViewSet(
     mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.ConfigPublicSerializer
     queryset = models.Config.objects.all()
     permission_classes = [permissions.AllowAny]
 
-    @action(
-        methods=['post'],
-        serializer_class=serializers.MeetingSerializer,
-        permission_classes=[permissions.AllowAny],
-        detail=False
-    )
-    def bulk_create(self, request, *args, **kwargs):
-        """Bulk create meetings preferences from Retool."""
-
-        all_preferences_data = json.loads(request.body)
-
-        for preference_data in all_preferences_data:
-            email = preference_data.get("Email")
-            if not email:
-                continue
-
-            try:
-                user = get_user_model().objects.get(email=email)
-            except get_user_model().DoesNotExist:
-                continue
-
-            objectives_list = preference_data.get("Objectives", [])
-            interests_list = preference_data.get("Interests", [])
-
-            objectives = models.Objective.objects.filter(name__in=objectives_list)
-            interests = models.Interest.objects.filter(name__in=interests_list)
-
-            # Parse Time slots from uploaded file and handle meeting preference creation.
-
-        return Response({"status": "success"})
-
 
 class MeetingPreferencePublicViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.PublicMeetingPreferenceSerializer
     queryset = models.MeetingPreference.objects.all()
     permission_classes = [permissions.AllowAny]
-    filterset_fields = ['meeting']
+    filterset_fields = ['meeting', 'user']
 
     def list(self, request, *args, **kwargs):
         response = super(MeetingPreferencePublicViewSet, self).list(request, *args, **kwargs)
@@ -107,15 +73,10 @@ class MeetingPreferencePublicViewSet(
 
         return Response(final_response)
 
-    def retrieve(self, request, *args, **kwargs):
-        response = super(MeetingPreferencePublicViewSet, self).retrieve(request, *args, **kwargs)
-        return response
 
-
-class MeetingViewSetPublicViewSet(
+class MeetingPublicViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
@@ -140,7 +101,6 @@ class MeetingViewSetPublicViewSet(
                     "message": "Please input proper for date and time."
                 }
             )
-
         if start_time > end_time:
             return Response(
                 status=400,
@@ -180,7 +140,7 @@ class MeetingViewSetPublicViewSet(
         return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
-        response = super(MeetingViewSetPublicViewSet, self).list(request, *args, **kwargs)
+        response = super(MeetingPublicViewSet, self).list(request, *args, **kwargs)
         final_response = []
         for data in response.data:
             response_dict = dict(data)
@@ -193,12 +153,13 @@ class MeetingViewSetPublicViewSet(
             end_time = time_slot.end_time
             data = {
                 "id": response_dict["pk"],
-                "meeting_config": response_dict["meeting_config"],
+                "config": response_dict["meeting_config"],
                 "participants": ", ".join(participants_emails),
-                "meeting_link": response_dict["link"],
-                "date": date,
+                "meeting_date": date,
                 "start_time": start_time,
                 "end_time": end_time,
+                "meeting_link": response_dict["link"],
+                "status": response_dict["status"],
                 "canceled": response_dict["is_canceled"]
             }
             final_response.append(data)
@@ -207,20 +168,24 @@ class MeetingViewSetPublicViewSet(
 
     def retrieve(self, request, *args, **kwargs):
         request_user_id = kwargs['pk']
-        response = super(MeetingViewSetPublicViewSet, self).list(request, *args, **kwargs)
-
+        response = super(MeetingPublicViewSet, self).list(request, *args, **kwargs)
         final_response = []
 
         for data in response.data:
-
-            start = data.get('start')
+            response_dict = dict(data)
+            start = response_dict.get('start')
+            if not start:
+                continue
             start_datetime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%fZ")
-            end = data.get('end')
-            end_datetime = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
-            meeting_link = data.get('link')
-            user = None
 
-            participants = data.get('participants')
+            end = response_dict.get('end')
+            if not end:
+                end = start + datetime.timedelta(minutes=30)
+            end_datetime = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+            meeting_link = response_dict.get('link')
+            user = None
+            participants = response_dict.get('participants')
 
             for participant in participants:
                 if str(participant.get('pk')) == request_user_id:
@@ -235,75 +200,73 @@ class MeetingViewSetPublicViewSet(
             end_time = end_datetime.strftime("%H:%M")
 
             user_data = {
-                "config": data.get("config"),
+                "id": response_dict.get("pk"),
+                "config": response_dict.get("config"),
+                "email": user.email,
                 "meeting_date": meeting_date,
                 "start_time": start_time,
                 "end_time": end_time,
-                "email": user.email,
                 "meeting_link": meeting_link,
-                "status": data.get("status")
+                "status": response_dict.get("status"),
+                "canceled": response_dict.get("is_canceled")
             }
-
             final_response.append(user_data)
 
         return Response(final_response)
 
 
 class MeetingCommunicationViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.MeetingSerializer
     queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
 
-    @action(
-        methods=['get', 'post'],
-        serializer_class=serializers.MeetingSerializer,
-        permission_classes=[permissions.AllowAny],
-        detail=False
-    )
-    # TODO(Nishant): Take list of meeting ids to send emails to a subset of meetings.
-    def send_intro_emails(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            all_active_meetings = services.get_active_meetings()
-            all_data = []
-            for active_meeting in all_active_meetings:
-                if not active_meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
-                    continue
-
-                p1 = active_meeting.participants.all()[0]
-                p2 = active_meeting.participants.all()[1]
-
-                # Checking if profile exists.
-                if not (p1.has_profile and p2.has_profile):
-                    continue
-
-                display_day = active_meeting.time_slot.get_display_day()
-                display_time = active_meeting.time_slot.get_display_time()
-
-                subject = 'Introducing {} & {}'.format(
-                    p1.name.title(),
-                    p2.name.title()
-                )
-                data = {
-                    'meeting_id': active_meeting.id,
-                    'day': display_day,
-                    'time': display_time,
-                    'name_a': p1.name.title(),
-                    'name_b': p2.name.title(),
-                    'link': active_meeting.link,
-                    'introduction_a': p1.profile.get_introduction(),
-                    'introduction_b': p2.profile.get_introduction(),
-                    'linkedin_a': p1.profile.linkedin_url,
-                    'linkedin_b': p2.profile.linkedin_url,
-                }
-                all_data.append(data)
-            return Response(all_data)
-
-        if request.method == 'POST':
-            tasks.send_1_on_1_meeting_intro_emails()
-
-        return Response({'status': 'SUCCESS'})
+    # @action(
+    #     methods=['get', 'post'],
+    #     serializer_class=serializers.MeetingSerializer,
+    #     permission_classes=[permissions.AllowAny],
+    #     detail=False
+    # )
+    # # TODO(Nishant): Take list of meeting ids to send emails to a subset of meetings.
+    # def send_intro_emails(self, request, *args, **kwargs):
+    #     if request.method == 'GET':
+    #         all_active_meetings = services.get_active_meetings()
+    #         all_data = []
+    #         for active_meeting in all_active_meetings:
+    #             if not active_meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+    #                 continue
+    #
+    #             p1 = active_meeting.participants.all()[0]
+    #             p2 = active_meeting.participants.all()[1]
+    #
+    #             # Checking if profile exists.
+    #             if not (p1.has_profile and p2.has_profile):
+    #                 continue
+    #
+    #             display_day = active_meeting.time_slot.get_display_day()
+    #             display_time = active_meeting.time_slot.get_display_time()
+    #
+    #             subject = 'Introducing {} & {}'.format(
+    #                 p1.name.title(),
+    #                 p2.name.title()
+    #             )
+    #             data = {
+    #                 'meeting_id': active_meeting.id,
+    #                 'day': display_day,
+    #                 'time': display_time,
+    #                 'name_a': p1.name.title(),
+    #                 'name_b': p2.name.title(),
+    #                 'link': active_meeting.link,
+    #                 'introduction_a': p1.profile.get_introduction(),
+    #                 'introduction_b': p2.profile.get_introduction(),
+    #                 'linkedin_a': p1.profile.linkedin_url,
+    #                 'linkedin_b': p2.profile.linkedin_url,
+    #             }
+    #             all_data.append(data)
+    #         return Response(all_data)
+    #
+    #     if request.method == 'POST':
+    #         tasks.send_1_on_1_meeting_intro_emails()
+    #
+    #     return Response({'status': 'SUCCESS'})

@@ -141,6 +141,7 @@ def get_user_info(user):
         "name": user.get_display_first_name(),
         "phone_number": user.get_phone_number(),
         "linkedin": user.profile.linkedin_url,
+        "score": user.score,
         "source": user.source,
         "tags": None,
         "objectives": None,

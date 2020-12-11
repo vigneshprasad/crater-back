@@ -36,7 +36,7 @@ class TopMatchesPublicViewSet(
                 }
             )
 
-        user_to_user_scores = models.UserToUserMatchScore.objects.filter(primary_user=user).order_by('score')
+        user_to_user_scores = models.UserToUserMatchScore.objects.filter(user=user).order_by('-score')
         final_response = []
 
         for user_to_user_score in user_to_user_scores:
