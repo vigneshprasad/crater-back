@@ -3,7 +3,6 @@ from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from .signals import profile_completed, referal_success_points_signal, user_signed_up, user_updated
 from notifications import signals as notification_signals
-from users import models
 from users import choices
 from users import services
 

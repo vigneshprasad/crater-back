@@ -1,13 +1,13 @@
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 
 from django.dispatch import receiver
 
 from matching import public
 from matching import models
-from users import models as user_models
 
 
-@receiver(post_save, sender=user_models.User)
+@receiver(post_save, sender=get_user_model())
 def update_or_create_user_score(sender, instance, created, *args, **kwargs):
     """If the user models score changes, change the score on UserScore as well."""
     user_score = models.UserScore.objects.filter(user=instance).last()

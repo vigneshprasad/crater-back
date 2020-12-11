@@ -8,4 +8,4 @@ class MatchingConfig(AppConfig):
     verbose_name = _('Matching')
 
     def ready(self):
-        pass
+        from matching import receivers
