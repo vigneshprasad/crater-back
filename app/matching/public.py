@@ -48,8 +48,13 @@ def get_top_matches_for_user(user):
     # Return top 10 users.
     results = dict(islice(sorted_user_match_score_map.items(), 10))
     final_results = []
+
     for email, score_list in results.items():
-        matched_user = get_user_model().objects.get(email=email)
+        try:
+            matched_user = get_user_model().objects.get(email=email)
+        except (get_user_model().MultipleObjectsReturned, get_user_model().DoesNotExist):
+            continue
+
         data = {
             "email": email,
             "user_id": matched_user.pk,
