@@ -38,9 +38,12 @@ def get_top_matches_for_user(user):
         pass
 
     # Sorting the user match score.
-    sorted_user_match_score_map = {k: v for k, v in sorted(
-        user_match_score_map.items(), key=lambda item: item[0], reverse=True
-    )}
+    try:
+        sorted_user_match_score_map = {k: v for k, v in sorted(
+            user_match_score_map.items(), key=lambda item: item[1][0], reverse=True
+        )}
+    except TypeError:
+        sorted_user_match_score_map = user_match_score_map
 
     # Return top 10 users.
     results = dict(islice(sorted_user_match_score_map.items(), 10))

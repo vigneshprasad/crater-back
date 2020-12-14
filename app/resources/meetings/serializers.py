@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from resources.meetings import models
 from resources.meetings import services
+from resources.meetings import choices
 
 from community.mixins import SetCreatorRequestDataMixin
 
@@ -129,6 +130,11 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
 
 
 class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
+    looking_for = serializers.SerializerMethodField()
+    looking_to = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
+    interests_display = serializers.SerializerMethodField()
+    time_slots_display = serializers.SerializerMethodField()
 
     class Meta:
         model = models.MeetingPreference
@@ -136,12 +142,44 @@ class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
             'pk',
             'user',
             'meeting',
-            'number_of_meetings',
-            'objective',
-            'objectives',
-            'interests',
-            'time_slots'
+            'looking_for',
+            'looking_to',
+            'user_email',
+            'interests_display',
+            'time_slots_display'
         )
+
+    @staticmethod
+    def get_user_email(meeting_preference):
+        return meeting_preference.user.email
+
+    @staticmethod
+    def get_looking_for(meeting_preference):
+        looking_for_objectives = meeting_preference.objectives.all().filter(
+            type=choices.OBJECTIVE_TYPES[0][0]
+        )
+        if not looking_for_objectives:
+            return ''
+        return ','.join([objective.name for objective in looking_for_objectives])
+
+    @staticmethod
+    def get_looking_to(meeting_preference):
+        looking_to_objectives = meeting_preference.objectives.all().filter(
+            type=choices.OBJECTIVE_TYPES[1][0]
+        )
+        if not looking_to_objectives:
+            return ''
+        return ','.join([objective.name for objective in looking_to_objectives])
+
+    @staticmethod
+    def get_interests_display(meeting_preference):
+        interests = meeting_preference.interests.all()
+        return ','.join([interest.name for interest in interests])
+
+    @staticmethod
+    def get_time_slots_display(meeting_preference):
+        time_slots = meeting_preference.time_slots.all()
+        return ','.join([time_slot.get_display() for time_slot in time_slots])
 
 
 class MeetingSerializer(serializers.ModelSerializer):

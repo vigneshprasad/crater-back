@@ -311,6 +311,9 @@ class MeetingPreference(base_model.BaseModel):
         verbose_name=_('Time Slots'),
     )
 
+    class Meta:
+        ordering = ['-created_at']
+
 
 class Meeting(base_model.BaseModel):
     config = models.ForeignKey(
