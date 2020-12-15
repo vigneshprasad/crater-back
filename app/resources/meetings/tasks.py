@@ -238,8 +238,8 @@ def send_active_meetings_data_to_analytics(meetings=None):
                 user=participant,
                 time_slot=meeting.time_slot.__str__(),
                 participants=participants_emails,
-                meeting_config=meeting.meeting_config.__str__(),
-                meeting_link=meeting.link
+                meeting_config=meeting.config.__str__(),
+                meeting_link=meeting.link,
             )
 
 
