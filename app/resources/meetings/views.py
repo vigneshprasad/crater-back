@@ -169,6 +169,10 @@ class MeetingRSVPViewSet(viewsets.GenericViewSet):
 
         try:
             user, meeting = services.get_user_meeting_from_url(data)
+            if meeting.is_canceled:
+                return self.generate_bad_request({
+                    'error': 'This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake.'
+                })
             rsvp = models.MeetingRSVP.objects.get(
                 meeting=meeting,
                 participant=user,
@@ -180,14 +184,14 @@ class MeetingRSVPViewSet(viewsets.GenericViewSet):
 
         except InvalidToken:
             return self.generate_bad_request({
-                'error': 'Incorrect query string',
+                'error': 'Please check the URL and try again.',
             })
         except models.MeetingRSVP.DoesNotExist:
             return self.generate_bad_request({
-                'error': 'Meeting not found',
+                'error': 'Please check the URL and try again.',
             })
         except models.Meeting.DoesNotExist:
             return self.generate_bad_request({
-                'error': 'User not found',
+                'error': 'Please check the URL and try again.',
             })
 
