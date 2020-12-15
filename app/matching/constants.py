@@ -28,3 +28,5 @@ TAG_TO_TAG_ENGINE = "tag_to_tag"
 OBJECTIVE_TO_OBJECTIVE_ENGINE = "objective_to_objective"
 INTRODUCTION_TEXT_ENGINE = "introduction_text"
 SECTOR_MATCH_ENGINE = "sector_match"
+
+NULL_STRINGS = ["", "null"]
