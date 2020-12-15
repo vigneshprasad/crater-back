@@ -18,6 +18,9 @@ def get_top_matches_for_user(user):
             being matched.
 
     """
+    if not user.has_profile:
+        return []
+
     # user_score = users_scoring.get_user_score(user)
     opted_in_users = meeting_service.get_opted_in_user_for_meetings()
     user_match_score_map = {}
