@@ -3,6 +3,7 @@ from copy import copy
 
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
+from django.utils import timezone
 
 from freelance.settings import FRONT_URL, WEBSITE_URL, CONTACT_US_URL
 from resources.meetings import models
@@ -143,6 +144,7 @@ def create_meeting_for_users(sender, instance, *args, **kwargs):
                 )
             except get_user_model().DoesNotExist:
                 continue
+
             models.MeetingRSVP.objects.create(
                 meeting=instance,
                 participant_id=participant,
@@ -175,6 +177,32 @@ def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
             # Setting meeting status confirmed if both user's have confirmed.
             meeting.status = choices.MEETING_STATUS_CONFIRMED
             meeting.save()
+
+
+@receiver(signals.reschedule_request_approved)
+def create_new_meeting_on_reschedule_request_approval(sender, time_slot, *args, **kwargs):
+    """Create new meeting between participants once reschedule request is approved.
+
+    Args:
+        sender(RescheduleRequest): reschedule request approved.
+        time_slot(datetime.datetime): time_slot decided for the rescheduled meeting.
+
+    """
+    reschedule_request = sender
+    old_meeting = reschedule_request.old_meeting
+    start = time_slot
+    end = time_slot + timezone.timedelta(minutes=30)
+
+    new_meeting = services.create_meeting(
+        config=old_meeting.cofig,
+        participants=old_meeting.participants.all(),
+        start=start,
+        end=end,
+        status=choices.MEETING_STATUS_CONFIRMED
+    )
+
+    reschedule_request.new_meeting = new_meeting
+    reschedule_request.save()
 
 
 @receiver(post_save, sender=models.MeetingRSVP)

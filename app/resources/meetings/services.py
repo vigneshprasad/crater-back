@@ -1,5 +1,7 @@
 import datetime
 
+import pytz
+from django.conf.global_settings import TIME_ZONE
 from django.utils import timezone
 from cryptography.fernet import Fernet
 
@@ -8,6 +10,7 @@ from resources.meetings import models
 from resources.meetings import choices
 from users import services as user_services
 from django.contrib.auth import get_user_model
+from integrations.google import public
 
 
 def get_objectives_list():
@@ -165,7 +168,7 @@ def get_latest_old_meeting_config():
         Meeting object.
 
     """
-    return models.MeetingConfig.objects.filter(
+    return models.Config.objects.filter(
         week_end_date__lt=timezone.now().date()
     ).order_by('-week_end_date').first()
 
@@ -374,3 +377,50 @@ def get_user_meeting_from_url(query):
         raise models.Meeting.DoesNotExist
     except get_user_model().DoesNotExist:
         raise get_user_model().DoesNotExist
+
+
+def create_meeting(config, participants, start, end, status=choices.MEETING_STATUS_PENDING):
+    """Creates meeting between participants.
+
+    Args:
+        config(Config): Meeting config for which the meeting should be
+            created for.
+        participants(list): list of users, participants of the meeting.
+        start(datetime.datetime): starting datetime of the meeting.
+        end(datetime.datetime): ending datetime of the meeting.
+        status(str): status of the meeting being setup. If not provided
+            default pending status is used.
+
+    """
+    meeting = models.Meeting.objects.create(
+        config=config,
+        time_slot=get_or_create_time_slot(start=start, end=end),
+        start=start,
+        end=end,
+        status=status
+    )
+    for participant in participants:
+        meeting.participants.add(participant)
+
+    meeting_link = public.create_calendar_event_for_meeting(meeting)
+    meeting.link = meeting_link
+    meeting.save()
+
+    return meeting
+
+
+def get_or_create_time_slot(start, end):
+    """Create time slot from start and end date times."""
+
+    # TODO(Nishant): Deprecate this once we stop using time slots.
+    local_tz = pytz.timezone(TIME_ZONE)
+    local_start_datetime = start.replace(tzinfo=pytz.utc).astimezone(local_tz)
+    local_end_datetime = end.replace(tzinfo=pytz.utc).astimezone(local_tz)
+
+    time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
+        date=local_start_datetime.date,
+        start_time=local_start_datetime.time,
+        end_time=local_end_datetime.time
+    )
+
+    return time_slot

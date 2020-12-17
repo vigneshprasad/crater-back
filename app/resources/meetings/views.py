@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -309,9 +311,68 @@ class MeetingRSVPViewSet(
 class RescheduleRequestViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.RescheduleRequestSerializer
     queryset = models.RescheduleRequest.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['GET'],
+        detail=False
+    )
+    def availability_slots(self, request, *args, **kwargs):
+        # weekday_timeslot_map = choices.RESCHEDULE_WEEKDAY_TIME_SLOT_MAP
+        return Response()
+
+    @action(
+        methods=['POST'],
+        detail=False
+    )
+    def accepted(self, request, *args, **kwargs):
+        request_data = request.body
+        approver = request.user
+        reschedule_request_id = request_data.get("reschedule_request")
+        try:
+            selected_time_slot = datetime.datetime.strptime(
+                request_data["time_slot"],
+                "%d/%m/%Y %H:%M"
+            )
+        except ValueError:
+            return self.generate_bad_request(
+                {"error": "Invalid datetime format."}
+            )
+
+        if not reschedule_request_id and selected_time_slot:
+            return self.generate_bad_request(
+                {"error": "Invalid request body. Missing id or time slots."}
+            )
+
+        try:
+            reschedule_request = models.RescheduleRequest.objects.get(
+                id=reschedule_request_id,
+                approver=approver
+            )
+        except models.RescheduleRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Reschedule request does not exist."}
+            )
+
+        if selected_time_slot not in reschedule_request.time_slots:
+            return self.generate_bad_request(
+                {"error": "Selected time slot is not a valid choice."}
+            )
+
+        reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
+        reschedule_request.save()
+
+        signals.reschedule_request_approved(
+            sender=reschedule_request,
+            time_slot=selected_time_slot
+        )
+
+        return Response({"success": True})
