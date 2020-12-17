@@ -249,3 +249,10 @@ class MeetingRSVPSerializer(serializers.ModelSerializer):
             'participant',
             'status',
         )
+
+
+class RescheduleRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.RescheduleRequest
+        fields = '__all__'

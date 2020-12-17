@@ -5,6 +5,7 @@ from cryptography.fernet import InvalidToken
 
 from users import permissions
 from resources.meetings import models, choices, serializers, services
+from resources.meetings import signals
 
 
 class MeetingConfigViewSet(mixins.ListModelMixin,
@@ -103,7 +104,7 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
-            return  serializers.PostUserMeetingPreferenceSerializer
+            return serializers.PostUserMeetingPreferenceSerializer
         else:
             return serializers.UserMeetingPreferenceSerializer
 
@@ -146,10 +147,14 @@ class MeetingConfigV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return Response(serialized.data)
 
 
-class MeetingRSVPViewSet(viewsets.GenericViewSet):
+class MeetingRSVPViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = serializers.MeetingRSVPSerializer
     queryset = models.MeetingRSVP.objects.all()
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     @staticmethod
     def generate_bad_request(data):
@@ -158,14 +163,22 @@ class MeetingRSVPViewSet(viewsets.GenericViewSet):
     @action(
         methods=['POST'],
         detail=False,
+        permission_classes=[permissions.AllowAny]
     )
     def attending(self, request):
-        data = request.data.get('meeting')
+        """Check if the user is attending the meeting and mark it.
 
+        Note:
+            This is a public view which gets user and meeting id from
+                a encoded string in the body and marks the user
+                as attending for the meeting.
+
+        """
+        data = request.data.get('meeting')
         if not data:
-            return self.generate_bad_request({
-                'error': 'Query data missing',
-            })
+            return self.generate_bad_request(
+                {'error': 'Query data missing'}
+            )
 
         try:
             user, meeting = services.get_user_meeting_from_url(data)
@@ -179,15 +192,126 @@ class MeetingRSVPViewSet(viewsets.GenericViewSet):
             return Response(data=serialized.data)
 
         except InvalidToken:
-            return self.generate_bad_request({
-                'error': 'Incorrect query string',
-            })
+            return self.generate_bad_request(
+                {'error': 'Incorrect query string'}
+            )
         except models.MeetingRSVP.DoesNotExist:
-            return self.generate_bad_request({
-                'error': 'Meeting not found',
-            })
+            return self.generate_bad_request(
+                {'error': 'Meeting not found'}
+            )
         except models.Meeting.DoesNotExist:
-            return self.generate_bad_request({
-                'error': 'User not found',
-            })
+            return self.generate_bad_request(
+                {'error': 'User not found'}
+            )
 
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def confirmed(self, request, *args, **kwargs):
+        request_data = request.body
+        meeting_id = request_data.get("meeting")
+        participant = request.user
+
+        try:
+            rsvp = models.MeetingRSVP.objects.get(
+                meeting_id=meeting_id,
+                participant=participant
+            )
+        except models.MeetingRSVP.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "User doesn't have an RSVP for meeting."}
+            )
+        except models.MeetingRSVP.MultipleObjectsReturned:
+            return self.generate_bad_request(
+                {"error": "User has multiple RSVP for meeting."}
+            )
+
+        rsvp.status = choices.MEETING_RSVP_STATUS_ATTENDING
+        rsvp.save()
+
+        # Send a signal which updates the status after RSVP is
+        # updated.
+        # signals.update_meeting_status(
+        #     rsvp=rsvp
+        # )
+        serialized = self.get_serializer(rsvp)
+        return Response(data=serialized.data)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def cancelled(self, request, *args, **kwargs):
+        request_data = request.body
+        meeting_id = request_data.get("meeting")
+        participant = request.user
+
+        try:
+            rsvp = models.MeetingRSVP.objects.get(
+                meeting_id=meeting_id,
+                participant=participant
+            )
+        except models.MeetingRSVP.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "User doesn't have an RSVP for meeting."}
+            )
+        except models.MeetingRSVP.MultipleObjectsReturned:
+            return self.generate_bad_request(
+                {"error": "User has multiple RSVP for meeting."}
+            )
+
+        rsvp.status = choices.MEETING_RSVP_STATUS_NOT_ATTENDING
+        rsvp.save()
+
+        # Send a signal which updates the status after RSVP is
+        # updated.
+        signals.rsvp_status_updated(
+            user=request.user,
+            rsvp=rsvp
+        )
+        serialized = self.get_serializer(rsvp)
+        return Response(data=serialized.data)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        serializer_class=serializers.RescheduleRequestSerializer
+    )
+    def reschedule(self, request, *args, **kwargs):
+        request_data = request.body
+        meeting_id = request_data.get("meeting")
+        requested_by = request.user
+        try:
+            old_meeting = models.Meeting.objects.get(id=meeting_id)
+        except models.Meeting.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Meeting id is invalid"}
+            )
+
+        approver = old_meeting.participants.all().exclude(
+            pk=requested_by.pk
+        ).first()
+        time_slots = request_data.get("time_slots")
+
+        data = {
+            "old_meeting": meeting_id,
+            "requested_by": requested_by.pk,
+            "approver": approver.pk,
+            "time_slots": time_slots
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class RescheduleRequestViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.RescheduleRequestSerializer
+    queryset = models.RescheduleRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated]

@@ -447,11 +447,15 @@ def update_meeting_rsvp_status_from_google(meetings=None):
 
     for meeting in meetings:
         for rsvp in meeting.rsvps.all():
-
             # Dont update data if rsvp status is attending
             if rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
                 continue
             google_public.get_and_update_rsvp_status(rsvp)
+            # Sending signal on status update of RSVP.
+            signals.rsvp_status_updated(
+                user=rsvp.participant,
+                rsvp=rsvp
+            )
 
 
 @periodic_task(run_every=crontab(hour=2, minute=30))

@@ -13,7 +13,6 @@ from consumers.chat import signals as chat_signals
 from users import services as users_services
 from django.contrib.auth import get_user_model
 
-
 MEETING_ADD_USER_POINTS_KEY = 15
 
 
@@ -130,18 +129,8 @@ def create_meeting_preference_for_typeform_user(
         meeting_preference.time_slots.add(slot)
 
 
-REMOVE_CHARS = ['PM', 'pm', 'Pm', 'pM', 'p.m.', 'p.m', 'P.M.', 'P.M', 'P.m.', 'P.m']
-
-
-def _clean_time_preference(time_preference):
-    for i in REMOVE_CHARS:
-        time_preference = time_preference.replace(i, '')
-    return time_preference
-
-
 @receiver(m2m_changed, sender=models.Meeting.participants.through)
 def create_meeting_for_users(sender, instance, *args, **kwargs):
-
     if kwargs.get('action') == 'post_add':
         for participant in kwargs['pk_set']:
             try:
@@ -163,6 +152,29 @@ def create_meeting_for_users(sender, instance, *args, **kwargs):
             sender=instance,
             participants=instance.participants.all(),
         )
+
+
+@receiver(signals.rsvp_status_updated)
+def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
+    """Update meeting status based on meeting rsvp status update."""
+    meeting = rsvp.meeting
+
+    if rsvp.staus == choices.MEETING_RSVP_STATUS_NOT_ATTENDING:
+        meeting.status = choices.MEETING_STATUS_CANCELLED
+        meeting.save()
+
+    if rsvp.status == choices.MEETING_RSVP_STATUS_RESCHEDULE:
+        meeting.status = choices.MEETING_STATUS_RESCHEDULED
+        meeting.save()
+
+    if rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
+        other_rsvp = meeting.rsvps.all().exclude(id=rsvp.id).first()
+        if not other_rsvp:
+            return
+        if other_rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
+            # Setting meeting status confirmed if both user's have confirmed.
+            meeting.status = choices.MEETING_STATUS_CONFIRMED
+            meeting.save()
 
 
 @receiver(post_save, sender=models.MeetingRSVP)
@@ -198,6 +210,18 @@ def check_and_send_confirmed_meeting_email(sender, instance, created, *args, **k
     _send_meeting_confirmed_email(instance)
 
 
+@receiver(post_save, sender=models.RescheduleRequest)
+def update_meeting_status_to_rescheduled(sender, instance, created, *args, **kwargs):
+    """When a reschedule request is raised, update the meeting status as well."""
+    if not created:
+        return
+
+    meeting = instance.old_meeting
+    meeting.status = choices.MEETING_STATUS_RESCHEDULED
+    meeting.save()
+
+
+# --------------- PRIVATE FUNCTIONS ----------------- #
 def _send_meeting_confirmed_email(meeting):
     """ Sends meeting confirmed email to all participants
 
@@ -255,3 +279,12 @@ def _send_meeting_confirmed_email(meeting):
             from_email=from_email,
             merge_vars=data
         )
+
+
+REMOVE_CHARS = ['PM', 'pm', 'Pm', 'pM', 'p.m.', 'p.m', 'P.M.', 'P.M', 'P.m.', 'P.m']
+
+
+def _clean_time_preference(time_preference):
+    for i in REMOVE_CHARS:
+        time_preference = time_preference.replace(i, '')
+    return time_preference

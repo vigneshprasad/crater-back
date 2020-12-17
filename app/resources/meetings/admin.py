@@ -93,3 +93,8 @@ class MeetingRsvp(ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
     search_fields = ['participant__email']
     list_filter = ('status', 'created_at')
+
+
+@register(models.RescheduleRequest)
+class RescheduleRequests(ModelAdmin):
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')

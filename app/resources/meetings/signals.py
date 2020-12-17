@@ -44,3 +44,9 @@ new_user_assigned_to_meeting = Signal(providing_args=[
     "rule_key",
     "base_factor"
 ])
+
+
+rsvp_status_updated = Signal(providing_args=[
+    "user",
+    "rsvp"
+])
