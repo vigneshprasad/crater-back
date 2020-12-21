@@ -362,6 +362,11 @@ class Meeting(base_model.BaseModel):
         super(Meeting, self).__init__(*args, **kwargs)
         self.__previous_status = self.status
 
+    def __str__(self):
+        member_str = " - ".join((self.participants.all().values_list("email", flat=True)))
+        time_str = self.start.strftime("%A %d, %b %I:%M %p")
+        return "{} @ {}".format(member_str, time_str)
+
 
 class MeetingRSVP(base_model.BaseModel):
     """

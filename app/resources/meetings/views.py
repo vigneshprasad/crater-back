@@ -184,6 +184,10 @@ class MeetingRSVPViewSet(
 
         try:
             user, meeting = services.get_user_meeting_from_url(data)
+            if meeting.is_canceled:
+                return self.generate_bad_request({
+                    'error': 'This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake.'
+                })
             rsvp = models.MeetingRSVP.objects.get(
                 meeting=meeting,
                 participant=user,
@@ -195,15 +199,15 @@ class MeetingRSVPViewSet(
 
         except InvalidToken:
             return self.generate_bad_request(
-                {'error': 'Incorrect query string'}
+                {"error": "Please check the URL and try again."}
             )
         except models.MeetingRSVP.DoesNotExist:
             return self.generate_bad_request(
-                {'error': 'Meeting not found'}
+                {"error": "Please check the URL and try again."}
             )
         except models.Meeting.DoesNotExist:
             return self.generate_bad_request(
-                {'error': 'User not found'}
+                {"error": "Please check the URL and try again."}
             )
 
     @action(
@@ -278,31 +282,12 @@ class MeetingRSVPViewSet(
     @action(
         methods=['POST'],
         detail=False,
-        serializer_class=serializers.RescheduleRequestSerializer
+        serializer_class=serializers.PostRescheduleRequestSerializer
     )
     def reschedule(self, request, *args, **kwargs):
-        request_data = request.body
-        meeting_id = request_data.get("meeting")
-        requested_by = request.user
-        try:
-            old_meeting = models.Meeting.objects.get(id=meeting_id)
-        except models.Meeting.DoesNotExist:
-            return self.generate_bad_request(
-                {"error": "Meeting id is invalid"}
-            )
-
-        approver = old_meeting.participants.all().exclude(
-            pk=requested_by.pk
-        ).first()
-        time_slots = request_data.get("time_slots")
-
-        data = {
-            "old_meeting": meeting_id,
-            "requested_by": requested_by.pk,
-            "approver": approver.pk,
-            "time_slots": time_slots
-        }
-        serializer = self.get_serializer(data=data)
+        request_data = request.data
+        request_data["requested_by"] = request.user.pk
+        serializer = self.get_serializer(data=request_data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
