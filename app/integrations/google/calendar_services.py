@@ -45,6 +45,7 @@ class GoogleCalendarService:
         return service
 
     def get_events(self):
+        """Gets all events in the WorkNetwork calendar."""
         if not self.service:
             return None
         return self.service.events().list(
@@ -55,13 +56,10 @@ class GoogleCalendarService:
         """Gets a specific event from Google calendar API."""
         if not self.service:
             return None
-        try:
-            return self.service.events().get(
-                calendarId=self.calendar_id,
-                eventId=event_id
-            ).execute()
-        except Exception:
-            return {}
+        return self.service.events().get(
+            calendarId=self.calendar_id,
+            eventId=event_id
+        ).execute()
 
     def create_event(
             self,
@@ -73,6 +71,7 @@ class GoogleCalendarService:
             description=None,
 
     ):
+        """Creates and event on WorkNetwork calendar."""
         if not self.service:
             return None
 
@@ -112,16 +111,26 @@ class GoogleCalendarService:
         return event_id, hangout_link
 
     def update_event(self, event_id, patch_body):
+        """Updates an existing event on WorkNetwork Calendar."""
         if not self.service:
             return None
 
-        event_patch = self.service.events().patch(
+        return self.service.events().patch(
             calendarId=self.calendar_id,
             eventId=event_id,
             body=patch_body,
             conferenceDataVersion=self.conference_data_version
         ).execute()
-        return event_patch
+
+    def delete_event(self, event_id):
+        """Deletes an event from the WorkNetwork calendar."""
+        if not self.service:
+            return None
+
+        return self.service.events().delete(
+            calendarId=self.calendar_id,
+            eventId=event_id
+        ).execute()
 
 
 google_calendar_service = GoogleCalendarService(
