@@ -368,8 +368,6 @@ class Meeting(base_model.BaseModel):
         return "{} @ {}".format(member_str, time_str)
 
 
-
-
 class MeetingRSVP(base_model.BaseModel):
     """
     Meeting RSVP for a user for a specific meeting
