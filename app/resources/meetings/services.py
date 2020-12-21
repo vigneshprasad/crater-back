@@ -307,31 +307,6 @@ def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
     return user_services.get_users_for_ids(list(user_ids))
 
 
-def get_user_meeting_info(meeting):
-    """
-    Get user info to be show for Meeting get call.
-
-    Args:
-        meeting(Meeting): Meeting Object.
-
-    Return:
-        List of user info.
-
-    """
-    data = []
-    if meeting.participants.count() < 1:
-        return data
-
-    for user in meeting.participants.all():
-        data.append({
-            'pk': user.pk,
-            'name': user.name,
-            'introduction': user.profile.get_introduction(),
-            'photo': user.profile.get_photo_url(),
-        })
-    return data
-
-
 def get_meeting_config_time_slots(meeting):
     all_slots = meeting.available_time_slots.all()
     available_slots = {}

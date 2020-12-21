@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -119,6 +121,56 @@ class MeetingViewSet(mixins.ListModelMixin,
 
     def get_queryset(self):
         return self.request.user.meeting_set.all()
+
+    def _get_meeting_queryset(self, is_past):
+        now = datetime.datetime.now()
+        if is_past:
+            queryset = self.get_queryset().filter(
+                start__lte=now,
+            )
+        else:
+            queryset = self.get_queryset().filter(
+                start__gte=now,
+            )
+        return queryset
+
+    def _create_data_by_date(self, queryset):
+        data = []
+        date_list = list(queryset.values_list('start__date', flat=True).distinct())
+        date_list.reverse()
+
+        for date in date_list:
+            objects = queryset.filter(
+                start__date=date,
+            )
+            serialized = self.get_serializer(objects, many=True)
+            data.append({
+                'date': date.isoformat(),
+                'meetings': serialized.data,
+            })
+        return data
+
+    @action(
+        methods=['GET'],
+        detail=False,
+    )
+    def upcoming(self, request):
+        queryset = self._get_meeting_queryset(is_past=False)
+        date_list = list(queryset.values_list('start__date', flat=True).distinct())
+        date_list.reverse()
+        data = self._create_data_by_date(queryset=queryset)
+        return Response(data)
+
+    @action(
+        methods=['GET'],
+        detail=False,
+    )
+    def past(self, request):
+        queryset = self._get_meeting_queryset(is_past=True)
+        date_list = list(queryset.values_list('start__date', flat=True).distinct())
+        date_list.reverse()
+        data = self._create_data_by_date(queryset=queryset)
+        return Response(data)
 
 
 class MeetingObjectivesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
