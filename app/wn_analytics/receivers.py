@@ -168,6 +168,7 @@ def new_meeting_created_track(sender, user, **kwargs):
 
     analytics_track(user, event, analytics_track_properties)
 
+
 @receiver(creative_exchange_signals.request_created)
 def creative_exchange_request_created_track(sender, user, **kwargs):
     """Sending new Creative Exchange Request to Analytics."""

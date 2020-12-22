@@ -62,6 +62,10 @@ class TopMatchesPublicViewSet(
     def user_info(self, request, *args, **kwargs):
         """Get user's info based on the algorithm."""
         user_id = request.query_params.get("user_id")
+        # Handling error where retool send "null" as the user_id string.
+        if user_id in constants.NULL_STRINGS:
+            user_id = None
+
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:

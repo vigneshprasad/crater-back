@@ -18,6 +18,9 @@ def get_top_matches_for_user(user):
             being matched.
 
     """
+    if not user.has_profile:
+        return []
+
     # user_score = users_scoring.get_user_score(user)
     opted_in_users = meeting_service.get_opted_in_user_for_meetings()
     user_match_score_map = {}
@@ -38,15 +41,23 @@ def get_top_matches_for_user(user):
         pass
 
     # Sorting the user match score.
-    sorted_user_match_score_map = {k: v for k, v in sorted(
-        user_match_score_map.items(), key=lambda item: item[0], reverse=True
-    )}
+    try:
+        sorted_user_match_score_map = {k: v for k, v in sorted(
+            user_match_score_map.items(), key=lambda item: item[1][0], reverse=True
+        )}
+    except TypeError:
+        sorted_user_match_score_map = user_match_score_map
 
     # Return top 10 users.
     results = dict(islice(sorted_user_match_score_map.items(), 10))
     final_results = []
+
     for email, score_list in results.items():
-        matched_user = get_user_model().objects.get(email=email)
+        try:
+            matched_user = get_user_model().objects.get(email=email)
+        except (get_user_model().MultipleObjectsReturned, get_user_model().DoesNotExist):
+            continue
+
         data = {
             "email": email,
             "user_id": matched_user.pk,

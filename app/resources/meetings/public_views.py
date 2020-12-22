@@ -7,10 +7,9 @@ from rest_framework.response import Response
 from rest_framework import mixins, viewsets
 
 from users import permissions
-from resources.meetings import models, choices
+from resources.meetings import models
 from resources.meetings import serializers
 from resources.meetings import services
-
 
 
 class MeetingConfigPublicViewSet(
@@ -33,45 +32,34 @@ class MeetingPreferencePublicViewSet(
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['meeting', 'user']
 
-    def list(self, request, *args, **kwargs):
+    @action(
+        methods=['get'],
+        serializer_class=serializers.PublicMeetingPreferenceSerializer,
+        permission_classes=[permissions.AllowAny],
+        detail=False
+    )
+    def latest(self, request, *args, **kwargs):
+        """Get the latest preference for each user.
+
+        Note:
+            The user may have registered for a meeting multiple times,
+            get the user's latest preference.
+
+        """
+
+        # Create pk list for latest preference for all users and send
+        # it as a query set.
+        preference_pk_list = []
+        for user in get_user_model().objects.all():
+            preference = user.meeting_preferences.first()
+            if not preference:
+                continue
+            preference_pk_list.append(preference.id)
+
+        self.queryset = models.MeetingPreference.objects.filter(id__in=preference_pk_list)
+
         response = super(MeetingPreferencePublicViewSet, self).list(request, *args, **kwargs)
-        final_response = []
-        for data in response.data:
-            response_dict = dict(data)
-            user = get_user_model().objects.get(
-                uuid=response_dict["user"]
-            )
-            try:
-                objectives = models.Objective.objects.filter(
-                    id__in=response_dict["objectives"]
-                ) if response_dict["objectives"] else None
-            except models.Objective.DoesNotExist:
-                objectives = None
-
-            looking_for_objectives = objectives.filter(type=choices.OBJECTIVE_TYPES[0]) if objectives else ""
-            looking_to_objectives = objectives.filter(type=choices.OBJECTIVE_TYPES[1]) if objectives else ""
-
-            interests = models.Interest.objects.filter(
-                id__in=response_dict["interests"]
-            )
-            interests_names = ', '.join([interest.name for interest in interests])
-
-            time_slots = models.TimeSlot.objects.filter(
-                id__in=response_dict["time_slots"]
-            )
-            time_slots_display = ',\n'.join([time_slot.get_display() for time_slot in time_slots])
-            new_data = {
-                "pk": response_dict["pk"],
-                "uuid": user.uuid,
-                "email": user.email,
-                "looking_for": [looking_for.name for looking_for in looking_for_objectives],
-                "looking_to": [looking_to.name for looking_to in looking_to_objectives],
-                "interests": interests_names,
-                "time_slots": time_slots_display
-            }
-            final_response.append(new_data)
-
-        return Response(final_response)
+        return response
 
 
 class MeetingPublicViewSet(
