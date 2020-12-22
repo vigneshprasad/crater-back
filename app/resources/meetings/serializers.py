@@ -173,6 +173,8 @@ class MeetingUserSerializer(serializers.ModelSerializer):
 
 class MeetingRSVPSerializer(serializers.ModelSerializer):
     participant = MeetingUserSerializer()
+    objectives = serializers.SerializerMethodField(read_only=True)
+    interests = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.MeetingRSVP
@@ -180,7 +182,17 @@ class MeetingRSVPSerializer(serializers.ModelSerializer):
             'pk',
             'participant',
             'status',
+            'objectives',
+            'interests',
         )
+
+    @staticmethod
+    def get_objectives(rsvp):
+        return services.get_objectives_for_rsvp(rsvp)
+
+    @staticmethod
+    def get_interests(rsvp):
+        return services.get_interests_for_rsvp(rsvp)
 
 
 class MeetingSerializer(serializers.ModelSerializer):

@@ -5,7 +5,7 @@ from cryptography.fernet import Fernet
 
 from freelance.settings import FERNET_KEY
 from resources.meetings import models
-from resources.meetings import choices
+from resources.meetings import choices, serializers
 from users import services as user_services
 from django.contrib.auth import get_user_model
 
@@ -349,3 +349,51 @@ def get_user_meeting_from_url(query):
         raise models.Meeting.DoesNotExist
     except get_user_model().DoesNotExist:
         raise get_user_model().DoesNotExist
+
+
+def get_objectives_for_rsvp(rsvp):
+    """
+    Returns list of Meeting objective for meeting preference with same config as rsvp
+
+    Args:
+        rsvp(MeetingRsvp): Meeting RSVP object
+
+    Returns:
+        Serialized List of Meeting objectives
+
+    """
+    try:
+        preference = models.MeetingPreference.objects.get(
+            user=rsvp.participant,
+            meeting=rsvp.meeting.config,
+        )
+        objectives = preference.objectives
+        serialized = serializers.MeetingObjectiveSerializer(objectives, many=True)
+        return serialized.data
+
+    except models.MeetingPreference.DoesNotExist:
+        return []
+
+
+def get_interests_for_rsvp(rsvp):
+    """
+    Returns list of Meeting Interests for meeting preference with same config as rsvp
+
+    Args:
+        rsvp(MeetingRsvp): Meeting RSVP object
+
+    Returns:
+        Serialized List of Meeting interests
+
+    """
+    try:
+        preference = models.MeetingPreference.objects.get(
+            user=rsvp.participant,
+            meeting=rsvp.meeting.config,
+        )
+        interests = preference.interests
+        serialized = serializers.MeetingInterestSerializer(interests, many=True)
+        return serialized.data
+
+    except models.MeetingPreference.DoesNotExist:
+        return []
