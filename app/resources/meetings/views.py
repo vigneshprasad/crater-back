@@ -238,9 +238,10 @@ class MeetingRSVPViewSet(
 
         # Send a signal which updates the status after RSVP is
         # updated.
-        # signals.update_meeting_status(
-        #     rsvp=rsvp
-        # )
+        signals.rsvp_status_updated(
+            user=request.user,
+            rsvp=rsvp
+        )
         serialized = self.get_serializer(rsvp)
         return Response(data=serialized.data)
 
@@ -356,7 +357,7 @@ class RescheduleRequestViewSet(
         reschedule_request.save()
 
         signals.reschedule_request_approved(
-            sender=reschedule_request,
+            reschedule_request=reschedule_request,
             time_slot=selected_time_slot
         )
 

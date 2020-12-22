@@ -424,3 +424,14 @@ def get_or_create_time_slot(start, end):
     )
 
     return time_slot
+
+
+def get_config_for_date(date):
+    """Returns correct config for a date."""
+    config = models.Config.objects.filter(
+        week_start_date__lte=date,
+        week_end_date__gte=date,
+        is_active=True
+    ).first()
+
+    return config if config else get_current_week_meeting_config()

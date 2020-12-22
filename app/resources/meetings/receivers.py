@@ -192,9 +192,10 @@ def create_new_meeting_on_reschedule_request_approval(sender, time_slot, *args, 
     old_meeting = reschedule_request.old_meeting
     start = time_slot
     end = time_slot + timezone.timedelta(minutes=30)
+    config = services.get_config_for_date(time_slot.date)
 
     new_meeting = services.create_meeting(
-        config=old_meeting.cofig,
+        config=config,
         participants=old_meeting.participants.all(),
         start=start,
         end=end,

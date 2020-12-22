@@ -53,5 +53,6 @@ rsvp_status_updated = Signal(providing_args=[
 
 
 reschedule_request_approved = Signal(providing_args=[
+    "reschedule_request",
     "time_slot"
 ])
