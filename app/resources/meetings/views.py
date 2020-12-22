@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -5,6 +7,7 @@ from cryptography.fernet import InvalidToken
 
 from users import permissions
 from resources.meetings import models, choices, serializers, services
+from resources.meetings import signals
 
 
 class MeetingConfigViewSet(mixins.ListModelMixin,
@@ -103,7 +106,7 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
-            return  serializers.PostUserMeetingPreferenceSerializer
+            return serializers.PostUserMeetingPreferenceSerializer
         else:
             return serializers.UserMeetingPreferenceSerializer
 
@@ -146,10 +149,14 @@ class MeetingConfigV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return Response(serialized.data)
 
 
-class MeetingRSVPViewSet(viewsets.GenericViewSet):
+class MeetingRSVPViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = serializers.MeetingRSVPSerializer
     queryset = models.MeetingRSVP.objects.all()
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     @staticmethod
     def generate_bad_request(data):
@@ -158,14 +165,22 @@ class MeetingRSVPViewSet(viewsets.GenericViewSet):
     @action(
         methods=['POST'],
         detail=False,
+        permission_classes=[permissions.AllowAny]
     )
     def attending(self, request):
-        data = request.data.get('meeting')
+        """Check if the user is attending the meeting and mark it.
 
+        Note:
+            This is a public view which gets user and meeting id from
+                a encoded string in the body and marks the user
+                as attending for the meeting.
+
+        """
+        data = request.data.get('meeting')
         if not data:
-            return self.generate_bad_request({
-                'error': 'Query data missing',
-            })
+            return self.generate_bad_request(
+                {'error': 'Query data missing'}
+            )
 
         try:
             user, meeting = services.get_user_meeting_from_url(data)
@@ -183,15 +198,167 @@ class MeetingRSVPViewSet(viewsets.GenericViewSet):
             return Response(data=serialized.data)
 
         except InvalidToken:
-            return self.generate_bad_request({
-                'error': 'Please check the URL and try again.',
-            })
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
         except models.MeetingRSVP.DoesNotExist:
-            return self.generate_bad_request({
-                'error': 'Please check the URL and try again.',
-            })
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
         except models.Meeting.DoesNotExist:
-            return self.generate_bad_request({
-                'error': 'Please check the URL and try again.',
-            })
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
 
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def confirmed(self, request, *args, **kwargs):
+        request_data = request.body
+        meeting_id = request_data.get("meeting")
+        participant = request.user
+
+        try:
+            rsvp = models.MeetingRSVP.objects.get(
+                meeting_id=meeting_id,
+                participant=participant
+            )
+        except models.MeetingRSVP.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "User doesn't have an RSVP for meeting."}
+            )
+        except models.MeetingRSVP.MultipleObjectsReturned:
+            return self.generate_bad_request(
+                {"error": "User has multiple RSVP for meeting."}
+            )
+
+        rsvp.status = choices.MEETING_RSVP_STATUS_ATTENDING
+        rsvp.save()
+
+        # Send a signal which updates the status after RSVP is
+        # updated.
+        signals.rsvp_status_updated(
+            user=request.user,
+            rsvp=rsvp
+        )
+        serialized = self.get_serializer(rsvp)
+        return Response(data=serialized.data)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def cancelled(self, request, *args, **kwargs):
+        request_data = request.body
+        meeting_id = request_data.get("meeting")
+        participant = request.user
+
+        try:
+            rsvp = models.MeetingRSVP.objects.get(
+                meeting_id=meeting_id,
+                participant=participant
+            )
+        except models.MeetingRSVP.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "User doesn't have an RSVP for meeting."}
+            )
+        except models.MeetingRSVP.MultipleObjectsReturned:
+            return self.generate_bad_request(
+                {"error": "User has multiple RSVP for meeting."}
+            )
+
+        rsvp.status = choices.MEETING_RSVP_STATUS_NOT_ATTENDING
+        rsvp.save()
+
+        # Send a signal which updates the status after RSVP is
+        # updated.
+        signals.rsvp_status_updated(
+            user=request.user,
+            rsvp=rsvp
+        )
+        serialized = self.get_serializer(rsvp)
+        return Response(data=serialized.data)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+        serializer_class=serializers.PostRescheduleRequestSerializer
+    )
+    def reschedule(self, request, *args, **kwargs):
+        request_data = request.data
+        request_data["requested_by"] = request.user.pk
+        serializer = self.get_serializer(data=request_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class RescheduleRequestViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.RescheduleRequestSerializer
+    queryset = models.RescheduleRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['GET'],
+        detail=False
+    )
+    def availability_slots(self, request, *args, **kwargs):
+        # weekday_timeslot_map = choices.RESCHEDULE_WEEKDAY_TIME_SLOT_MAP
+        return Response()
+
+    @action(
+        methods=['POST'],
+        detail=False
+    )
+    def accepted(self, request, *args, **kwargs):
+        request_data = request.body
+        approver = request.user
+        reschedule_request_id = request_data.get("reschedule_request")
+        try:
+            selected_time_slot = datetime.datetime.strptime(
+                request_data["time_slot"],
+                "%d/%m/%Y %H:%M"
+            )
+        except ValueError:
+            return self.generate_bad_request(
+                {"error": "Invalid datetime format."}
+            )
+
+        if not reschedule_request_id and selected_time_slot:
+            return self.generate_bad_request(
+                {"error": "Invalid request body. Missing id or time slots."}
+            )
+
+        try:
+            reschedule_request = models.RescheduleRequest.objects.get(
+                id=reschedule_request_id,
+                approver=approver
+            )
+        except models.RescheduleRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Reschedule request does not exist."}
+            )
+
+        if selected_time_slot not in reschedule_request.time_slots:
+            return self.generate_bad_request(
+                {"error": "Selected time slot is not a valid choice."}
+            )
+
+        reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
+        reschedule_request.save()
+
+        signals.reschedule_request_approved(
+            reschedule_request=reschedule_request,
+            time_slot=selected_time_slot
+        )
+
+        return Response({"success": True})

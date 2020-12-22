@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.postgres.fields import ArrayField
 from django.core import exceptions
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -361,6 +362,11 @@ class Meeting(base_model.BaseModel):
         super(Meeting, self).__init__(*args, **kwargs)
         self.__previous_status = self.status
 
+    def __str__(self):
+        member_str = " - ".join((self.participants.all().values_list("email", flat=True)))
+        time_str = self.start.strftime("%A %d, %b %I:%M %p")
+        return "{} @ {}".format(member_str, time_str)
+
 
 class MeetingRSVP(base_model.BaseModel):
     """
@@ -388,3 +394,41 @@ class MeetingRSVP(base_model.BaseModel):
 
     class Meta:
         unique_together = ['meeting', 'participant']
+
+
+class RescheduleRequest(base_model.BaseModel):
+    old_meeting = models.ForeignKey(
+        Meeting,
+        verbose_name=_('Old Meeting'),
+        related_name='reschedule_requests',
+        on_delete=models.CASCADE,
+    )
+    new_meeting = models.ForeignKey(
+        Meeting,
+        null=True,
+        blank=True,
+        verbose_name=_('New Meeting'),
+        related_name='rescheduled_from',
+        on_delete=models.CASCADE
+    )
+    requested_by = models.ForeignKey(
+        get_user_model(),
+        verbose_name=_('Request By'),
+        related_name='reschedule_requests',
+        on_delete=models.CASCADE
+    )
+    approver = models.ForeignKey(
+        get_user_model(),
+        verbose_name=_('Approver'),
+        related_name='reschedule_approvals',
+        on_delete=models.CASCADE
+    )
+    time_slots = ArrayField(
+        models.DateTimeField(null=True, blank=True),
+        size=3
+    )
+    status = models.CharField(
+        max_length=32,
+        default=choices.RESCHEDULE_REQUEST_PENDING_APPROVAL,
+        choices=choices.RESCHEDULE_REQUEST_STATUSES
+    )

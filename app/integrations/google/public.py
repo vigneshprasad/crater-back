@@ -5,8 +5,6 @@ from integrations.google import models
 from integrations.google import private
 from integrations.google import constants
 
-from resources.meetings.choices import MEETING_RSVP_STATUS_CHOICES
-
 
 def create_calendar_event_for_meeting(meeting):
     users = meeting.participants.all()
@@ -46,7 +44,6 @@ def get_and_update_rsvp_status(meeting_rsvp):
 
     Args:
         meeting_rsvp(MeetingRsvp): The MeetingRsvp object whose status is updated
-        meeting_id(int): Id of meeting for the google calendar event
 
     """
     user = meeting_rsvp.participant

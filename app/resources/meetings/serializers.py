@@ -249,3 +249,35 @@ class MeetingRSVPSerializer(serializers.ModelSerializer):
             'participant',
             'status',
         )
+
+
+class RescheduleRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.RescheduleRequest
+        fields = '__all__'
+
+
+class PostRescheduleRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.RescheduleRequest
+        fields = (
+            'old_meeting',
+            'requested_by',
+            'time_slots'
+        )
+
+    def create(self, validated_data):
+        """Handling create for RescheduleRequest object.
+
+        Note:
+            Update validated_data to have approver.
+
+        """
+        old_meeting = validated_data["old_meeting"]
+        approver = old_meeting.participants.all().exclude(
+            pk=validated_data["requested_by"].pk
+        ).first()
+        validated_data["approver"] = approver
+        return super(PostRescheduleRequestSerializer, self).create(validated_data=validated_data)
