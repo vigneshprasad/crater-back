@@ -265,7 +265,7 @@ class MeetingRSVPViewSet(
         detail=False,
     )
     def confirmed(self, request, *args, **kwargs):
-        request_data = request.body
+        request_data = request.data
         meeting_id = request_data.get("meeting")
         participant = request.user
 
@@ -288,7 +288,8 @@ class MeetingRSVPViewSet(
 
         # Send a signal which updates the status after RSVP is
         # updated.
-        signals.rsvp_status_updated(
+        signals.rsvp_status_updated.send(
+            sender=rsvp.__class__,
             user=request.user,
             rsvp=rsvp
         )
@@ -300,7 +301,7 @@ class MeetingRSVPViewSet(
         detail=False,
     )
     def cancelled(self, request, *args, **kwargs):
-        request_data = request.body
+        request_data = request.data
         meeting_id = request_data.get("meeting")
         participant = request.user
 
@@ -323,7 +324,8 @@ class MeetingRSVPViewSet(
 
         # Send a signal which updates the status after RSVP is
         # updated.
-        signals.rsvp_status_updated(
+        signals.rsvp_status_updated.send(
+            sender=rsvp.__class__,
             user=request.user,
             rsvp=rsvp
         )
