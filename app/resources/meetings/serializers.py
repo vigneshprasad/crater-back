@@ -205,11 +205,7 @@ class MeetingSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_is_past(meeting):
         now = datetime.datetime.now()
-        time_slot = datetime.datetime.combine(
-            meeting.time_slot.date,
-            meeting.time_slot.end_time
-        )
-        if time_slot >= now:
+        if meeting.end >= now:
             return False
         return True
 

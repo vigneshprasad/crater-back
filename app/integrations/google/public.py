@@ -1,5 +1,3 @@
-import datetime
-
 from integrations.google import calendar_services
 from integrations.google import models
 from integrations.google import private
@@ -7,15 +5,16 @@ from integrations.google import constants
 
 
 def create_calendar_event_for_meeting(meeting):
+    """Creates google calendar event for a meeting.
+
+    Args:
+        meeting(Meeting): Meeting object for which we have to
+            create the calendar event.
+
+    """
     users = meeting.participants.all()
-    start_datetime = datetime.datetime.combine(
-        date=meeting.time_slot.date,
-        time=meeting.time_slot.start_time
-    )
-    end_datetime = datetime.datetime.combine(
-        date=meeting.time_slot.date,
-        time=meeting.time_slot.end_time
-    )
+    start_datetime = meeting.local_start
+    end_datetime = meeting.local_end
     event_id, hangout_link = calendar_services.google_calendar_service.create_event(
         start_datetime,
         end_datetime,

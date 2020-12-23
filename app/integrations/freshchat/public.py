@@ -58,6 +58,7 @@ def send_meeting_time_confirmation(user, start_time, end_time):
     start_time = start_time.strftime('%I:%M %p')
     end_time = end_time.strftime('%I:%M %p')
     time = "{} - {}".format(start_time, end_time)
+
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_CONFIRMATION_WITH_EMAIL_SENT,

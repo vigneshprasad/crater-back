@@ -1,5 +1,7 @@
 import datetime
 
+import pytz
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core import exceptions
 from django.db import models
@@ -328,15 +330,6 @@ class Meeting(base_model.BaseModel):
         verbose_name=_('Participants'),
     )
     link = models.URLField(null=True, blank=True)
-    # TODO(Nishant): Remove once we completely start using start and end.
-    time_slot = models.ForeignKey(
-        'meetings.MeetingTimeSlot',
-        verbose_name=_('Meeting Time Slot'),
-        on_delete=models.CASCADE,
-        related_name='meetings'
-    )
-    # Will start using start and end fields instead of
-    # time_slots in the future.
     start = models.DateTimeField(
         verbose_name=_('Meeting Start Time'),
         null=True,
@@ -364,8 +357,63 @@ class Meeting(base_model.BaseModel):
 
     def __str__(self):
         member_str = " - ".join((self.participants.all().values_list("email", flat=True)))
-        time_str = self.start.strftime("%A %d, %b %I:%M %p")
+        time_str = self.start.strftime("%A %d, %B %I:%M %p")
         return "{} @ {}".format(member_str, time_str)
+
+    @property
+    def local_start(self):
+        """Return start in the local timezone."""
+        return self.start.astimezone(pytz.timezone(settings.TIME_ZONE))
+
+    @property
+    def local_end(self):
+        """Return start in the local timezone."""
+        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE))
+
+    def get_display(self):
+        """This is the display date time for a Meeting.
+            ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
+
+        """
+        display_time = self.get_display_time()
+        display_date = self.get_display_day()
+        return '{} @ {}'.format(display_date, display_time)
+
+    def get_display_day(self):
+        """Give a displayable date for a Meeting.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.start.strftime("%A, %d %B")
+
+    def get_display_time(self,):
+        """Give a displayable time (start plus end) for a Meeting.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return '{} - {}'.format(self.get_display_start_time(), self.get_display_end_time())
+
+    def get_display_start_time(self):
+        """Give a displayable start time for a Meeting.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.local_start.strftime("%I:%M %p")
+
+    def get_display_end_time(self):
+        """Give a displayable end time for a Meeting.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.local_end.strftime("%I:%M %p")
 
 
 class MeetingRSVP(base_model.BaseModel):

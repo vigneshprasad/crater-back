@@ -146,8 +146,8 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
         if not (p1.has_profile and p2.has_profile):
             continue
 
-        display_day = meeting.time_slot.get_display_day()
-        display_time = meeting.time_slot.get_display_time()
+        display_day = meeting.get_display_day()
+        display_time = meeting.get_display_time()
 
         subject = 'Introducing {} & {}'.format(
             p1.name.title(),
@@ -236,7 +236,7 @@ def send_active_meetings_data_to_analytics(meetings=None):
             signals.new_meeting_created.send(
                 sender=meeting.__class__,
                 user=participant,
-                time_slot=meeting.time_slot.__str__(),
+                time_slot=meeting.get_display(),
                 participants=participants_emails,
                 meeting_config=meeting.config.__str__(),
                 meeting_link=meeting.link,
@@ -276,7 +276,7 @@ def send_whatsapp_meeting_reminders(meetings=None):
         for participant in meeting.participants.all():
             freshchat_public.send_meeting_whatsapp_reminder_to_user(
                 participant,
-                meeting.time_slot.get_display_start_time()
+                meeting.get_display_start_time()
             )
 
 
@@ -368,17 +368,10 @@ def send_whatsapp_1_on_1_meeting_time_confirmation(meetings=None):
 
     for meeting in meetings:
         for participant in meeting.participants.all():
-            if meeting.start and meeting.end:
-                local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
-                local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
-            else:
-                local_start_datetime = datetime.datetime.combine(meeting.time_slot.date, meeting.time_slot.start_time)
-                local_end_datetime = datetime.datetime.combine(meeting.time_slot.date, meeting.time_slot.end_time)
-
             freshchat_public.send_meeting_time_confirmation(
                 participant,
-                local_start_datetime,
-                local_end_datetime
+                meeting.local_start,
+                meeting.local_end
             )
 
 
@@ -556,8 +549,8 @@ def _send_meeting_cancellation_email(meeting):
     to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
     subject = "1:1 Meeting Cancelled"
     template = choices.ONE_ON_ONE_MEETING_CANCELED_TEMPLATE
-    display_day = meeting.time_slot.get_display_day()
-    display_time = meeting.time_slot.get_display_time()
+    display_day = meeting.get_display_day()
+    display_time = meeting.get_display_time()
 
     if p1_rsvp_declined and p2_rsvp_declined:
         declined_string = "{} & {}".format(p1_rsvp.participant.email, p2_rsvp.participant.email)
