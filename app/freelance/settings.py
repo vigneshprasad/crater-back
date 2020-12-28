@@ -123,6 +123,8 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 REST_USE_JWT = True
 
+DEFAULT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+
 REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': (
     #     'rest_framework.permissions.IsAuthenticated',
@@ -134,7 +136,7 @@ REST_FRAMEWORK = {
         'users.authentication.JSONWebTokenAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DATETIME_FORMAT': "%Y-%m-%dT%H:%M:%S.%fZ",
+    'DATETIME_FORMAT': DEFAULT_DATETIME_FORMAT,
 }
 
 JWT_AUTH = {

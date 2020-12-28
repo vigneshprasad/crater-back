@@ -63,6 +63,8 @@ def create_meeting_config_for_time_period(
     Note:
         registration_start_date can be less than week_start_date.
 
+
+
     """
     if not time_slots:
         time_slots = create_default_time_slots(start_date, end_date)
@@ -278,8 +280,8 @@ def get_active_meetings(start_date=None, end_date=None):
     return models.Meeting.objects.filter(
         config__is_active=True,
         is_canceled=False,
-        time_slot__date__gte=start_date,
-        time_slot__date__lte=end_date,
+        start__gte=start_date,
+        end__lte=end_date
     )
 
 
