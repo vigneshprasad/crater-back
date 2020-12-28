@@ -163,7 +163,7 @@ def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
     """Update meeting status based on meeting rsvp status update."""
     meeting = rsvp.meeting
 
-    if rsvp.staus == choices.MEETING_RSVP_STATUS_NOT_ATTENDING:
+    if rsvp.status == choices.MEETING_RSVP_STATUS_NOT_ATTENDING:
         meeting.status = choices.MEETING_STATUS_CANCELLED
         meeting.save()
 
