@@ -210,40 +210,24 @@ class MeetingUserSerializer(serializers.ModelSerializer):
 
 
 class MeetingRSVPSerializer(serializers.ModelSerializer):
-    participant = MeetingUserSerializer()
-    objectives = serializers.SerializerMethodField(read_only=True)
-    interests = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.MeetingRSVP
         fields = (
             'pk',
-            'participant',
             'status',
-            'objectives',
-            'interests',
         )
-
-    @staticmethod
-    def get_objectives(rsvp):
-        return services.get_objectives_for_rsvp(rsvp)
-
-    @staticmethod
-    def get_interests(rsvp):
-        return services.get_interests_for_rsvp(rsvp)
 
 
 class MeetingSerializer(serializers.ModelSerializer):
     is_past = serializers.SerializerMethodField(read_only=True)
-    participants = MeetingUserSerializer(many=True)
-    rsvps = MeetingRSVPSerializer(many=True, read_only=True)
+    participants = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Meeting
         fields = [
             'pk',
             'config',
-            # TODO(Abhishek): Deprecate once app version 1.8.0 is stable
             'participants',
             'link',
             'time_slot',
@@ -251,7 +235,6 @@ class MeetingSerializer(serializers.ModelSerializer):
             'end',
             'is_canceled',
             'is_past',
-            'rsvps',
             'status',
         ]
 
@@ -265,6 +248,10 @@ class MeetingSerializer(serializers.ModelSerializer):
         if time_slot >= now:
             return False
         return True
+
+    @staticmethod
+    def get_participants(meeting):
+        return services.get_meeting_participant_with_rsvp(meeting)
 
 
 class MeetingConfigV2Serializer(serializers.ModelSerializer):
