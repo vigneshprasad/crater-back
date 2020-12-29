@@ -33,15 +33,12 @@ def run(
     ).last()
 
     if not meeting_config:
-        print('No inactive meeting')
+        print('No Active Meeting Config')
         return
 
     available_time_slots = meeting_config.available_time_slots.all()
 
     print('Meeting Config: ', meeting_config.pk)
-    print('Time Slots: ', ','.join(
-        [time_slot.get_display_time() for time_slot in available_time_slots]
-    ))
 
     for row in reader:
         print('Start', '-' * 80)

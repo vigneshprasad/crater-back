@@ -1,5 +1,6 @@
 import datetime
 
+from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -246,7 +247,6 @@ class MeetingSerializer(serializers.ModelSerializer):
             # TODO(Abhishek): Deprecate once app version 1.8.0 is stable
             'participants',
             'link',
-            'time_slot',
             'start',
             'end',
             'is_canceled',
@@ -257,10 +257,26 @@ class MeetingSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_is_past(meeting):
-        now = datetime.datetime.now()
+        now = timezone.now()
         if meeting.end >= now:
             return False
         return True
+
+
+class PublicMeetingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Meeting
+        fields = [
+            'pk',
+            'config',
+            'participants',
+            'link',
+            'start',
+            'end',
+            'is_canceled',
+            'status',
+        ]
 
 
 class MeetingConfigV2Serializer(serializers.ModelSerializer):

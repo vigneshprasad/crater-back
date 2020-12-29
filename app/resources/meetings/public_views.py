@@ -1,6 +1,7 @@
 import datetime
 import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -69,7 +70,7 @@ class MeetingPublicViewSet(
     viewsets.GenericViewSet
 ):
 
-    serializer_class = serializers.MeetingSerializer
+    serializer_class = serializers.PublicMeetingSerializer
     queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['config']
@@ -97,12 +98,6 @@ class MeetingPublicViewSet(
                 }
             )
 
-        time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
-            date=meeting_date,
-            start_time=start_time,
-            end_time=end_time
-        )
-
         meeting_config = services.get_current_week_meeting_config()
         if not meeting_config:
             return Response(
@@ -115,7 +110,6 @@ class MeetingPublicViewSet(
         data = {
             "config": meeting_config.id,
             "participants": data["participants"],
-            "time_slot": time_slot.id,
             "start": start,
             "end": end,
             "is_canceled": data.get("is_canceled", False)
@@ -124,28 +118,28 @@ class MeetingPublicViewSet(
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-
         return Response(serializer.data)
+
+
 
     def list(self, request, *args, **kwargs):
         response = super(MeetingPublicViewSet, self).list(request, *args, **kwargs)
         final_response = []
+
         for data in response.data:
             response_dict = dict(data)
             participants_emails = get_user_model().objects.filter(
                     uuid__in=response_dict["participants"]
                 ).values_list('email', flat=True)
-            time_slot = models.MeetingTimeSlot.objects.get(id=response_dict["time_slot"])
-            date = time_slot.date
-            start_time = time_slot.start_time
-            end_time = time_slot.end_time
+            start = datetime.datetime.strptime(response_dict["start"], settings.DEFAULT_DATETIME_FORMAT)
+            end = datetime.datetime.strptime(response_dict["end"], settings.DEFAULT_DATETIME_FORMAT)
             data = {
                 "id": response_dict["pk"],
-                "config": response_dict["meeting_config"],
+                "config": response_dict["config"],
                 "participants": ", ".join(participants_emails),
-                "meeting_date": date,
-                "start_time": start_time,
-                "end_time": end_time,
+                "meeting_date": start.date(),
+                "start_time": start.time(),
+                "end_time": end.time(),
                 "meeting_link": response_dict["link"],
                 "status": response_dict["status"],
                 "canceled": response_dict["is_canceled"]
