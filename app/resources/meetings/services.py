@@ -400,6 +400,8 @@ def get_interests_for_rsvp(rsvp):
 
     except models.MeetingPreference.DoesNotExist:
         return []
+
+
 def create_meeting(config, participants, start, end, status=choices.MEETING_STATUS_PENDING):
     """Creates meeting between participants.
 
