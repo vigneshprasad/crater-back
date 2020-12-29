@@ -441,7 +441,8 @@ def update_meeting_rsvp_status_from_google(meetings=None):
                 continue
             google_public.get_and_update_rsvp_status(rsvp)
             # Sending signal on status update of RSVP.
-            signals.rsvp_status_updated(
+            signals.rsvp_status_updated.send(
+                sender=rsvp.__class__,
                 user=rsvp.participant,
                 rsvp=rsvp
             )
