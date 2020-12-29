@@ -215,6 +215,8 @@ class MeetingRSVPSerializer(serializers.ModelSerializer):
         model = models.MeetingRSVP
         fields = (
             'pk',
+            'meeting',
+            'participant',
             'status',
         )
 
