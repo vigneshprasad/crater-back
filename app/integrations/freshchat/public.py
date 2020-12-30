@@ -5,7 +5,7 @@ from datetime import datetime
 
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
-from integrations.freshchat.services import create_public_url
+from integrations.freshchat.services import create_public_rsvp_url
 
 from freelance.settings import FRONT_URL, TIME_ZONE
 
@@ -104,7 +104,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
     start_time = local_start_datetime.strftime('%I:%M %p')
     end_time = local_end_datetime.strftime('%I:%M %p')
     time = "{} - {}".format(start_time, end_time)
-    url = create_public_url(user, meeting)
+    url = create_public_rsvp_url(user, meeting)
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
@@ -126,7 +126,7 @@ def send_meeting_rsvp_reminder(user, meeting):
 
     """
 
-    url = create_public_url(user, meeting)
+    url = create_public_rsvp_url(user, meeting)
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,

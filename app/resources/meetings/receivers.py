@@ -180,19 +180,18 @@ def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
 
 
 @receiver(signals.reschedule_request_approved)
-def create_new_meeting_on_reschedule_request_approval(sender, time_slot, *args, **kwargs):
+def create_new_meeting_on_reschedule_request_approval(sender, reschedule_request, time_slot, *args, **kwargs):
     """Create new meeting between participants once reschedule request is approved.
 
     Args:
-        sender(RescheduleRequest): reschedule request approved.
+        reschedule_request(RescheduleRequest): reschedule request approved.
         time_slot(datetime.datetime): time_slot decided for the rescheduled meeting.
 
     """
-    reschedule_request = sender
     old_meeting = reschedule_request.old_meeting
     start = time_slot
     end = time_slot + timezone.timedelta(minutes=30)
-    config = services.get_config_for_date(time_slot.date)
+    config = services.get_config_for_date(time_slot.date())
 
     new_meeting = services.create_meeting(
         config=config,
@@ -204,6 +203,19 @@ def create_new_meeting_on_reschedule_request_approval(sender, time_slot, *args, 
 
     reschedule_request.new_meeting = new_meeting
     reschedule_request.save()
+
+
+@receiver(signals.reschedule_request_declined)
+def cancel_meeting_on_reschedule_request_declined(sender, reschedule_request, *args, **kwargs):
+    """Cancel old meeting between participants once reschedule request is declined.
+
+    Args:
+        reschedule_request(RescheduleRequest): reschedule request declined.
+
+    """
+    meeting = reschedule_request.old_meeting
+    meeting.status = choices.MEETING_STATUS_CANCELLED
+    meeting.save()
 
 
 @receiver(post_save, sender=models.MeetingRSVP)

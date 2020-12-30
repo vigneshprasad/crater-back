@@ -56,3 +56,7 @@ reschedule_request_approved = Signal(providing_args=[
     "reschedule_request",
     "time_slot"
 ])
+
+reschedule_request_declined = Signal(providing_args=[
+    "reschedule_request",
+])

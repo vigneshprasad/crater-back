@@ -1,15 +1,20 @@
 import datetime
 import json
+import pytz
 
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, status
+from freelance.settings import TIME_ZONE
 
 from users import permissions
 from resources.meetings import models
 from resources.meetings import serializers
+from resources.meetings import choices
 from resources.meetings import services
+from resources.meetings import signals
+from cryptography.fernet import InvalidToken
 
 
 class MeetingConfigPublicViewSet(
@@ -258,3 +263,128 @@ class MeetingCommunicationViewSet(
     #         tasks.send_1_on_1_meeting_intro_emails()
     #
     #     return Response({'status': 'SUCCESS'})
+
+
+class RescheduleRequestPublicViewSet( 
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.RescheduleRequestSerializer
+    queryset = models.RescheduleRequest.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        data = request.query_params.get("reschedule")
+        try:
+            user, reschedule = services.get_reschedule_from_url(data)
+            if reschedule.approver.pk != user.pk:
+                return self.generate_bad_request({
+                    'error': 'You do not have permission to reschedule. Please contact WorkNetwork if you think this is a mistake.'
+                })
+
+            if reschedule.status != choices.RESCHEDULE_REQUEST_PENDING_APPROVAL:
+                return self.generate_bad_request({
+                    'error': 'You have already responded to this reschedule request.'
+                })
+
+            return Response(data=self.get_serializer(reschedule).data)
+
+        except InvalidToken:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except models.RescheduleRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except get_user_model().DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+
+    @action(
+        methods=['POST'],
+        detail=False
+    )
+    def confirmed(self, request, *args, **kwargs):
+        reschedule_request_id = request.data.get("id")
+        try:
+            selected_time_slot = datetime.datetime.strptime(
+                request.data["time_slot"], 
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+            
+        except ValueError:
+            return self.generate_bad_request(
+                {"error": "Invalid datetime format."}
+            )
+
+        #TODO: Clean up this timezone stuff (Nishant) 
+        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
+        selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
+
+        if not reschedule_request_id and selected_time_slot:
+            return self.generate_bad_request(
+                {"error": "Invalid request body. Missing id or time slots."}
+            )
+
+        try:
+            reschedule_request = models.RescheduleRequest.objects.get(
+                id=reschedule_request_id,
+            )
+        except models.RescheduleRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Reschedule request does not exist."}
+            )
+
+        if selected_time_slot not in reschedule_request.time_slots:
+            return self.generate_bad_request(
+                {"error": "Selected time slot is not a valid choice."}
+            )
+
+        reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
+        reschedule_request.save()
+
+        signals.reschedule_request_approved.send(
+            sender=reschedule_request.__class__,
+            reschedule_request=reschedule_request,
+            time_slot=selected_time_slot
+        )
+
+        return Response({"success": True})
+
+    @action(
+        methods=['POST'],
+        detail=False
+    )
+    def declined(self, request, *args, **kwargs):
+        reschedule_request_id = request.data.get("id")
+        
+        if not reschedule_request_id:
+            return self.generate_bad_request(
+                {"error": "Reschedule request does not exist. Please check the URL."}
+            )
+
+        try:
+            reschedule_request = models.RescheduleRequest.objects.get(
+                id=reschedule_request_id,
+            )
+        except models.RescheduleRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Reschedule request does not exist."}
+            )
+
+        reschedule_request.status = choices.RESCHEDULE_REQUEST_DECLINED
+        reschedule_request.save()
+
+        signals.reschedule_request_declined.send(
+            sender=reschedule_request.__class__,
+            reschedule_request=reschedule_request,
+        )
+
+        return Response({"success": True})
