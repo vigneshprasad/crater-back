@@ -366,7 +366,7 @@ class RescheduleRequestViewSet(
     def availability_slots(self, request, *args, **kwargs):
         # weekday_timeslot_map = choices.RESCHEDULE_WEEKDAY_TIME_SLOT_MAP
         return Response()
-
+        
     @action(
         methods=['POST'],
         detail=False
@@ -378,12 +378,16 @@ class RescheduleRequestViewSet(
         try:
             selected_time_slot = datetime.datetime.strptime(
                 request_data["time_slot"],
-                "%d/%m/%Y %H:%M"
+                "%Y-%m-%dT%H:%M:%S.%fZ"
             )
         except ValueError:
             return self.generate_bad_request(
                 {"error": "Invalid datetime format."}
             )
+
+        #TODO: Clean up this timezone stuff (Nishant) 
+        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
+        selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
 
         if not reschedule_request_id and selected_time_slot:
             return self.generate_bad_request(
@@ -408,9 +412,43 @@ class RescheduleRequestViewSet(
         reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
         reschedule_request.save()
 
-        signals.reschedule_request_approved(
+        signals.reschedule_request_approved.send(
+            sender=reschedule_request.__class__,
             reschedule_request=reschedule_request,
             time_slot=selected_time_slot
+        )
+
+        return Response({"success": True})
+
+    @action(
+        methods=['POST'],
+        detail=False
+    )
+    def declined(self, request, *args, **kwargs):
+        reschedule_request_id = request.data.get("id")
+        approver = request.user
+        
+        if not reschedule_request_id:
+            return self.generate_bad_request(
+                {"error": "Invalid request body. Missing id or time slots."}
+            )
+
+        try:
+            reschedule_request = models.RescheduleRequest.objects.get(
+                id=reschedule_request_id,
+                approver=approver
+            )
+        except models.RescheduleRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Reschedule request does not exist."}
+            )
+
+        reschedule_request.status = choices.RESCHEDULE_REQUEST_DECLINED
+        reschedule_request.save()
+
+        signals.reschedule_request_declined.send(
+            sender=reschedule_request.__class__,
+            reschedule_request=reschedule_request,
         )
 
         return Response({"success": True})

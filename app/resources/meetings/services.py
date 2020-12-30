@@ -469,9 +469,9 @@ def get_or_create_time_slot(start, end):
     local_end_datetime = end.replace(tzinfo=pytz.utc).astimezone(local_tz)
 
     time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
-        date=local_start_datetime.date,
-        start_time=local_start_datetime.time,
-        end_time=local_end_datetime.time
+        date=local_start_datetime.date(),
+        start_time=local_start_datetime.time(),
+        end_time=local_end_datetime.time()
     )
 
     return time_slot
@@ -486,3 +486,28 @@ def get_config_for_date(date):
     ).first()
 
     return config if config else get_current_week_meeting_config()
+
+
+def get_reschedule_from_url(query):
+    """
+    Get user and meeting object from the query string param of the url
+
+    Args:
+        query(String): query param from url created
+
+    Returns:
+        user(User): User object reference for rsvp
+        reschedule(RescheduleRequest): RescheduleRequest object reference
+
+    """
+    f = Fernet(FERNET_KEY)
+    decrypted_message = f.decrypt(query.encode()).decode()
+    [user_id, reschedule_id] = decrypted_message.split('|')
+    try:
+        user = get_user_model().objects.get(pk=user_id)
+        reschedule = models.RescheduleRequest.objects.get(pk=reschedule_id)
+        return user, reschedule
+    except models.RescheduleRequest.DoesNotExist:
+        raise models.RescheduleRequest.DoesNotExist
+    except get_user_model().DoesNotExist:
+        raise get_user_model().DoesNotExist
