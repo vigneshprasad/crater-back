@@ -402,6 +402,32 @@ def get_interests_for_rsvp(rsvp):
         return []
 
 
+def get_meeting_participant_with_rsvp(meeting):
+    data = []
+    for participant in meeting.participants.all():
+        participant_data = serializers.MeetingUserSerializer(participant).data
+        objectives = []
+        interests = []
+
+        try:
+            rsvp = models.MeetingRSVP.objects.get(participant=participant, meeting=meeting)
+            objectives = get_objectives_for_rsvp(rsvp)
+            interests = get_interests_for_rsvp(rsvp)
+            rsvp_data = serializers.MeetingRSVPSerializer(rsvp).data
+
+        except models.MeetingRSVP.DoesNotExist:
+            rsvp_data = None
+
+        data.append({
+            **participant_data,
+            'rsvp': rsvp_data,
+            'objectives': objectives,
+            'interests': interests,
+        })
+
+    return data
+
+
 def create_meeting(config, participants, start, end, status=choices.MEETING_STATUS_PENDING):
     """Creates meeting between participants.
 
