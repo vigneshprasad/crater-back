@@ -435,5 +435,3 @@ GOOGLE_API_CREDENTIALS = {
 
 SUPERPRO_BASE_URL = "https://roomsvc-dot-sprpro-282209.el.r.appspot.com"
 SUPERPRO_ACCESS_TOKEN = os.getenv('SUPERPRO_ACCESS_TOKEN', '')
-
-
