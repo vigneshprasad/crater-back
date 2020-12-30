@@ -30,8 +30,6 @@ def create_calendar_event_for_meeting(meeting):
         start_datetime,
         end_datetime,
         users,
-        summary=constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS,
-        description=constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS,
         meeting_link=meeting_link
     )
 

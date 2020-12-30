@@ -88,12 +88,11 @@ class GoogleCalendarService:
         request_id = str(uuid.uuid4())
 
         # Calculate description based on if we have a meeting link or not.
-        if not description:
-            description = (constants.DESCRIPTION_WITH_MEETING_FOR_MEETING_EVENTS.format(meeting_link)
-                           if meeting_link else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS)
+        summary = summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS
+        description = description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS
 
         request_body = {
-            "summary": summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS,
+            "summary": summary,
             "description": description,
             "start": {
                 "dateTime": start_datetime.isoformat(),
@@ -107,9 +106,27 @@ class GoogleCalendarService:
             "attendees": [{"email": user.email} for user in users]
         }
 
-        # Adding conference data for Google Meets link if there is no
-        # meeting link provided.
-        if not meeting_link:
+        # Changing the request body based on if we have external meeting link
+        # or we are using Google Meets.
+        if meeting_link:
+            request_body["conferenceData"] = {
+                "conferenceSolution": {
+                    "name": "1:1 Meeting",
+                    "key": {
+                        "type": constants.ADD_ON_LINK
+                    },
+                    # TODO(Nishant): Change this from default Google Meets icon to our icon.
+                    "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
+                },
+                "entryPoints": [
+                    {
+                        "entryPointType": "video",
+                        "label": meeting_link,
+                        "uri": meeting_link
+                    }
+                ]
+            }
+        else:
             request_body["conferenceData"] = {
                 "createRequest": {
                     "conferenceSolutionKey": {

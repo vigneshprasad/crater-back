@@ -32,6 +32,7 @@ DESCRIPTION_WITH_MEETING_FOR_MEETING_EVENTS = "Hi, your 1:1 meeting has been sch
 
 DEFAULT_TIMEZONE = "Asia/Kolkata"
 HANGOUT_MEET = "hangoutsMeet"
+ADD_ON_LINK = "addOn"
 
 
 CALENDAR_RESPONSE_STATUSES = (
