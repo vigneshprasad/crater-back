@@ -367,7 +367,7 @@ class RescheduleRequestPublicViewSet(
         
         if not reschedule_request_id:
             return self.generate_bad_request(
-                {"error": "Invalid request body. Missing id or time slots."}
+                {"error": "Reschedule request does not exist. Please check the URL."}
             )
 
         try:
