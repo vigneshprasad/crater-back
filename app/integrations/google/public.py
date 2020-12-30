@@ -4,10 +4,18 @@ from integrations.google import calendar_services
 from integrations.google import models
 from integrations.google import private
 from integrations.google import constants
+from integrations.superpro import public as superpro_public
 
 
 def create_calendar_event_for_meeting(meeting):
+    """Create a calendar event on WorkNetwork calendar for a meeting.
+
+    Args:
+        meeting(Meeting): Meeting object.
+
+    """
     users = meeting.participants.all()
+
     start_datetime = datetime.datetime.combine(
         date=meeting.time_slot.date,
         time=meeting.time_slot.start_time
@@ -16,13 +24,15 @@ def create_calendar_event_for_meeting(meeting):
         date=meeting.time_slot.date,
         time=meeting.time_slot.end_time
     )
-    event_id, hangout_link = calendar_services.google_calendar_service.create_event(
+    # Create meeting link using superpro.
+    meeting_link = superpro_public.create_meeting_link(meeting)
+    event_id, meeting_link = calendar_services.google_calendar_service.create_event(
         start_datetime,
         end_datetime,
         users,
-        meeting,
         summary=constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS,
         description=constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS,
+        meeting_link=meeting_link
     )
 
     # Creating model entries for each user.
@@ -30,13 +40,13 @@ def create_calendar_event_for_meeting(meeting):
         models.GoogleCalendarEvent.objects.create(
             user=user,
             meeting_id=meeting.id,
-            meeting_link=hangout_link,
+            meeting_link=meeting_link,
             event_id=event_id,
             starts_at=start_datetime,
             ends_at=end_datetime
         )
 
-    return hangout_link
+    return meeting_link
 
 
 def get_and_update_rsvp_status(meeting_rsvp):

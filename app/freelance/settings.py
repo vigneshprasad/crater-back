@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     'community.posts',
     'integrations.freshchat',
     'integrations.google',
+    'integrations.superpro',
     'resources.events',
     'resources.curated_articles',
     'resources.masterclasses',
@@ -430,3 +431,8 @@ GOOGLE_API_CREDENTIALS = {
   "auth_provider_x509_cert_url": GOOGLE_API_AUTH_PROVIDER_CERT_URL,
   "client_x509_cert_url": GOOGLE_API_CLIENT_CERT_URL
 }
+
+
+SUPERPRO_BASE_URL = "https://roomsvc-dot-sprpro-282209.el.r.appspot.com"
+SUPERPRO_DEV_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ3b3JrbmV0d29yayIsImJ1c2luZXNzSWQiOiI5d2pxVjBqbHdCOVZ6Qlc4aTZsVCIsIm1vZGUiOiJkZXYiLCJhY2Nlc3NMZXZlbCI6IjAiLCJ2aWRTdWJEb21haW4iOiJodHRwczovL3dvcmtudmMtZG90LWRldmdvbWVycnkuZWwuci5hcHBzcG90LmNvbSIsImlhdCI6MTYwODAxODQ5MH0.c7Yn6BePR4pO2N45SgjIqtsp4LNxIGaEoOQ5D2myzmBL4D9hp3ORKewIafuUm9TN9uK291AwsS47-RKuzv-NbUcRWJxAVnXqPbm4xsiQCehUagWMsl7eHOlzA-geQjGc8KJiS8RwMpOdIYny8d7ilkQ2hsMy2Mzw7pjpCZvTUaE"
+SUPERPRO_PROD_TOKEN = ""

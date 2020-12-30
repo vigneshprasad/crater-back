@@ -1,0 +1,5 @@
+DEFAULT_MEETING_ROLE = "host"
+USER_ADD_KEY = "usersAdd"
+
+VIDEO_CALL_URI_RESPONSE_KEY = "videoCallUrl"
+VIDEO_CALL_ID_RESPONSE_KEY = "videoCallId"
