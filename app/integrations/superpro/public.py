@@ -14,6 +14,9 @@ def create_meeting_link(meeting):
 
     # Creating model entry for the Meeting room created.
     for user in users:
+        # In case we got a bad response from SuperPro.
+        if not video_call_id and video_call_uri:
+            continue
         models.VideoCall.objects.create(
             user=user,
             video_call_id=video_call_id,
