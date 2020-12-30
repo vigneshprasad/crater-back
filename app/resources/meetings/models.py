@@ -330,6 +330,13 @@ class Meeting(base_model.BaseModel):
         verbose_name=_('Participants'),
     )
     link = models.URLField(null=True, blank=True)
+    # TODO(Nishant): Remove once we completely start using start and end.
+    time_slot = models.ForeignKey(
+        'meetings.MeetingTimeSlot',
+        verbose_name=_('Meeting Time Slot'),
+        on_delete=models.CASCADE,
+        related_name='meetings'
+    )
     start = models.DateTimeField(
         verbose_name=_('Meeting Start Time'),
         null=True,
