@@ -1,4 +1,5 @@
-from integrations.superpro.service import superpro_test_service
+from integrations.superpro.service import superpro_service
+from integrations.superpro import models
 
 
 def create_meeting_link(meeting):
@@ -9,5 +10,14 @@ def create_meeting_link(meeting):
 
     """
     users = meeting.participants.all()
-    meeting_link = superpro_test_service.create_video_call(users)
-    return meeting_link
+    video_call_id, video_call_uri = superpro_service.create_video_call(users)
+
+    # Creating model entry for the Meeting room created.
+    for user in users:
+        models.VideoCall.objects.create(
+            user=user,
+            video_call_id=video_call_id,
+            video_call_uri=video_call_uri
+        )
+
+    return video_call_uri

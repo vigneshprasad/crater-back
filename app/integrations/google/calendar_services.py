@@ -109,6 +109,7 @@ class GoogleCalendarService:
         # Changing the request body based on if we have external meeting link
         # or we are using Google Meets.
         if meeting_link:
+
             request_body["conferenceData"] = {
                 "conferenceSolution": {
                     "name": "1:1 Meeting",

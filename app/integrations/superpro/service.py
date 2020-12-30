@@ -1,8 +1,6 @@
 import requests
 from json import JSONDecodeError
 
-from django.conf import settings
-
 from integrations.superpro import constants
 
 
@@ -43,7 +41,7 @@ class SuperProService:
             )
 
         response = requests.post(
-            url=settings.SUPERPRO_BASE_URL + self.API_ENDPOINTS[VIDEO_CALL_CREATE],
+            url=constants.SUPERPRO_BASE_URL + self.API_ENDPOINTS[VIDEO_CALL_CREATE],
             headers=self._get_authorization_headers(),
             json=data
         )
@@ -52,15 +50,11 @@ class SuperProService:
         except JSONDecodeError:
             response_json = {}
 
-        return response_json.get(constants.VIDEO_CALL_URI_RESPONSE_KEY)
+        return response_json.get(constants.VIDEO_CALL_ID_RESPONSE_KEY), response_json.get(constants.VIDEO_CALL_URI_RESPONSE_KEY)
 
-
-superpro_test_service = SuperProService(
-    access_token=settings.SUPERPRO_DEV_TOKEN,
-)
 
 # This is actual production service. It will create actual
 # URI's for video calls.
 superpro_service = SuperProService(
-    access_token=settings.SUPERPRO_DEV_TOKEN,
+    access_token=constants.SUPERPRO_ACCESS_TOKEN,
 )
