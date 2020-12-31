@@ -236,7 +236,7 @@ class MeetingRSVPViewSet(
 
         try:
             user, meeting = services.get_user_meeting_from_url(data)
-            if meeting.is_canceled:
+            if meeting.status == choices.MEETING_STATUS_CANCELLED:
                 return self.generate_bad_request({
                     'error': 'This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake.'
                 })

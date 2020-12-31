@@ -116,16 +116,13 @@ class MeetingPublicViewSet(
             "config": meeting_config.id,
             "participants": data["participants"],
             "start": start,
-            "end": end,
-            "is_canceled": data.get("is_canceled", False)
+            "end": end
         }
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(serializer.data)
-
-
 
     def list(self, request, *args, **kwargs):
         response = super(MeetingPublicViewSet, self).list(request, *args, **kwargs)
@@ -147,7 +144,6 @@ class MeetingPublicViewSet(
                 "end_time": end.time(),
                 "meeting_link": response_dict["link"],
                 "status": response_dict["status"],
-                "canceled": response_dict["is_canceled"]
             }
             final_response.append(data)
 
@@ -195,7 +191,6 @@ class MeetingPublicViewSet(
                 "end_time": end_time,
                 "meeting_link": meeting_link,
                 "status": response_dict.get("status"),
-                "canceled": response_dict.get("is_canceled")
             }
             final_response.append(user_data)
 
@@ -318,7 +313,7 @@ class RescheduleRequestPublicViewSet(
                 {"error": "Invalid datetime format."}
             )
 
-        #TODO: Clean up this timezone stuff (Nishant) 
+        # TODO(Nishant): Clean up this timezone stuff.
         selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
         selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
 

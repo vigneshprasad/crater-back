@@ -263,7 +263,6 @@ class PublicMeetingSerializer(serializers.ModelSerializer):
             'link',
             'start',
             'end',
-            'is_canceled',
             'status',
         ]
 

@@ -260,10 +260,9 @@ def send_whatsapp_meeting_reminders(meetings=None):
 
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
-        is_canceled=False,
         start__gt=start_datetime,
         end__lte=end_datetime
-    ) if not meetings else meetings
+    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
 
     logging.info("Sending reminders for meetings between {} - {}. Meetings count: {}".format(
             start_datetime, end_datetime, meetings.count()
@@ -309,10 +308,9 @@ def send_1_on_1_feedback_emails(meetings=None):
 
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
-        is_canceled=False,
         start__gte=start_datetime,
         end__lt=end_datetime
-    ) if not meetings else meetings
+    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
 
     logging.info("Sending feedback emails for meetings between {} - {}. Meetings count: {}".format(
             start_datetime, end_datetime, meetings.count()
@@ -404,11 +402,10 @@ def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
 
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
-        is_canceled=False,
         start__year=date.year,
         start__month=date.month,
         start__day=date.day,
-    ) if not meetings else meetings
+    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
 
     logging.info("Sending rsvp reminders for meetings on {}. Meetings count: {}".format(
         date, meetings.count()
@@ -460,16 +457,15 @@ def cancel_meetings_for_no_rsvp(meetings=None):
 
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
-        is_canceled=False,
         start__year=today.year,
         start__month=today.month,
         start__day=today.day,
-    ) if not meetings else meetings
+    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
 
     for meeting in meetings:
         for rsvp in meeting.rsvps.all():
             if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
-                meeting.is_canceled = True
+                meeting.status = choices.MEETING_STATUS_CANCELLED
                 meeting.save()
                 _send_meeting_cancellation_email(meeting)
                 break
@@ -487,10 +483,9 @@ def send_weekly_meeting_rewards_email(users=None):
         week_end_date = now - datetime.timedelta(days=1)
 
         meetings = user.meeting_set.filter(
-            is_canceled=False,
             start__gte=week_start_date,
             end__lte=week_end_date,
-        )
+        ).exclude(status=choices.MEETING_STATUS_CANCELLED)
 
         # If no meetings last week. continue
         if not meetings:
