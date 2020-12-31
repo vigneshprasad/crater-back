@@ -25,7 +25,11 @@ class TopMatchesPublicViewSet(
     permission_classes = [permissions.AllowAny]
 
     def list(self, request, *args, **kwargs):
+        # Handling error where retool send "null" as the user_id string.
         user_id = request.query_params.get("user_id")
+        if user_id in constants.NULL_STRINGS:
+            user_id = None
+
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
