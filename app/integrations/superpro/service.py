@@ -13,11 +13,11 @@ class SuperProService:
         VIDEO_CALL_CREATE: "/videocallstart",
     }
 
-    def __init__(self, access_token,):
+    def __init__(self, access_token):
         self.access_token = access_token
 
     def _get_authorization_headers(self):
-        """Create authorization headers for FreshChat services."""
+        """Create authorization headers for SuperPro services."""
         return {
             "Accept": "application/json",
             "Authorization": "Bearer {}".format(
