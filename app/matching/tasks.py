@@ -6,7 +6,7 @@ from matching import models
 from resources.meetings import services as meeting_service
 
 
-@periodic_task(run_every=crontab(hour='18', minute='30'))
+# @periodic_task(run_every=crontab(hour='18', minute='30'))
 def create_daily_best_matches_for_opted_in_users():
     """Creates best matches for all opted in user's daily."""
     opted_in_users = meeting_service.get_opted_in_user_for_meetings()
