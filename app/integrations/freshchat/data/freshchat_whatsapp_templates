@@ -36,7 +36,7 @@ Since you opted in for a 1:1 meeting. Wanted to confirm if you would like to hav
 
 10.registration_confirmation
 Hey,
-Thank you for registering for a 1:1 networking meeting with WorkNetwork. We will organize the meeting based on the preferences you shared & share the details on {1}
+Thank you for registering for a 1:1 networking meeting with WorkNetwork. We will organize the meeting based on the preferences you shared & share the details on {{1}}
 
 11.confirmation_of_1:1_intent
 Hey, 
@@ -44,16 +44,20 @@ I wanted to check in to see if you would like to opt-in for a 1:1 networking mee
 
 12.meeting_confirmation_email
 Hey, 
-We have set up your 1:1 meeting for {1} at {2}. We have sent an email with an introduction to your match, alongside the meeting link & other details.
+We have set up your 1:1 meeting for {{1}} at {{2}}. We have sent an email with an introduction to your match, alongside the meeting link & other details.
 
 13. meeting_confirmation_link
 Hey,
-We have set up your 1:1 meeting for {1} at {2}. The meeting details have been shared on the app & via email. Please click on the following link to confirm the meeting {3}. To reschedule please use the email thread or chat created.
+We have set up your 1:1 meeting for {{1}} at {{2}}. The meeting details have been shared on the app & via email. Please click on the following link to confirm the meeting {{3}}. To reschedule please use the email thread or chat created.
 
 14. meeting_unconfirmed_link
 Hey,
-We have not received a confirmation from you for the upcoming 1:1 meeting. Please click on the following link to confirm {1}. To reschedule please use the email thread or chat created.
+We have not received a confirmation from you for the upcoming 1:1 meeting. Please click on the following link to confirm {{1}}. To reschedule please use the email thread or chat created.
 
 15. meeting_reminder_link
 Hey,
-Just a quick reminder about your upcoming meeting at {1} today. Both you & your match have confirmed. If you need to re-schedule or contact your match, please use the email thread or mobile chat.
+Just a quick reminder about your upcoming meeting at {{1}} today. Both you & your match have confirmed. If you need to re-schedule or contact your match, please use the email thread or mobile chat.
+
+16. meeting_has_been_confirmed
+Hey, 
+Your 1:1 meeting with {{1}} has been set up for {{2}}. The profile details, meeting link and reschedule options are available on {{3}}. Please RSVP by {{4}}

@@ -257,7 +257,13 @@ def update_meeting_status_to_rescheduled(sender, instance, created, *args, **kwa
     if not created:
         return
 
+    creator = instance.requested_by
     meeting = instance.old_meeting
+    for rsvp in meeting.rsvps.all():
+        if rsvp.participant == creator:
+            rsvp.status = choices.MEETING_RSVP_STATUS_RESCHEDULE
+            rsvp.save()
+    
     meeting.status = choices.MEETING_STATUS_RESCHEDULED
     meeting.save()
 
