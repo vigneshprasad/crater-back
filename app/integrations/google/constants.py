@@ -14,14 +14,25 @@ SEND_UPDATE_TO_ALL = "all"
 CALENDAR_SCOPES = [
     "https://www.googleapis.com/auth/calendar"
 ]
+
 DEFAULT_SUMMARY_FOR_MEETING_EVENTS = "1:1_Professional Networking_WorkNetwork"
+
 DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS = "Hi, your 1:1 meeting has been scheduled for the above time. Please view " \
                                          "your inbox for an introduction to your match, their profile & the meeting " \
                                          "details ( an email from keziah@worknetwork.in would have been received). " \
                                          "In case you need to reschedule your meeting or for any other update, " \
                                          "please send an email on that thread to all participants. "
+
+DESCRIPTION_WITH_MEETING_FOR_MEETING_EVENTS = "Hi, your 1:1 meeting has been scheduled for the above time. Please view " \
+                                         "your inbox for an introduction to your match, their profile & the meeting " \
+                                         "details ( an email from keziah@worknetwork.in would have been received). " \
+                                         "In case you need to reschedule your meeting or for any other update, " \
+                                         "please send an email on that thread to all participants." \
+                                         "Join meeting using this link: {} "
+
 DEFAULT_TIMEZONE = "Asia/Kolkata"
 HANGOUT_MEET = "hangoutsMeet"
+ADD_ON_LINK = "addOn"
 
 
 CALENDAR_RESPONSE_STATUSES = (

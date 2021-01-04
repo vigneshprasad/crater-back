@@ -190,6 +190,9 @@ def get_interest_objective_to_tag_score_for_users(user1, user2):
                 interest_objective_map.append("{} - {}".format(new_interest, new_objective))
 
         to_user = user2 if user == user1 else user1
+        if not to_user.has_profile:
+            return 0
+
         to_user_tags = to_user.profile.tags.all().values_list("name", flat=True)
         to_user_tags_count = to_user_tags.count()
 
