@@ -366,10 +366,10 @@ def get_objectives_for_rsvp(rsvp):
 
     """
     try:
-        preference = models.MeetingPreference.objects.get(
+        preference = models.MeetingPreference.objects.filter(
             user=rsvp.participant,
             meeting=rsvp.meeting.config,
-        )
+        ).last()
         objectives = preference.objectives
         serialized = serializers.MeetingObjectiveSerializer(objectives, many=True)
         return serialized.data
