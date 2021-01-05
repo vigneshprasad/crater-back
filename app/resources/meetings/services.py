@@ -369,7 +369,7 @@ def get_objectives_for_rsvp(rsvp):
         preference = models.MeetingPreference.objects.filter(
             user=rsvp.participant,
             meeting=rsvp.meeting.config,
-        ).last()
+        ).first()
         objectives = preference.objectives
         serialized = serializers.MeetingObjectiveSerializer(objectives, many=True)
         return serialized.data
