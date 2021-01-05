@@ -100,7 +100,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
     local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
     local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
 
-    other_user_name = meeting.participants.all().exclude(
+    matched_user = meeting.participants.all().exclude(
             pk=user.pk
         ).first().get_display_first_name()
     date = meeting.start.strftime('%a, %d %b %Y')
@@ -113,7 +113,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
         user=user,
         template_name=constants.MEETING_CONFIRMATION_RSVP,
         template_data=[
-            {"data": other_user_name},
+            {"data": matched_user},
             {"data": date_time},
             {"data": constants.MEETING_INFO_AVAILABILITY},
             {"data": url},
