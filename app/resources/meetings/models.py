@@ -371,9 +371,6 @@ class Meeting(base_model.BaseModel):
             time_str = self.time_slot.get_display()
         return "{} @ {}".format(member_str, time_str)
 
-
-
-
     @property
     def local_start(self):
         """Return start in the local timezone."""
