@@ -15,10 +15,12 @@ MEETING_REMINDER_FRESHCHAT_TEMPLATE = "meeting_reminder_link"
 MEETING_OPT_IN_REMINDER_TEMPLATE = "confirming_meeting"
 MEETING_CONFIRMATION_INTENT = "confirmation_of_11_intent"
 MEETING_CONFIRMATION_RSVP_LINK = "meeting_confirmation_link"
+MEETING_CONFIRMATION_RSVP = "meeting_has_been_confirmed"
 MEETING_REMINDER_RSVP_LINK = "meeting_unconfirmed_link"
 FRESHCHAT_DEFAULT_PROVIDER = "whatsapp"
 REGISTRATION_CONFIRMATION = "registration_confirmation"
 
+MEETING_INFO_AVAILABILITY = "on the email thread and mobile app"
 
 # Freshchat API responses.
 FRESHCHAT_STATUS_SUCCESS = 200

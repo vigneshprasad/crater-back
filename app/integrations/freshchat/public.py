@@ -101,18 +101,22 @@ def send_meeting_confirmation_rsvp(user, meeting):
     local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
     local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
 
+    matched_user = meeting.participants.all().exclude(
+            pk=user.pk
+        ).first().get_display_first_name()
     date = meeting.start.strftime('%a, %d %b %Y')
     start_time = local_start_datetime.strftime('%I:%M %p')
     end_time = local_end_datetime.strftime('%I:%M %p')
-    time = "{} - {}".format(start_time, end_time)
-    url = create_public_rsvp_url(user, meeting)
+    date_time = "{} - {}, {}".format(start_time, end_time, date)
+    url = "clicking here - {}".format(create_public_rsvp_url(user, meeting))
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.MEETING_CONFIRMATION_RSVP_LINK,
+        template_name=constants.MEETING_CONFIRMATION_RSVP,
         template_data=[
-            {"data": date},
-            {"data": time},
+            {"data": matched_user},
+            {"data": date_time},
+            {"data": constants.MEETING_INFO_AVAILABILITY},
             {"data": url},
         ]
     )
