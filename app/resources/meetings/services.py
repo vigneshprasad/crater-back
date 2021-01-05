@@ -388,17 +388,16 @@ def get_interests_for_rsvp(rsvp):
         Serialized List of Meeting interests
 
     """
-    try:
-        preference = models.MeetingPreference.objects.get(
-            user=rsvp.participant,
-            meeting=rsvp.meeting.config,
-        )
-        interests = preference.interests
-        serialized = serializers.MeetingInterestSerializer(interests, many=True)
-        return serialized.data
-
-    except models.MeetingPreference.DoesNotExist:
+    preference = models.MeetingPreference.objects.filter(
+        user=rsvp.participant,
+        meeting=rsvp.meeting.config,
+    ).first()
+    if not preference:
         return []
+
+    interests = preference.interests
+    serialized = serializers.MeetingInterestSerializer(interests, many=True)
+    return serialized.data
 
 
 def get_meeting_participant_with_rsvp(meeting):
