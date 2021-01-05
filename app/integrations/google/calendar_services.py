@@ -109,7 +109,6 @@ class GoogleCalendarService:
         # Changing the request body based on if we have external meeting link
         # or we are using Google Meets.
         if meeting_link:
-
             request_body["conferenceData"] = {
                 "conferenceSolution": {
                     "name": "1:1 Meeting",
@@ -117,7 +116,7 @@ class GoogleCalendarService:
                         "type": constants.ADD_ON_LINK
                     },
                     # TODO(Nishant): Change this from default Google Meets icon to our icon.
-                    "iconUri": "https://worknetwork.in/images/icons/svg/logo.svg"
+                    "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
                 },
                 "entryPoints": [
                     {
