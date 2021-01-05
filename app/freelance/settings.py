@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     'community.posts',
     'integrations.freshchat',
     'integrations.google',
+    'integrations.superpro',
     'resources.events',
     'resources.curated_articles',
     'resources.masterclasses',
@@ -432,3 +433,7 @@ GOOGLE_API_CREDENTIALS = {
   "auth_provider_x509_cert_url": GOOGLE_API_AUTH_PROVIDER_CERT_URL,
   "client_x509_cert_url": GOOGLE_API_CLIENT_CERT_URL
 }
+
+
+SUPERPRO_BASE_URL = "https://roomsvc-dot-sprpro-282209.el.r.appspot.com"
+SUPERPRO_ACCESS_TOKEN = os.getenv('SUPERPRO_ACCESS_TOKEN', '')

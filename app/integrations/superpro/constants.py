@@ -1,0 +1,11 @@
+from django.conf import settings
+
+DEFAULT_MEETING_ROLE = "host"
+USER_ADD_KEY = "usersAdd"
+
+VIDEO_CALL_URI_RESPONSE_KEY = "videoCallUrl"
+VIDEO_CALL_ID_RESPONSE_KEY = "videoCallId"
+
+
+SUPERPRO_BASE_URL = settings.SUPERPRO_BASE_URL
+SUPERPRO_ACCESS_TOKEN = settings.SUPERPRO_ACCESS_TOKEN
