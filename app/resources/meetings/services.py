@@ -365,17 +365,16 @@ def get_objectives_for_rsvp(rsvp):
         Serialized List of Meeting objectives
 
     """
-    try:
-        preference = models.MeetingPreference.objects.filter(
-            user=rsvp.participant,
-            meeting=rsvp.meeting.config,
-        ).first()
-        objectives = preference.objectives
-        serialized = serializers.MeetingObjectiveSerializer(objectives, many=True)
-        return serialized.data
-
-    except models.MeetingPreference.DoesNotExist:
+    preference = models.MeetingPreference.objects.filter(
+        user=rsvp.participant,
+        meeting=rsvp.meeting.config,
+    ).first()
+    if not preference:
         return []
+
+    objectives = preference.objectives
+    serialized = serializers.MeetingObjectiveSerializer(objectives, many=True)
+    return serialized.data
 
 
 def get_interests_for_rsvp(rsvp):
