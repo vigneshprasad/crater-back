@@ -25,7 +25,7 @@ REGISTRATION_CONFIRMATION = "registration_confirmation"
 
 MEETING_REGISTRATION_TEMPLATE = "confirmation_of_registration_updated"
 MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER = "1:1 meetings"
-MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT = "Meeting Interesting People"
+MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT = "Meet Interesting People"
 
 # Meeting rsvp confirmation constants.
 MEETING_CONFIRMATION_TEMPLATE = "meeting_has_been_confirmed"
@@ -33,7 +33,7 @@ MEETING_INFO_AVAILABILITY = "on the email thread and mobile app"
 
 # Meeting cancellation constants.
 MEETING_CANCELLATION_TEMPLATE = "cancellation_of_meeting"
-MEETING_CANCELLATION_FALL_BACK = "if you believe this to be a mistake & have spoken to your match: please disregard the message"
+MEETING_CANCELLATION_FALL_BACK = " if you believe this to be a mistake & have spoken to your match: please disregard the message"
 
 # Reminder message constants.
 MEETING_REMINDER_TEMPLATE = "reminder_of_upcoming_meeting"

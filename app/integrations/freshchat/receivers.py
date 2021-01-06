@@ -37,25 +37,38 @@ def send_registration_confirmation(sender, user, **kwargs):
     if not created:
         return
 
-    meeting_preference = sender
-
-    looking_for_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
-    looking_to_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[1][0]).first()
-
-    objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
-        if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
-
-    logging.info("Send a message to a user who has created a meeting preference".format(user.email))
+    logging.info("Send a message to a user who has created a meeting preference".format(
+        user.email,
+    ))
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.MEETING_REGISTRATION_TEMPLATE,
+        template_name=constants.REGISTRATION_CONFIRMATION,
         template_data=[
-            {"data": constants.MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER},
-            {"data": objectives_str},
-            {"data": "the mobile app here: {}".format(tiny_url_service.shorten(constants.APPSFLYER_APP_LINK))}
+            {"data": 'https://{}/meetings'.format(settings.FRONT_URL)}
         ]
     )
+
+    # meeting_preference_id = sender.id
+    # meeting_preference = models.MeetingPreference.objects.get(id=meeting_preference_id)
+    #
+    # looking_for_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
+    # looking_to_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[1][0]).first()
+    #
+    # objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
+    #     if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
+    #
+    # logging.info("Send a message to a user who has created a meeting preference".format(user.email))
+    #
+    # freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    #     user=user,
+    #     template_name=constants.MEETING_REGISTRATION_TEMPLATE,
+    #     template_data=[
+    #         {"data": constants.MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER},
+    #         {"data": objectives_str},
+    #         {"data": "the mobile app here: {}".format(tiny_url_service.shorten(constants.APPSFLYER_APP_LINK))}
+    #     ]
+    # )
 
 
 @receiver(meeting_signals.meeting_marked_cancelled)
@@ -74,7 +87,7 @@ def send_meeting_cancellation_message(sender, user, meeting, *args, **kwargs):
             user=participant,
             template_name=constants.MEETING_CANCELLATION_TEMPLATE,
             template_data=[
-                {"data": "you" if (user.pk == participant.pk) else participant.get_display_first_name()},
+                {"data": "you" if (user.pk == participant.pk) else user.get_display_first_name()},
                 {"data": constants.MEETING_CANCELLATION_FALL_BACK}
             ]
         )
