@@ -9,6 +9,8 @@ from integrations.freshchat import freshchat_service
 from integrations.freshchat import tasks
 from resources.meetings import signals as meeting_signals
 from resources.meetings import choices as meeting_constants
+from utils.tiny_url_service import tiny_url_service
+
 
 @receiver(user_signals.user_updated)
 def create_or_update_freshchat_user(sender, user, *args, **kwargs):
@@ -51,7 +53,7 @@ def send_registration_confirmation(sender, user, **kwargs):
         template_data=[
             {"data": constants.MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER},
             {"data": objectives_str},
-            {"data": "the mobile app here: {}".format(constants.APPSFLYER_APP_LINK)}
+            {"data": "the mobile app here: {}".format(tiny_url_service.shorten(constants.APPSFLYER_APP_LINK))}
         ]
     )
 
