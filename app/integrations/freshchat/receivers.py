@@ -37,11 +37,11 @@ def send_registration_confirmation(sender, user, **kwargs):
 
     meeting_preference = sender
 
-    looking_for_objectives = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
-    looking_to_objectives = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[1][0]).first()
+    looking_for_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
+    looking_to_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[1][0]).first()
 
-    objectives_str = "{} & {}".format(looking_for_objectives, looking_to_objectives) \
-        if (looking_for_objectives and looking_to_objectives) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
+    objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
+        if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
 
     logging.info("Send a message to a user who has created a meeting preference".format(user.email))
 
