@@ -8,7 +8,7 @@ from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat import tasks
 from resources.meetings import signals as meeting_signals
-
+from resources.meetings import choices as meeting_constants
 
 @receiver(user_signals.user_updated)
 def create_or_update_freshchat_user(sender, user, *args, **kwargs):
@@ -31,17 +31,27 @@ def send_registration_confirmation(sender, user, **kwargs):
         user registers for a meeting.
 
     """
-    created = kwargs.pop('created', None)
+    created = kwargs.pop("created", None)
     if not created:
         return
+
+    meeting_preference = sender
+
+    looking_for_objectives = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
+    looking_to_objectives = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[1][0]).first()
+
+    objectives_str = "{} & {}".format(looking_for_objectives, looking_to_objectives) \
+        if (looking_for_objectives and looking_to_objectives) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
 
     logging.info("Send a message to a user who has created a meeting preference".format(user.email))
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.REGISTRATION_CONFIRMATION,
+        template_name=constants.MEETING_REGISTRATION_TEMPLATE,
         template_data=[
-            {"data": 'https://{}/meetings'.format(settings.FRONT_URL)}
+            {"data": constants.MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER},
+            {"data": objectives_str},
+            {"data": "the mobile app here: {}".format(constants.APPSFLYER_APP_LINK)}
         ]
     )
 

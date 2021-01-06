@@ -69,3 +69,7 @@ Just a quick reminder about your upcoming meeting at {{1}} today. Your meeting l
 18. cancellation_of_meeting
 Hey,
 Unfortunately, we were unable to get a confirmation for the upcoming meeting from {{1}}.To prevent a no-show we have canceled the meeting{{2}}.
+
+19. confirmation_of_registration_updated
+Hey,
+Thank you for registering for {1} with WorkNetwork. We will introduce you to people based on your objective of {{2}}. Meeting details will be shared on {{3}}

@@ -1,13 +1,14 @@
 import logging
 import pytz
+import urllib.parse
 
 from datetime import datetime
+from django.conf import settings
 
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat.services import create_public_rsvp_url
-
-from freelance.settings import FRONT_URL, TIME_ZONE
+from utils.tiny_url_service import tiny_url_service
 
 
 def send_meeting_whatsapp_reminder_to_user(user, meeting):
@@ -18,15 +19,32 @@ def send_meeting_whatsapp_reminder_to_user(user, meeting):
         meeting(Meeting): Meeting object for which we are sending the reminder.
 
     """
+
+    matched_user = meeting.participants.all().exclude(email=user.email).first()
+    if not matched_user:
+        return
+
+    phone_number = matched_user.get_phone_number().replace("+", "") if user.get_phone_number() else None
+
+    if not phone_number:
+        return
+
     logging.info("Sending meeting reminder to {} for meeting {}".format(user.email, meeting.id))
+
+    # Creating whatsapp prompt for the user.
+    whatsapp_prompt_link = tiny_url_service.shorten(
+        constants.WHATSAPP_BASE_URL + "{}?".format(phone_number) + "text={}".format(urllib.parse.quote(constants.PREFILLED_MESSAGE_FOR_MEETING_PROMPT))
+    )
+    whatsapp_prompt = constants.MEETING_REMINDER_WHATSAPP_PROMPT_TEXT.format(whatsapp_prompt_link)
+
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_REMINDER_FRESHCHAT_TEMPLATE,
         template_data=[
             {"data": meeting.time_slot.get_display_start_time()},
-            {"data": meeting.link},
-            {"data": "your match"},
-            {"data": "link to prompt/or contact for the user"},
+            {"data": meeting.link if meeting.link else ""},
+            {"data": matched_user.get_display_first_name()},
+            {"data": whatsapp_prompt},
         ]
     )
 
@@ -81,7 +99,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
         meeting(Meeting): Meeting for which message confirmation goes
     """
 
-    local_tz = pytz.timezone(TIME_ZONE)
+    local_tz = pytz.timezone(settings.TIME_ZONE)
 
     local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
     local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
