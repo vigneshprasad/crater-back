@@ -276,7 +276,7 @@ def send_whatsapp_meeting_reminders(meetings=None):
         for participant in meeting.participants.all():
             freshchat_public.send_meeting_whatsapp_reminder_to_user(
                 participant,
-                meeting.time_slot.get_display_start_time()
+                meeting
             )
 
 
@@ -478,9 +478,17 @@ def cancel_meetings_for_no_rsvp(meetings=None):
     for meeting in meetings:
         for rsvp in meeting.rsvps.all():
             if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
+                # Setting the meeting status to Cancelled as well.
+                meeting.status = choices.MEETING_STATUS_CANCELLED
                 meeting.is_canceled = True
                 meeting.save()
+                # Send communication once meeting is cancelled.
                 _send_meeting_cancellation_email(meeting)
+                signals.meeting_marked_cancelled.send(
+                    sender=meeting.__class__,
+                    user=rsvp.participant,
+                    meeting=meeting
+                )
                 break
 
 

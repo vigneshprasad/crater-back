@@ -61,3 +61,11 @@ Just a quick reminder about your upcoming meeting at {{1}} today. Both you & you
 16. meeting_has_been_confirmed
 Hey, 
 Your 1:1 meeting with {{1}} has been set up for {{2}}. The profile details, meeting link and reschedule options are available on {{3}}. Please RSVP by {{4}}
+
+17. reminder_of_upcoming_meeting
+Hey,
+Just a quick reminder about your upcoming meeting at {{1}} today. Your meeting link is {{2}}. If you have difficulty connecting please contact {{3}} by {{4}}. To reschedule, please use the link shared above.
+
+18. cancellation_of_meeting
+Hey,
+Unfortunately, we were unable to get a confirmation for the upcoming meeting from {{1}}.To prevent a no-show we have canceled the meeting{{2}}.

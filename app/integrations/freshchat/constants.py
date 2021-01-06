@@ -11,7 +11,7 @@ FRESHCHAT_WHATSAPP_NAMESPACE = settings.FRESHCHAT_WHATSAPP_NAMESPACE
 MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE = "confirmation_of_appointment"
 
 MEETING_CONFIRMATION_WITH_EMAIL_SENT = "meeting_confirmation_email"
-MEETING_REMINDER_FRESHCHAT_TEMPLATE = "meeting_reminder_link"
+MEETING_REMINDER_FRESHCHAT_TEMPLATE = "reminder_of_upcoming_meeting"
 MEETING_OPT_IN_REMINDER_TEMPLATE = "confirming_meeting"
 MEETING_CONFIRMATION_INTENT = "confirmation_of_11_intent"
 MEETING_CONFIRMATION_RSVP_LINK = "meeting_confirmation_link"
@@ -19,8 +19,10 @@ MEETING_CONFIRMATION_RSVP = "meeting_has_been_confirmed"
 MEETING_REMINDER_RSVP_LINK = "meeting_unconfirmed_link"
 FRESHCHAT_DEFAULT_PROVIDER = "whatsapp"
 REGISTRATION_CONFIRMATION = "registration_confirmation"
+MEETING_CANCELLATION_TEMPLATE = "cancellation_of_meeting"
 
 MEETING_INFO_AVAILABILITY = "on the email thread and mobile app"
+MEETING_CANCELLATION_FALL_BACK = "if you believe this to be a mistake & have spoken to your match: please disregard the message"
 
 # Freshchat API responses.
 FRESHCHAT_STATUS_SUCCESS = 200
