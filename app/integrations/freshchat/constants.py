@@ -7,22 +7,28 @@ FRESHCHAT_ACCESS_TOKEN = settings.FRESHCHAT_ACCESS_TOKEN
 
 FRESHCHAT_MESSAGING_PHONE_NUMBER = settings.FRESHCHAT_MESSAGING_PHONE_NUMBER
 FRESHCHAT_WHATSAPP_NAMESPACE = settings.FRESHCHAT_WHATSAPP_NAMESPACE
+FRESHCHAT_DEFAULT_PROVIDER = "whatsapp"
 
 MEETING_CONFIRMATION_FRESHCHAT_TEMPLATE = "confirmation_of_appointment"
 
 MEETING_CONFIRMATION_WITH_EMAIL_SENT = "meeting_confirmation_email"
+# Deprecated.
+MEETING_REMINDER_FRESHCHAT_TEMPLATE = "meeting_reminder_link"
 MEETING_OPT_IN_REMINDER_TEMPLATE = "confirming_meeting"
 MEETING_CONFIRMATION_INTENT = "confirmation_of_11_intent"
 MEETING_CONFIRMATION_RSVP_LINK = "meeting_confirmation_link"
+# Deprecated
+MEETING_CONFIRMATION_RSVP = "meeting_has_been_confirmed"
 MEETING_REMINDER_RSVP_LINK = "meeting_unconfirmed_link"
-FRESHCHAT_DEFAULT_PROVIDER = "whatsapp"
+# Deprecated.
+REGISTRATION_CONFIRMATION = "registration_confirmation"
 
 MEETING_REGISTRATION_TEMPLATE = "confirmation_of_registration_updated"
 MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER = "1:1 meetings"
 MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT = "Meeting Interesting People"
 
 # Meeting rsvp confirmation constants.
-MEETING_CONFIRMATION_RSVP = "meeting_has_been_confirmed"
+MEETING_CONFIRMATION_TEMPLATE = "meeting_has_been_confirmed"
 MEETING_INFO_AVAILABILITY = "on the email thread and mobile app"
 
 # Meeting cancellation constants.
@@ -30,8 +36,8 @@ MEETING_CANCELLATION_TEMPLATE = "cancellation_of_meeting"
 MEETING_CANCELLATION_FALL_BACK = "if you believe this to be a mistake & have spoken to your match: please disregard the message"
 
 # Reminder message constants.
-MEETING_REMINDER_FRESHCHAT_TEMPLATE = "reminder_of_upcoming_meeting"
-PREFILLED_MESSAGE_FOR_MEETING_PROMPT = "Hey, I am on the meeting link shared by WorkNetwork for our meeting today. Would you be joining the meeting?"
+MEETING_REMINDER_TEMPLATE = "reminder_of_upcoming_meeting"
+MEETING_REMINDER_PREFILLED_MESSAGE_PROMPT = "Hey, I am on the meeting link shared by WorkNetwork for our meeting today. Would you be joining the meeting?"
 MEETING_REMINDER_WHATSAPP_PROMPT_TEXT = "sending a whatsapp via this link: {}"
 WHATSAPP_BASE_URL = "https://wa.me/"
 

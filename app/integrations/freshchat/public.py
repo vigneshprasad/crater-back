@@ -33,13 +33,13 @@ def send_meeting_whatsapp_reminder_to_user(user, meeting):
 
     # Creating whatsapp prompt for the user.
     whatsapp_prompt_link = tiny_url_service.shorten(
-        constants.WHATSAPP_BASE_URL + "{}?".format(phone_number) + "text={}".format(urllib.parse.quote(constants.PREFILLED_MESSAGE_FOR_MEETING_PROMPT))
+        constants.WHATSAPP_BASE_URL + "{}?".format(phone_number) + "text={}".format(urllib.parse.quote(constants.MEETING_REMINDER_PREFILLED_MESSAGE_PROMPT))
     )
     whatsapp_prompt = constants.MEETING_REMINDER_WHATSAPP_PROMPT_TEXT.format(whatsapp_prompt_link)
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.MEETING_REMINDER_FRESHCHAT_TEMPLATE,
+        template_name=constants.MEETING_REMINDER_TEMPLATE,
         template_data=[
             {"data": meeting.time_slot.get_display_start_time()},
             {"data": meeting.link if meeting.link else ""},
@@ -115,7 +115,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.MEETING_CONFIRMATION_RSVP,
+        template_name=constants.MEETING_CONFIRMATION_TEMPLATE,
         template_data=[
             {"data": matched_user},
             {"data": date_time},
