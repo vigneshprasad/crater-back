@@ -436,3 +436,6 @@ class RescheduleRequest(base_model.BaseModel):
         default=choices.RESCHEDULE_REQUEST_PENDING_APPROVAL,
         choices=choices.RESCHEDULE_REQUEST_STATUSES
     )
+
+    class Meta:
+        unique_together = ['old_meeting', 'requested_by']
