@@ -496,7 +496,9 @@ def cancel_meetings_for_no_rsvp(meetings=None):
             if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
                 # Setting the meeting status to Cancelled as well.
                 meeting.status = choices.MEETING_STATUS_CANCELLED
+                meeting.is_canceled = True
                 meeting.save()
+
                 # Send communication once meeting is cancelled.
                 _send_meeting_cancellation_email(meeting)
                 signals.meeting_marked_cancelled.send(
