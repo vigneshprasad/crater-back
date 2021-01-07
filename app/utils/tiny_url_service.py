@@ -1,6 +1,7 @@
 import requests
 from urllib.parse import urlencode
 
+
 class TinyurlService:
     URL = "http://tinyurl.com/api-create.php"
 
@@ -8,5 +9,6 @@ class TinyurlService:
         url = self.URL + "?" + urlencode({"url": url_long})
         res = requests.get(url)
         return res.text
+
 
 tiny_url_service = TinyurlService()

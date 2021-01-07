@@ -88,7 +88,16 @@ class GoogleCalendarService:
         request_id = str(uuid.uuid4())
 
         # Calculate description based on if we have a meeting link or not.
-        summary = summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS
+        try:
+            user1 = users[0]
+            user2 = users[1]
+        except KeyError:
+            return
+
+        summary = "{} <> {}| Professional Networking | WorkNetwork".format(
+            user1.get_display_first_name(),
+            user2.get_display_first_name()
+        )
         description = description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS
 
         request_body = {
@@ -109,7 +118,6 @@ class GoogleCalendarService:
         # Changing the request body based on if we have external meeting link
         # or we are using Google Meets.
         if meeting_link:
-
             request_body["conferenceData"] = {
                 "conferenceSolution": {
                     "name": "1:1 Meeting",
@@ -117,7 +125,7 @@ class GoogleCalendarService:
                         "type": constants.ADD_ON_LINK
                     },
                     # TODO(Nishant): Change this from default Google Meets icon to our icon.
-                    "iconUri": "https://worknetwork.in/images/icons/svg/logo.svg"
+                    "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
                 },
                 "entryPoints": [
                     {
