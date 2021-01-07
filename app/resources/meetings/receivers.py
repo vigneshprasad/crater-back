@@ -176,7 +176,7 @@ def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
         if not other_rsvp:
             return
         if other_rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
-            # Setting meeting status confirmed if both user"s have confirmed.
+            # Setting meeting status confirmed if both user's have confirmed.
             meeting.status = choices.MEETING_STATUS_CONFIRMED
             meeting.save()
 
