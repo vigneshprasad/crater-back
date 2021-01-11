@@ -104,6 +104,11 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
         instance = serializer.save()
         response_serializer = serializers.UserMeetingPreferenceSerializer(instance)
         headers = self.get_success_headers(serializer.data)
+        # Send a signal on new preference creation.
+        signals.new_meeting_registration.send(
+            sender=instance.__class__,
+            preference=instance
+        )
         return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_serializer_class(self):

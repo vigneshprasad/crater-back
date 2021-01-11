@@ -27,48 +27,35 @@ def create_or_update_freshchat_user(sender, user, *args, **kwargs):
     tasks.create_or_update_freshchat_user.delay(user.pk)
 
 
-@receiver(meeting_signals.registered_for_meeting)
-def send_registration_confirmation(sender, user, **kwargs):
+@receiver(meeting_signals.new_meeting_registration)
+def send_registration_confirmation(sender, preference, **kwargs):
     """Send a whatsapp message with confirmation once a
         user registers for a meeting.
 
     """
-    created = kwargs.pop("created", None)
-    if not created:
-        return
+    user = preference.user
 
     logging.info("Send a message to a user who has created a meeting preference".format(
         user.email,
     ))
 
+    looking_for_objective = preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
+    looking_to_objective = preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[1][0]).first()
+
+    objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
+        if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
+
+    logging.info("Send a message to a user who has created a meeting preference".format(user.email))
+
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.REGISTRATION_CONFIRMATION,
+        template_name=constants.MEETING_REGISTRATION_TEMPLATE,
         template_data=[
-            {"data": 'https://{}/meetings'.format(settings.FRONT_URL)}
+            {"data": constants.MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER},
+            {"data": objectives_str},
+            {"data": "the mobile app here: {}".format(tiny_url_service.shorten(constants.APPSFLYER_APP_LINK))}
         ]
     )
-
-    # meeting_preference_id = sender.id
-    # meeting_preference = models.MeetingPreference.objects.get(id=meeting_preference_id)
-    #
-    # looking_for_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
-    # looking_to_objective = meeting_preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[1][0]).first()
-    #
-    # objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
-    #     if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
-    #
-    # logging.info("Send a message to a user who has created a meeting preference".format(user.email))
-    #
-    # freshchat_service.freshchat_whatsapp_service.send_outbound_message(
-    #     user=user,
-    #     template_name=constants.MEETING_REGISTRATION_TEMPLATE,
-    #     template_data=[
-    #         {"data": constants.MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER},
-    #         {"data": objectives_str},
-    #         {"data": "the mobile app here: {}".format(tiny_url_service.shorten(constants.APPSFLYER_APP_LINK))}
-    #     ]
-    # )
 
 
 @receiver(meeting_signals.meeting_marked_cancelled)

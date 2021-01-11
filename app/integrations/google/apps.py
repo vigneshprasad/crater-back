@@ -9,4 +9,4 @@ class GoogleAppConfig(AppConfig):
     verbose_name = _('Google Integrations')
 
     def ready(self):
-        import integrations.google
+        import integrations.google.receivers

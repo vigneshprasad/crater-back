@@ -5,7 +5,6 @@ from integrations.google import models
 from integrations.google import private
 from integrations.google import constants
 from integrations.superpro import public as superpro_public
-from resources.meetings import signals as meeting_signals
 
 
 def create_calendar_event_for_meeting(meeting):
@@ -70,9 +69,3 @@ def get_and_update_rsvp_status(meeting_rsvp):
     meeting_rsvp.status = updated_status
     meeting_rsvp.save()
 
-    # Sending RSVP updated signal.
-    meeting_signals.rsvp_status_updated.send(
-        sender=meeting_rsvp.__class__,
-        user=meeting_rsvp.participant,
-        rsvp=meeting_rsvp
-    )
