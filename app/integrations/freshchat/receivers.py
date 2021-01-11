@@ -72,7 +72,7 @@ def send_registration_confirmation(sender, user, **kwargs):
 
 
 @receiver(meeting_signals.meeting_marked_cancelled)
-def send_meeting_cancellation_message(sender, user, meeting, *args, **kwargs):
+def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
     """Send whatsapp message to user for upcoming meeting.
 
     Args:
@@ -81,13 +81,31 @@ def send_meeting_cancellation_message(sender, user, meeting, *args, **kwargs):
         meeting(Meeting): Meeting object for which we are sending the reminder.
 
     """
-    participants = meeting.participants.all()
-    for participant in participants:
-        freshchat_service.freshchat_whatsapp_service.send_outbound_message(
-            user=participant,
-            template_name=constants.MEETING_CANCELLATION_TEMPLATE,
-            template_data=[
-                {"data": "you" if (user.pk == participant.pk) else user.get_display_first_name()},
-                {"data": constants.MEETING_CANCELLATION_FALL_BACK}
-            ]
-        )
+
+    participant1 = meeting.participants.first()
+    participant2 = meeting.participants.last()
+
+    rsvp1 = participant1.rsvp.filter(meeting=meeting).first()
+    rsvp2 = participant2.rsvp.filter(meeting=meeting).first()
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=participant1,
+        template_name=constants.MEETING_CANCELLATION_TEMPLATE,
+        template_data=[
+            {"data": "you" if (
+                    rsvp1.status in meeting_constants.MEETING_RSVP_DECLINED_STATUSES
+            ) else participant2.get_display_first_name()},
+            {"data": constants.MEETING_CANCELLATION_FALL_BACK}
+        ]
+    )
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=participant2,
+        template_name=constants.MEETING_CANCELLATION_TEMPLATE,
+        template_data=[
+            {"data": "you" if (
+                    rsvp2.status in meeting_constants.MEETING_RSVP_DECLINED_STATUSES
+            ) else participant1.get_display_first_name()},
+            {"data": constants.MEETING_CANCELLATION_FALL_BACK}
+        ]
+    )

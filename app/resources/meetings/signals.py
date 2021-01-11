@@ -62,6 +62,5 @@ reschedule_request_declined = Signal(providing_args=[
 ])
 
 meeting_marked_cancelled = Signal(providing_args=[
-    "user"
     "meeting"
 ])

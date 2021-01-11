@@ -489,24 +489,21 @@ def cancel_meetings_for_no_rsvp(meetings=None):
         config__is_active=True,
         is_canceled=False,
         time_slot__date=today,
+        status=choices.MEETING_STATUS_PENDING
     ) if not meetings else meetings
 
     for meeting in meetings:
-        for rsvp in meeting.rsvps.all():
-            if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
-                # Setting the meeting status to Cancelled as well.
-                meeting.status = choices.MEETING_STATUS_CANCELLED
-                meeting.is_canceled = True
-                meeting.save()
+        # Setting the meeting status to Cancelled as well.
+        meeting.status = choices.MEETING_STATUS_CANCELLED
+        meeting.is_canceled = True
+        meeting.save()
 
-                # Send communication once meeting is cancelled.
-                _send_meeting_cancellation_email(meeting)
-                signals.meeting_marked_cancelled.send(
-                    sender=meeting.__class__,
-                    user=rsvp.participant,
-                    meeting=meeting
-                )
-                break
+        # Sending communication for cancellation.
+        _send_meeting_cancellation_email(meeting)
+        signals.meeting_marked_cancelled.send(
+            sender=meeting.__class__,
+            meeting=meeting
+        )
 
 
 @periodic_task(run_every=crontab(day_of_week='monday', hour=2, minute=30))
