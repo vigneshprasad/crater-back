@@ -170,6 +170,13 @@ DEFAULT_DISPLAY_TIME_SLOTS = {
     ]
 }
 
+RESCHEDULE_WEEKDAY_TIME_SLOT_MAP = [
+    time(14, 00, 00),
+    time(16, 00, 00),
+    time(18, 00, 00),
+    time(20, 00, 00),
+]
+
 
 MEETING_CHOICE_1_ON_1 = '1:1'
 

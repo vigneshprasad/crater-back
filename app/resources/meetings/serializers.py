@@ -299,6 +299,7 @@ class PostRescheduleRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.RescheduleRequest
         fields = (
+            'id',
             'old_meeting',
             'requested_by',
             'time_slots'

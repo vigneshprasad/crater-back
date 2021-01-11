@@ -123,7 +123,7 @@ class MeetingViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return self.request.user.meeting_set.all()
+        return self.request.user.meeting_set.filter(is_canceled=False)
 
     def _get_meeting_queryset(self, is_past):
         now = datetime.datetime.now()
@@ -366,17 +366,31 @@ class RescheduleRequestViewSet(
         detail=False
     )
     def availability_slots(self, request, *args, **kwargs):
-        # weekday_timeslot_map = choices.RESCHEDULE_WEEKDAY_TIME_SLOT_MAP
-        return Response()
+        now = datetime.datetime.now()
+        start_date = now.date()
+        num_days = 7
+        date_list = [start_date + datetime.timedelta(days=day) for day in range(num_days)]
+        weekday_timeslot_map = choices.RESCHEDULE_WEEKDAY_TIME_SLOT_MAP
+        data = []
+        for date in date_list:
+            time_slots = []
+            for slot in weekday_timeslot_map:
+                timeslot = datetime.datetime.combine(date, slot)
+                if timeslot > now:
+                    time_slots.append(timeslot.isoformat())
+            if len(time_slots) > 0:
+                data.append(time_slots)
+        return Response(data)
         
     @action(
         methods=['POST'],
         detail=False
     )
     def accepted(self, request, *args, **kwargs):
-        request_data = request.body
+        request_data = request.data
         approver = request.user
         reschedule_request_id = request_data.get("reschedule_request")
+
         try:
             selected_time_slot = datetime.datetime.strptime(
                 request_data["time_slot"],
@@ -454,3 +468,20 @@ class RescheduleRequestViewSet(
         )
 
         return Response({"success": True})
+
+    def retrieve(self, request, *args, **kwargs):
+
+        meeting_id = kwargs.get('pk')
+        if not meeting_id:
+            return self.generate_bad_request({'error': 'Bad request'})
+        try:
+            reschedule_obj = models.RescheduleRequest.objects.get(
+                old_meeting_id=meeting_id,
+                approver=request.user,
+            )
+        except models.RescheduleRequest.DoesNotExist:
+            return self.generate_bad_request({'error': 'Incorrect Meeting id'})
+        except models.RescheduleRequest.MultipleObjectsReturned:
+            return self.generate_bad_request({'error': 'Incorrect Meeting id'})
+        serializer = self.get_serializer(reschedule_obj)
+        return Response(serializer.data)
