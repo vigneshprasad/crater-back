@@ -371,11 +371,9 @@ def send_whatsapp_1_on_1_meeting_time_confirmation(meetings=None):
 
     """
     meetings = services.get_active_meetings() if not meetings else meetings
-
-    local_tz = pytz.timezone(TIME_ZONE)
-
     for meeting in meetings:
         for participant in meeting.participants.all():
+            # TODO(Nishant): Make meeting as the input for this function.
             freshchat_public.send_meeting_time_confirmation(
                 participant,
                 meeting.local_start,
