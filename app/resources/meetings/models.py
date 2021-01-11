@@ -365,10 +365,7 @@ class Meeting(base_model.BaseModel):
     def __str__(self):
         member_str = " - ".join((self.participants.all().values_list("email", flat=True)))
         # Getting the time_str from start or time_slot.
-        if self.start:
-            time_str = self.local_start.strftime("%A %d, %b %I:%M %p")
-        else:
-            time_str = self.time_slot.get_display()
+        time_str = self.local_start.strftime("%A %d, %b %I:%M %p")
         return "{} @ {}".format(member_str, time_str)
 
     @property

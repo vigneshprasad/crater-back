@@ -193,7 +193,6 @@ def create_new_meeting_on_reschedule_request_approval(sender, reschedule_request
     old_meeting = reschedule_request.old_meeting
     # Updating the status of old meeting.
     old_meeting.status = choices.MEETING_STATUS_CANCELLED
-    old_meeting.is_canceled = True
     old_meeting.save()
 
     start = time_slot

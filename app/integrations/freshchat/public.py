@@ -41,7 +41,7 @@ def send_meeting_whatsapp_reminder_to_user(user, meeting):
         user=user,
         template_name=constants.MEETING_REMINDER_TEMPLATE,
         template_data=[
-            {"data": meeting.time_slot.get_display_start_time()},
+            {"data": meeting.get_display_start_time()},
             {"data": tiny_url_service.shorten(meeting.link) if meeting.link else ""},
             {"data": matched_user.get_display_first_name()},
             {"data": whatsapp_prompt},
