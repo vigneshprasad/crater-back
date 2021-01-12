@@ -129,6 +129,12 @@ def create_meeting_preference_for_typeform_user(
     for slot in user_time_slots or []:
         meeting_preference.time_slots.add(slot)
 
+    # Adding signal which will send the registration whatsapp message.
+    signals.new_meeting_registration.send(
+        sender=meeting_preference.__class__,
+        preference=meeting_preference
+    )
+
 
 @receiver(m2m_changed, sender=models.Meeting.participants.through)
 def create_meeting_for_users(sender, instance, *args, **kwargs):
