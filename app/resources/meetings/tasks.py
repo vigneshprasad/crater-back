@@ -188,7 +188,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             if p2_objectives_looking_for:
                 p2_objective_two = ", ".join(p2_objective_looking_for.name for p2_objective_looking_for in p2_objectives_looking_for)
 
-            p2_interests = p1_prefs.interests.all()
+            p2_interests = p2_prefs.interests.all()
             if p2_interests:
                 p2_interest = ", ".join(interest.name for interest in p2_interests)
 
