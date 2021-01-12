@@ -79,9 +79,10 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
         user=participant1,
         template_name=constants.MEETING_CANCELLATION_TEMPLATE,
         template_data=[
-            {"data": "you" if (
-                    rsvp1.status == meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING
-            ) else participant2.get_display_first_name()},
+            {"data": "you" if (rsvp1.status == meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING or
+                               (rsvp1.status == meeting_constants.MEETING_RSVP_STATUS_PENDING and
+                                rsvp2.status != meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING))
+                else participant2.get_display_first_name()},
             {"data": constants.MEETING_CANCELLATION_FALL_BACK}
         ]
     )
@@ -90,9 +91,10 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
         user=participant2,
         template_name=constants.MEETING_CANCELLATION_TEMPLATE,
         template_data=[
-            {"data": "you" if (
-                    rsvp2.status == meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING
-            ) else participant1.get_display_first_name()},
+            {"data": "you" if (rsvp2.status == meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING or
+                               (rsvp2.status == meeting_constants.MEETING_RSVP_STATUS_PENDING and
+                                rsvp1.status != meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING))
+                else participant2.get_display_first_name()},
             {"data": constants.MEETING_CANCELLATION_FALL_BACK}
         ]
     )
