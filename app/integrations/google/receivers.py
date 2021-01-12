@@ -1,4 +1,7 @@
+import datetime
+
 from django.dispatch import receiver
+from googleapiclient.errors import HttpError
 
 from integrations.google import models
 from integrations.google import calendar_services
@@ -19,6 +22,11 @@ def delete_calendar_event_on_meeting_cancellation(sender, meeting, *args, **kwar
     )
 
     for calendar_event in google_calendar_events:
-        calendar_services.google_calendar_service.delete_event(
-            event_id=calendar_event.event_id
-        )
+        try:
+            calendar_services.google_calendar_service.delete_event(
+                event_id=calendar_event.event_id
+            )
+            calendar_event.is_deleted = True
+            calendar_event.deleted_at = datetime.datetime.now()
+        except HttpError:
+            continue

@@ -72,15 +72,15 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
     participant1 = meeting.participants.first()
     participant2 = meeting.participants.last()
 
-    rsvp1 = participant1.rsvp.filter(meeting=meeting).first()
-    rsvp2 = participant2.rsvp.filter(meeting=meeting).first()
+    rsvp1 = participant1.meeting_rsvps.filter(meeting=meeting).first()
+    rsvp2 = participant2.meeting_rsvps.filter(meeting=meeting).first()
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=participant1,
         template_name=constants.MEETING_CANCELLATION_TEMPLATE,
         template_data=[
             {"data": "you" if (
-                    rsvp1.status in meeting_constants.MEETING_RSVP_DECLINED_STATUSES
+                    rsvp1.status == meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING
             ) else participant2.get_display_first_name()},
             {"data": constants.MEETING_CANCELLATION_FALL_BACK}
         ]
@@ -91,7 +91,7 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
         template_name=constants.MEETING_CANCELLATION_TEMPLATE,
         template_data=[
             {"data": "you" if (
-                    rsvp2.status in meeting_constants.MEETING_RSVP_DECLINED_STATUSES
+                    rsvp2.status == meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING
             ) else participant1.get_display_first_name()},
             {"data": constants.MEETING_CANCELLATION_FALL_BACK}
         ]
