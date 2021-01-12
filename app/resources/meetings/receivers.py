@@ -272,10 +272,18 @@ def update_meeting_status_to_rescheduled(sender, instance, created, *args, **kwa
 
     creator = instance.requested_by
     meeting = instance.old_meeting
-    rsvp = creator.meeting_rsvps.filter(meeting=meeting).last()
-    rsvp.status = choices.MEETING_RSVP_STATUS_RESCHEDULE
-    rsvp.save()
-    
+
+    creator_rsvp = meeting.rsvps.filter(participant=creator).last()
+    approver_rsvp = meeting.rsvps.exclude(participant=creator).last()
+
+    if creator_rsvp:
+        creator_rsvp.status = choices.MEETING_RSVP_STATUS_RESCHEDULE
+        creator_rsvp.save()
+
+    if approver_rsvp:
+        approver_rsvp.status = choices.MEETING_RSVP_STATUS_PENDING
+        approver_rsvp.save()
+
     meeting.status = choices.MEETING_STATUS_RESCHEDULED
     meeting.save()
 

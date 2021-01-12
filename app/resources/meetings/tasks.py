@@ -461,10 +461,14 @@ def update_meeting_rsvp_status_from_google(meetings=None):
     """
     meetings = services.get_active_meetings() if not meetings else meetings
 
+    meetings = meetings.filter(
+        status=choices.MEETING_STATUS_PENDING,
+    )
+
     for meeting in meetings:
         for rsvp in meeting.rsvps.all():
             # Dont update data if rsvp status is attending
-            if rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
+            if not rsvp.status == choices.MEETING_RSVP_STATUS_PENDING:
                 continue
             google_public.get_and_update_rsvp_status(rsvp)
             # Sending signal on status update of RSVP.
