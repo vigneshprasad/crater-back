@@ -177,20 +177,20 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
 
             p1_interests = p1_prefs.interests.all()
             if p1_interests:
-                p1_interest = ",".join(interest.name for interest in p1_interests)
+                p1_interest = ", ".join(interest.name for interest in p1_interests)
 
         if p2_prefs:
             p2_objectives_looking_to = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0])
             p2_objectives_looking_for = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0])
 
             if p2_objectives_looking_to:
-                p2_objective_one = ",".join(p2_objective_looking_to.name for p2_objective_looking_to in p2_objectives_looking_to)
+                p2_objective_one = ", ".join(p2_objective_looking_to.name for p2_objective_looking_to in p2_objectives_looking_to)
             if p2_objectives_looking_for:
-                p2_objective_two = ",".join(p2_objective_looking_for.name for p2_objective_looking_for in p2_objectives_looking_for)
+                p2_objective_two = ", ".join(p2_objective_looking_for.name for p2_objective_looking_for in p2_objectives_looking_for)
 
             p2_interests = p1_prefs.interests.all()
             if p2_interests:
-                p2_interest = ",".join(interest.name for interest in p2_interests)
+                p2_interest = ", ".join(interest.name for interest in p2_interests)
 
         for email in to_emails:
             data[email] = {
