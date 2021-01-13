@@ -416,7 +416,7 @@ class RescheduleRequestPublicViewSet(
                 {"error": "Invalid datetime format."}
             )
 
-        #TODO: Clean up this timezone stuff (Nishant) 
+        # TODO(Nishant): Clean up this timezone stuff.
         selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
         selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
 

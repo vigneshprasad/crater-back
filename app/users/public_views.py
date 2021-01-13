@@ -4,6 +4,7 @@ from resources.meetings import signals
 from services import serializers as service_serializers
 from users import permissions
 from users import models
+from users import choices
 from users.paginators import Pagination
 from users.scripts.create_users_from_csv import create_user_and_profile
 
@@ -14,6 +15,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         form = request.data['form_response']
         fields = form['definition']['fields']
         answers = form['answers']
+        typeform_url = 'https://worknetwork.typeform.com/to/' + form['form_id']
         user = {
             'email': form.get('hidden').get('email') if form.get('hidden') else None,
             'interests': [],
@@ -21,7 +23,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'meeting_days': [],
             'utm_source': form.get('hidden').get('utm_source') if form.get('hidden') else None,
             'utm_campaign': form.get('hidden').get('utm_campaign') if form.get('hidden') else None,
-            'source': 'https://worknetwork.typeform.com/to/' + form['form_id'],
+            'source': choices.TYPEFORM_URL_TO_SOURCE_MAP.get(typeform_url) or typeform_url,
             'objective': []
         }
 
