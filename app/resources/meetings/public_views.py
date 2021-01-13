@@ -15,6 +15,7 @@ from resources.meetings import choices
 from resources.meetings import services
 from resources.meetings import signals
 from cryptography.fernet import InvalidToken
+from integrations.freshchat import constants
 
 
 class MeetingConfigPublicViewSet(
@@ -126,13 +127,19 @@ class MeetingPreferencePublicViewSet(
             for obj in preference.objectives.all():
                 meeting_preference.objectives.add(obj)
 
+            looking_for_objective = preference.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first()
+            looking_to_objective = preference.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first()
+
+            objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
+                if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
+
             for interest in preference.interests.all():
                 meeting_preference.interests.add(interest)
         
             for slot in new_time_slots or []:
                 meeting_preference.time_slots.add(slot)
             
-            return Response(data={"success": "Your preferences have been confirmed."})
+            return Response(data={"objective": objectives_str})
 
         except InvalidToken:
             return self.generate_bad_request(

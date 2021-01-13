@@ -252,7 +252,7 @@ class MeetingRSVPViewSet(
             rsvp.status = choices.MEETING_RSVP_STATUS_CHOICES[0][0]
             rsvp.save()
             serialized = self.get_serializer(rsvp)
-            return Response(data=serialized.data)
+            return Response(data={"start": meeting.start})
 
         except InvalidToken:
             return self.generate_bad_request(
