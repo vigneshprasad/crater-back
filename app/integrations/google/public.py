@@ -60,3 +60,4 @@ def get_and_update_rsvp_status(meeting_rsvp):
     updated_status = constants.CALENDAR_RESPONSE_TO_MEETING_RSVP_STATUS_MAP[status]
     meeting_rsvp.status = updated_status
     meeting_rsvp.save()
+

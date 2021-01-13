@@ -12,6 +12,10 @@ registered_for_meeting = Signal(providing_args=[
     "meeting"
 ])
 
+new_meeting_registration = Signal(providing_args=[
+    "preference"
+])
+
 new_meeting_config_created = Signal(providing_args=[
     "user",
     "week_start_date",
@@ -62,6 +66,5 @@ reschedule_request_declined = Signal(providing_args=[
 ])
 
 meeting_marked_cancelled = Signal(providing_args=[
-    "user"
     "meeting"
 ])

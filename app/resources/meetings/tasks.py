@@ -177,20 +177,20 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
 
             p1_interests = p1_prefs.interests.all()
             if p1_interests:
-                p1_interest = ",".join(interest.name for interest in p1_interests)
+                p1_interest = ", ".join(interest.name for interest in p1_interests)
 
         if p2_prefs:
             p2_objectives_looking_to = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0])
             p2_objectives_looking_for = p2_prefs.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0])
 
             if p2_objectives_looking_to:
-                p2_objective_one = ",".join(p2_objective_looking_to.name for p2_objective_looking_to in p2_objectives_looking_to)
+                p2_objective_one = ", ".join(p2_objective_looking_to.name for p2_objective_looking_to in p2_objectives_looking_to)
             if p2_objectives_looking_for:
-                p2_objective_two = ",".join(p2_objective_looking_for.name for p2_objective_looking_for in p2_objectives_looking_for)
+                p2_objective_two = ", ".join(p2_objective_looking_for.name for p2_objective_looking_for in p2_objectives_looking_for)
 
-            p2_interests = p1_prefs.interests.all()
+            p2_interests = p2_prefs.interests.all()
             if p2_interests:
-                p2_interest = ",".join(interest.name for interest in p2_interests)
+                p2_interest = ", ".join(interest.name for interest in p2_interests)
 
         for email in to_emails:
             data[email] = {
@@ -445,10 +445,14 @@ def update_meeting_rsvp_status_from_google(meetings=None):
     """
     meetings = services.get_active_meetings() if not meetings else meetings
 
+    meetings = meetings.filter(
+        status=choices.MEETING_STATUS_PENDING,
+    )
+
     for meeting in meetings:
         for rsvp in meeting.rsvps.all():
             # Dont update data if rsvp status is attending
-            if rsvp.status == choices.MEETING_RSVP_STATUS_ATTENDING:
+            if not rsvp.status == choices.MEETING_RSVP_STATUS_PENDING:
                 continue
             google_public.get_and_update_rsvp_status(rsvp)
             # Sending signal on status update of RSVP.
@@ -474,22 +478,21 @@ def cancel_meetings_for_no_rsvp(meetings=None):
         start__year=today.year,
         start__month=today.month,
         start__day=today.day,
-    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
+        status=choices.MEETING_STATUS_PENDING
+    ) if not meetings else meetings
 
     for meeting in meetings:
-        for rsvp in meeting.rsvps.all():
-            if rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES:
-                # Setting the meeting status to Cancelled as well.
-                meeting.status = choices.MEETING_STATUS_CANCELLED
-                meeting.save()
-                # Send communication once meeting is cancelled.
-                _send_meeting_cancellation_email(meeting)
-                signals.meeting_marked_cancelled.send(
-                    sender=meeting.__class__,
-                    user=rsvp.participant,
-                    meeting=meeting
-                )
-                break
+        # Setting the meeting status to Cancelled as well.
+        meeting.status = choices.MEETING_STATUS_CANCELLED
+        meeting.is_canceled = True
+        meeting.save()
+
+        # Sending communication for cancellation.
+        _send_meeting_cancellation_email(meeting)
+        signals.meeting_marked_cancelled.send(
+            sender=meeting.__class__,
+            meeting=meeting
+        )
 
 
 @periodic_task(run_every=crontab(day_of_week='monday', hour=2, minute=30))

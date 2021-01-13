@@ -129,6 +129,12 @@ def create_meeting_preference_for_typeform_user(
     for slot in user_time_slots or []:
         meeting_preference.time_slots.add(slot)
 
+    # Adding signal which will send the registration whatsapp message.
+    signals.new_meeting_registration.send(
+        sender=meeting_preference.__class__,
+        preference=meeting_preference
+    )
+
 
 @receiver(m2m_changed, sender=models.Meeting.participants.through)
 def create_meeting_for_users(sender, instance, *args, **kwargs):
@@ -166,6 +172,14 @@ def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
     if rsvp.status == choices.MEETING_RSVP_STATUS_NOT_ATTENDING:
         meeting.status = choices.MEETING_STATUS_CANCELLED
         meeting.save()
+
+        # Sending cancellation communication.
+        # TODO(Nishant) Send this email through the cancellation signal.
+        _send_meeting_cancellation_email(meeting)
+        signals.meeting_marked_cancelled.send(
+            sender=meeting.__class__,
+            meeting=meeting
+        )
 
     if rsvp.status == choices.MEETING_RSVP_STATUS_RESCHEDULE:
         meeting.status = choices.MEETING_STATUS_RESCHEDULED
@@ -265,10 +279,18 @@ def update_meeting_status_to_rescheduled(sender, instance, created, *args, **kwa
 
     creator = instance.requested_by
     meeting = instance.old_meeting
-    rsvp = creator.meeting_rsvps.filter(meeting=meeting).last()
-    rsvp.status = choices.MEETING_RSVP_STATUS_RESCHEDULE
-    rsvp.save()
-    
+
+    creator_rsvp = meeting.rsvps.filter(participant=creator).last()
+    approver_rsvp = meeting.rsvps.exclude(participant=creator).last()
+
+    if creator_rsvp:
+        creator_rsvp.status = choices.MEETING_RSVP_STATUS_RESCHEDULE
+        creator_rsvp.save()
+
+    if approver_rsvp:
+        approver_rsvp.status = choices.MEETING_RSVP_STATUS_PENDING
+        approver_rsvp.save()
+
     meeting.status = choices.MEETING_STATUS_RESCHEDULED
     meeting.save()
 
@@ -340,3 +362,70 @@ def _clean_time_preference(time_preference):
     for i in REMOVE_CHARS:
         time_preference = time_preference.replace(i, "")
     return time_preference
+
+
+def _send_meeting_cancellation_email(meeting):
+    """ Sends meeting cancellation email for meeting
+
+    Args:
+        meeting(Meeting): Meeting object to send email for
+
+    """
+
+    # For one on one meetings there are only two participants
+    # allowed.
+    if not meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
+        return
+
+    p1_rsvp = meeting.rsvps.all()[0]
+    p2_rsvp = meeting.rsvps.all()[1]
+
+    p1_rsvp_declined = p1_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
+    p2_rsvp_declined = p2_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
+
+    to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
+    subject = "1:1 Meeting Cancelled"
+    template = choices.ONE_ON_ONE_MEETING_CANCELED_TEMPLATE
+    display_day = meeting.time_slot.get_display_day()
+    display_time = meeting.time_slot.get_display_time()
+
+    if p1_rsvp_declined and p2_rsvp_declined:
+        declined_string = "{} & {}".format(p1_rsvp.participant.email, p2_rsvp.participant.email)
+    elif p1_rsvp_declined:
+        declined_string = p1_rsvp.participant.email
+    else:
+        declined_string = p2_rsvp.participant.email
+
+    message_link = 'https://{}/dashboard/inbox'.format(FRONT_URL)
+    rsvp_link = 'https://{}/meetings/'.format(FRONT_URL)
+
+    data = {}
+    for email in to_emails:
+        data[email] = {
+            'day': display_day,
+            'time': display_time,
+            'declined_users': declined_string,
+            'message_link': message_link,
+            'rsvp_link': rsvp_link,
+            'contact_us': CONTACT_US_URL,
+            'website_url': WEBSITE_URL,
+        }
+
+    from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
+    # reply_to_emails is all to_emails plus the from_email.
+    reply_to_emails = copy(to_emails)
+    reply_to_emails.append(from_email)
+
+    for to in to_emails:
+        reply_to = copy(reply_to_emails)
+        # Popping the to email from reply_to emails.
+        reply_to.pop(reply_to_emails.index(to))
+        p1_rsvp.participant.send_email(
+            subject=subject,
+            template_name=template,
+            to=[to],
+            from_email=from_email,
+            content={},
+            merge_vars=data,
+            reply_to=reply_to,
+        )
