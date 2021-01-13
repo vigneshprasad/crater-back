@@ -88,7 +88,16 @@ class GoogleCalendarService:
         request_id = str(uuid.uuid4())
 
         # Calculate description based on if we have a meeting link or not.
-        summary = summary if summary else constants.DEFAULT_SUMMARY_FOR_MEETING_EVENTS
+        try:
+            user1 = users[0]
+            user2 = users[1]
+        except KeyError:
+            return
+
+        summary = "{} <> {}| Professional Networking | WorkNetwork".format(
+            user1.get_display_first_name(),
+            user2.get_display_first_name()
+        )
         description = description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS
 
         request_body = {

@@ -1,28 +1,51 @@
 import logging
 import pytz
+import urllib.parse
 
 from datetime import datetime
+from django.conf import settings
 
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat.services import create_public_rsvp_url
+from utils.tiny_url_service import tiny_url_service
 
-from freelance.settings import FRONT_URL, TIME_ZONE
 
-
-def send_meeting_whatsapp_reminder_to_user(user, time):
+def send_meeting_whatsapp_reminder_to_user(user, meeting):
     """Send whatsapp message to user for upcoming meeting.
 
     Args:
         user(User): User we are sending the whatsapp reminder to.
-        time(str): Str time for the meeting start time.
+        meeting(Meeting): Meeting object for which we are sending the reminder.
 
     """
-    logging.info("Sending meeting reminder for {}, meeting starting at {}".format(user.email, time))
+
+    matched_user = meeting.participants.all().exclude(email=user.email).first()
+    if not matched_user:
+        return
+
+    phone_number = matched_user.get_phone_number().replace("+", "") if user.get_phone_number() else None
+
+    if not phone_number:
+        return
+
+    logging.info("Sending meeting reminder to {} for meeting {}".format(user.email, meeting.id))
+
+    # Creating whatsapp prompt for the user.
+    whatsapp_prompt_link = tiny_url_service.shorten(
+        constants.WHATSAPP_BASE_URL + "{}?".format(phone_number) + "text={}".format(urllib.parse.quote(constants.MEETING_REMINDER_PREFILLED_MESSAGE_PROMPT))
+    )
+    whatsapp_prompt = constants.MEETING_REMINDER_WHATSAPP_PROMPT_TEXT.format(whatsapp_prompt_link)
+
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.MEETING_REMINDER_FRESHCHAT_TEMPLATE,
-        template_data=[{"data": time}]
+        template_name=constants.MEETING_REMINDER_TEMPLATE,
+        template_data=[
+            {"data": meeting.time_slot.get_display_start_time()},
+            {"data": tiny_url_service.shorten(meeting.link) if meeting.link else ""},
+            {"data": matched_user.get_display_first_name()},
+            {"data": whatsapp_prompt},
+        ]
     )
 
 
@@ -68,25 +91,6 @@ def send_meeting_time_confirmation(user, start_time, end_time):
     )
 
 
-def send_registration_confirmation(user):
-    """Send a message once user has created a meeting preference
-
-    Args:
-        user(User): User to whom this message will go.
-    """
-    logging.info("Send a message to a user who has created a meeting preference".format(
-        user.email,
-    ))
-
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
-        user=user,
-        template_name=constants.REGISTRATION_CONFIRMATION,
-        template_data=[
-            {"data": 'https://{}/meetings'.format(FRONT_URL)}
-        ]
-    )
-
-
 def send_meeting_confirmation_rsvp(user, meeting):
     """ Send a message with confirming time and a rsvp link
 
@@ -95,7 +99,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
         meeting(Meeting): Meeting for which message confirmation goes
     """
 
-    local_tz = pytz.timezone(TIME_ZONE)
+    local_tz = pytz.timezone(settings.TIME_ZONE)
 
     local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
     local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
@@ -111,7 +115,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
-        template_name=constants.MEETING_CONFIRMATION_RSVP,
+        template_name=constants.MEETING_CONFIRMATION_TEMPLATE,
         template_data=[
             {"data": matched_user},
             {"data": date_time},
