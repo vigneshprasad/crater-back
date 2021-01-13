@@ -47,3 +47,9 @@ DEVICE_NAME_OTHER = 'Other'
 DEVICE_NAME_WEB = 'WEB'
 
 PASSWORD_RESET_FROM_EMAIL = "set-password@worknetwork.in"
+
+TYPEFORM_URL_TO_SOURCE_MAP = {
+    "https://worknetwork.typeform.com/to/MNbvcw7y": "MF1: LP_TF",
+    "https://worknetwork.typeform.com/to/CN4xKZL8": "MF2: D_TF",
+    "https://worknetwork.typeform.com/to/ltoxdMaX": "MF3: LI_OR"
+}
