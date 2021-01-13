@@ -525,5 +525,6 @@ def get_user_from_opt_in_url(query):
     try:
         user = get_user_model().objects.get(pk=user_id)
         return user
+        
     except get_user_model().DoesNotExist:
         raise get_user_model().DoesNotExist

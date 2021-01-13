@@ -94,18 +94,24 @@ class MeetingPreferencePublicViewSet(
 
         try:
             user = services.get_user_from_opt_in_url(data)
-            preference = user.meeting_preferences.first()
-            if not preference:
+            old_preference = user.meeting_preferences.first()
+            if not old_preference:
                 return self.generate_bad_request({
                     "error": "If this is the first time you're opting in please use the app to indicate your preferences."
                 })
 
-            current_meeting_config = services.get_latest_active_meeting_config()
-            current_week_start_date = current_meeting_config.week_start_date
+            latest_meeting_config = services.get_latest_active_meeting_config()
+            current_week_start_date = latest_meeting_config.week_start_date
             new_time_slots = []
-            for time_slot in preference.time_slots.all():
+            for time_slot in old_preference.time_slots.all():
                 day = time_slot.date.weekday()
                 date_diff = day - current_week_start_date.weekday()
+
+                if(date_diff < 0):
+                    return self.generate_bad_request(
+                        {"error": "Please check back at a later time."}
+                    )
+
                 new_date = current_week_start_date + datetime.timedelta(days=date_diff)
                 time_slot, _ = models.TimeSlot.objects.get_or_create(
                     date=new_date,
@@ -114,8 +120,8 @@ class MeetingPreferencePublicViewSet(
                 )
                 new_time_slots.append(time_slot)
 
-            meeting_preference, created = models.MeetingPreference.objects.get_or_create(
-                meeting=current_meeting_config,
+            new_meeting_preference, created = models.MeetingPreference.objects.get_or_create(
+                meeting=latest_meeting_config,
                 user=user,
             )
 
@@ -124,20 +130,20 @@ class MeetingPreferencePublicViewSet(
                     {"error": "You have already signed up for the week. If you'd like to edit your preferences please use the app."}
                 )
 
-            for obj in preference.objectives.all():
-                meeting_preference.objectives.add(obj)
+            for obj in old_preference.objectives.all():
+                new_meeting_preference.objectives.add(obj)
 
-            looking_for_objective = preference.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first()
-            looking_to_objective = preference.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first()
+            looking_for_objective = old_preference.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first()
+            looking_to_objective = old_preference.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first()
 
             objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
                 if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
 
-            for interest in preference.interests.all():
-                meeting_preference.interests.add(interest)
+            for interest in old_preference.interests.all():
+                new_meeting_preference.interests.add(interest)
         
             for slot in new_time_slots or []:
-                meeting_preference.time_slots.add(slot)
+                new_meeting_preference.time_slots.add(slot)
             
             return Response(data={"objective": objectives_str})
 
