@@ -37,7 +37,7 @@ def send_analytics_for_user_meeting_preference(sender, instance, created, *args,
         week_end_date=str(instance.meeting.week_end_date),
         number_of_meetings=instance.number_of_meetings,
         interests=[interest.name for interest in instance.interests.all()],
-        objective=instance.objective,
+        objectives=[objective.name for objective in instance.objectives.all()],
         time_slots=all_time_slots
     )
 
@@ -70,7 +70,7 @@ def send_analytics_for_meeting_config_creation(sender, instance, created, *args,
 
 @receiver(signals.create_new_meeting_preference_typeform)
 def create_meeting_preference_for_typeform_user(
-        sender, user, time_preferences, interests, days, objective, *args, **kwargs
+        sender, user, time_preferences, interests, days, objectives, *args, **kwargs
 ):
     clean_time_preferences = []
     for time_preference in time_preferences:
@@ -79,7 +79,7 @@ def create_meeting_preference_for_typeform_user(
     # Changed it to add user"s to current meeting.
     meeting_config = services.get_latest_active_meeting_config()
     # Get respective objectives for User Meeting Preference.
-    objective_objs = models.Objective.objects.filter(name__in=objective)
+    objective_objs = models.Objective.objects.filter(name__in=objectives)
 
     # Calculate time slots for the data provided.
     start_date = meeting_config.week_start_date

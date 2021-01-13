@@ -22,7 +22,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'utm_source': form.get('hidden').get('utm_source') if form.get('hidden') else None,
             'utm_campaign': form.get('hidden').get('utm_campaign') if form.get('hidden') else None,
             'source': 'https://worknetwork.typeform.com/to/' + form['form_id'],
-            'objective': []
+            'objectives': []
         }
 
         for i in range(len(fields)):
@@ -43,10 +43,10 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 user['linkedin_url'] = answers[i]['url']
             elif fields[i]['ref'] == 'objective_looking_for':
                 for objective in answers[i]['choices']['labels']:
-                    user['objective'].append(objective)
+                    user['objectives'].append(objective)
             elif fields[i]['ref'] == 'objective_looking_to':
                 for objective in answers[i]['choices']['labels']:
-                    user['objective'].append(objective)
+                    user['objectives'].append(objective)
             elif fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
                 for interest in answers[i]['choices']['labels']:
                     user['interests'].append(interest)
@@ -77,7 +77,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             signals.create_new_meeting_preference_typeform.send(
                 sender=None,
                 user=user_obj,
-                objective=user['objective'],
+                objectives=user['objectives'],
                 time_preferences=user['time_preferences'],
                 interests=user['interests'],
                 days=user['meeting_days']

@@ -66,7 +66,7 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
         user_preference = {
             'pk': latest_user_preference.pk,
             'number_of_meetings': latest_user_preference.number_of_meetings,
-            'objective': latest_user_preference.objective,
+            'objectives': latest_user_preference.objectives.values_list('pk', flat=True),
             'interests': latest_user_preference.interests.values_list('pk', flat=True),
             'time_slots': latest_user_preference.time_slots.values_list('pk', flat=True)
         }
@@ -105,7 +105,6 @@ class PostUserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializer
             'meeting',
             'number_of_meetings',
             'number_of_meetings_per_month',
-            'objective',
             'objectives',
             'interests',
             'time_slots'
@@ -124,7 +123,6 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
             'meeting',
             'number_of_meetings',
             'number_of_meetings_per_month',
-            'objective',
             'objectives',
             'interests',
             'time_slots'
