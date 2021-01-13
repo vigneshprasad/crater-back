@@ -144,7 +144,8 @@ class MeetingPreferencePublicViewSet(
         
             for slot in new_time_slots or []:
                 new_meeting_preference.time_slots.add(slot)
-            
+
+            signals.new_meeting_registration.send(sender=new_meeting_preference.__class__, preference=new_meeting_preference)
             return Response(data={"objective": objectives_str})
 
         except InvalidToken:
