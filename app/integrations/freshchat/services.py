@@ -29,3 +29,15 @@ def create_public_reschedule_url(reschedule, user):
     url = 'https://{}/public/reschedule?p={}'.format(FRONT_URL, encrypted_message.decode())
     short_url = tiny_url_service.shorten(url)
     return short_url
+
+def create_public_opt_in_url(user):
+    """
+    Creating a public url from the reschedule id
+    and encrypting it using a secret key
+    """
+    message = "" + str(user.uuid)
+    f = Fernet(FERNET_KEY)
+    encrypted_message = f.encrypt(message.encode())
+    url = 'https://{}/public/optin?p={}'.format(FRONT_URL, encrypted_message.decode())
+    short_url = tiny_url_service.shorten(url)
+    return short_url

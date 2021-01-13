@@ -37,6 +37,10 @@ class MeetingPreferencePublicViewSet(
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['meeting', 'user']
 
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
     @action(
         methods=['get'],
         serializer_class=serializers.PublicMeetingPreferenceSerializer,
@@ -65,6 +69,80 @@ class MeetingPreferencePublicViewSet(
 
         response = super(MeetingPreferencePublicViewSet, self).list(request, *args, **kwargs)
         return response
+
+    @action(
+        methods=['post'],
+        serializer_class=serializers.PublicMeetingPreferenceSerializer,
+        permission_classes=[permissions.AllowAny],
+        detail=False
+    )
+    def optin(self, request, *args, **kwargs):
+        """Check if the user is attending the meeting and mark it.
+
+        Note:
+            This is a public view which gets user from
+                a encoded string in the body and marks the user
+                as attending for the meeting.
+
+        """
+        data = request.data.get('user')
+        if not data:
+            return self.generate_bad_request(
+                {'error': 'Query data missing'}
+            )
+
+        try:
+            user = services.get_user_from_opt_in_url(data)
+            preference = user.meeting_preferences.first()
+            if not preference:
+                return self.generate_bad_request({
+                    "error": "If this is the first time you're opting in please use the app to indicate your preferences."
+                })
+
+            current_meeting_config = services.get_latest_active_meeting_config()
+            current_week_start_date = current_meeting_config.week_start_date
+            new_time_slots = []
+            for time_slot in preference.time_slots.all():
+                day = time_slot.date.weekday()
+                date_diff = day - current_week_start_date.weekday()
+                new_date = current_week_start_date + datetime.timedelta(days=date_diff)
+                time_slot, _ = models.TimeSlot.objects.get_or_create(
+                    date=new_date,
+                    start_time=time_slot.start_time,
+                    end_time=time_slot.end_time
+                )
+                new_time_slots.append(time_slot)
+
+            meeting_preference, created = models.MeetingPreference.objects.get_or_create(
+                meeting=current_meeting_config,
+                user=user,
+            )
+
+            if not created:
+                return self.generate_bad_request(
+                    {"error": "You have already signed up for the week. If you'd like to edit your preferences please use the app."}
+                )
+
+            for obj in preference.objectives.all():
+                meeting_preference.objectives.add(obj)
+
+            for interest in preference.interests.all():
+                meeting_preference.interests.add(interest)
+        
+            for slot in new_time_slots or []:
+                meeting_preference.time_slots.add(slot)
+            
+            return Response(data={"success": "Your preferences have been confirmed."})
+
+        except InvalidToken:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except get_user_model().DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+
 
 
 class MeetingPublicViewSet(
