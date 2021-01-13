@@ -277,8 +277,9 @@ def send_whatsapp_meeting_reminders(meetings=None):
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
         start__gt=start_datetime,
-        end__lte=end_datetime
-    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
+        end__lte=end_datetime,
+        status=choices.MEETING_STATUS_CONFIRMED
+    ) if not meetings else meetings
 
     logging.info("Sending reminders for meetings between {} - {}. Meetings count: {}".format(
             start_datetime, end_datetime, meetings.count()
@@ -325,8 +326,9 @@ def send_1_on_1_feedback_emails(meetings=None):
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
         start__gte=start_datetime,
-        end__lt=end_datetime
-    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
+        end__lt=end_datetime,
+        status=choices.MEETING_STATUS_CONFIRMED
+    ) if not meetings else meetings
 
     logging.info("Sending feedback emails for meetings between {} - {}. Meetings count: {}".format(
             start_datetime, end_datetime, meetings.count()
@@ -419,7 +421,8 @@ def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
         start__year=date.year,
         start__month=date.month,
         start__day=date.day,
-    ).exclude(status=choices.MEETING_STATUS_CANCELLED) if not meetings else meetings
+        status=choices.MEETING_STATUS_PENDING
+    ) if not meetings else meetings
 
     logging.info("Sending rsvp reminders for meetings on {}. Meetings count: {}".format(
         date, meetings.count()
@@ -509,7 +512,8 @@ def send_weekly_meeting_rewards_email(users=None):
         meetings = user.meeting_set.filter(
             start__gte=week_start_date,
             end__lte=week_end_date,
-        ).exclude(status=choices.MEETING_STATUS_CANCELLED)
+            status=choices.MEETING_STATUS_CONFIRMED
+        )
 
         # If no meetings last week. continue
         if not meetings:

@@ -153,10 +153,15 @@ def create_meeting_for_users(sender, instance, *args, **kwargs):
         except get_user_model().DoesNotExist:
             continue
 
-        models.MeetingRSVP.objects.create(
+        rsvp = models.MeetingRSVP.objects.create(
             meeting=instance,
             participant_id=participant,
         )
+
+        # TODO(Nishant): Discuss if we need to do this or not.
+        # if instance.status == choices.MEETING_STATUS_CONFIRMED:
+        #     rsvp.status = choices.MEETING_RSVP_STATUS_ATTENDING
+        #     rsvp.save()
 
     chat_signals.create_chat_for_meeting.send(
         sender=instance,
