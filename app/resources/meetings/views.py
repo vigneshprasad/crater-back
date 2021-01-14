@@ -222,54 +222,6 @@ class MeetingRSVPViewSet(
     @action(
         methods=['POST'],
         detail=False,
-        permission_classes=[permissions.AllowAny]
-    )
-    def attending(self, request):
-        """Check if the user is attending the meeting and mark it.
-
-        Note:
-            This is a public view which gets user and meeting id from
-                a encoded string in the body and marks the user
-                as attending for the meeting.
-
-        """
-        data = request.data.get('meeting')
-        if not data:
-            return self.generate_bad_request(
-                {'error': 'Query data missing'}
-            )
-
-        try:
-            user, meeting = services.get_user_meeting_from_url(data)
-            if meeting.status == choices.MEETING_STATUS_CANCELLED:
-                return self.generate_bad_request({
-                    'error': 'This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake.'
-                })
-            rsvp = models.MeetingRSVP.objects.get(
-                meeting=meeting,
-                participant=user,
-            )
-            rsvp.status = choices.MEETING_RSVP_STATUS_CHOICES[0][0]
-            rsvp.save()
-            serialized = self.get_serializer(rsvp)
-            return Response(data={"start": meeting.start})
-
-        except InvalidToken:
-            return self.generate_bad_request(
-                {"error": "Please check the URL and try again."}
-            )
-        except models.MeetingRSVP.DoesNotExist:
-            return self.generate_bad_request(
-                {"error": "Please check the URL and try again."}
-            )
-        except models.Meeting.DoesNotExist:
-            return self.generate_bad_request(
-                {"error": "Please check the URL and try again."}
-            )
-
-    @action(
-        methods=['POST'],
-        detail=False,
     )
     def confirmed(self, request, *args, **kwargs):
         request_data = request.data

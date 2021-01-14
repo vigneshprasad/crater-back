@@ -480,3 +480,81 @@ class RescheduleRequestPublicViewSet(
         )
 
         return Response({"success": True})
+
+
+class MeetingRSVPPublicViewSet(
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.MeetingRSVPSerializer
+    queryset = models.MeetingRSVP.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def attending(self, request):
+        """Check if the user is attending the meeting and mark it.
+
+        Note:
+            This is a public view which gets user and meeting id from
+                a encoded string in the body and marks the user
+                as attending for the meeting.
+
+        """
+        data = request.data.get('meeting')
+        if not data:
+            return self.generate_bad_request(
+                {'error': 'Query data missing'}
+            )
+
+        try:
+            user, meeting = services.get_user_meeting_from_url(data)
+            if meeting.status == choices.MEETING_STATUS_CANCELLED:
+                return self.generate_bad_request({
+                    'error': 'This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake.'
+                })
+            if meeting.status == choices.MEETING_STATUS_RESCHEDULED:
+                return self.generate_bad_request({
+                    'error': 'This meeting has been rescheduled or a reschedule request is pending. Please contact WorkNetwork if you think this is a mistake.'
+                })
+            rsvp = models.MeetingRSVP.objects.get(
+                meeting=meeting,
+                participant=user,
+            )
+            if rsvp.status == choices.MEETING_RSVP_STATUS_CHOICES[0][0]:
+                return self.generate_bad_request({
+                    'error': 'You have already RSVPed for this meeting.'
+                })
+            rsvp.status = choices.MEETING_RSVP_STATUS_CHOICES[0][0]
+            rsvp.save()
+
+            # Send a signal which updates the status after RSVP is
+            # updated.
+            signals.rsvp_status_updated.send(
+                sender=rsvp.__class__,
+                user=request.user,
+                rsvp=rsvp
+            )
+            return Response(data={"start": meeting.start})
+
+        except InvalidToken:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except models.get_user_model().DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except models.MeetingRSVP.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except models.Meeting.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )

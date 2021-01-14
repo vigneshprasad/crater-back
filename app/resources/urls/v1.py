@@ -35,6 +35,7 @@ public_router.register('meetings/config', meeting_public_views.MeetingConfigPubl
 public_router.register('meetings/preference', meeting_public_views.MeetingPreferencePublicViewSet)
 public_router.register('meetings/communication', meeting_public_views.MeetingCommunicationViewSet)
 public_router.register('meetings/reschedule', meeting_public_views.RescheduleRequestPublicViewSet)
+public_router.register('meetings/rsvp', meeting_public_views.MeetingRSVPPublicViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
