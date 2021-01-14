@@ -78,12 +78,13 @@ class MeetingPreferencePublicViewSet(
         detail=False
     )
     def optin(self, request, *args, **kwargs):
-        """Check if the user is attending the meeting and mark it.
+        """Check if the user has past user preferences and opt them for this week.
 
         Note:
             This is a public view which gets user from
-                a encoded string in the body and marks the user
-                as attending for the meeting.
+                a encoded string in the body and creates
+                a user meeting preference object for the
+                user.
 
         """
         data = request.data.get('user')
