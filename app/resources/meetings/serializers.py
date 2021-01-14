@@ -66,7 +66,7 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
         user_preference = {
             'pk': latest_user_preference.pk,
             'number_of_meetings': latest_user_preference.number_of_meetings,
-            'objectives': latest_user_preference.objectives.values_list('pk', flat=True),
+            'objective': latest_user_preference.objectives.values_list('pk', flat=True),
             'interests': latest_user_preference.interests.values_list('pk', flat=True),
             'time_slots': latest_user_preference.time_slots.values_list('pk', flat=True)
         }
