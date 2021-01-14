@@ -487,7 +487,6 @@ def cancel_meetings_for_no_rsvp(meetings=None):
     for meeting in meetings:
         # Setting the meeting status to Cancelled as well.
         meeting.status = choices.MEETING_STATUS_CANCELLED
-        meeting.is_canceled = True
         meeting.save()
 
         # Sending communication for cancellation.

@@ -233,7 +233,6 @@ class MeetingSerializer(serializers.ModelSerializer):
             'link',
             'start',
             'end',
-            'is_canceled',
             'is_past',
             'status',
         ]

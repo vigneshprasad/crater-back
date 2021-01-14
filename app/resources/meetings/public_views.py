@@ -204,55 +204,6 @@ class MeetingCommunicationViewSet(
     queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
 
-    # @action(
-    #     methods=['get', 'post'],
-    #     serializer_class=serializers.MeetingSerializer,
-    #     permission_classes=[permissions.AllowAny],
-    #     detail=False
-    # )
-    # # TODO(Nishant): Take list of meeting ids to send emails to a subset of meetings.
-    # def send_intro_emails(self, request, *args, **kwargs):
-    #     if request.method == 'GET':
-    #         all_active_meetings = services.get_active_meetings()
-    #         all_data = []
-    #         for active_meeting in all_active_meetings:
-    #             if not active_meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
-    #                 continue
-    #
-    #             p1 = active_meeting.participants.all()[0]
-    #             p2 = active_meeting.participants.all()[1]
-    #
-    #             # Checking if profile exists.
-    #             if not (p1.has_profile and p2.has_profile):
-    #                 continue
-    #
-    #             display_day = active_meeting.time_slot.get_display_day()
-    #             display_time = active_meeting.time_slot.get_display_time()
-    #
-    #             subject = 'Introducing {} & {}'.format(
-    #                 p1.name.title(),
-    #                 p2.name.title()
-    #             )
-    #             data = {
-    #                 'meeting_id': active_meeting.id,
-    #                 'day': display_day,
-    #                 'time': display_time,
-    #                 'name_a': p1.name.title(),
-    #                 'name_b': p2.name.title(),
-    #                 'link': active_meeting.link,
-    #                 'introduction_a': p1.profile.get_introduction(),
-    #                 'introduction_b': p2.profile.get_introduction(),
-    #                 'linkedin_a': p1.profile.linkedin_url,
-    #                 'linkedin_b': p2.profile.linkedin_url,
-    #             }
-    #             all_data.append(data)
-    #         return Response(all_data)
-    #
-    #     if request.method == 'POST':
-    #         tasks.send_1_on_1_meeting_intro_emails()
-    #
-    #     return Response({'status': 'SUCCESS'})
-
 
 class RescheduleRequestPublicViewSet( 
     mixins.ListModelMixin,

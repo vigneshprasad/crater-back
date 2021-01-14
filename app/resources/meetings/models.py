@@ -357,7 +357,7 @@ class Meeting(base_model.BaseModel):
 
     def __str__(self):
         member_str = " - ".join((self.participants.all().values_list("email", flat=True)))
-        # Getting the time_str from start or time_slot.
+        # Getting the time_str from start datetime.
         time_str = self.local_start.strftime("%A %d, %b %I:%M %p")
         return "{} @ {}".format(member_str, time_str)
 
@@ -389,7 +389,7 @@ class Meeting(base_model.BaseModel):
         """
         return self.start.strftime("%A, %d %B")
 
-    def get_display_time(self,):
+    def get_display_time(self):
         """Give a displayable time (start plus end) for a Meeting.
 
         Note:

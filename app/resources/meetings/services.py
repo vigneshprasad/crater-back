@@ -441,6 +441,7 @@ def create_meeting(config, participants, start, end, status=choices.MEETING_STAT
             default pending status is used.
 
     """
+    # TODO(Nishant): Remove MeetingTimeSlot in the next cleanup.
     meeting = models.Meeting.objects.create(
         config=config,
         time_slot=get_or_create_time_slot(start=start, end=end),

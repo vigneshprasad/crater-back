@@ -391,8 +391,8 @@ def _send_meeting_cancellation_email(meeting):
     to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
     subject = "1:1 Meeting Cancelled"
     template = choices.ONE_ON_ONE_MEETING_CANCELED_TEMPLATE
-    display_day = meeting.time_slot.get_display_day()
-    display_time = meeting.time_slot.get_display_time()
+    display_day = meeting.get_display_day()
+    display_time = meeting.get_display_time()
 
     if p1_rsvp_declined and p2_rsvp_declined:
         declined_string = "{} & {}".format(p1_rsvp.participant.email, p2_rsvp.participant.email)
