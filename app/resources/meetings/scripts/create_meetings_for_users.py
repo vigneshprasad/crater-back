@@ -99,6 +99,7 @@ def update_public_introduction(user, introduction):
 def create_meeting(meeting_config, participants, start, end):
     meeting = models.Meeting.objects.create(
         config=meeting_config,
+        time_slot=services.get_or_create_time_slot(start, end),
         start=start,
         end=end
     )
