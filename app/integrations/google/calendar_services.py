@@ -176,7 +176,8 @@ class GoogleCalendarService:
 
         return self.service.events().delete(
             calendarId=self.calendar_id,
-            eventId=event_id
+            eventId=event_id,
+            sendUpdates="all",
         ).execute()
 
 

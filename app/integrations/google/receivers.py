@@ -17,18 +17,16 @@ def delete_calendar_event_on_meeting_cancellation(sender, meeting, *args, **kwar
         meeting(Meeting): Meeting object that was cancelled.
 
     """
-    google_calendar_events = models.GoogleCalendarEvent.objects.filter(
+    google_calendar_event_ids = models.GoogleCalendarEvent.objects.filter(
         meeting_id=meeting.id
-    )
+    ).values_list('event_id', flat=True)
 
-    for calendar_event in google_calendar_events:
+    for event_id in google_calendar_event_ids:
         try:
             calendar_services.google_calendar_service.delete_event(
-                event_id=calendar_event.event_id
+                event_id=event_id
             )
             # Marking the google event as is deleted.
-            calendar_event.is_deleted = True
-            calendar_event.deleted_at = datetime.datetime.now()
-            calendar_event.save()
+            models.GoogleCalendarEvent.objects.filter(event_id=event_id).delete()
         except HttpError:
             continue
