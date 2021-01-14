@@ -6,7 +6,7 @@ registered_for_meeting = Signal(providing_args=[
     "week_end_date",
     "created",
     "interests",
-    "objective",
+    "objectives",
     "number_of_meetings",
     "time_slots",
     "meeting"
@@ -31,7 +31,7 @@ create_new_meeting_preference_typeform = Signal(providing_args=[
     "user",
     "time_preferences",
     "interests",
-    "objective",
+    "objectives",
     "days"
 ])
 

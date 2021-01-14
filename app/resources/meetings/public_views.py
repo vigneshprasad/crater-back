@@ -2,6 +2,7 @@ import datetime
 import json
 import pytz
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -74,7 +75,7 @@ class MeetingPublicViewSet(
     viewsets.GenericViewSet
 ):
 
-    serializer_class = serializers.MeetingSerializer
+    serializer_class = serializers.PublicMeetingSerializer
     queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['config']
@@ -102,12 +103,6 @@ class MeetingPublicViewSet(
                 }
             )
 
-        time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
-            date=meeting_date,
-            start_time=start_time,
-            end_time=end_time
-        )
-
         meeting_config = services.get_current_week_meeting_config()
         if not meeting_config:
             return Response(
@@ -120,40 +115,35 @@ class MeetingPublicViewSet(
         data = {
             "config": meeting_config.id,
             "participants": data["participants"],
-            "time_slot": time_slot.id,
             "start": start,
-            "end": end,
-            "is_canceled": data.get("is_canceled", False)
+            "end": end
         }
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-
         return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):
         response = super(MeetingPublicViewSet, self).list(request, *args, **kwargs)
         final_response = []
+
         for data in response.data:
             response_dict = dict(data)
             participants_emails = get_user_model().objects.filter(
                     uuid__in=response_dict["participants"]
                 ).values_list('email', flat=True)
-            time_slot = models.MeetingTimeSlot.objects.get(id=response_dict["time_slot"])
-            date = time_slot.date
-            start_time = time_slot.start_time
-            end_time = time_slot.end_time
+            start = datetime.datetime.strptime(response_dict["start"], settings.DEFAULT_DATETIME_FORMAT)
+            end = datetime.datetime.strptime(response_dict["end"], settings.DEFAULT_DATETIME_FORMAT)
             data = {
                 "id": response_dict["pk"],
-                "config": response_dict["meeting_config"],
+                "config": response_dict["config"],
                 "participants": ", ".join(participants_emails),
-                "meeting_date": date,
-                "start_time": start_time,
-                "end_time": end_time,
+                "meeting_date": start.date(),
+                "start_time": start.time(),
+                "end_time": end.time(),
                 "meeting_link": response_dict["link"],
                 "status": response_dict["status"],
-                "canceled": response_dict["is_canceled"]
             }
             final_response.append(data)
 
@@ -201,7 +191,6 @@ class MeetingPublicViewSet(
                 "end_time": end_time,
                 "meeting_link": meeting_link,
                 "status": response_dict.get("status"),
-                "canceled": response_dict.get("is_canceled")
             }
             final_response.append(user_data)
 
@@ -214,55 +203,6 @@ class MeetingCommunicationViewSet(
     serializer_class = serializers.MeetingSerializer
     queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
-
-    # @action(
-    #     methods=['get', 'post'],
-    #     serializer_class=serializers.MeetingSerializer,
-    #     permission_classes=[permissions.AllowAny],
-    #     detail=False
-    # )
-    # # TODO(Nishant): Take list of meeting ids to send emails to a subset of meetings.
-    # def send_intro_emails(self, request, *args, **kwargs):
-    #     if request.method == 'GET':
-    #         all_active_meetings = services.get_active_meetings()
-    #         all_data = []
-    #         for active_meeting in all_active_meetings:
-    #             if not active_meeting.participants.count() == choices.MAX_MEMBER_FOR_ONE_ON_ONE:
-    #                 continue
-    #
-    #             p1 = active_meeting.participants.all()[0]
-    #             p2 = active_meeting.participants.all()[1]
-    #
-    #             # Checking if profile exists.
-    #             if not (p1.has_profile and p2.has_profile):
-    #                 continue
-    #
-    #             display_day = active_meeting.time_slot.get_display_day()
-    #             display_time = active_meeting.time_slot.get_display_time()
-    #
-    #             subject = 'Introducing {} & {}'.format(
-    #                 p1.name.title(),
-    #                 p2.name.title()
-    #             )
-    #             data = {
-    #                 'meeting_id': active_meeting.id,
-    #                 'day': display_day,
-    #                 'time': display_time,
-    #                 'name_a': p1.name.title(),
-    #                 'name_b': p2.name.title(),
-    #                 'link': active_meeting.link,
-    #                 'introduction_a': p1.profile.get_introduction(),
-    #                 'introduction_b': p2.profile.get_introduction(),
-    #                 'linkedin_a': p1.profile.linkedin_url,
-    #                 'linkedin_b': p2.profile.linkedin_url,
-    #             }
-    #             all_data.append(data)
-    #         return Response(all_data)
-    #
-    #     if request.method == 'POST':
-    #         tasks.send_1_on_1_meeting_intro_emails()
-    #
-    #     return Response({'status': 'SUCCESS'})
 
 
 class RescheduleRequestPublicViewSet( 
@@ -324,7 +264,7 @@ class RescheduleRequestPublicViewSet(
                 {"error": "Invalid datetime format."}
             )
 
-        #TODO: Clean up this timezone stuff (Nishant) 
+        # TODO(Nishant): Clean up this timezone stuff.
         selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
         selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
 

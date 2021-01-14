@@ -1,5 +1,3 @@
-import datetime
-
 from integrations.google import calendar_services
 from integrations.google import models
 from integrations.google import private
@@ -8,22 +6,17 @@ from integrations.superpro import public as superpro_public
 
 
 def create_calendar_event_for_meeting(meeting):
-    """Create a calendar event on WorkNetwork calendar for a meeting.
+    """Creates google calendar event for a meeting.
 
     Args:
-        meeting(Meeting): Meeting object.
+        meeting(Meeting): Meeting object for which we have to
+            create the calendar event.
 
     """
     users = meeting.participants.all()
+    start_datetime = meeting.local_start
+    end_datetime = meeting.local_end
 
-    start_datetime = datetime.datetime.combine(
-        date=meeting.time_slot.date,
-        time=meeting.time_slot.start_time
-    )
-    end_datetime = datetime.datetime.combine(
-        date=meeting.time_slot.date,
-        time=meeting.time_slot.end_time
-    )
     # Create meeting link using superpro.
     meeting_link = superpro_public.create_meeting_link(meeting)
     event_id, meeting_link = calendar_services.google_calendar_service.create_event(
@@ -32,7 +25,6 @@ def create_calendar_event_for_meeting(meeting):
         users,
         meeting_link=meeting_link
     )
-
     # Creating model entries for each user.
     for user in users:
         models.GoogleCalendarEvent.objects.create(

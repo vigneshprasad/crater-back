@@ -4,6 +4,7 @@ from resources.meetings import signals
 from services import serializers as service_serializers
 from users import permissions
 from users import models
+from users import choices
 from users.paginators import Pagination
 from users.scripts.create_users_from_csv import create_user_and_profile
 
@@ -14,6 +15,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         form = request.data['form_response']
         fields = form['definition']['fields']
         answers = form['answers']
+        typeform_url = 'https://worknetwork.typeform.com/to/' + form['form_id']
         user = {
             'email': form.get('hidden').get('email') if form.get('hidden') else None,
             'interests': [],
@@ -21,8 +23,8 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'meeting_days': [],
             'utm_source': form.get('hidden').get('utm_source') if form.get('hidden') else None,
             'utm_campaign': form.get('hidden').get('utm_campaign') if form.get('hidden') else None,
-            'source': 'https://worknetwork.typeform.com/to/' + form['form_id'],
-            'objective': []
+            'source': choices.TYPEFORM_URL_TO_SOURCE_MAP.get(typeform_url) or typeform_url,
+            'objectives': []
         }
 
         for i in range(len(fields)):
@@ -43,10 +45,10 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 user['linkedin_url'] = answers[i]['url']
             elif fields[i]['ref'] == 'objective_looking_for':
                 for objective in answers[i]['choices']['labels']:
-                    user['objective'].append(objective)
+                    user['objectives'].append(objective)
             elif fields[i]['ref'] == 'objective_looking_to':
                 for objective in answers[i]['choices']['labels']:
-                    user['objective'].append(objective)
+                    user['objectives'].append(objective)
             elif fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
                 for interest in answers[i]['choices']['labels']:
                     user['interests'].append(interest)
@@ -77,7 +79,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             signals.create_new_meeting_preference_typeform.send(
                 sender=None,
                 user=user_obj,
-                objective=user['objective'],
+                objectives=user['objectives'],
                 time_preferences=user['time_preferences'],
                 interests=user['interests'],
                 days=user['meeting_days']

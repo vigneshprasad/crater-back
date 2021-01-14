@@ -128,7 +128,7 @@ class MeetingViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return self.request.user.meeting_set.filter(is_canceled=False)
+        return self.request.user.meeting_set.all()
 
     def _get_meeting_queryset(self, is_past):
         now = datetime.datetime.now()
@@ -386,7 +386,7 @@ class RescheduleRequestViewSet(
             if len(time_slots) > 0:
                 data.append(time_slots)
         return Response(data)
-        
+
     @action(
         methods=['POST'],
         detail=False
@@ -406,7 +406,7 @@ class RescheduleRequestViewSet(
                 {"error": "Invalid datetime format."}
             )
 
-        #TODO: Clean up this timezone stuff (Nishant) 
+        # TODO(Nishant): Clean up this timezone stuff.
         selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
         selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
 
