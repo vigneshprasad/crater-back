@@ -277,7 +277,7 @@ def send_whatsapp_meeting_reminders(meetings=None):
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
         start__gt=start_datetime,
-        end__lte=end_datetime,
+        start__lte=end_datetime,
         status=choices.MEETING_STATUS_CONFIRMED
     ) if not meetings else meetings
 
@@ -325,7 +325,7 @@ def send_1_on_1_feedback_emails(meetings=None):
 
     meetings = models.Meeting.objects.filter(
         config__is_active=True,
-        start__gte=start_datetime,
+        end__gte=start_datetime,
         end__lt=end_datetime,
         status=choices.MEETING_STATUS_CONFIRMED
     ) if not meetings else meetings
