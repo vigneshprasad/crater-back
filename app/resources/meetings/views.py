@@ -128,7 +128,7 @@ class MeetingViewSet(mixins.ListModelMixin,
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return self.request.user.meeting_set.filter(is_canceled=False)
+        return self.request.user.meeting_set.all()
 
     def _get_meeting_queryset(self, is_past):
         now = datetime.datetime.now()
