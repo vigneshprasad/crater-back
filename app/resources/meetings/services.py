@@ -441,10 +441,8 @@ def create_meeting(config, participants, start, end, status=choices.MEETING_STAT
             default pending status is used.
 
     """
-    # TODO(Nishant): Remove MeetingTimeSlot in the next cleanup.
     meeting = models.Meeting.objects.create(
         config=config,
-        time_slot=get_or_create_time_slot(start=start, end=end),
         start=start,
         end=end,
         status=status
@@ -457,23 +455,6 @@ def create_meeting(config, participants, start, end, status=choices.MEETING_STAT
     meeting.save()
 
     return meeting
-
-
-def get_or_create_time_slot(start, end):
-    """Create time slot from start and end date times."""
-
-    # TODO(Nishant): Deprecate this once we stop using time slots.
-    local_tz = pytz.timezone(TIME_ZONE)
-    local_start_datetime = start.replace(tzinfo=pytz.utc).astimezone(local_tz)
-    local_end_datetime = end.replace(tzinfo=pytz.utc).astimezone(local_tz)
-
-    time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
-        date=local_start_datetime.date(),
-        start_time=local_start_datetime.time(),
-        end_time=local_end_datetime.time()
-    )
-
-    return time_slot
 
 
 def get_config_for_date(date):
