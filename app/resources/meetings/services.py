@@ -63,6 +63,8 @@ def create_meeting_config_for_time_period(
     Note:
         registration_start_date can be less than week_start_date.
 
+
+
     """
     if not time_slots:
         time_slots = create_default_time_slots(start_date, end_date)
@@ -275,12 +277,12 @@ def get_active_meetings(start_date=None, end_date=None):
     if not end_date:
         end_date = latest_active_meeting_config.week_end_date
 
+    # TODO(Nishant): Figure out a better way to query for active/inactive meetings.
     return models.Meeting.objects.filter(
         config__is_active=True,
-        is_canceled=False,
-        time_slot__date__gte=start_date,
-        time_slot__date__lte=end_date,
-    )
+        start__gte=start_date,
+        end__lte=end_date
+    ).exclude(status=choices.MEETING_STATUS_CANCELLED)
 
 
 def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
@@ -441,7 +443,6 @@ def create_meeting(config, participants, start, end, status=choices.MEETING_STAT
     """
     meeting = models.Meeting.objects.create(
         config=config,
-        time_slot=get_or_create_time_slot(start=start, end=end),
         start=start,
         end=end,
         status=status
@@ -454,23 +455,6 @@ def create_meeting(config, participants, start, end, status=choices.MEETING_STAT
     meeting.save()
 
     return meeting
-
-
-def get_or_create_time_slot(start, end):
-    """Create time slot from start and end date times."""
-
-    # TODO(Nishant): Deprecate this once we stop using time slots.
-    local_tz = pytz.timezone(TIME_ZONE)
-    local_start_datetime = start.replace(tzinfo=pytz.utc).astimezone(local_tz)
-    local_end_datetime = end.replace(tzinfo=pytz.utc).astimezone(local_tz)
-
-    time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
-        date=local_start_datetime.date(),
-        start_time=local_start_datetime.time(),
-        end_time=local_end_datetime.time()
-    )
-
-    return time_slot
 
 
 def get_config_for_date(date):

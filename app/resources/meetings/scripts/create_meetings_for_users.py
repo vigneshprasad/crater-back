@@ -28,15 +28,10 @@ def run(
     meeting_config = services.get_current_week_meeting_config()
 
     if not meeting_config:
-        print('No Active meeting')
+        print('No Active Meeting Config.')
         return
 
-    all_time_slots = meeting_config.available_time_slots.all()
-
     print('Meeting Config: ', meeting_config.pk)
-    print('Time Slots: ', ','.join(
-        [time_slot.get_display_time() for time_slot in all_time_slots]
-    ))
 
     for row in reader:
         print('Start', '-' * 80)
@@ -65,29 +60,11 @@ def run(
             print('*' * 5, 'User Does Not Exist{}'.format(email_b))
 
         # Meeting Time Populations
-        meeting_datetime = datetime.datetime.strptime(meeting_time, '%d/%m/%y %H:%M')
-        date = meeting_datetime.date()
-        time_slot = None
-        start = meeting_datetime
-        end = meeting_datetime + datetime.timedelta(minutes=30)
-        start_time = start.time()
-        end_time = end.time()
+        start = datetime.datetime.strptime(meeting_time, '%d/%m/%y %H:%M')
+        end = start + datetime.timedelta(minutes=30)
 
-        print("Date: {}".format(date))
-        print("Start Time: {}".format(start_time))
-        print("End Time: {}".format(end_time))
         print("Start: {}".format(start))
         print("End: {}".format(end))
-
-        if not dry_run:
-            time_slot, _ = models.MeetingTimeSlot.objects.get_or_create(
-                date=date,
-                start_time=start_time,
-                end_time=end_time
-            )
-
-            print('Time Slot for Meeting:', time_slot.get_display()) \
-                if time_slot else print('*' * 5, 'No Time Slot missing for meeting')
 
         if not dry_run:
             if not (user_a and user_b):
@@ -98,8 +75,7 @@ def run(
             update_public_introduction(user_b, introduction_b)
 
             meeting = create_meeting(
-                meeting_config,
-                time_slot,
+                meeting_config=meeting_config,
                 start=start,
                 end=end,
                 participants=[user_a, user_b]
@@ -120,10 +96,9 @@ def update_public_introduction(user, introduction):
     profile.save()
 
 
-def create_meeting(meeting_config, time_slot, participants, start=None, end=None):
+def create_meeting(meeting_config, participants, start, end):
     meeting = models.Meeting.objects.create(
         config=meeting_config,
-        time_slot=time_slot,
         start=start,
         end=end
     )

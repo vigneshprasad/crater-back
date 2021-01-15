@@ -23,9 +23,9 @@ def send_analytics_for_user_meeting_preference(sender, instance, created, *args,
     all_time_slots = []
     for time_slot in time_slots:
         slot = {
-            'start_time': str(time_slot.start_time),
-            'end_time': str(time_slot.end_time),
-            'date': str(time_slot.date)}
+            "start_time": str(time_slot.start_time),
+            "end_time": str(time_slot.end_time),
+            "date": str(time_slot.date)}
         all_time_slots.append(slot)
 
     signals.registered_for_meeting.send(
@@ -37,7 +37,7 @@ def send_analytics_for_user_meeting_preference(sender, instance, created, *args,
         week_end_date=str(instance.meeting.week_end_date),
         number_of_meetings=instance.number_of_meetings,
         interests=[interest.name for interest in instance.interests.all()],
-        objective=instance.objective,
+        objectives=[objective.name for objective in instance.objectives.all()],
         time_slots=all_time_slots
     )
 
@@ -51,9 +51,9 @@ def send_analytics_for_meeting_config_creation(sender, instance, created, *args,
     all_time_slots = []
     for time_slot in time_slots:
         slot = {
-            'start_time': str(time_slot.start_time),
-            'end_time': str(time_slot.end_time),
-            'date': str(time_slot.date)}
+            "start_time": str(time_slot.start_time),
+            "end_time": str(time_slot.end_time),
+            "date": str(time_slot.date)}
         all_time_slots.append(slot)
 
     signals.new_meeting_config_created.send(
@@ -70,16 +70,16 @@ def send_analytics_for_meeting_config_creation(sender, instance, created, *args,
 
 @receiver(signals.create_new_meeting_preference_typeform)
 def create_meeting_preference_for_typeform_user(
-        sender, user, time_preferences, interests, days, objective, *args, **kwargs
+        sender, user, time_preferences, interests, days, objectives, *args, **kwargs
 ):
     clean_time_preferences = []
     for time_preference in time_preferences:
         clean_time_preferences.append(_clean_time_preference(time_preference))
     # Was adding users to the previous config according to the scripts.
-    # Changed it to add user's to current meeting.
+    # Changed it to add user"s to current meeting.
     meeting_config = services.get_latest_active_meeting_config()
     # Get respective objectives for User Meeting Preference.
-    objective_objs = models.Objective.objects.filter(name__in=objective)
+    objective_objs = models.Objective.objects.filter(name__in=objectives)
 
     # Calculate time slots for the data provided.
     start_date = meeting_config.week_start_date
@@ -89,7 +89,7 @@ def create_meeting_preference_for_typeform_user(
 
     dates = []
     for day in days:
-        if day == 'Thursday':
+        if day == "Thursday":
             day_weekday = 3
         else:
             day_weekday = 4
@@ -102,7 +102,7 @@ def create_meeting_preference_for_typeform_user(
 
     for date in dates:
         for time_preference in clean_time_preferences:
-            start, end = time_preference.split('-')
+            start, end = time_preference.split("-")
             start = int(start.strip()) + 12
             end = int(end.strip()) + 12
             start_time, end_time = datetime.time(start), datetime.time(end)
@@ -138,28 +138,35 @@ def create_meeting_preference_for_typeform_user(
 
 @receiver(m2m_changed, sender=models.Meeting.participants.through)
 def create_meeting_for_users(sender, instance, *args, **kwargs):
-    if kwargs.get('action') == 'post_add':
-        for participant in kwargs['pk_set']:
-            try:
-                user = get_user_model().objects.get(pk=participant)
-                signals.new_user_assigned_to_meeting.send(
-                    sender=instance,
-                    user=user,
-                    rule_key=MEETING_ADD_USER_POINTS_KEY,
-                    base_factor=1,
-                )
-            except get_user_model().DoesNotExist:
-                continue
+    if kwargs.get("action") != "post_add":
+        return
 
-            models.MeetingRSVP.objects.create(
-                meeting=instance,
-                participant_id=participant,
+    for participant in kwargs["pk_set"]:
+        try:
+            user = get_user_model().objects.get(pk=participant)
+            signals.new_user_assigned_to_meeting.send(
+                sender=instance,
+                user=user,
+                rule_key=MEETING_ADD_USER_POINTS_KEY,
+                base_factor=1,
             )
+        except get_user_model().DoesNotExist:
+            continue
 
-        chat_signals.create_chat_for_meeting.send(
-            sender=instance,
-            participants=instance.participants.all(),
+        rsvp = models.MeetingRSVP.objects.create(
+            meeting=instance,
+            participant_id=participant,
         )
+
+        # TODO(Nishant): Discuss if we need to do this or not.
+        # if instance.status == choices.MEETING_STATUS_CONFIRMED:
+        #     rsvp.status = choices.MEETING_RSVP_STATUS_ATTENDING
+        #     rsvp.save()
+
+    chat_signals.create_chat_for_meeting.send(
+        sender=instance,
+        participants=instance.participants.all(),
+    )
 
 
 @receiver(signals.rsvp_status_updated)
@@ -205,7 +212,6 @@ def create_new_meeting_on_reschedule_request_approval(sender, reschedule_request
     old_meeting = reschedule_request.old_meeting
     # Updating the status of old meeting.
     old_meeting.status = choices.MEETING_STATUS_CANCELLED
-    old_meeting.is_canceled = True
     old_meeting.save()
 
     start = time_slot
@@ -314,20 +320,20 @@ def _send_meeting_confirmed_email(meeting):
     subject = "1:1 Meeting Confirmed"
     to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
 
-    message_link = 'https://{}/dashboard/inbox'.format(FRONT_URL)
-    display_day = meeting.time_slot.get_display_day()
-    display_time = meeting.time_slot.get_display_time()
+    message_link = "https://{}/dashboard/inbox".format(FRONT_URL)
+    display_day = meeting.get_display_day()
+    display_time = meeting.get_display_time()
 
     data = {}
     for email in to_emails:
         data[email] = {
-            'day': display_day,
-            'time': display_time,
-            'link': meeting.link,
-            'message_link': message_link,
-            'meeting_link': meeting.link,
-            'contact_us': CONTACT_US_URL,
-            'website_url': WEBSITE_URL,
+            "day": display_day,
+            "time": display_time,
+            "link": meeting.link,
+            "message_link": message_link,
+            "meeting_link": meeting.link,
+            "contact_us": CONTACT_US_URL,
+            "website_url": WEBSITE_URL,
         }
 
     from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
@@ -354,12 +360,12 @@ def _send_meeting_confirmed_email(meeting):
         )
 
 
-REMOVE_CHARS = ['PM', 'pm', 'Pm', 'pM', 'p.m.', 'p.m', 'P.M.', 'P.M', 'P.m.', 'P.m']
+REMOVE_CHARS = ["PM", "pm", "Pm", "pM", "p.m.", "p.m", "P.M.", "P.M", "P.m.", "P.m"]
 
 
 def _clean_time_preference(time_preference):
     for i in REMOVE_CHARS:
-        time_preference = time_preference.replace(i, '')
+        time_preference = time_preference.replace(i, "")
     return time_preference
 
 
@@ -385,8 +391,8 @@ def _send_meeting_cancellation_email(meeting):
     to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
     subject = "1:1 Meeting Cancelled"
     template = choices.ONE_ON_ONE_MEETING_CANCELED_TEMPLATE
-    display_day = meeting.time_slot.get_display_day()
-    display_time = meeting.time_slot.get_display_time()
+    display_day = meeting.get_display_day()
+    display_time = meeting.get_display_time()
 
     if p1_rsvp_declined and p2_rsvp_declined:
         declined_string = "{} & {}".format(p1_rsvp.participant.email, p2_rsvp.participant.email)

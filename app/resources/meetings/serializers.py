@@ -1,5 +1,6 @@
 import datetime
 
+from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -65,7 +66,7 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
         user_preference = {
             'pk': latest_user_preference.pk,
             'number_of_meetings': latest_user_preference.number_of_meetings,
-            'objective': latest_user_preference.objective,
+            'objective': latest_user_preference.objectives.values_list('pk', flat=True),
             'interests': latest_user_preference.interests.values_list('pk', flat=True),
             'time_slots': latest_user_preference.time_slots.values_list('pk', flat=True)
         }
@@ -104,7 +105,6 @@ class PostUserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializer
             'meeting',
             'number_of_meetings',
             'number_of_meetings_per_month',
-            'objective',
             'objectives',
             'interests',
             'time_slots'
@@ -123,7 +123,6 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
             'meeting',
             'number_of_meetings',
             'number_of_meetings_per_month',
-            'objective',
             'objectives',
             'interests',
             'time_slots'
@@ -232,28 +231,37 @@ class MeetingSerializer(serializers.ModelSerializer):
             'config',
             'participants',
             'link',
-            'time_slot',
             'start',
             'end',
-            'is_canceled',
             'is_past',
             'status',
         ]
 
     @staticmethod
     def get_is_past(meeting):
-        now = datetime.datetime.now()
-        time_slot = datetime.datetime.combine(
-            meeting.time_slot.date,
-            meeting.time_slot.end_time
-        )
-        if time_slot >= now:
+        now = timezone.now()
+        if meeting.end >= now:
             return False
         return True
 
     @staticmethod
     def get_participants(meeting):
         return services.get_meeting_participant_with_rsvp(meeting)
+
+
+class PublicMeetingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Meeting
+        fields = [
+            'pk',
+            'config',
+            'participants',
+            'link',
+            'start',
+            'end',
+            'status',
+        ]
 
 
 class MeetingConfigV2Serializer(serializers.ModelSerializer):

@@ -53,7 +53,6 @@ class SuperProService:
         return response_json.get(constants.VIDEO_CALL_ID_RESPONSE_KEY), response_json.get(constants.VIDEO_CALL_URI_RESPONSE_KEY)
 
 
-
 # This is actual production service. It will create actual
 # URI's for video calls.
 superpro_service = SuperProService(
