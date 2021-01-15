@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.dispatch import receiver
 from googleapiclient.errors import HttpError
@@ -28,5 +29,11 @@ def delete_calendar_event_on_meeting_cancellation(sender, meeting, *args, **kwar
             )
             # Marking the google event as is deleted.
             models.GoogleCalendarEvent.objects.filter(event_id=event_id).delete()
-        except HttpError:
-            continue
+        # Catching any sort of exception and sending it to sentry for now.
+        except Exception as e:
+            logging.error(
+                "Google calendar delete failed with status {} for: {}".format(
+                    e,
+                    event_id
+                )
+            )
