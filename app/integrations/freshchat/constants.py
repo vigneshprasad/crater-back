@@ -41,6 +41,12 @@ MEETING_REMINDER_PREFILLED_MESSAGE_PROMPT = "Hey, I am on the meeting link share
 MEETING_REMINDER_WHATSAPP_PROMPT_TEXT = "sending a whatsapp via this link: {}"
 WHATSAPP_BASE_URL = "https://wa.me/"
 
+# Meeting Reschedule communication constants.
+MEETING_RESCHEDULE_REQUEST_TEMPLATE = "meeting_reschdule_request"
+MEETING_RESCHEDULE_REQUEST_APPROVED_TEMPLATE = "meeting_reschdule_accepted"
+MEETING_RESCHEDULE_REQUEST_DECLINED_TEMPLATE = "meeting_reschedule_cancellation"
+MEETING_RESCHEDULE_REQUEST_DECLINED_PROMPT_MESSAGE = " if you have spoken to your match & believe this to be a mistake, please disregard the message."
+
 # Freshchat API responses.
 FRESHCHAT_STATUS_SUCCESS = 200
 FRESHCHAT_STATUS_CREATED = 201

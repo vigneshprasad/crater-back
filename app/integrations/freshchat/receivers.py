@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from users import signals as user_signals
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
+from integrations.freshchat import services
 from integrations.freshchat import tasks
 from resources.meetings import signals as meeting_signals
 from resources.meetings import choices as meeting_constants
@@ -96,5 +97,54 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
                                 rsvp1.status != meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING))
                 else participant2.get_display_first_name()},
             {"data": constants.MEETING_CANCELLATION_FALL_BACK}
+        ]
+    )
+
+
+@receiver(meeting_signals.reschedule_request_created)
+def send_reschedule_requested_message(sender, reschedule_request, *args, **kwargs):
+    approver = reschedule_request.approver
+    requested_by = reschedule_request.requested_by
+
+    public_reschedule_url = services.create_public_reschedule_url(reschedule_request)
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=approver,
+        template_name=constants.MEETING_RESCHEDULE_REQUEST_TEMPLATE,
+        template_data=[
+            {"data": requested_by.get_display_first_name()},
+            {"data": " by clicking on this link: {}".format(public_reschedule_url)}
+        ]
+    )
+
+
+@receiver(meeting_signals.reschedule_request_approved)
+def send_reschedule_request_approved_message(sender, reschedule_request, meeting, **kwargs):
+    approver = reschedule_request.approver
+    requested_by = reschedule_request.requested_by
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=requested_by,
+        template_name=constants.MEETING_RESCHEDULE_REQUEST_APPROVED_TEMPLATE,
+        template_data=[
+            {"data": approver.get_display_first_name()},
+            {"data": meeting.get_display_start_time()},
+            {"data": meeting.get_display_day()},
+            {"data": tiny_url_service.shorten(meeting.link)}
+        ]
+    )
+
+
+@receiver(meeting_signals.reschedule_request_declined)
+def send_reschedule_request_declined_message(sender, reschedule_request, *args, **kwargs):
+    approver = reschedule_request.approver
+    requested_by = reschedule_request.requested_by
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=requested_by,
+        template_name=constants.MEETING_RESCHEDULE_REQUEST_DECLINED_TEMPLATE,
+        template_data=[
+            {"data": approver.get_display_first_name()},
+            {"data": constants.MEETING_RESCHEDULE_REQUEST_DECLINED_PROMPT_MESSAGE},
         ]
     )

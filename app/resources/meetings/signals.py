@@ -26,7 +26,6 @@ new_meeting_config_created = Signal(providing_args=[
     "time_slots",
 ])
 
-
 create_new_meeting_preference_typeform = Signal(providing_args=[
     "user",
     "time_preferences",
@@ -49,12 +48,10 @@ new_user_assigned_to_meeting = Signal(providing_args=[
     "base_factor"
 ])
 
-
 rsvp_status_updated = Signal(providing_args=[
     "user",
     "rsvp"
 ])
-
 
 reschedule_request_approved = Signal(providing_args=[
     "reschedule_request",
@@ -67,4 +64,8 @@ reschedule_request_declined = Signal(providing_args=[
 
 meeting_marked_cancelled = Signal(providing_args=[
     "meeting"
+])
+
+reschedule_request_created = Signal(providing_args=[
+    "reschedule_request"
 ])

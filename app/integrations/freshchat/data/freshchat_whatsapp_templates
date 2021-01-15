@@ -73,3 +73,15 @@ Unfortunately, we were unable to get a confirmation for the upcoming meeting fro
 19. confirmation_of_registration_updated
 Hey,
 Thank you for registering for {1} with WorkNetwork. We will introduce you to people based on your objective of {{2}}. Meeting details will be shared on {{3}}
+
+20. meeting_reschdule_request
+Hey,
+{{1}} has kindly requested a reschedule of the upcoming meeting. Please indicate your availability for an alternate time by {{2}}.
+
+21. meeting_reschdule_accepted
+Hey,
+{{1}} has accepted your reschedule request. The meeting has been shifted to {{2}} on {{3}}. The new meeting link is {{4}}
+
+22. meeting_reschedule_cancellation
+Hey,
+We were unable to get a confirmation for the reschedule request from {{1}} To prevent a no-show we have canceled the meeting {{2}}
