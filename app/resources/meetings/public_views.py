@@ -16,6 +16,7 @@ from resources.meetings import choices
 from resources.meetings import services
 from resources.meetings import signals
 from cryptography.fernet import InvalidToken
+from integrations.freshchat import constants
 
 
 class MeetingConfigPublicViewSet(
@@ -37,6 +38,10 @@ class MeetingPreferencePublicViewSet(
     queryset = models.MeetingPreference.objects.all()
     permission_classes = [permissions.AllowAny]
     filterset_fields = ['meeting', 'user']
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         methods=['get'],
@@ -66,6 +71,94 @@ class MeetingPreferencePublicViewSet(
 
         response = super(MeetingPreferencePublicViewSet, self).list(request, *args, **kwargs)
         return response
+
+    @action(
+        methods=['post'],
+        serializer_class=serializers.PublicMeetingPreferenceSerializer,
+        permission_classes=[permissions.AllowAny],
+        detail=False
+    )
+    def optin(self, request, *args, **kwargs):
+        """Check if the user has past user preferences and opt them for this week.
+
+        Note:
+            This is a public view which gets user from
+                a encoded string in the body and creates
+                a user meeting preference object for the
+                user.
+
+        """
+        data = request.data.get('user')
+        if not data:
+            return self.generate_bad_request(
+                {'error': 'Query data missing'}
+            )
+
+        try:
+            user = services.get_user_from_opt_in_url(data)
+            old_preference = user.meeting_preferences.first()
+            if not old_preference:
+                return self.generate_bad_request({
+                    "error": "If this is the first time you're opting in please use the app to indicate your preferences."
+                })
+
+            latest_meeting_config = services.get_latest_active_meeting_config()
+            current_week_start_date = latest_meeting_config.week_start_date
+            new_time_slots = []
+            for time_slot in old_preference.time_slots.all():
+                day = time_slot.date.weekday()
+                date_diff = day - current_week_start_date.weekday()
+
+                if(date_diff < 0):
+                    return self.generate_bad_request(
+                        {"error": "Please check back at a later time."}
+                    )
+
+                new_date = current_week_start_date + datetime.timedelta(days=date_diff)
+                time_slot, _ = models.TimeSlot.objects.get_or_create(
+                    date=new_date,
+                    start_time=time_slot.start_time,
+                    end_time=time_slot.end_time
+                )
+                new_time_slots.append(time_slot)
+
+            new_meeting_preference, created = models.MeetingPreference.objects.get_or_create(
+                meeting=latest_meeting_config,
+                user=user,
+            )
+
+            if not created:
+                return self.generate_bad_request(
+                    {"error": "You have already signed up for the week. If you'd like to edit your preferences please use the app."}
+                )
+
+            for obj in old_preference.objectives.all():
+                new_meeting_preference.objectives.add(obj)
+
+            looking_for_objective = old_preference.objectives.filter(type=choices.OBJECTIVE_TYPES[0][0]).first()
+            looking_to_objective = old_preference.objectives.filter(type=choices.OBJECTIVE_TYPES[1][0]).first()
+
+            objectives_str = "{} & {}".format(looking_for_objective.name, looking_to_objective.name) \
+                if (looking_for_objective and looking_to_objective) else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
+
+            for interest in old_preference.interests.all():
+                new_meeting_preference.interests.add(interest)
+        
+            for slot in new_time_slots or []:
+                new_meeting_preference.time_slots.add(slot)
+
+            signals.new_meeting_registration.send(sender=new_meeting_preference.__class__, preference=new_meeting_preference)
+            return Response(data={"objective": objectives_str})
+
+        except InvalidToken:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except get_user_model().DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+
 
 
 class MeetingPublicViewSet(
@@ -328,3 +421,81 @@ class RescheduleRequestPublicViewSet(
         )
 
         return Response({"success": True})
+        
+
+class MeetingRSVPPublicViewSet(
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.MeetingRSVPSerializer
+    queryset = models.MeetingRSVP.objects.all()
+    permission_classes = [permissions.AllowAny]
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['POST'],
+        detail=False,
+    )
+    def attending(self, request):
+        """Check if the user is attending the meeting and mark it.
+
+        Note:
+            This is a public view which gets user and meeting id from
+                a encoded string in the body and marks the user
+                as attending for the meeting.
+
+        """
+        data = request.data.get('meeting')
+        if not data:
+            return self.generate_bad_request(
+                {'error': 'Query data missing'}
+            )
+
+        try:
+            user, meeting = services.get_user_meeting_from_url(data)
+            if meeting.status == choices.MEETING_STATUS_CANCELLED:
+                return self.generate_bad_request({
+                    'error': 'This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake.'
+                })
+            if meeting.status == choices.MEETING_STATUS_RESCHEDULED:
+                return self.generate_bad_request({
+                    'error': 'This meeting has been rescheduled or a reschedule request is pending. Please contact WorkNetwork if you think this is a mistake.'
+                })
+            rsvp = models.MeetingRSVP.objects.get(
+                meeting=meeting,
+                participant=user,
+            )
+            if rsvp.status == choices.MEETING_RSVP_STATUS_CHOICES[0][0]:
+                return self.generate_bad_request({
+                    'error': 'You have already RSVPed for this meeting.'
+                })
+            rsvp.status = choices.MEETING_RSVP_STATUS_CHOICES[0][0]
+            rsvp.save()
+
+            # Send a signal which updates the status after RSVP is
+            # updated.
+            signals.rsvp_status_updated.send(
+                sender=rsvp.__class__,
+                user=request.user,
+                rsvp=rsvp
+            )
+            return Response(data={"start": meeting.start})
+
+        except InvalidToken:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except models.get_user_model().DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except models.MeetingRSVP.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )
+        except models.Meeting.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Please check the URL and try again."}
+            )

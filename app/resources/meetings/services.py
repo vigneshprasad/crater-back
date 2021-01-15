@@ -491,3 +491,24 @@ def get_reschedule_from_url(query):
         raise models.RescheduleRequest.DoesNotExist
     except get_user_model().DoesNotExist:
         raise get_user_model().DoesNotExist
+
+def get_user_from_opt_in_url(query):
+    """
+    Get user and meeting object from the query string param of the url
+
+    Args:
+        query(String): query param from url created
+
+    Returns:
+        user(User): User object reference for rsvp
+        reschedule(RescheduleRequest): RescheduleRequest object reference
+
+    """
+    f = Fernet(FERNET_KEY)
+    user_id = f.decrypt(query.encode()).decode()
+    try:
+        user = get_user_model().objects.get(pk=user_id)
+        return user
+        
+    except get_user_model().DoesNotExist:
+        raise get_user_model().DoesNotExist
