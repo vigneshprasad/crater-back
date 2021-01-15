@@ -87,7 +87,7 @@ class Meeting(ModelAdmin):
     list_display = ('id', 'meeting_participants', 'start', 'status')
     search_fields = ('participants__email', 'start')
     list_filter = ('status', 'start')
-    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted', 'is_canceled', 'time_slot')
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted', 'is_canceled')
 
     @staticmethod
     def meeting_participants(obj):
