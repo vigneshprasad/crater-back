@@ -18,9 +18,10 @@ def delete_calendar_event_on_meeting_cancellation(sender, meeting, *args, **kwar
         meeting(Meeting): Meeting object that was cancelled.
 
     """
+    # Getting distinct event id's for calendar events.
     google_calendar_event_ids = models.GoogleCalendarEvent.objects.filter(
         meeting_id=meeting.id
-    ).values_list('event_id', flat=True)
+    ).values_list('event_id', flat=True).distinct()
 
     for event_id in google_calendar_event_ids:
         try:
@@ -32,8 +33,6 @@ def delete_calendar_event_on_meeting_cancellation(sender, meeting, *args, **kwar
         # Catching any sort of exception and sending it to sentry for now.
         except Exception as e:
             logging.error(
-                "Google calendar delete failed with status {} for: {}".format(
-                    e,
-                    event_id
-                )
+                "Google calendar delete failed with status {} for: {}".format(e, event_id)
             )
+            continue
