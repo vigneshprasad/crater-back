@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import mixins, viewsets, status
 from freelance.settings import TIME_ZONE
+from resources.meetings.receivers import create_new_meeting_on_reschedule_request_approval
 
 from users import permissions
 from resources.meetings import models
@@ -380,13 +381,17 @@ class RescheduleRequestPublicViewSet(
                 {"error": "Selected time slot is not a valid choice."}
             )
 
-        reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
-        reschedule_request.save()
+        new_meeting = create_new_meeting_on_reschedule_request_approval(
+            reschedule_request=reschedule_request,
+            time_slot=selected_time_slot
+        )
 
+        # This signal is fired once reschedule request is accepted and
+        # new meeting is created for the same.
         signals.reschedule_request_approved.send(
             sender=reschedule_request.__class__,
             reschedule_request=reschedule_request,
-            time_slot=selected_time_slot
+            new_meeting=new_meeting
         )
 
         return Response({"success": True})
