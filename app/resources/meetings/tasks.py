@@ -558,6 +558,29 @@ def send_weekly_meeting_rewards_email(users=None):
         )
 
 
+# @periodic_task(run_every=crontab(minute="*/15"))
+def cancel_expired_reschedule_requests():
+    """Cancels reschedule requests for meeting if not responded to
+        by expiry time.
+
+    """
+    # TODO(Nishant): We'll start using this once we have some data
+    # around reschedule
+    pass
+
+
+# @periodic_task(run_every=crontab(minute="*/15"))
+def send_reminders_for_pending_reschedule_requests():
+    """Send reminder communication for pending reschedule
+        requests.
+
+    """
+    # TODO(Nishant): We'll start using this once we have some data
+    # around reschedule
+    pass
+
+
+# -------------- PRIVATE FUNCTIONS ------------- #
 def _send_meeting_cancellation_email(meeting):
     """ Sends meeting cancellation email for meeting
 

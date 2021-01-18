@@ -314,4 +314,11 @@ class PostRescheduleRequestSerializer(serializers.ModelSerializer):
             pk=validated_data["requested_by"].pk
         ).first()
         validated_data["approver"] = approver
+        # Calculating expires_at for reschedule model.
+        try:
+            max_time_slot = max(validated_data["time_slots"])
+            validated_data["expires_at"] = max_time_slot - datetime.timedelta(hours=2)
+        except ValueError:
+            validated_data["expires_at"] = None
+
         return super(PostRescheduleRequestSerializer, self).create(validated_data=validated_data)
