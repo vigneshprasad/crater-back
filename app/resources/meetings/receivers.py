@@ -201,6 +201,7 @@ def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
 
 
 def create_new_meeting_on_reschedule_request_approval(reschedule_request, time_slot):
+    # TODO(Nishant): Move this function to services. And rename services to private.
     """Create new meeting between participants once reschedule request is approved.
 
     Args:

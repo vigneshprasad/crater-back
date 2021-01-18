@@ -8,12 +8,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import mixins, viewsets, status
 from freelance.settings import TIME_ZONE
-from resources.meetings.receivers import create_new_meeting_on_reschedule_request_approval
 
 from users import permissions
 from resources.meetings import models
 from resources.meetings import serializers
 from resources.meetings import choices
+from resources.meetings import receivers
 from resources.meetings import services
 from resources.meetings import signals
 from cryptography.fernet import InvalidToken
@@ -381,7 +381,7 @@ class RescheduleRequestPublicViewSet(
                 {"error": "Selected time slot is not a valid choice."}
             )
 
-        new_meeting = create_new_meeting_on_reschedule_request_approval(
+        new_meeting = receivers.create_new_meeting_on_reschedule_request_approval(
             reschedule_request=reschedule_request,
             time_slot=selected_time_slot
         )
