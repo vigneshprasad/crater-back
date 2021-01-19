@@ -17,7 +17,7 @@ def delete_calendar_event_on_meeting_cancellation(sender, meeting, *args, **kwar
     private.delete_calendar_for_meeting(meeting=meeting)
 
 
-@receiver(meeting_signals.reschedule_request_declined)
+@receiver(meeting_signals.reschedule_request_created)
 def delete_calendar_event_on_reschedule_request_decline(sender, reschedule_request, *args, **kwargs):
     """Remove google calendar event if the meeting is cancelled.
 

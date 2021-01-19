@@ -286,6 +286,7 @@ def check_and_send_confirmed_meeting_email(sender, instance, created, *args, **k
     _send_meeting_confirmed_email(instance)
 
 
+# TODO(Nishant): Remove this and change it reschedule_request_created signal.
 @receiver(post_save, sender=models.RescheduleRequest)
 def update_meeting_status_to_rescheduled(sender, instance, created, *args, **kwargs):
     """When a reschedule request is raised, update the meeting status as well."""
