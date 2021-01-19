@@ -119,9 +119,11 @@ def send_reschedule_requested_message(sender, reschedule_request, *args, **kwarg
 
 
 @receiver(meeting_signals.reschedule_request_approved)
-def send_reschedule_request_approved_message(sender, reschedule_request, meeting, **kwargs):
+def send_reschedule_request_approved_message(sender, reschedule_request, **kwargs):
+    """Send approval message on acceptance of reschedule request."""
     approver = reschedule_request.approver
     requested_by = reschedule_request.requested_by
+    meeting = reschedule_request.new_meeting
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=requested_by,

@@ -381,7 +381,7 @@ class RescheduleRequestPublicViewSet(
                 {"error": "Selected time slot is not a valid choice."}
             )
 
-        new_meeting = receivers.create_new_meeting_on_reschedule_request_approval(
+        receivers.create_new_meeting_on_reschedule_request_approval(
             reschedule_request=reschedule_request,
             time_slot=selected_time_slot
         )
@@ -390,8 +390,7 @@ class RescheduleRequestPublicViewSet(
         # new meeting is created for the same.
         signals.reschedule_request_approved.send(
             sender=reschedule_request.__class__,
-            reschedule_request=reschedule_request,
-            new_meeting=new_meeting
+            reschedule_request=reschedule_request
         )
 
         return Response({"success": True})
