@@ -389,8 +389,13 @@ def _send_meeting_cancellation_email(meeting):
     p1_rsvp = meeting.rsvps.all()[0]
     p2_rsvp = meeting.rsvps.all()[1]
 
-    p1_rsvp_declined = p1_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
-    p2_rsvp_declined = p2_rsvp.status in choices.MEETING_RSVP_UNCONFIRMED_STATUSES
+    p1_rsvp_declined = (p1_rsvp.status == choices.MEETING_RSVP_STATUS_NOT_ATTENDING or (
+            p1_rsvp.status == choices.MEETING_RSVP_STATUS_PENDING and p2_rsvp != choices.MEETING_RSVP_STATUS_NOT_ATTENDING
+    ))
+
+    p2_rsvp_declined = (p2_rsvp.status == choices.MEETING_RSVP_STATUS_NOT_ATTENDING or (
+            p2_rsvp.status == choices.MEETING_RSVP_STATUS_PENDING and p1_rsvp != choices.MEETING_RSVP_STATUS_NOT_ATTENDING
+    ))
 
     to_emails = [p1_rsvp.participant.email, p2_rsvp.participant.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
     subject = "1:1 Meeting Cancelled"
