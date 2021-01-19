@@ -304,7 +304,7 @@ class MeetingRSVPViewSet(
         instance = serializer.save()
 
         signals.reschedule_request_created.send(
-            sender=instance.__dict__,
+            sender=instance.__class__,
             reschedule_request=instance
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
