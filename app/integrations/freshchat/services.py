@@ -19,18 +19,19 @@ def create_public_rsvp_url(user, meeting):
     return short_url
 
 
-def create_public_reschedule_url(reschedule, user):
+def create_public_reschedule_url(reschedule):
     """
     Creating a public url from the reschedule id
     and encrypting it using a secret key
     """
-    # TODO(Vignesh): Investigate whether user id is needed
-    message = "" + str(user.uuid) + "|" + str(reschedule.pk)
+    approver = reschedule.approver
+    message = "" + str(approver.uuid) + "|" + str(reschedule.pk)
     f = Fernet(FERNET_KEY)
     encrypted_message = f.encrypt(message.encode())
     url = 'https://{}/public/reschedule?p={}'.format(FRONT_URL, encrypted_message.decode())
     short_url = tiny_url_service.shorten(url)
     return short_url
+
 
 def create_public_opt_in_url(user):
     """

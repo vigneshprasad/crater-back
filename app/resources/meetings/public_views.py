@@ -13,6 +13,7 @@ from users import permissions
 from resources.meetings import models
 from resources.meetings import serializers
 from resources.meetings import choices
+from resources.meetings import receivers
 from resources.meetings import services
 from resources.meetings import signals
 from cryptography.fernet import InvalidToken
@@ -380,13 +381,17 @@ class RescheduleRequestPublicViewSet(
                 {"error": "Selected time slot is not a valid choice."}
             )
 
-        reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
-        reschedule_request.save()
+        new_meeting = receivers.create_new_meeting_on_reschedule_request_approval(
+            reschedule_request=reschedule_request,
+            time_slot=selected_time_slot
+        )
 
+        # This signal is fired once reschedule request is accepted and
+        # new meeting is created for the same.
         signals.reschedule_request_approved.send(
             sender=reschedule_request.__class__,
             reschedule_request=reschedule_request,
-            time_slot=selected_time_slot
+            new_meeting=new_meeting
         )
 
         return Response({"success": True})

@@ -4,11 +4,11 @@ import pytz
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from cryptography.fernet import InvalidToken
 from freelance.settings import TIME_ZONE
 
 from users import permissions
 from resources.meetings import models, choices, serializers, services
+from resources.meetings import receivers
 from resources.meetings import signals
 
 
@@ -301,7 +301,12 @@ class MeetingRSVPViewSet(
         request_data["requested_by"] = request.user.pk
         serializer = self.get_serializer(data=request_data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        instance = serializer.save()
+
+        signals.reschedule_request_created.send(
+            sender=instance.__class__,
+            reschedule_request=instance
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -382,13 +387,17 @@ class RescheduleRequestViewSet(
                 {"error": "Selected time slot is not a valid choice."}
             )
 
-        reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
-        reschedule_request.save()
+        new_meeting = receivers.create_new_meeting_on_reschedule_request_approval(
+            reschedule_request=reschedule_request,
+            time_slot=selected_time_slot
+        )
 
+        # This signal is fired once reschedule request is accepted and
+        # new meeting is created for the same.
         signals.reschedule_request_approved.send(
             sender=reschedule_request.__class__,
             reschedule_request=reschedule_request,
-            time_slot=selected_time_slot
+            new_meeting=new_meeting
         )
 
         return Response({"success": True})

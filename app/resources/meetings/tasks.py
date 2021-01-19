@@ -236,19 +236,29 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             )
 
 
-@periodic_task(run_every=crontab(day_of_week='wednesday', hour='18', minute='30'))
+@periodic_task(run_every=crontab(hour='18', minute='20'))
 def send_active_meetings_data_to_analytics(meetings=None):
-    """Sending active meeting data to Analytics platforms.
+    """Sending meetings created everyday to analytics
+        platforms at midnight.
 
     Args:
-        meetings(list/queryset): Meeting object queryset.
+        meetings(list/queryset): Meeting object queryset(optional).
 
     """
-    meetings = meetings if meetings else services.get_active_meetings()
-    for meeting in meetings:
+    today = datetime.datetime.today()
+    # Get all meetings created today.
+    meetings_created_today = models.Meeting.objects.filter(
+        created_at__day=today.day,
+        created_at__month=today.month,
+        created_at__year= today.year,
+    ) if not meetings else meetings
+
+    for meeting in meetings_created_today:
+
         participants = meeting.participants.all()
         participants_emails = list(participants.values_list('email', flat=True))
         for participant in meeting.participants.all():
+            # This signal sends meeting data to analytics.
             signals.new_meeting_created.send(
                 sender=meeting.__class__,
                 user=participant,
@@ -548,6 +558,29 @@ def send_weekly_meeting_rewards_email(users=None):
         )
 
 
+# @periodic_task(run_every=crontab(minute="*/15"))
+def cancel_expired_reschedule_requests():
+    """Cancels reschedule requests for meeting if not responded to
+        by expiry time.
+
+    """
+    # TODO(Nishant): We'll start using this once we have some data
+    # around reschedule
+    pass
+
+
+# @periodic_task(run_every=crontab(minute="*/15"))
+def send_reminders_for_pending_reschedule_requests():
+    """Send reminder communication for pending reschedule
+        requests.
+
+    """
+    # TODO(Nishant): We'll start using this once we have some data
+    # around reschedule
+    pass
+
+
+# -------------- PRIVATE FUNCTIONS ------------- #
 def _send_meeting_cancellation_email(meeting):
     """ Sends meeting cancellation email for meeting
 

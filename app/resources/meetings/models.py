@@ -418,6 +418,10 @@ class RescheduleRequest(base_model.BaseModel):
         default=choices.RESCHEDULE_REQUEST_PENDING_APPROVAL,
         choices=choices.RESCHEDULE_REQUEST_STATUSES
     )
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = _('Reschedule Request')

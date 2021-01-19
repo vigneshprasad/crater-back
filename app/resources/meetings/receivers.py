@@ -200,8 +200,8 @@ def update_meeting_status_on_rsvp_update(sender, user, rsvp, *args, **kwargs):
             meeting.save()
 
 
-@receiver(signals.reschedule_request_approved)
-def create_new_meeting_on_reschedule_request_approval(sender, reschedule_request, time_slot, *args, **kwargs):
+def create_new_meeting_on_reschedule_request_approval(reschedule_request, time_slot):
+    # TODO(Nishant): Move this function to services. And rename services to private.
     """Create new meeting between participants once reschedule request is approved.
 
     Args:
@@ -226,8 +226,11 @@ def create_new_meeting_on_reschedule_request_approval(sender, reschedule_request
         status=choices.MEETING_STATUS_CONFIRMED
     )
 
+    reschedule_request.status = choices.RESCHEDULE_REQUEST_CONFIRMED
     reschedule_request.new_meeting = new_meeting
     reschedule_request.save()
+
+    return new_meeting
 
 
 @receiver(signals.reschedule_request_declined)
