@@ -54,6 +54,11 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     user['interests'].append(interest)
             elif fields[i]['ref'] == 'interests':
                 user['interests'].append(answers[i]['choice']['label'])
+            elif fields[i]['ref'] == 'tags' and fields[i].get('allow_multiple_selections', False):
+                for tag in answers[i]['choices']['labels']:
+                    user['tags'].append(interest)
+            elif fields[i]['ref'] == 'tags':
+                user['tags'].append(answers[i]['choice']['label'])
             elif fields[i]['ref'] == 'time_preferences' and fields[i].get('allow_multiple_selections', False):
                 for preference in answers[i]['choices']['labels']:
                     user['time_preferences'].append(preference)
@@ -68,6 +73,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 email=user['email'],
                 phone_number=user['phone_number'],
                 linkedin_url=user['linkedin_url'],
+                tags=user['tags'],
                 source=user['source'],
                 utm_source=user['utm_source'],
                 utm_campaign=user['utm_campaign']

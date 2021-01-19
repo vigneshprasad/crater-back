@@ -12,3 +12,6 @@ EDIT_MEETING_PREFERENCES = "edit_meeting_preferences"
 MEETING_CONFIG_CREATED = 'meeting_config_created'
 MEETING_CREATED = 'matched_for_meeting'
 CREATIVE_EXCHANGE_REQUEST_CREATED = 'creative_exchange_request_created'
+RSVP_UPDATED = 'rsvp_updated'
+RESCHEDULE_CREATED = 'reschedule_created'
+RESCHEDULE_UPDATED = 'reschedule_updated'

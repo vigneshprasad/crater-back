@@ -4,6 +4,7 @@ from community.posts.signals import post_created
 from resources.meetings import signals as meetings_signals
 from creative_exchange import signals as creative_exchange_signals
 from users.models import User
+from resources.meetings.models import RescheduleRequest
 from users.signals import basic_profile_created, user_signed_up, service_created, phone_number_verified, user_updated, objectives_added, referred_friend, email_verified
 from utils.segment_service import segment_service
 from wn_analytics.constants import *
@@ -179,6 +180,32 @@ def creative_exchange_request_created_track(sender, user, **kwargs):
 
     analytics_track(user, event, analytics_track_properties)
 
+@receiver(meetings_signals.rsvp_status_updated)
+def meeting_rsvp_updated(sender, user, rsvp, *args, **kwargs):
+    """Sending meeting RSVP to Analytics."""
+    kwargs.pop('signal')
+
+    event = RSVP_UPDATED
+    analytics_track_properties = {
+        'rsvp': rsvp,
+    }
+    analytics_track(user, event, analytics_track_properties)
+
+# @receiver(post_save, sender=RescheduleRequest)
+# def reschedule_request_created(sender, instance, created, *args, **kwargs):
+#     """When a reschedule request is created, send analytics."""
+#     if created:
+#         return
+
+#     event = RESCHEDULE_CREATED if created else RESCHEDULE_UPDATED
+#     analytics_track_properties = {
+#         'id': instance.pk,
+#         'meeting': instance.old_meeting,
+#         'creator': instance.requested_by,
+#         'approver': instance.approver,
+#         'time_slots': instance.time_slots
+#     }
+#     analytics_track(user=instance.requested_by, event=event, analytics_track_properties=analytics_track_properties)
 
 def _add_user_device_info(user, analytics_track_properties):
     device_info = user.device_info.first()
