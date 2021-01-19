@@ -247,13 +247,13 @@ def send_active_meetings_data_to_analytics(meetings=None):
     """
     today = datetime.datetime.today()
     # Get all meetings created today.
-    meetings_created_toady = models.Meeting.objects.filter(
+    meetings_created_today = models.Meeting.objects.filter(
         created_at__day=today.day,
         created_at__month=today.month,
         created_at__year= today.year,
     ) if not meetings else meetings
 
-    for meeting in meetings_created_toady:
+    for meeting in meetings_created_today:
 
         participants = meeting.participants.all()
         participants_emails = list(participants.values_list('email', flat=True))
