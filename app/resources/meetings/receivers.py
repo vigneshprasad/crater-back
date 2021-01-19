@@ -245,6 +245,13 @@ def cancel_meeting_on_reschedule_request_declined(sender, reschedule_request, *a
     meeting.status = choices.MEETING_STATUS_CANCELLED
     meeting.save()
 
+    # Sending cancellation mail
+    _send_meeting_cancellation_email(meeting)
+    signals.meeting_marked_cancelled.send(
+        sender=meeting.__class__,
+        meeting=meeting
+    )
+
 
 @receiver(post_save, sender=models.MeetingRSVP)
 def on_save_meeting_rsvp(sender, instance, created, *args, **kwargs):
