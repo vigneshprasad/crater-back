@@ -86,7 +86,8 @@ class MeetingPreference(ModelAdmin):
 class Meeting(ModelAdmin):
     list_display = ('id', 'meeting_participants', 'start', 'status')
     search_fields = ('participants__email', 'start', 'participants__phone_number')
-    list_filter = ('status', 'start')
+    date_hierarchy = 'start'
+    list_filter = ('status', 'config', 'start')
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted', 'is_canceled')
 
     @staticmethod

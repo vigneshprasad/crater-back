@@ -285,6 +285,20 @@ def get_active_meetings(start_date=None, end_date=None):
     ).exclude(status=choices.MEETING_STATUS_CANCELLED)
 
 
+def get_opted_in_users_for_config(config=None):
+    """Get opted in users for a meeting config.
+
+    Args:
+        config(Config): Get opted in user's for a config
+
+    """
+    latest_config = get_latest_active_meeting_config() if not config else config
+    opted_in_user_ids = models.MeetingPreference.objects.filter(
+        meeting=latest_config
+    ).values_list('user_id', flat=True)
+    return user_services.get_users_for_ids(list(opted_in_user_ids))
+
+
 def get_opted_in_user_for_meetings(meeting_type=choices.MEETING_CHOICE_1_ON_1):
     """
     Get opted in user for a type of meeting.

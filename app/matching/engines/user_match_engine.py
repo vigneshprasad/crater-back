@@ -31,7 +31,7 @@ def get_match_score_between_users(user1, user2):
         constants.INTEREST_TO_OBJECTIVE_TAG_ENGINE: 0,
         constants.TAG_TO_TAG_ENGINE: 0,
         constants.OBJECTIVE_TO_OBJECTIVE_ENGINE: 0,
-        constants.INTRODUCTION_TEXT_ENGINE: 0,
+        # constants.INTRODUCTION_TEXT_ENGINE: 0,
         constants.SECTOR_MATCH_ENGINE: 0
     }
 
@@ -44,13 +44,14 @@ def get_match_score_between_users(user1, user2):
     engine_3_score = get_objective_to_objective_score_for_users(user1, user2)
     detailed_score[constants.OBJECTIVE_TO_OBJECTIVE_ENGINE] = round(engine_3_score, 2)
 
-    engine_4_score = get_intro_score_for_users(user1, user2)
-    detailed_score[constants.INTRODUCTION_TEXT_ENGINE] = round(engine_4_score, 2)
+    # Temporarily removing introduction score from the score computation.
+    # engine_4_score = get_intro_score_for_users(user1, user2)
+    # detailed_score[constants.INTRODUCTION_TEXT_ENGINE] = round(engine_4_score, 2)
 
     engine_5_score = get_sector_score_for_users(user1, user2)
     detailed_score[constants.SECTOR_MATCH_ENGINE] = round(engine_5_score, 2)
 
-    match_score = round((engine_1_score + engine_2_score + engine_3_score + engine_4_score + engine_5_score) / 5, 2)
+    match_score = round((engine_1_score + engine_2_score + engine_3_score + engine_5_score) / 4, 2)
 
     # Print for testing and visualisation.
     print("User {} matched with {} has a score of: {}".format(user1.email, user2.email, match_score))
