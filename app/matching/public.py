@@ -22,7 +22,7 @@ def get_top_matches_for_user(user):
         return []
 
     # user_score = users_scoring.get_user_score(user)
-    opted_in_users = meeting_service.get_opted_in_user_for_meetings()
+    opted_in_users = meeting_service.get_opted_in_users_for_config()
     user_match_score_map = {}
 
     for opted_user in opted_in_users:
