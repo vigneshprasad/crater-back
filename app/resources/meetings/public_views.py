@@ -483,7 +483,7 @@ class MeetingRSVPPublicViewSet(
             # updated.
             signals.rsvp_status_updated.send(
                 sender=rsvp.__class__,
-                user=request.user,
+                user=user,
                 rsvp=rsvp
             )
             return Response(data={"start": meeting.start})

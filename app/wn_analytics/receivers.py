@@ -187,25 +187,52 @@ def meeting_rsvp_updated(sender, user, rsvp, *args, **kwargs):
 
     event = RSVP_UPDATED
     analytics_track_properties = {
-        'rsvp': rsvp,
+        'meeting_id': rsvp.meeting.id,
+        'participant': rsvp.participant.email,
+        'status': rsvp.status,
+        'meeting_config': rsvp.meeting.config.id,
     }
     analytics_track(user, event, analytics_track_properties)
 
-# @receiver(post_save, sender=RescheduleRequest)
-# def reschedule_request_created(sender, instance, created, *args, **kwargs):
-#     """When a reschedule request is created, send analytics."""
-#     if created:
-#         return
+@receiver(meetings_signals.reschedule_request_created)
+def reschedule_request_created(sender, instance, *args, **kwargs):
+    """When a reschedule request is created, send analytics."""
+    event = RESCHEDULE_CREATED
+    analytics_track_properties = {
+        'id': instance.pk,
+        'meeting': instance.old_meeting,
+        'creator': instance.requested_by,
+        'approver': instance.approver,
+        'time_slots': instance.time_slots
+    }
+    analytics_track(user=instance.requested_by, event=event, analytics_track_properties=analytics_track_properties)
 
-#     event = RESCHEDULE_CREATED if created else RESCHEDULE_UPDATED
-#     analytics_track_properties = {
-#         'id': instance.pk,
-#         'meeting': instance.old_meeting,
-#         'creator': instance.requested_by,
-#         'approver': instance.approver,
-#         'time_slots': instance.time_slots
-#     }
-#     analytics_track(user=instance.requested_by, event=event, analytics_track_properties=analytics_track_properties)
+@receiver(meetings_signals.reschedule_request_approved)
+def reschedule_request_approved(sender, reschedule_request, time_slot, *args, **kwargs):
+    """When a reschedule request is updated, send analytics."""
+    event = RESCHEDULE_UPDATED
+    analytics_track_properties = {
+        'id': reschedule_request.pk,
+        'meeting_id': reschedule_request.old_meeting.id,
+        'creator': reschedule_request.requested_by.email,
+        'approver': reschedule_request.approver.email,
+        'time_slot': time_slot
+    }
+    analytics_track(user=reschedule_request.approver, event=event, analytics_track_properties=analytics_track_properties)
+
+@receiver(meetings_signals.reschedule_request_declined)
+def reschedule_request_declined(sender, reschedule_request, new_meeting, *args, **kwargs):
+    """When a reschedule request is updated, send analytics."""
+    event = RESCHEDULE_UPDATED
+    analytics_track_properties = {
+        'id': reschedule_request.pk,
+        'meeting_id': reschedule_request.old_meeting.id,
+        'new_meeting_id': new_meeting.id,
+        'creator': reschedule_request.requested_by.email,
+        'approver': reschedule_request.approver.email,
+    }
+    analytics_track(user=reschedule_request.approver, event=event, analytics_track_properties=analytics_track_properties)
+
 
 def _add_user_device_info(user, analytics_track_properties):
     device_info = user.device_info.first()
