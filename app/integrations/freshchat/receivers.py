@@ -95,7 +95,7 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
             {"data": "you" if (rsvp2.status == meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING or
                                (rsvp2.status == meeting_constants.MEETING_RSVP_STATUS_PENDING and
                                 rsvp1.status != meeting_constants.MEETING_RSVP_STATUS_NOT_ATTENDING))
-                else participant2.get_display_first_name()},
+                else participant1.get_display_first_name()},
             {"data": constants.MEETING_CANCELLATION_FALL_BACK}
         ]
     )
