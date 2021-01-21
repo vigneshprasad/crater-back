@@ -4,7 +4,6 @@ from community.posts.signals import post_created
 from resources.meetings import signals as meetings_signals
 from creative_exchange import signals as creative_exchange_signals
 from users.models import User
-from resources.meetings.models import RescheduleRequest
 from users.signals import basic_profile_created, user_signed_up, service_created, phone_number_verified, user_updated, objectives_added, referred_friend, email_verified
 from utils.segment_service import segment_service
 from wn_analytics.constants import *
