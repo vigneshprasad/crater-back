@@ -98,6 +98,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
     Args:
         user(User): User to whom this message will go.
         meeting(Meeting): Meeting for which message confirmation goes
+
     """
 
     local_tz = pytz.timezone(settings.TIME_ZONE)

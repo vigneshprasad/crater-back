@@ -7,7 +7,9 @@ from cryptography.fernet import Fernet
 
 from freelance.settings import FERNET_KEY
 from resources.meetings import models
-from resources.meetings import choices, serializers
+from resources.meetings import choices
+from resources.meetings import serializers
+from resources.meetings import signals
 from users import services as user_services
 from django.contrib.auth import get_user_model
 from integrations.google import public

@@ -2,15 +2,18 @@ import csv
 import datetime
 from urllib import request as urllib_request
 
+from integrations.freshchat import public
 from resources.meetings import choices
 from resources.meetings import services
+from resources.meetings import tasks
 from users import models as user_models
 
 
 FIELDS = [
     "Email A",
     "Email B",
-    "Meeting Time (%d/%m%/%y %H:%M)"
+    "Meeting Time (%d/%m%/%y %H:%M)",
+    "Test"
 ]
 
 
@@ -37,6 +40,7 @@ def run(
         email_a = row.get("Email A").strip()
         email_b = row.get("Email B").strip()
         meeting_time = row.get("Meeting Time").strip()
+        test = row.get("Test", False)
 
         # Getting the users if present.
         user_a, user_b = None, None
@@ -53,9 +57,10 @@ def run(
         except user_models.User.DoesNotExist:
             print("*" * 5, "User Does Not Exist - {}".format(email_b))
 
-        # Check if users have met before.
+        # Check if users have met before. If the meeting is test meeting it
+        # won't check this.
         common_meetings = _check_if_users_had_a_meeting(user_a, user_b)
-        if common_meetings:
+        if common_meetings and not test:
             print("*" * 5, "Users met before. Meeting ID: {}".format(common_meetings))
             continue
 
@@ -78,14 +83,22 @@ def run(
                 print("*" * 5, "User's are not present")
                 continue
 
+            participants = [user_a, user_b]
             meeting = services.create_meeting(
                 config=config,
                 start=start,
                 end=end,
-                participants=[user_a, user_b]
+                participants=participants
             )
 
             print("Created Meeting for users {} & {}: {}".format(email_a, email_b, meeting.id))
+
+            for user in participants:
+                print("Sending WA message")
+                public.send_meeting_confirmation_rsvp(user, meeting)
+
+            print("Sending Intro emails")
+            tasks.send_1_on_1_meeting_intro_emails(meetings=[meeting])
 
         print("End", "-" * 80)
 
