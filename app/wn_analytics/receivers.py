@@ -213,6 +213,7 @@ def reschedule_request_approved(sender, reschedule_request, *args, **kwargs):
     analytics_track_properties = {
         'id': reschedule_request.pk,
         'meeting_id': reschedule_request.old_meeting.id,
+        'new_meeting_id': reschedule_request.new_meeting.id,
         'creator': reschedule_request.requested_by.email,
         'status': reschedule_request.status,
         'approver': reschedule_request.approver.email,
@@ -221,15 +222,15 @@ def reschedule_request_approved(sender, reschedule_request, *args, **kwargs):
     analytics_track(user=reschedule_request.approver, event=event, analytics_track_properties=analytics_track_properties)
 
 @receiver(meetings_signals.reschedule_request_declined)
-def reschedule_request_declined(sender, reschedule_request, new_meeting, *args, **kwargs):
+def reschedule_request_declined(sender, reschedule_request, *args, **kwargs):
     """When a reschedule request is updated, send analytics."""
     event = RESCHEDULE_UPDATED
     analytics_track_properties = {
         'id': reschedule_request.pk,
         'meeting_id': reschedule_request.old_meeting.id,
-        'new_meeting_id': new_meeting.id,
         'creator': reschedule_request.requested_by.email,
         'approver': reschedule_request.approver.email,
+        'status': reschedule_request.status,
     }
     analytics_track(user=reschedule_request.approver, event=event, analytics_track_properties=analytics_track_properties)
 
