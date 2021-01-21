@@ -209,6 +209,14 @@ def create_new_meeting_on_reschedule_request_approval(reschedule_request, time_s
         time_slot(datetime.datetime): time_slot decided for the rescheduled meeting.
 
     """
+    # Refresh the object from DB.
+    reschedule_request.refresh_from_db()
+
+    # If the reschedule request already has a new_meeting. Don't create
+    # another.
+    if reschedule_request.new_meeting:
+        return
+
     old_meeting = reschedule_request.old_meeting
     # Updating the status of old meeting.
     old_meeting.status = choices.MEETING_STATUS_CANCELLED

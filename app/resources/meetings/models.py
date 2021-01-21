@@ -293,8 +293,8 @@ class Meeting(base_model.BaseModel):
     def __str__(self):
         member_str = " - ".join((self.participants.all().values_list("email", flat=True)))
         # Getting the time_str from start datetime.
-        time_str = self.local_start.strftime("%A %d, %b %I:%M %p")
-        return "{} @ {}".format(member_str, time_str)
+        time_str = self.local_start.strftime("%d, %b %I:%M %p")
+        return "[{}] {} @ {}".format(self.id, member_str, time_str)
 
     @property
     def local_start(self):

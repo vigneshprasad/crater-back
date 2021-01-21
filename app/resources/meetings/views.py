@@ -382,6 +382,11 @@ class RescheduleRequestViewSet(
                 {"error": "Reschedule request does not exist."}
             )
 
+        if reschedule_request.status != choices.RESCHEDULE_REQUEST_PENDING_APPROVAL:
+            return self.generate_bad_request(
+                {"error": "You have already responded to the reschedule request."}
+            )
+
         if selected_time_slot not in reschedule_request.time_slots:
             return self.generate_bad_request(
                 {"error": "Selected time slot is not a valid choice."}
