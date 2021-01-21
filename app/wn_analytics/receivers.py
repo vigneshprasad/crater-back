@@ -199,7 +199,7 @@ def reschedule_request_created(sender, reschedule_request, *args, **kwargs):
     event = RESCHEDULE_CREATED
     analytics_track_properties = {
         'id': reschedule_request.pk,
-        'meeting': reschedule_request.old_meeting.id,
+        'meeting_id': reschedule_request.old_meeting.id,
         'creator': reschedule_request.requested_by.email,
         'approver': reschedule_request.approver.email,
         'status': reschedule_request.status,
