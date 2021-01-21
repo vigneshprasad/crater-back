@@ -1,7 +1,5 @@
 import datetime
 
-import pytz
-from django.conf.global_settings import TIME_ZONE
 from django.utils import timezone
 from cryptography.fernet import Fernet
 
@@ -9,7 +7,6 @@ from freelance.settings import FERNET_KEY
 from resources.meetings import models
 from resources.meetings import choices
 from resources.meetings import serializers
-from resources.meetings import signals
 from users import services as user_services
 from django.contrib.auth import get_user_model
 from integrations.google import public
