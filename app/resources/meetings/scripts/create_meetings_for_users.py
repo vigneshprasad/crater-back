@@ -71,7 +71,7 @@ def run(
         week_end_date = config.week_end_date
 
         # Check if date is within the config's start and end date.
-        if not (week_start_date <= start <= week_end_date):
+        if not (week_start_date <= start.date() <= week_end_date):
             print("*" * 5, "Date is not within the week start and end dates: {}".format(start))
             continue
 
@@ -93,11 +93,14 @@ def run(
 
             print("Created Meeting for users {} & {}: {}".format(email_a, email_b, meeting.id))
 
+            # Refreshing meeting from DB.
+            meeting.refresh_from_db()
+
             for user in participants:
-                print("Sending WA message")
+                print("Sending WA message to: {}".format(user.email))
                 public.send_meeting_confirmation_rsvp(user, meeting)
 
-            print("Sending Intro emails")
+            print("Sending Intro emails to both user's")
             tasks.send_1_on_1_meeting_intro_emails(meetings=[meeting])
 
         print("End", "-" * 80)

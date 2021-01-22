@@ -115,6 +115,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
     matched_user = meeting.participants.all().exclude(
             pk=user.pk
         ).first().get_display_first_name()
+
     date = meeting.start.strftime('%a, %d %b %Y')
     start_time = local_start_datetime.strftime('%I:%M %p')
     end_time = local_end_datetime.strftime('%I:%M %p')
