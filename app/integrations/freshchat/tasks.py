@@ -69,7 +69,7 @@ def get_users_for_opt_in_message():
     )
     for meeting in last_weeks_meetings:
         for rsvp in meeting.rsvps.all():
-            if rsvp.status == meeting_constants.MEETING_RSVP_STATUS_ATTENDING:
+            if rsvp.status != meeting_constants.MEETING_RSVP_STATUS_PENDING:
                 rsvped_user.append(rsvp.participant.pk)
 
     # Merge all these users into a single list.
@@ -107,6 +107,6 @@ def get_users_for_opt_in_message():
 def send_opt_in_message(emails=None):
     if not emails:
         return
-    users = get_user_model().objects.fitler(email__in=emails)
+    users = get_user_model().objects.filter(email__in=emails)
 
     public.send_meeting_opt_in_messages(users=users)

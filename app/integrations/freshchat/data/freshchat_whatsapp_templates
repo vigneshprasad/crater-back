@@ -38,7 +38,7 @@ Since you opted in for a 1:1 meeting. Wanted to confirm if you would like to hav
 Hey,
 Thank you for registering for a 1:1 networking meeting with WorkNetwork. We will organize the meeting based on the preferences you shared & share the details on {{1}}
 
-11.confirmation_of_1:1_intent
+11.confirmation_of_11_intent
 Hey, 
 I wanted to check in to see if you would like to opt-in for a 1:1 networking meeting next week? 
 
@@ -85,3 +85,7 @@ Hey,
 22. meeting_reschedule_cancellation
 Hey,
 We were unable to get a confirmation for the reschedule request from {{1}} To prevent a no-show we have canceled the meeting {{2}}
+
+23. confirmation_of_meeting_preference
+Hey,
+We wanted to check-in to see if you would like to opt-in for a 1:1 networking meeting next week? Confirm your opt-in by {{1}}. To update your preferences {{2}}

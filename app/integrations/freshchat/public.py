@@ -7,7 +7,7 @@ from django.conf import settings
 
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
-from integrations.freshchat.services import create_public_rsvp_url
+from integrations.freshchat import services
 from utils.tiny_url_service import tiny_url_service
 
 
@@ -57,10 +57,16 @@ def send_meeting_opt_in_messages(users):
 
     """
     for user in users:
+        opt_in_link = services.create_public_opt_in_url(user)
         freshchat_service.freshchat_whatsapp_service.send_outbound_message(
             user=user,
-            template_name=constants.MEETING_CONFIRMATION_INTENT,
-            template_data=[]
+            template_name=constants.MEETING_OPT_IN_TEMPLATE,
+            template_data=[
+                {"data": constants.MEETING_OPT_IN_MESSAGE.format(opt_in_link)},
+                {"data": constants.MEETING_OPT_IN_APP_LINK.format(
+                    tiny_url_service.shorten(constants.APPSFLYER_APP_LINK)
+                )}
+            ]
         )
 
 
@@ -113,7 +119,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
     start_time = local_start_datetime.strftime('%I:%M %p')
     end_time = local_end_datetime.strftime('%I:%M %p')
     date_time = "{} - {}, {}".format(start_time, end_time, date)
-    url = "clicking here - {}".format(create_public_rsvp_url(user, meeting))
+    url = "clicking here - {}".format(services.create_public_rsvp_url(user, meeting))
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
@@ -136,7 +142,7 @@ def send_meeting_rsvp_reminder(user, meeting):
 
     """
 
-    url = create_public_rsvp_url(user, meeting)
+    url = services.create_public_rsvp_url(user, meeting)
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,

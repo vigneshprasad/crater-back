@@ -1,5 +1,7 @@
 from django.conf import settings
 
+APPSFLYER_APP_LINK = "https://worknetwork.onelink.me/KbQv/AppStore"
+
 # Freshchat Whatsapp details.
 FRESHCHAT_BASE_URL = settings.FRESHCHAT_BASE_URL
 FRESHCHAT_APP_ID = settings.FRESHCHAT_APP_ID
@@ -15,6 +17,7 @@ MEETING_CONFIRMATION_WITH_EMAIL_SENT = "meeting_confirmation_email"
 # Deprecated.
 MEETING_REMINDER_FRESHCHAT_TEMPLATE = "meeting_reminder_link"
 MEETING_OPT_IN_REMINDER_TEMPLATE = "confirming_meeting"
+# Deprecated
 MEETING_CONFIRMATION_INTENT = "confirmation_of_11_intent"
 MEETING_CONFIRMATION_RSVP_LINK = "meeting_confirmation_link"
 # Deprecated
@@ -23,9 +26,15 @@ MEETING_REMINDER_RSVP_LINK = "meeting_unconfirmed_link"
 # Deprecated.
 REGISTRATION_CONFIRMATION = "registration_confirmation"
 
+# Meeting registration updated.
 MEETING_REGISTRATION_TEMPLATE = "confirmation_of_registration_updated"
 MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER = "1:1 meetings"
 MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT = "Meet Interesting People"
+
+# Meeting
+MEETING_OPT_IN_TEMPLATE = "confirmation_of_meeting_preference"
+MEETING_OPT_IN_MESSAGE = "clicking here: {}"
+MEETING_OPT_IN_APP_LINK = "please use the app: {}"
 
 # Meeting rsvp confirmation constants.
 MEETING_CONFIRMATION_TEMPLATE = "meeting_has_been_confirmed"
@@ -78,5 +87,3 @@ FRESHCHAT_MESSAGE_SUCCESS_STATUSES = [
 FRESHCHAT_MESSAGE_FAILURE_STATUSES = [
     FRESHCHAT_MESSAGE_FAILED,
 ]
-
-APPSFLYER_APP_LINK = "https://worknetwork.onelink.me/KbQv/AppStore"
