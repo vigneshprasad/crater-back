@@ -21,6 +21,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'interests': [],
             'time_preferences': [],
             'meeting_days': [],
+            'tags': [],
             'utm_source': form.get('hidden').get('utm_source') if form.get('hidden') else None,
             'utm_campaign': form.get('hidden').get('utm_campaign') if form.get('hidden') else None,
             'source': choices.TYPEFORM_URL_TO_SOURCE_MAP.get(typeform_url) or typeform_url,
@@ -44,11 +45,11 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             elif fields[i]['ref'] == 'linkedin_url':
                 user['linkedin_url'] = answers[i]['url']
             elif fields[i]['ref'] == 'objective_looking_for':
-                for objective in answers[i]['choices']['labels']:
-                    user['objectives'].append(objective)
+                for objective_for in answers[i]['choices']['labels']:
+                    user['objectives'].append(objective_for)
             elif fields[i]['ref'] == 'objective_looking_to':
-                for objective in answers[i]['choices']['labels']:
-                    user['objectives'].append(objective)
+                for objective_to in answers[i]['choices']['labels']:
+                    user['objectives'].append(objective_to)
             elif fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
                 for interest in answers[i]['choices']['labels']:
                     user['interests'].append(interest)
@@ -56,7 +57,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 user['interests'].append(answers[i]['choice']['label'])
             elif fields[i]['ref'] == 'tags' and fields[i].get('allow_multiple_selections', False):
                 for tag in answers[i]['choices']['labels']:
-                    user['tags'].append(interest)
+                    user['tags'].append(tag)
             elif fields[i]['ref'] == 'tags':
                 user['tags'].append(answers[i]['choice']['label'])
             elif fields[i]['ref'] == 'time_preferences' and fields[i].get('allow_multiple_selections', False):
@@ -96,7 +97,6 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
 class InvestorsViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = models.User.objects.select_related('profile').filter(
         groups__name='Investor',
-        # bank_details__isnull=False,
         investor_services_info__isnull=False,
         is_active=True,
         is_superuser=False,
@@ -106,7 +106,6 @@ class InvestorsViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewset
     ).order_by('name')
     permission_classes = [permissions.AllowAny]
     pagination_class = Pagination
-    # serializer_class = serializers.ProfileSerializer
     serializer_class = service_serializers.ProfessionalSerializer
     filterset_fields = [
         'investor_services_info__kind_of_funding',
