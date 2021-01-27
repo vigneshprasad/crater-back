@@ -9,7 +9,7 @@ from matching.engines import users_scoring
 from resources.meetings import services as meeting_service
 
 
-def get_top_matches_for_user(user):
+def get_top_matches_for_user(user, match_with=None):
     """Returns top 10 matches for a user taking into account the other users preferences.
 
     Note:
@@ -22,7 +22,7 @@ def get_top_matches_for_user(user):
         return []
 
     # user_score = users_scoring.get_user_score(user)
-    opted_in_users = meeting_service.get_opted_in_users_for_config()
+    opted_in_users = meeting_service.get_opted_in_users_for_config() if not match_with else match_with
     user_match_score_map = {}
 
     for opted_user in opted_in_users:
@@ -74,7 +74,7 @@ def get_top_matches_for_user(user):
     return final_results
 
 
-def get_top_users_for_user(user):
+def get_top_users_for_user(user, from_users=None):
     """Returns top 10 matches for a user based on only his preferences.
 
     Note:
@@ -85,7 +85,7 @@ def get_top_users_for_user(user):
 
     """
     # user_score = users_scoring.get_user_score(user)
-    opted_in_users = meeting_service.get_opted_in_user_for_meetings()
+    opted_in_users = meeting_service.get_opted_in_user_for_meetings() if not from_users else from_users
     user_match_score_map = {}
 
     for opted_user in opted_in_users:
