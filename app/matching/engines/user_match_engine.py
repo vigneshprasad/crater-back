@@ -53,9 +53,6 @@ def get_match_score_between_users(user1, user2):
 
     match_score = round((engine_1_score + engine_2_score + engine_3_score + engine_5_score) / 4, 2)
 
-    # Print for testing and visualisation.
-    print("User {} matched with {} has a score of: {}".format(user1.email, user2.email, match_score))
-
     return match_score, detailed_score
 
 
