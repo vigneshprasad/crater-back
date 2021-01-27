@@ -24,6 +24,7 @@ class Category(base_model.BaseModel):
 
 
 class Agenda(base_model.BaseModel):
+    """Specific agenda for group's discussion."""
     name = models.CharField(max_length=128)
     icon = models.FileField(blank=True, null=True)
     creator = models.ForeignKey(
@@ -84,6 +85,12 @@ class Group(base_model.BaseModel):
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
 
+    def can_add_speakers(self):
+        """Return True if speakers can be added to the group."""
+        if self.speakers.count() > self.max_speakers:
+            return False
+        return True
+
 
 class Invite(base_model.BaseModel):
 
@@ -107,9 +114,17 @@ class Invite(base_model.BaseModel):
         null=True,
         blank=True
     )
-    invitee_email = models.EmailField(max_length=128)
+    invitee_email = models.EmailField(max_length=128, null=True, blank=True)
     status = models.IntegerField(choices=INVITE_STATUS_CHOICES, default=constants.INVITE_STATUS_PENDING)
     type = models.IntegerField(choices=INVITE_TYPE_CHOICES, default=constants.INVITE_TYPE_SPEAKER)
+
+    def mark_status_as_accepted(self):
+        self.status = constants.INVITE_STATUS_ACCEPTED
+        self.save()
+
+    def mark_status_as_declined(self):
+        self.status = constants.INVITE_STATUS_DECLINED
+        self.save()
 
 
 class Request(base_model.BaseModel):
@@ -123,5 +138,13 @@ class Request(base_model.BaseModel):
     requester = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="group_requests")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="requests")
     status = models.IntegerField(choices=REQUEST_STATUS_CHOICES, default=constants.REQUEST_STATUS_PENDING)
-    # Will be True for userss recommended by WorkNetwork.
+    # Will be True for users recommended by WorkNetwork.
     is_recommended = models.BooleanField(default=False)
+
+    def mark_status_as_accepted(self):
+        self.status = constants.REQUEST_STATUS_ACCEPTED
+        self.save()
+
+    def mark_status_as_declined(self):
+        self.status = constants.REQUEST_STATUS_DECLINED
+        self.save()
