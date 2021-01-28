@@ -15,23 +15,23 @@ class Category(base_model.BaseModel):
             can all come under Startup Ecosystem category.
 
     """
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=128)
     icon = models.FileField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
 
 
 class Agenda(base_model.BaseModel):
     """Specific agenda for group's discussion."""
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=256)
     icon = models.FileField(blank=True, null=True)
     creator = models.ForeignKey(
         get_user_model(),
-        on_delete=models.CASCADE,
-        to_field="email",
-        default="admin@admin.com"
+        on_delete=models.CASCADE
     )
     category = models.ForeignKey(
         Category,
@@ -41,15 +41,18 @@ class Agenda(base_model.BaseModel):
     is_approved = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name = _("Agenda")
+        verbose_name_plural = _("Agendas")
+
     def __str__(self):
         return "{}-{}".format(self.pk, self.name)
 
     def save(self, *args, **kwargs):
         # Either user the save override or the to_field and default.
         if not self.creator:
-            self.creator = get_user_model().objects.get(
-                email="admin@admin.com"
-            )
+            self.creator = get_user_model().objects.get(email="admin@admin.com")
+
         super().save(*args, **kwargs)
 
 
@@ -85,6 +88,10 @@ class Group(base_model.BaseModel):
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = _("Group")
+        verbose_name_plural = _("Groups")
+
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""
         if self.speakers.count() > self.max_speakers:
@@ -118,6 +125,10 @@ class Invite(base_model.BaseModel):
     status = models.IntegerField(choices=INVITE_STATUS_CHOICES, default=constants.INVITE_STATUS_PENDING)
     type = models.IntegerField(choices=INVITE_TYPE_CHOICES, default=constants.INVITE_TYPE_SPEAKER)
 
+    class Meta:
+        verbose_name = _("Invite")
+        verbose_name_plural = _("Invites")
+
     def mark_status_as_accepted(self):
         self.status = constants.INVITE_STATUS_ACCEPTED
         self.save()
@@ -140,6 +151,10 @@ class Request(base_model.BaseModel):
     status = models.IntegerField(choices=REQUEST_STATUS_CHOICES, default=constants.REQUEST_STATUS_PENDING)
     # Will be True for users recommended by WorkNetwork.
     is_recommended = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _("Request")
+        verbose_name_plural = _("Requests")
 
     def mark_status_as_accepted(self):
         self.status = constants.REQUEST_STATUS_ACCEPTED
