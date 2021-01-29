@@ -15,6 +15,13 @@ class AgoraChannelAuthentication(APIView):
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
     def token(self, request):
+        """Creates token for agora video/audio call.
+
+        Required:
+            group_id: ID of group object the the user is
+                trying to join.
+
+        """
         request_data = request.data
         user = request.user
         group_id = request_data.get("group_id")
