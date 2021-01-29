@@ -113,11 +113,11 @@ class Invite(base_model.BaseModel):
     )
 
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="invites")
-    inviter = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="invited_users")
+    inviter = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="group_invites_created")
     invitee = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
-        related_name="group_invites",
+        related_name="groups_invites_received",
         null=True,
         blank=True
     )
