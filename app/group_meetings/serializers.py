@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from groups import models
+from group_meetings import models
 
 
 class CategorySerializer(serializers.ModelSerializer):

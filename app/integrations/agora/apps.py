@@ -2,10 +2,11 @@ from django.apps import AppConfig
 from django.utils.translation import ugettext_lazy as _
 
 
-class GroupsConfig(AppConfig):
-    name = 'groups'
-    icon_name = 'groups'
-    verbose_name = _('Groups')
+class AgoraConfig(AppConfig):
+    name = "integrations.agora"
+    label = "agora"
+    icon_name = "agora"
+    verbose_name = _("̄Agora")
 
     def ready(self):
         # Complete this apps have signals and receivers.

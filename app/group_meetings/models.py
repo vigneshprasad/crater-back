@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from groups import constants
+from group_meetings import constants
 from resources.meetings import models as meeting_models
 
 
@@ -16,7 +16,7 @@ class Category(base_model.BaseModel):
 
     """
     name = models.CharField(max_length=128)
-    icon = models.FileField(blank=True, null=True)
+    image = models.ImageField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -24,11 +24,13 @@ class Category(base_model.BaseModel):
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
 
+    def __str__(self):
+        return "{}-{}".format(self.pk, self.name)
+
 
 class Agenda(base_model.BaseModel):
     """Specific agenda for group's discussion."""
     name = models.CharField(max_length=256)
-    icon = models.FileField(blank=True, null=True)
     creator = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE
@@ -69,7 +71,7 @@ class Group(base_model.BaseModel):
     )
 
     host = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="groups_hosted")
-    speakers = models.ManyToManyField(get_user_model(), verbose_name=_("Speakers"), related_name="groups_hosted")
+    speakers = models.ManyToManyField(get_user_model(), verbose_name=_("Speakers"), related_name="groups_speaker")
     attendees = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Attendees"),
@@ -91,6 +93,9 @@ class Group(base_model.BaseModel):
     class Meta:
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
+
+    def __str__(self):
+        return "{}-{}-{}".format(self.pk, self.agenda, self.host)
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""
@@ -129,6 +134,9 @@ class Invite(base_model.BaseModel):
         verbose_name = _("Invite")
         verbose_name_plural = _("Invites")
 
+    def __str__(self):
+        return "{}-{}-{}".format(self.pk, self.group_id, self.invitee)
+
     def mark_status_as_accepted(self):
         self.status = constants.INVITE_STATUS_ACCEPTED
         self.save()
@@ -155,6 +163,9 @@ class Request(base_model.BaseModel):
     class Meta:
         verbose_name = _("Request")
         verbose_name_plural = _("Requests")
+
+    def __str__(self):
+        return "{}-{}-{}".format(self.pk, self.group_id, self.requester)
 
     def mark_status_as_accepted(self):
         self.status = constants.REQUEST_STATUS_ACCEPTED

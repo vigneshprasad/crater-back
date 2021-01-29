@@ -1,5 +1,5 @@
-from groups import constants
-from groups import models
+from group_meetings import constants
+from group_meetings import models
 
 
 def can_respond_to_requests(user, request):

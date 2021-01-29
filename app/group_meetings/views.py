@@ -3,9 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from users import permissions
-from groups import models
-from groups import private
-from groups import serializers
+from group_meetings import models
+from group_meetings import private
+from group_meetings import serializers
 
 
 class CategoryViewSet(
