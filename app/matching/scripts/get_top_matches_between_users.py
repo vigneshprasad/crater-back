@@ -24,12 +24,13 @@ def get_top_matches(emails=None):
 
         # Once we start matching add the user email to matched users list.
         matched_users.append(user.email)
-        top_matches = public.get_top_matches_for_user(user, match_with=users)
+        match_with = users.exclude(email__in=matched_users)
+        top_matches = public.get_top_matches_for_user(user, match_with=match_with)
 
         for top_match in top_matches:
             if top_match["email"] in matched_users:
                 continue
-            print(user.email, top_match["email"])
+            print(user.email, ",", top_match["email"], ",", top_match["match_score"])
             # Add the user matched to matched users list.
             matched_users.append(top_match["email"])
             break
