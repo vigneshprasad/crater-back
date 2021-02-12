@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from phonenumber_field.modelfields import PhoneNumberField
 
+from base import models as base_models
 from notifications.models import UserNotificationsSettings
 from payment.models import Subscription
 from users.managers import UserManager
@@ -457,6 +458,33 @@ class UserDeviceInfo(TimeStampedModel):
 
 
 class Profile(models.Model):
+
+    EDUCATION_LEVEL_CHOICES = (
+        (choices.EDUCATION_LEVEL_HIGH_SCHOOL_ENUM, choices.EDUCATION_LEVEL_HIGH_SCHOOL),
+        (choices.EDUCATION_LEVEL_UNDERGRADUATE_ENUM, choices.EDUCATION_LEVEL_UNDERGRADUATE),
+        (choices.EDUCATION_LEVEL_MASTERS_ENUM, choices.EDUCATION_LEVEL_MASTERS),
+        (choices.EDUCATION_LEVEL_MBA_ENUM, choices.EDUCATION_LEVEL_MBA),
+        (choices.EDUCATION_LEVEL_PHD_ENUM, choices.EDUCATION_LEVEL_PHD)
+    )
+
+    YEARS_OF_EXPERIENCE_CHOICES = (
+        (choices.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM, choices.EXPERIENCE_ONE_TO_TWO_YEARS),
+        (choices.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM, choices.EXPERIENCE_THREE_TO_FIVE_YEARS),
+        (choices.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM, choices.EXPERIENCE_SIX_TO_TEN_YEARS),
+        (choices.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM, choices.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS),
+        (choices.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM, choices.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS),
+        (choices.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM, choices.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS),
+        (choices.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM, choices.EXPERIENCE_THIRTY_PLUS_YEARS)
+    )
+
+    COMPANY_TYPE_CHOICES = (
+        (choices.COMPANY_TYPE_NOT_EMPLOYED_ENUM, choices.COMPANY_TYPE_NOT_EMPLOYED),
+        (choices.COMPANY_TYPES_START_UP_ENUM, choices.COMPANY_TYPES_START_UP),
+        (choices.COMPANY_TYPE_MNC_ENUM, choices.COMPANY_TYPE_MNC),
+        (choices.COMPANY_TYPE_SME_ENUM, choices.COMPANY_TYPE_SME),
+        (choices.COMPANY_TYPE_CONSULTANCY_ENUM, choices.COMPANY_TYPE_CONSULTANCY)
+    )
+
     user = models.OneToOneField(
         'users.User',
         related_name='profile',
@@ -572,6 +600,21 @@ class Profile(models.Model):
         'tags.Interests',
         verbose_name=_('Interests')
     )
+    education_level = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=EDUCATION_LEVEL_CHOICES
+    )
+    years_of_experience = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=YEARS_OF_EXPERIENCE_CHOICES
+    )
+    company_type = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=COMPANY_TYPE_CHOICES
+    )
 
     class Meta:
         verbose_name = _('Profile')
@@ -662,6 +705,16 @@ class CoverFile(TimeStampedModel):
 
     def __str__(self):
         return self.file.name if self.file else ' - '
+
+
+class Source(base_models.BaseModel):
+    """This is the possible sources for user to come
+        onto the platform.
+
+    """
+    name = models.CharField(max_length=32)
+    form_link = models.URLField(max_length=128, null=True, blank=True)
+    score = models.PositiveIntegerField()
 
 
 @receiver(post_save, sender=CoverFile)
