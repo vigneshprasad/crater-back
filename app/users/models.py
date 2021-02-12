@@ -714,7 +714,7 @@ class Source(base_models.BaseModel):
     """
     name = models.CharField(max_length=32)
     form_link = models.URLField(max_length=128, null=True, blank=True)
-    score = models.PositiveIntegerField()
+    score = models.PositiveIntegerField(default=0)
 
 
 @receiver(post_save, sender=CoverFile)
