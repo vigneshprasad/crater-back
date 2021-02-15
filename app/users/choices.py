@@ -49,10 +49,48 @@ DEVICE_NAME_WEB = 'WEB'
 
 PASSWORD_RESET_FROM_EMAIL = "set-password@worknetwork.in"
 
+# Source constants.
+BASE_SOURCE_FACEBOOK = "Facebook"
+BASE_SOURCE_LINKEDIN = "Linkedin"
+BASE_SOURCE_BUMBLE = "Bumble"
+BASE_SOURCE_REFERRAL = "Referral"
+BASE_SOURCE_ORGANIC = "Organic"
+
+
+BASE_SOURCE_TO_SCORE_MAP = {
+    BASE_SOURCE_FACEBOOK: 50,
+    BASE_SOURCE_LINKEDIN: 100,
+    BASE_SOURCE_REFERRAL: 80,
+    BASE_SOURCE_BUMBLE: 70,
+    BASE_SOURCE_ORGANIC: 50
+}
+
 TYPEFORM_URL_TO_SOURCE_MAP = {
-    "https://worknetwork.typeform.com/to/MNbvcw7y": "MF1: LP_TF",
-    "https://worknetwork.typeform.com/to/CN4xKZL8": "MF2: D_TF",
-    "https://worknetwork.typeform.com/to/ltoxdMaX": "MF3: LI_OR"
+    "https://worknetwork.typeform.com/to/H8wMoIyV": ("Linkedin", "Linkedin Women"),
+    "https://worknetwork.typeform.com/to/oh1lVxPJ": ("Linkedin", "Linkedin Helper(Yash)"),
+    "https://worknetwork.typeform.com/to/LorqbZPS": ("Linkedin", "Linkedin Helper(Keziah)"),
+    "https://worknetwork.typeform.com/to/ltoxdMaX": ("Linkedin", "Linkedin Manual"),
+    "https://worknetwork.typeform.com/to/Xdvnp8bO": ("Bumble", "Bumble Bizz"),
+    "https://worknetwork.typeform.com/to/CN4xKZL8": ("Facebook", "Facebook: F2 Direct to TF"),
+    "https://worknetwork.typeform.com/to/MNbvcw7y": ("Facebook", "Facebook: F1 Landing page to TF"),
+    "https://worknetwork.typeform.com/to/YbWuCTJy": ("Facebook", "Facebook: Exp Funnel"),
+}
+
+EXISTING_SOURCES_TO_NEW_SOURCE_MAP = {
+    "MF1: LP_TF": ("Facebook", "Facebook: F1 Landing page to TF"),
+    "MF2: D_TF": ("Facebook", "Facebook: F2 Direct to TF"),
+    "MF3: LI_OR": ("Linkedin", "Linkedin Manual"),
+    "F2 - TYPEFORM": ("Facebook", "Facebook: F2 Direct to TF"),
+    "F2-TYPEFORM": ("Facebook", "Facebook: F2 Direct to TF"),
+    "typeform": ("Facebook", "Facebook: F1 Landing page to TF"),
+    "https://worknetwork.typeform.com/to/H8wMoIyV": ("Linkedin", "Linkedin Women"),
+    "https://worknetwork.typeform.com/to/oh1lVxPJ": ("Linkedin", "Linkedin Helper(Yash)"),
+    "https://worknetwork.typeform.com/to/LorqbZPS": ("Linkedin", "Linkedin Helper(Keziah)"),
+    "https://worknetwork.typeform.com/to/ltoxdMaX": ("Linkedin", "Linkedin Manual"),
+    "https://worknetwork.typeform.com/to/Xdvnp8bO": ("Bumble", "Bumble Bizz"),
+    "https://worknetwork.typeform.com/to/CN4xKZL8": ("Facebook", "Facebook: F2 Direct to TF"),
+    "https://worknetwork.typeform.com/to/MNbvcw7y": ("Facebook", "Facebook: F1 Landing page to TF"),
+    "https://worknetwork.typeform.com/to/YbWuCTJy": ("Facebook", "Facebook: Exp Funnel"),
 }
 
 # Education level constants.
@@ -67,6 +105,14 @@ EDUCATION_LEVEL_UNDERGRADUATE_ENUM = 1
 EDUCATION_LEVEL_MASTERS_ENUM = 2
 EDUCATION_LEVEL_MBA_ENUM = 3
 EDUCATION_LEVEL_PHD_ENUM = 4
+
+EDUCATION_LEVEL_STR_TO_ENUM = {
+    EDUCATION_LEVEL_HIGH_SCHOOL: EDUCATION_LEVEL_HIGH_SCHOOL_ENUM,
+    EDUCATION_LEVEL_UNDERGRADUATE: EDUCATION_LEVEL_UNDERGRADUATE_ENUM,
+    EDUCATION_LEVEL_MASTERS: EDUCATION_LEVEL_MASTERS_ENUM,
+    EDUCATION_LEVEL_MBA: EDUCATION_LEVEL_MBA_ENUM,
+    EDUCATION_LEVEL_PHD: EDUCATION_LEVEL_PHD_ENUM
+}
 
 # Years of experience constants.
 EXPERIENCE_ONE_TO_TWO_YEARS = "0-2"
@@ -86,6 +132,16 @@ EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM = 4
 EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM = 5
 EXPERIENCE_THIRTY_PLUS_YEARS_ENUM = 6
 
+EXPERIENCE_STR_TO_ENUM = {
+    EXPERIENCE_ONE_TO_TWO_YEARS: EXPERIENCE_ONE_TO_TWO_YEARS_ENUM,
+    EXPERIENCE_THREE_TO_FIVE_YEARS: EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM,
+    EXPERIENCE_SIX_TO_TEN_YEARS: EXPERIENCE_SIX_TO_TEN_YEARS_ENUM,
+    EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS: EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM,
+    EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS: EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM,
+    EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS: EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM,
+    EXPERIENCE_THIRTY_PLUS_YEARS: EXPERIENCE_THIRTY_PLUS_YEARS_ENUM
+}
+
 # Company type constants.
 COMPANY_TYPE_NOT_EMPLOYED = "Not Employed"
 COMPANY_TYPES_START_UP = "Startup"
@@ -98,3 +154,48 @@ COMPANY_TYPES_START_UP_ENUM = 1
 COMPANY_TYPE_MNC_ENUM = 2
 COMPANY_TYPE_SME_ENUM = 3
 COMPANY_TYPE_CONSULTANCY_ENUM = 4
+
+COMPANY_TYPE_STR_ENUM = {
+    COMPANY_TYPE_NOT_EMPLOYED: COMPANY_TYPE_NOT_EMPLOYED_ENUM,
+    COMPANY_TYPES_START_UP: COMPANY_TYPES_START_UP_ENUM,
+    COMPANY_TYPE_MNC: COMPANY_TYPE_MNC_ENUM,
+    COMPANY_TYPE_SME: COMPANY_TYPE_SME_ENUM,
+    COMPANY_TYPE_CONSULTANCY: COMPANY_TYPE_CONSULTANCY_ENUM
+}
+
+# Sector constants.
+SECTOR_TYPE_ACCOUNTS = "Accounts"
+SECTOR_TYPE_AGRICULTURE = "Agriculture"
+SECTOR_TYPE_AI = "AI"
+SECTOR_TYPE_BIO = "Bio"
+SECTOR_TYPE_CHEMICAL = "Chemical"
+SECTOR_TYPE_COMPUTER = "Computer"
+SECTOR_TYPE_CONSULTING = "Consulting"
+SECTOR_TYPE_DATA = "Data"
+SECTOR_TYPE_DESIGN = "Design"
+SECTOR_TYPE_E_COMMERCE = "E-commerce"
+SECTOR_TYPE_EDUCATION = "Education"
+SECTOR_TYPE_ELECTRICAL = "Electrical"
+SECTOR_TYPE_ENERGY = "Energy"
+SECTOR_TYPE_ENVIRONMENT = "Environment"
+SECTOR_TYPE_EVENT = "Event"
+SECTOR_TYPE_FASHION = "Fashion"
+SECTOR_TYPE_FILM = "Film"
+SECTOR_TYPE_FINANCE = "Financial"
+SECTOR_TYPE_FOOD = "Food"
+SECTOR_TYPE_GAMING = "Gaming"
+SECTOR_TYPE_HEALTH = "Health"
+SECTOR_TYPE_HR = "HR"
+SECTOR_TYPE_INVESTOR = "Investor"
+SECTOR_TYPE_LAW = "Law"
+SECTOR_TYPE_MARKETING = "Marketing"
+SECTOR_TYPE_MECHANICAL = "Mechanical"
+SECTOR_TYPE_MEDIA = "Media"
+SECTOR_TYPE_MENTAL_HEALTH = "Mental Health"
+SECTOR_TYPE_PHOTOGRAPHY = "Photography"
+SECTOR_TYPE_POLITICS = "Politics"
+SECTOR_TYPE_PRODUCT = "Product"
+SECTOR_TYPE_REAL_ESTATE = "Real Estate"
+SECTOR_TYPE_SOCIAL = "Social"
+SECTOR_TYPE_STARTUP = "Startup"
+SECTOR_TYPE_TRAVEL = "Travel"

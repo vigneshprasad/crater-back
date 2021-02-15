@@ -76,7 +76,7 @@ def get_user_score_based_on_source(user):
     """Returns score based on user's signup source."""
     user_source = user.signup_source
     if not user_source:
-        return
+        return 50
 
     return user_source.score
 

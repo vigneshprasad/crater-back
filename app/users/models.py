@@ -25,7 +25,6 @@ from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from . import choices
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
-from freelance.settings import DEFAULT_FROM_EMAIL
 
 
 class User(AbstractUser):
@@ -68,6 +67,11 @@ class User(AbstractUser):
         verbose_name=_('Source'),
         null=True,
         blank=True
+    )
+    new_source = models.ForeignKey(
+        "users.Source",
+        related_name="users",
+        on_delete=models.CASCADE
     )
     phone_number = PhoneNumberField(
         blank=True,
@@ -485,6 +489,45 @@ class Profile(models.Model):
         (choices.COMPANY_TYPE_CONSULTANCY_ENUM, choices.COMPANY_TYPE_CONSULTANCY)
     )
 
+    # TODO(Nishant): Get the list of sectors from Vivan.
+    SECTOR_CHOICES = [
+        choices.SECTOR_TYPE_ACCOUNTS,
+        choices.SECTOR_TYPE_AGRICULTURE,
+        choices.SECTOR_TYPE_AI,
+        choices.SECTOR_TYPE_BIO,
+        choices.SECTOR_TYPE_CHEMICAL,
+        choices.SECTOR_TYPE_COMPUTER,
+        choices.SECTOR_TYPE_CONSULTING,
+        choices.SECTOR_TYPE_DATA,
+        choices.SECTOR_TYPE_DESIGN,
+        choices.SECTOR_TYPE_E_COMMERCE,
+        choices.SECTOR_TYPE_EDUCATION,
+        choices.SECTOR_TYPE_ELECTRICAL,
+        choices.SECTOR_TYPE_ENERGY,
+        choices.SECTOR_TYPE_ENVIRONMENT,
+        choices.SECTOR_TYPE_EVENT,
+        choices.SECTOR_TYPE_FASHION,
+        choices.SECTOR_TYPE_FILM,
+        choices.SECTOR_TYPE_FINANCE,
+        choices.SECTOR_TYPE_FOOD,
+        choices.SECTOR_TYPE_GAMING,
+        choices.SECTOR_TYPE_HEALTH,
+        choices.SECTOR_TYPE_HR,
+        choices.SECTOR_TYPE_INVESTOR,
+        choices.SECTOR_TYPE_LAW,
+        choices.SECTOR_TYPE_MARKETING,
+        choices.SECTOR_TYPE_MECHANICAL,
+        choices.SECTOR_TYPE_MEDIA,
+        choices.SECTOR_TYPE_MENTAL_HEALTH,
+        choices.SECTOR_TYPE_PHOTOGRAPHY,
+        choices.SECTOR_TYPE_POLITICS,
+        choices.SECTOR_TYPE_PRODUCT,
+        choices.SECTOR_TYPE_REAL_ESTATE,
+        choices.SECTOR_TYPE_SOCIAL,
+        choices.SECTOR_TYPE_STARTUP,
+        choices.SECTOR_TYPE_TRAVEL,
+    ]
+
     user = models.OneToOneField(
         'users.User',
         related_name='profile',
@@ -615,6 +658,12 @@ class Profile(models.Model):
         blank=True,
         choices=COMPANY_TYPE_CHOICES
     )
+    sector = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        choices=SECTOR_CHOICES
+    )
 
     class Meta:
         verbose_name = _('Profile')
@@ -707,14 +756,23 @@ class CoverFile(TimeStampedModel):
         return self.file.name if self.file else ' - '
 
 
-class Source(base_models.BaseModel):
-    """This is the possible sources for user to come
-        onto the platform.
-
-    """
+class BaseSource(base_models.BaseModel):
     name = models.CharField(max_length=32)
-    form_link = models.URLField(max_length=128, null=True, blank=True)
+    score = models.PositiveIntegerField()
+
+
+class Source(base_models.BaseModel):
+    """This is the possible sources for user to come onto the platform."""
+    name = models.CharField(max_length=32)
+    base_source = models.ForeignKey(
+        BaseSource,
+        related_name="sources",
+        on_delete=models.CASCADE
+    )
+    link = models.URLField(max_length=128, null=True, blank=True)
+    # This is a base score associated with the user.
     score = models.PositiveIntegerField(default=0)
+
 
 
 @receiver(post_save, sender=CoverFile)
