@@ -25,7 +25,7 @@ def map_users_old_source_to_new_sources():
     for user in models.User.objects.all():
         old_source = user.source
         new_source = choices.EXISTING_SOURCES_TO_NEW_SOURCE_MAP.get(old_source, ("Organic", "Organic")) if old_source else ("Organic", "Organic")
-        base_source = models.BaseSource.objects.get_or_create(
+        base_source, _ = models.BaseSource.objects.get_or_create(
             name=new_source[0]
         )
         source = models.Source.objects.get(

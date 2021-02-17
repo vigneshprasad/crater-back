@@ -74,6 +74,8 @@ TYPEFORM_URL_TO_SOURCE_MAP = {
     "https://worknetwork.typeform.com/to/CN4xKZL8": ("Facebook", "Facebook: F2 Direct to TF"),
     "https://worknetwork.typeform.com/to/MNbvcw7y": ("Facebook", "Facebook: F1 Landing page to TF"),
     "https://worknetwork.typeform.com/to/YbWuCTJy": ("Facebook", "Facebook: Exp Funnel"),
+    "https://worknetwork.typeform.com/to/l3uR33Zv": ("Facebook", "Facebook: F1 Landing page to TF (Not Active)"),
+    "https://worknetwork.typeform.com/to/oTCMwo9P": ("Google", "Google Ads: Landing Page to TF")
 }
 
 EXISTING_SOURCES_TO_NEW_SOURCE_MAP = {
@@ -91,6 +93,8 @@ EXISTING_SOURCES_TO_NEW_SOURCE_MAP = {
     "https://worknetwork.typeform.com/to/CN4xKZL8": ("Facebook", "Facebook: F2 Direct to TF"),
     "https://worknetwork.typeform.com/to/MNbvcw7y": ("Facebook", "Facebook: F1 Landing page to TF"),
     "https://worknetwork.typeform.com/to/YbWuCTJy": ("Facebook", "Facebook: Exp Funnel"),
+    "https://worknetwork.typeform.com/to/l3uR33Zv": ("Facebook", "Facebook: F1 Landing page to TF (Not Active)"),
+    "https://worknetwork.typeform.com/to/oTCMwo9P": ("Google", "Google Ads: Landing Page to TF")
 }
 
 # Education level constants.
