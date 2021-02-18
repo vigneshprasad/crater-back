@@ -14,6 +14,8 @@ def get_user_score(user):
         constants.EDUCATION_LEVEL_ENGINE: get_user_score_based_on_education(user),
         constants.ACTIVITY_ENGINE: get_user_activity_score(user)
     }
+    # Adding a print for visualization.
+    print(detailed_score)
 
     for key, value in constants.USER_SCORE_ENGINE_WEIGHTAGES.items():
         user_score += detailed_score.get(key) * value
@@ -74,7 +76,7 @@ def get_user_score_based_on_education(user):
 
 def get_user_score_based_on_source(user):
     """Returns score based on user's signup source."""
-    user_source = user.signup_source
+    user_source = user.new_source
     if not user_source:
         return 50
 

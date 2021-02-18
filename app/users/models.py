@@ -71,7 +71,9 @@ class User(AbstractUser):
     new_source = models.ForeignKey(
         "users.Source",
         related_name="users",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     phone_number = PhoneNumberField(
         blank=True,
@@ -486,10 +488,11 @@ class Profile(models.Model):
         (choices.COMPANY_TYPES_START_UP_ENUM, choices.COMPANY_TYPES_START_UP),
         (choices.COMPANY_TYPE_MNC_ENUM, choices.COMPANY_TYPE_MNC),
         (choices.COMPANY_TYPE_SME_ENUM, choices.COMPANY_TYPE_SME),
-        (choices.COMPANY_TYPE_CONSULTANCY_ENUM, choices.COMPANY_TYPE_CONSULTANCY)
+        (choices.COMPANY_TYPE_CONSULTANCY_ENUM, choices.COMPANY_TYPE_CONSULTANCY),
+        (choices.COMPANY_TYPE_FUND_ENUM, choices.COMPANY_TYPE_FUND),
+        (choices.COMPANY_TYPE_FREELANCE_ENUM, choices.COMPANY_TYPE_FREELANCE),
     )
 
-    # TODO(Nishant): Get the list of sectors from Vivan.
     SECTOR_CHOICES = (
         (choices.SECTOR_TYPE_ACCOUNTS, choices.SECTOR_TYPE_ACCOUNTS),
         (choices.SECTOR_TYPE_AGRICULTURE, choices.SECTOR_TYPE_AGRICULTURE),
@@ -525,7 +528,8 @@ class Profile(models.Model):
         (choices.SECTOR_TYPE_REAL_ESTATE, choices.SECTOR_TYPE_REAL_ESTATE),
         (choices.SECTOR_TYPE_SOCIAL, choices.SECTOR_TYPE_SOCIAL),
         (choices.SECTOR_TYPE_STARTUP, choices.SECTOR_TYPE_STARTUP),
-        (choices.SECTOR_TYPE_TRAVEL, choices.SECTOR_TYPE_TRAVEL)
+        (choices.SECTOR_TYPE_TRAVEL, choices.SECTOR_TYPE_TRAVEL),
+        (choices.SECTOR_TYPE_LOGISTICS, choices.SECTOR_TYPE_LOGISTICS)
     )
 
     user = models.OneToOneField(
@@ -760,10 +764,13 @@ class BaseSource(base_models.BaseModel):
     name = models.CharField(max_length=32)
     score = models.PositiveIntegerField()
 
+    def __str__(self):
+        return "{} - {}".format(self.name, self.score)
+
 
 class Source(base_models.BaseModel):
     """This is the possible sources for user to come onto the platform."""
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=128)
     base_source = models.ForeignKey(
         BaseSource,
         related_name="sources",
@@ -773,6 +780,8 @@ class Source(base_models.BaseModel):
     # This is a base score associated with the user.
     score = models.PositiveIntegerField(default=0)
 
+    def __str__(self):
+        return "{} - {}".format(self.name, self.score)
 
 
 @receiver(post_save, sender=CoverFile)

@@ -29,11 +29,6 @@ class IdentifyLog(BaseModel):
         return f"{self.user.name}"
 
 
-class Source(BaseModel):
-    name = models.CharField(max_length=32)
-    form_link = models.URLField(max_length=256, null=True, blank=True)
-
-
 class UserSource(BaseModel):
     user = models.ForeignKey(
         get_user_model(),

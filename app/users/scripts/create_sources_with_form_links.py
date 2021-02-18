@@ -3,7 +3,7 @@ from users import choices
 
 
 def create_base_sources():
-    for source_name, score in choices.BASE_SOURCE_TO_SCORE_MAP:
+    for source_name, score in choices.BASE_SOURCE_TO_SCORE_MAP.items():
         base_source, _ = models.BaseSource.objects.get_or_create(
             name=source_name,
             score=score
@@ -13,7 +13,7 @@ def create_base_sources():
 def create_initial_sources():
     for link, source in choices.TYPEFORM_URL_TO_SOURCE_MAP.items():
         base_source = models.BaseSource.objects.get(name=source[0])
-        source, _ = models.Source.objects.get_create(
+        source, _ = models.Source.objects.get_or_create(
             name=source[1],
             base_source=base_source,
             link=link,

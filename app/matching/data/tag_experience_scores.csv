@@ -1,5 +1,5 @@
-Tag-Experience,0-2,3-5,6-10,11-15,16-20,21-30,30+
-Startup Founders,40,80,100,70,70,70,70
+Tag-Experience,0-2,2-5,6-10,11-15,16-20,21-30,30+
+Startup Founders,40,70,100,100,70,70,70
 SME Owners,20,40,60,70,80,100,80
 Startup Investors,50,70,80,100,100,100,100
 Financial Experts,20,50,70,100,100,100,100
@@ -12,3 +12,4 @@ Lawyers,20,50,60,70,100,100,100
 Designers,20,30,50,70,100,100,100
 Students/Interns,10,10,10,10,10,10,10
 Senior Executives,30,50,60,70,80,100,100
+Others,10,10,10,10,10,10,10
