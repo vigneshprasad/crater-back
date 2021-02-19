@@ -53,15 +53,13 @@ from users import models
 from tags import models as tag_models
 
 
-def make_old_tags_inactive():
-    tag_names = TAGS_TO_NEW_TAGS_MATCH.keys()
-    tag_models.Tag.objects.filter(name__in=tag_names).update(is_active=False)
-
-
-def migrate_to_new_tags():
+def migrate_tags_to_new_tag():
+    """Migrate users with old tags and create a single new tag."""
     for user in models.User.objects.all():
+
         if not user.has_profile:
             continue
+
         profile = user.profile
         all_tags = profile.tags.all().values_list("name", flat=True)
         primary_tag = all_tags[0] if all_tags else "Others"

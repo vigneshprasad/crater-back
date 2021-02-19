@@ -23,6 +23,25 @@ def get_user_score(user):
     return user_score
 
 
+def get_user_score_without_activity(user):
+    """Get user score based on multiple factors excluding the activity score."""
+    user_score = 0
+
+    detailed_score = {
+        constants.TAG_TO_EXPERIENCE_ENGINE: get_user_score_based_on_tags_and_experience(user),
+        constants.TAG_TO_COMPANY_TYPE_ENGINE: get_user_score_based_on_tags_and_company_type(user),
+        constants.SOURCE_ENGINE: get_user_score_based_on_source(user),
+        constants.EDUCATION_LEVEL_ENGINE: get_user_score_based_on_education(user),
+    }
+    # Adding a print for visualization.
+    print(detailed_score)
+
+    for key, value in constants.USER_SCORE_ENGINE_WEIGHTAGES.items():
+        user_score += detailed_score.get(key) * value
+
+    return user_score
+
+
 def get_user_score_based_on_tags_and_experience(user):
     """Returns score based on user's tag and years of experience."""
     if not user.has_profile:

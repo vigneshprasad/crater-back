@@ -186,7 +186,7 @@ def create_user_and_profile(
             is_active=True
         )
         for tag in tags:
-            profile.tags.add(tag)
+            profile.new_tag.add(tag)
 
     created_or_updated_user = 'Created' if user_created else 'Updated'
     print("{} user: {}".format(created_or_updated_user, user.pk))

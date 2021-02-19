@@ -8611,7 +8611,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
     "Others": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 15,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 30,
-        user_constants.COMPANY_TYPE_MNC_ENUM: 100,
+        user_constants.COMPANY_TYPE_MNC_ENUM: 60,
         user_constants.COMPANY_TYPE_SME_ENUM: 50,
         user_constants.COMPANY_TYPE_CONSULTANCY_ENUM: 40,
         user_constants.COMPANY_TYPE_FUND_ENUM: 40,
