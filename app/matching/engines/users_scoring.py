@@ -51,7 +51,10 @@ def get_user_score_based_on_tags_and_experience(user):
     tags = user.profile.new_tag.all().values_list("name", flat=True)
     years_of_experience = user.profile.years_of_experience
 
-    if not tags and years_of_experience is None:
+    if not tags:
+        return 0
+
+    if years_of_experience is None:
         return 0
 
     for tag in tags:
@@ -70,7 +73,10 @@ def get_user_score_based_on_tags_and_company_type(user):
     tags = user.profile.new_tag.all().values_list("name", flat=True)
     company_type = user.profile.company_type
 
-    if not tags and company_type is None:
+    if not tags:
+        return 0
+
+    if company_type is None:
         return 0
 
     for tag in tags:
