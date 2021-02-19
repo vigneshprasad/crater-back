@@ -67,5 +67,5 @@ def migrate_to_new_tags():
         primary_tag = all_tags[0] if all_tags else "Others"
         new_tag = TAGS_TO_NEW_TAGS_MATCH.get(primary_tag, "Others")
         new_tag_obj, _ = tag_models.Tag.objects.get_or_create(name=new_tag)
-        profile.tags.clear()
-        profile.tags.add(new_tag_obj)
+        # profile.tags.clear()
+        profile.new_tag.add(new_tag_obj)
