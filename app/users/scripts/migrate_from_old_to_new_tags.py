@@ -55,10 +55,12 @@ TAGS_TO_NEW_TAGS_MATCH = {
 }
 
 
-def migrate_tags_to_new_tag():
+def migrate_tags_to_new_tag(users=None):
     """Migrate users with old tags and create a single new tag."""
-    for user in models.User.objects.all():
 
+    all_users = users if users else models.User.objects.all()
+
+    for user in all_users:
         if not user.has_profile:
             continue
 
