@@ -18,7 +18,7 @@ def get_user_score(user):
     print(detailed_score)
 
     for key, value in constants.USER_SCORE_ENGINE_WEIGHTAGES.items():
-        user_score += detailed_score.get(key) * value
+        user_score += detailed_score.get(key, 0) * value
 
     return user_score
 
@@ -37,7 +37,7 @@ def get_user_score_without_activity(user):
     print(detailed_score)
 
     for key, value in constants.USER_SCORE_ENGINE_WEIGHTAGES.items():
-        user_score += detailed_score.get(key) * value
+        user_score += detailed_score.get(key, 0) * value
 
     return user_score
 
