@@ -99,7 +99,7 @@ def get_user_score_based_on_source(user):
     if not user_source:
         return 50
 
-    return user_source.score
+    return user_source.score or user_source.base_source.score
 
 
 def get_user_activity_score(user):
