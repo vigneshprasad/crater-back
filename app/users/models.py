@@ -632,7 +632,7 @@ class Profile(models.Model):
     # TODO(Nishant): Remove the old tags once new_tag is filled for all users.
     new_tag = models.ManyToManyField(
         'tags.Tag',
-        verbose_name=_('Tags')
+        verbose_name=_('New Tag')
     )
     public_profile = models.BooleanField(
         default=True,
