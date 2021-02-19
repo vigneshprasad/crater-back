@@ -4,7 +4,8 @@ from tags import models as tag_models
 
 TAGS_TO_NEW_TAGS_MATCH = {
     "Accountant": "Financial Experts",
-    "Associate": "Other",
+    "Associate": "Others",
+    "HR Executive": "HR Executives",
     "Board Member": "Senior Executives",
     "Brand Advisor": "Marketing Experts",
     "Business Advisor": "Business Advisors",
@@ -17,7 +18,7 @@ TAGS_TO_NEW_TAGS_MATCH = {
     "COO": "Senior Executives",
     "CTO": "Startup Founders",
     "Company Secretary": "Financial Experts",
-    "Consultant": "Business Advisor",
+    "Consultant": "Business Advisors",
     "Designer": "Designers",
     "Director": "Senior Executives",
     "Engineer": "Engineers",
@@ -31,7 +32,7 @@ TAGS_TO_NEW_TAGS_MATCH = {
     "Influencer": "Marketing Experts",
     "Investment fund": "Startup Investors",
     "Investor": "Startup Investors",
-    "Journalist": "Marketing Expert",
+    "Journalist": "Marketing Experts",
     "Lawyer": "Lawyers",
     "Manager": "Business Development Executives",
     "Marketing Agency": "Marketing Experts",
@@ -65,6 +66,10 @@ def migrate_tags_to_new_tag(users=None):
             continue
 
         profile = user.profile
+        new_tag = profile.new_tags.all().first()
+        if new_tag and (new_tag.name not in ["Others", "Other"]):
+            continue
+
         all_tags = profile.tags.all().values_list("name", flat=True)
         primary_tag = all_tags[0] if all_tags else "Others"
         new_tag = TAGS_TO_NEW_TAGS_MATCH.get(primary_tag, "Others")
