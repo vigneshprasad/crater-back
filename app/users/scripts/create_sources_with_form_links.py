@@ -28,7 +28,7 @@ def map_users_old_source_to_new_sources():
         base_source, _ = models.BaseSource.objects.get_or_create(
             name=new_source[0]
         )
-        source = models.Source.objects.get(
+        source = models.Source.objects.get_or_create(
             base_source=base_source,
             name=new_source[1]
         )
