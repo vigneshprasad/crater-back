@@ -16,6 +16,11 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
         fields = form['definition']['fields']
         answers = form['answers']
         typeform_url = 'https://worknetwork.typeform.com/to/' + form['form_id']
+        try:
+            new_source = models.Source.objects.get(link=typeform_url)
+        except models.Source.DoesNotExist:
+            new_source = None
+
         user = {
             'email': form.get('hidden').get('email') if form.get('hidden') else None,
             'interests': [],
@@ -25,7 +30,12 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'utm_source': form.get('hidden').get('utm_source') if form.get('hidden') else None,
             'utm_campaign': form.get('hidden').get('utm_campaign') if form.get('hidden') else None,
             'source': choices.TYPEFORM_URL_TO_SOURCE_MAP.get(typeform_url) or typeform_url,
-            'objectives': []
+            'new_source': new_source,
+            'objectives': [],
+            'years_of_experience': None,
+            'company_type': None,
+            'education_level': None,
+            'sector': None
         }
 
         for i in range(len(fields)):
@@ -35,6 +45,14 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 user['email'] = answers[i]['email']
             elif fields[i]['ref'] == 'phone_number':
                 user['phone_number'] = answers[i]['phone_number']
+            elif fields[i]['ref'] == 'years_of_experience':
+                user['years_of_experience'] = answers[i]['years_of_experience']
+            elif fields[i]['ref'] == 'company_type':
+                user['company_type'] = answers[i]['company_type']
+            elif fields[i]['ref'] == 'education_level':
+                user['education_level'] = answers[i]['education_level']
+            elif fields[i]['ref'] == 'sector':
+                user['sector'] = answers[i]['sector']
             elif fields[i]['ref'] == 'meeting_days':
                 days = answers[i]['choice']['label']
                 if days == 'Both work':
@@ -68,6 +86,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
 
         if not user['email']:
             return Response({'status': 'No email exists'})
+
         else:
             user_obj, _ = create_user_and_profile(
                 full_name=user['name'],
@@ -76,8 +95,13 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                 linkedin_url=user['linkedin_url'],
                 tags=user['tags'],
                 source=user['source'],
+                new_source=user['new_source'],
                 utm_source=user['utm_source'],
-                utm_campaign=user['utm_campaign']
+                utm_campaign=user['utm_campaign'],
+                years_of_experience=user['years_of_experience'],
+                company_type=user['company_type'],
+                education_level=user['education_level'],
+                sector=user['sector']
             )
 
             if not user['meeting_days']:

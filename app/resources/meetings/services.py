@@ -254,6 +254,11 @@ def get_current_week_meeting_config():
     ).last()
 
 
+def get_meetings_attended(user):
+    """Returns meeting attended by a user."""
+    return models.Meeting.objects.filter(participants=user, status=choices.MEETING_STATUS_CONFIRMED)
+
+
 def get_active_meetings(start_date=None, end_date=None):
     """
     Get all meetings that are active in a given duration.
@@ -504,6 +509,7 @@ def get_reschedule_from_url(query):
         raise models.RescheduleRequest.DoesNotExist
     except get_user_model().DoesNotExist:
         raise get_user_model().DoesNotExist
+
 
 def get_user_from_opt_in_url(query):
     """

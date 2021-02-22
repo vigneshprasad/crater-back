@@ -57,6 +57,13 @@ def run(
         except user_models.User.DoesNotExist:
             print("*" * 5, "User Does Not Exist - {}".format(email_b))
 
+        if not (user_a and user_b):
+            continue
+
+        if user_a == user_b:
+            print("Meeting set between same users: {}".format(email_a))
+            continue
+
         # Check if users have met before. If the meeting is test meeting it
         # won't check this.
         common_meetings = _check_if_users_had_a_meeting(user_a, user_b)

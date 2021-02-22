@@ -16,6 +16,16 @@ from utils.mixins import ViewActionMixin
 admin.site.unregister(Group)
 
 
+@admin.register(models.BaseSource)
+class BaseSourceAdmin(admin.ModelAdmin):
+    exclude = ("is_deleted", "deleted_at")
+
+
+@admin.register(models.Source)
+class SourceAdmin(admin.ModelAdmin):
+    exclude = ("is_deleted", "deleted_at")
+
+
 class ProfileAdmin(admin.StackedInline):
     model = Profile
     form = ProfileForm
@@ -44,7 +54,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
         }),
         ('User Data', {
             'fields': (('name', 'email'), ('city', 'phone_number'), ('referer', 'phone_number_verified'), ('rating', 'intent'),
-                       'objectives', 'source', 'score'),
+                       'objectives', 'source', 'new_source', 'score'),
         }),
     )
     autocomplete_fields = ['city']

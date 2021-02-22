@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from phonenumber_field.modelfields import PhoneNumberField
 
+from base import models as base_models
 from notifications.models import UserNotificationsSettings
 from payment.models import Subscription
 from users.managers import UserManager
@@ -24,7 +25,6 @@ from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from . import choices
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
-from freelance.settings import DEFAULT_FROM_EMAIL
 
 
 class User(AbstractUser):
@@ -65,6 +65,13 @@ class User(AbstractUser):
     source = models.CharField(
         max_length=400,
         verbose_name=_('Source'),
+        null=True,
+        blank=True
+    )
+    new_source = models.ForeignKey(
+        "users.Source",
+        related_name="users",
+        on_delete=models.CASCADE,
         null=True,
         blank=True
     )
@@ -457,6 +464,74 @@ class UserDeviceInfo(TimeStampedModel):
 
 
 class Profile(models.Model):
+
+    EDUCATION_LEVEL_CHOICES = (
+        (choices.EDUCATION_LEVEL_HIGH_SCHOOL_ENUM, choices.EDUCATION_LEVEL_HIGH_SCHOOL),
+        (choices.EDUCATION_LEVEL_UNDERGRADUATE_ENUM, choices.EDUCATION_LEVEL_UNDERGRADUATE),
+        (choices.EDUCATION_LEVEL_MASTERS_ENUM, choices.EDUCATION_LEVEL_MASTERS),
+        (choices.EDUCATION_LEVEL_MBA_ENUM, choices.EDUCATION_LEVEL_MBA),
+        (choices.EDUCATION_LEVEL_PHD_ENUM, choices.EDUCATION_LEVEL_PHD)
+    )
+
+    YEARS_OF_EXPERIENCE_CHOICES = (
+        (choices.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM, choices.EXPERIENCE_ONE_TO_TWO_YEARS),
+        (choices.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM, choices.EXPERIENCE_THREE_TO_FIVE_YEARS),
+        (choices.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM, choices.EXPERIENCE_SIX_TO_TEN_YEARS),
+        (choices.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM, choices.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS),
+        (choices.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM, choices.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS),
+        (choices.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM, choices.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS),
+        (choices.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM, choices.EXPERIENCE_THIRTY_PLUS_YEARS)
+    )
+
+    COMPANY_TYPE_CHOICES = (
+        (choices.COMPANY_TYPE_NOT_EMPLOYED_ENUM, choices.COMPANY_TYPE_NOT_EMPLOYED),
+        (choices.COMPANY_TYPES_START_UP_ENUM, choices.COMPANY_TYPES_START_UP),
+        (choices.COMPANY_TYPE_MNC_ENUM, choices.COMPANY_TYPE_MNC),
+        (choices.COMPANY_TYPE_SME_ENUM, choices.COMPANY_TYPE_SME),
+        (choices.COMPANY_TYPE_CONSULTANCY_ENUM, choices.COMPANY_TYPE_CONSULTANCY),
+        (choices.COMPANY_TYPE_FUND_ENUM, choices.COMPANY_TYPE_FUND),
+        (choices.COMPANY_TYPE_FREELANCE_ENUM, choices.COMPANY_TYPE_FREELANCE),
+    )
+
+    SECTOR_CHOICES = (
+        (choices.SECTOR_TYPE_ACCOUNTS, choices.SECTOR_TYPE_ACCOUNTS),
+        (choices.SECTOR_TYPE_AGRICULTURE, choices.SECTOR_TYPE_AGRICULTURE),
+        (choices.SECTOR_TYPE_AI, choices.SECTOR_TYPE_AI),
+        (choices.SECTOR_TYPE_BIO, choices.SECTOR_TYPE_BIO),
+        (choices.SECTOR_TYPE_CHEMICAL, choices.SECTOR_TYPE_CHEMICAL),
+        (choices.SECTOR_TYPE_COMPUTER, choices.SECTOR_TYPE_COMPUTER),
+        (choices.SECTOR_TYPE_CONSULTING, choices.SECTOR_TYPE_CONSULTING),
+        (choices.SECTOR_TYPE_DATA, choices.SECTOR_TYPE_DATA),
+        (choices.SECTOR_TYPE_DESIGN, choices.SECTOR_TYPE_DESIGN),
+        (choices.SECTOR_TYPE_E_COMMERCE, choices.SECTOR_TYPE_E_COMMERCE),
+        (choices.SECTOR_TYPE_EDUCATION, choices.SECTOR_TYPE_EDUCATION),
+        (choices.SECTOR_TYPE_ELECTRICAL, choices.SECTOR_TYPE_ELECTRICAL),
+        (choices.SECTOR_TYPE_ENERGY, choices.SECTOR_TYPE_ENERGY),
+        (choices.SECTOR_TYPE_ENVIRONMENT, choices.SECTOR_TYPE_ENVIRONMENT),
+        (choices.SECTOR_TYPE_EVENT, choices.SECTOR_TYPE_EVENT),
+        (choices.SECTOR_TYPE_FASHION, choices.SECTOR_TYPE_FASHION),
+        (choices.SECTOR_TYPE_FILM, choices.SECTOR_TYPE_FILM),
+        (choices.SECTOR_TYPE_FINANCE, choices.SECTOR_TYPE_FINANCE),
+        (choices.SECTOR_TYPE_FOOD, choices.SECTOR_TYPE_FOOD),
+        (choices.SECTOR_TYPE_GAMING, choices.SECTOR_TYPE_GAMING),
+        (choices.SECTOR_TYPE_HEALTH, choices.SECTOR_TYPE_HEALTH),
+        (choices.SECTOR_TYPE_HR, choices.SECTOR_TYPE_HR),
+        (choices.SECTOR_TYPE_INVESTOR, choices.SECTOR_TYPE_INVESTOR),
+        (choices.SECTOR_TYPE_LAW, choices.SECTOR_TYPE_LAW),
+        (choices.SECTOR_TYPE_MARKETING, choices.SECTOR_TYPE_MARKETING),
+        (choices.SECTOR_TYPE_MECHANICAL, choices.SECTOR_TYPE_MECHANICAL),
+        (choices.SECTOR_TYPE_MEDIA, choices.SECTOR_TYPE_MEDIA),
+        (choices.SECTOR_TYPE_MENTAL_HEALTH, choices.SECTOR_TYPE_MENTAL_HEALTH),
+        (choices.SECTOR_TYPE_PHOTOGRAPHY, choices.SECTOR_TYPE_PHOTOGRAPHY),
+        (choices.SECTOR_TYPE_POLITICS, choices.SECTOR_TYPE_POLITICS),
+        (choices.SECTOR_TYPE_PRODUCT, choices.SECTOR_TYPE_PRODUCT),
+        (choices.SECTOR_TYPE_REAL_ESTATE, choices.SECTOR_TYPE_REAL_ESTATE),
+        (choices.SECTOR_TYPE_SOCIAL, choices.SECTOR_TYPE_SOCIAL),
+        (choices.SECTOR_TYPE_STARTUP, choices.SECTOR_TYPE_STARTUP),
+        (choices.SECTOR_TYPE_TRAVEL, choices.SECTOR_TYPE_TRAVEL),
+        (choices.SECTOR_TYPE_LOGISTICS, choices.SECTOR_TYPE_LOGISTICS)
+    )
+
     user = models.OneToOneField(
         'users.User',
         related_name='profile',
@@ -554,6 +629,11 @@ class Profile(models.Model):
         verbose_name=_('Tags'),
         related_name='profiles'
     )
+    # TODO(Nishant): Remove the old tags once new_tag is filled for all users.
+    new_tag = models.ManyToManyField(
+        'tags.Tag',
+        verbose_name=_('New Tag')
+    )
     public_profile = models.BooleanField(
         default=True,
         verbose_name=_('Public Profile')
@@ -571,6 +651,27 @@ class Profile(models.Model):
     interests = models.ManyToManyField(
         'tags.Interests',
         verbose_name=_('Interests')
+    )
+    education_level = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=EDUCATION_LEVEL_CHOICES
+    )
+    years_of_experience = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=YEARS_OF_EXPERIENCE_CHOICES
+    )
+    company_type = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=COMPANY_TYPE_CHOICES
+    )
+    sector = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        choices=SECTOR_CHOICES
     )
 
     class Meta:
@@ -662,6 +763,30 @@ class CoverFile(TimeStampedModel):
 
     def __str__(self):
         return self.file.name if self.file else ' - '
+
+
+class BaseSource(base_models.BaseModel):
+    name = models.CharField(max_length=32)
+    score = models.PositiveIntegerField()
+
+    def __str__(self):
+        return "{} - {}".format(self.name, self.score)
+
+
+class Source(base_models.BaseModel):
+    """This is the possible sources for user to come onto the platform."""
+    name = models.CharField(max_length=128)
+    base_source = models.ForeignKey(
+        BaseSource,
+        related_name="sources",
+        on_delete=models.CASCADE
+    )
+    link = models.URLField(max_length=128, null=True, blank=True)
+    # This is a base score associated with the user.
+    score = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return "{} - {}".format(self.name, self.score)
 
 
 @receiver(post_save, sender=CoverFile)

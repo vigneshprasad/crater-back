@@ -29,4 +29,19 @@ OBJECTIVE_TO_OBJECTIVE_ENGINE = "objective_to_objective"
 INTRODUCTION_TEXT_ENGINE = "introduction_text"
 SECTOR_MATCH_ENGINE = "sector_match"
 
+# User score engines.
+TAG_TO_EXPERIENCE_ENGINE = "tag_to_years_of_experience_score"
+TAG_TO_COMPANY_TYPE_ENGINE = "tag_to_company_type_score"
+SOURCE_ENGINE = "source_score"
+EDUCATION_LEVEL_ENGINE = "education_level_score"
+ACTIVITY_ENGINE = "activity_score"
+
+USER_SCORE_ENGINE_WEIGHTAGES = {
+    TAG_TO_EXPERIENCE_ENGINE: 0.4,
+    TAG_TO_COMPANY_TYPE_ENGINE: 0.2,
+    SOURCE_ENGINE: 0.15,
+    EDUCATION_LEVEL_ENGINE: 0.1,
+    ACTIVITY_ENGINE: 0.15
+}
+
 NULL_STRINGS = ["", "null"]
