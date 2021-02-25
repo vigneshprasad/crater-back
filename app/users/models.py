@@ -494,42 +494,23 @@ class Profile(models.Model):
     )
 
     SECTOR_CHOICES = (
-        (choices.SECTOR_TYPE_ACCOUNTS, choices.SECTOR_TYPE_ACCOUNTS),
-        (choices.SECTOR_TYPE_AGRICULTURE, choices.SECTOR_TYPE_AGRICULTURE),
-        (choices.SECTOR_TYPE_AI, choices.SECTOR_TYPE_AI),
-        (choices.SECTOR_TYPE_BIO, choices.SECTOR_TYPE_BIO),
-        (choices.SECTOR_TYPE_CHEMICAL, choices.SECTOR_TYPE_CHEMICAL),
-        (choices.SECTOR_TYPE_COMPUTER, choices.SECTOR_TYPE_COMPUTER),
-        (choices.SECTOR_TYPE_CONSULTING, choices.SECTOR_TYPE_CONSULTING),
-        (choices.SECTOR_TYPE_DATA, choices.SECTOR_TYPE_DATA),
-        (choices.SECTOR_TYPE_DESIGN, choices.SECTOR_TYPE_DESIGN),
-        (choices.SECTOR_TYPE_E_COMMERCE, choices.SECTOR_TYPE_E_COMMERCE),
-        (choices.SECTOR_TYPE_EDUCATION, choices.SECTOR_TYPE_EDUCATION),
-        (choices.SECTOR_TYPE_ELECTRICAL, choices.SECTOR_TYPE_ELECTRICAL),
-        (choices.SECTOR_TYPE_ENERGY, choices.SECTOR_TYPE_ENERGY),
-        (choices.SECTOR_TYPE_ENVIRONMENT, choices.SECTOR_TYPE_ENVIRONMENT),
-        (choices.SECTOR_TYPE_EVENT, choices.SECTOR_TYPE_EVENT),
-        (choices.SECTOR_TYPE_FASHION, choices.SECTOR_TYPE_FASHION),
-        (choices.SECTOR_TYPE_FILM, choices.SECTOR_TYPE_FILM),
-        (choices.SECTOR_TYPE_FINANCE, choices.SECTOR_TYPE_FINANCE),
-        (choices.SECTOR_TYPE_FOOD, choices.SECTOR_TYPE_FOOD),
-        (choices.SECTOR_TYPE_GAMING, choices.SECTOR_TYPE_GAMING),
-        (choices.SECTOR_TYPE_HEALTH, choices.SECTOR_TYPE_HEALTH),
-        (choices.SECTOR_TYPE_HR, choices.SECTOR_TYPE_HR),
-        (choices.SECTOR_TYPE_INVESTOR, choices.SECTOR_TYPE_INVESTOR),
-        (choices.SECTOR_TYPE_LAW, choices.SECTOR_TYPE_LAW),
-        (choices.SECTOR_TYPE_MARKETING, choices.SECTOR_TYPE_MARKETING),
-        (choices.SECTOR_TYPE_MECHANICAL, choices.SECTOR_TYPE_MECHANICAL),
-        (choices.SECTOR_TYPE_MEDIA, choices.SECTOR_TYPE_MEDIA),
-        (choices.SECTOR_TYPE_MENTAL_HEALTH, choices.SECTOR_TYPE_MENTAL_HEALTH),
-        (choices.SECTOR_TYPE_PHOTOGRAPHY, choices.SECTOR_TYPE_PHOTOGRAPHY),
-        (choices.SECTOR_TYPE_POLITICS, choices.SECTOR_TYPE_POLITICS),
-        (choices.SECTOR_TYPE_PRODUCT, choices.SECTOR_TYPE_PRODUCT),
-        (choices.SECTOR_TYPE_REAL_ESTATE, choices.SECTOR_TYPE_REAL_ESTATE),
-        (choices.SECTOR_TYPE_SOCIAL, choices.SECTOR_TYPE_SOCIAL),
-        (choices.SECTOR_TYPE_STARTUP, choices.SECTOR_TYPE_STARTUP),
-        (choices.SECTOR_TYPE_TRAVEL, choices.SECTOR_TYPE_TRAVEL),
-        (choices.SECTOR_TYPE_LOGISTICS, choices.SECTOR_TYPE_LOGISTICS)
+        (choices.SECTOR_TYPE_CONSULTING_ENUM, choices.SECTOR_TYPE_CONSULTING),
+        (choices.SECTOR_TYPE_AI_DATA_ENUM, choices.SECTOR_TYPE_AI_DATA),
+        (choices.SECTOR_TYPE_FASHION_ENUM, choices.SECTOR_TYPE_FASHION),
+        (choices.SECTOR_TYPE_POLITICS_SOCIAL_ENUM, choices.SECTOR_TYPE_POLITICS_SOCIAL),
+        (choices.SECTOR_TYPE_FILM_MEDIA_PHOTO_ARTS_ENUM, choices.SECTOR_TYPE_FILM_MEDIA_PHOTO_ARTS),
+        (choices.SECTOR_TYPE_EDUCATION_ENUM, choices.SECTOR_TYPE_EDUCATION),
+        (choices.SECTOR_TYPE_ACCOUNTS_FINANCE_BANKING_INSURANCE_ENUM, choices.SECTOR_TYPE_ACCOUNTS_FINANCE_BANKING_INSURANCE),
+        (choices.SECTOR_TYPE_FOOD_RESTAURANTS_ENUM, choices.SECTOR_TYPE_FOOD_RESTAURANTS),
+        (choices.SECTOR_TYPE_HEALTH_MENTAL_HEALTH_ENUM, choices.SECTOR_TYPE_HEALTH_MENTAL_HEALTH),
+        (choices.SECTOR_TYPE_COMPUTER_SOFTWARE_ENUM, choices.SECTOR_TYPE_COMPUTER_SOFTWARE),
+        (choices.SECTOR_TYPE_INVESTOR_ENUM, choices.SECTOR_TYPE_INVESTOR),
+        (choices.SECTOR_TYPE_LAW_ENUM, choices.SECTOR_TYPE_LAW),
+        (choices.SECTOR_TYPE_TRAVEL_ENUM, choices.SECTOR_TYPE_TRAVEL),
+        (choices.SECTOR_TYPE_PR_MARKETING_WRITING_ENUM, choices.SECTOR_TYPE_PR_MARKETING_WRITING),
+        (choices.SECTOR_TYPE_CHEMICAL_ENUM, choices.SECTOR_TYPE_CHEMICAL),
+        (choices.SECTOR_TYPE_ENERGY_ENVIRONMENT_ENUM, choices.SECTOR_TYPE_ENERGY_ENVIRONMENT),
+        (choices.SECTOR_TYPE_HR_ENUM, choices.SECTOR_TYPE_HR)
     )
 
     user = models.OneToOneField(
@@ -667,8 +648,7 @@ class Profile(models.Model):
         blank=True,
         choices=COMPANY_TYPE_CHOICES
     )
-    sector = models.CharField(
-        max_length=32,
+    sector = models.PositiveIntegerField(
         null=True,
         blank=True,
         choices=SECTOR_CHOICES

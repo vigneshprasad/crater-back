@@ -35,7 +35,8 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             'years_of_experience': None,
             'company_type': None,
             'education_level': None,
-            'sector': None
+            'sector': None,
+            'linkedin_url': None
         }
 
         for i in range(len(fields)):
@@ -46,11 +47,11 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             elif fields[i]['ref'] == 'phone_number':
                 user['phone_number'] = answers[i]['phone_number']
             elif fields[i]['ref'] == 'years_of_experience':
-                user['years_of_experience'] = answers[i]['years_of_experience']
+                user['years_of_experience'] = answers[i]['years_of_experience'].strip()
             elif fields[i]['ref'] == 'company_type':
-                user['company_type'] = answers[i]['company_type']
+                user['company_type'] = answers[i]['company_type'].strip()
             elif fields[i]['ref'] == 'education_level':
-                user['education_level'] = answers[i]['education_level']
+                user['education_level'] = answers[i]['education_level'].strip()
             elif fields[i]['ref'] == 'sector':
                 user['sector'] = answers[i]['sector']
             elif fields[i]['ref'] == 'meeting_days':
