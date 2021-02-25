@@ -175,7 +175,7 @@ def create_user_and_profile(
     profile.years_of_experience = choices.EXPERIENCE_STR_TO_ENUM.get(years_of_experience)
     profile.company_type = choices.COMPANY_TYPE_STR_ENUM.get(company_type)
     profile.education_level = choices.EDUCATION_LEVEL_STR_TO_ENUM.get(education_level)
-    profile.sector = sector if sector in models.Profile.SECTOR_CHOICES else None
+    profile.sector = choices.SECTOR_TYPE_STR_TO_ENUM.get(sector)
 
     profile.save()
 

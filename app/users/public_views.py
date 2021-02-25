@@ -53,7 +53,7 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             elif fields[i]['ref'] == 'education_level':
                 user['education_level'] = answers[i]['education_level'].strip()
             elif fields[i]['ref'] == 'sector':
-                user['sector'] = answers[i]['sector']
+                user['sector'] = answers[i]['sector'].strip()
             elif fields[i]['ref'] == 'meeting_days':
                 days = answers[i]['choice']['label']
                 if days == 'Both work':

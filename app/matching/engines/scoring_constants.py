@@ -8361,7 +8361,7 @@ EDUCATION_LEVEL_SCORES = {
 }
 
 TAG_TO_EXPERIENCE_SCORES = {
-    "Startup Founders": {
+    "Startup Founder": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 40,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 70,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 100,
@@ -8370,7 +8370,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 70,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 70
     },
-    "SME Owners": {
+    "SME Owner": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 20,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 40,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 60,
@@ -8379,7 +8379,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 80
     },
-    "Startup Investors": {
+    "Startup Investor": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 50,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 70,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 80,
@@ -8388,7 +8388,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Financial Experts": {
+    "Financial Expert": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 20,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 70,
@@ -8397,7 +8397,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Engineers": {
+    "Engineer": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 20,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 40,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 60,
@@ -8406,7 +8406,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Business Development Executives": {
+    "Business Development Executive": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 30,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 70,
@@ -8415,7 +8415,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Marketing Experts": {
+    "Marketing Expert": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 30,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 70,
@@ -8424,7 +8424,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Business Advisors": {
+    "Business Advisor": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 30,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 40,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 50,
@@ -8433,7 +8433,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Product Managers": {
+    "Product Manager": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 20,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 40,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 60,
@@ -8442,7 +8442,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Lawyers": {
+    "Lawyer": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 20,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 60,
@@ -8451,7 +8451,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Designers": {
+    "Designer": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 20,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 30,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 50,
@@ -8460,7 +8460,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Students/Interns": {
+    "Student/Intern": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 10,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 10,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 10,
@@ -8469,7 +8469,7 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 10,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 10
       },
-    "Senior Executives": {
+    "Senior Executive": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 30,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 60,
@@ -8478,7 +8478,16 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
     },
-    "Others": {
+    "HR Executive": {
+        user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 30,
+        user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
+        user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 70,
+        user_constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM: 80,
+        user_constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM: 100,
+        user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
+        user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
+    },
+    "Other": {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 30,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 70,
@@ -8491,7 +8500,7 @@ TAG_TO_EXPERIENCE_SCORES = {
 
 
 TAG_TO_COMPANY_TYPE_SCORES = {
-    "Startup Founders": {
+    "Startup Founder": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 15,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 100,
         user_constants.COMPANY_TYPE_MNC_ENUM: 30,
@@ -8500,7 +8509,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 15,
     },
-    "SME Owners": {
+    "SME Owner": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 20,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 60,
         user_constants.COMPANY_TYPE_MNC_ENUM: 30,
@@ -8509,7 +8518,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 15,
     },
-    "Startup Investors": {
+    "Startup Investor": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 30,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 50,
         user_constants.COMPANY_TYPE_MNC_ENUM: 30,
@@ -8518,7 +8527,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 100,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 15,
     },
-    "Financial Experts": {
+    "Financial Expert": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 15,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 30,
         user_constants.COMPANY_TYPE_MNC_ENUM: 80,
@@ -8527,7 +8536,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 70,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 40,
     },
-    "Engineers": {
+    "Engineer": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 15,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 100,
         user_constants.COMPANY_TYPE_MNC_ENUM: 40,
@@ -8536,7 +8545,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 50,
     },
-    "Business Development Executives": {
+    "Business Development Executive": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 15,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 30,
         user_constants.COMPANY_TYPE_MNC_ENUM: 100,
@@ -8545,7 +8554,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 40,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 30,
     },
-    "Marketing Experts": {
+    "Marketing Expert": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 15,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 80,
         user_constants.COMPANY_TYPE_MNC_ENUM: 100,
@@ -8554,7 +8563,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 40,
     },
-    "Business Advisors": {
+    "Business Advisor": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 20,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 40,
         user_constants.COMPANY_TYPE_MNC_ENUM: 80,
@@ -8563,7 +8572,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 60,
     },
-    "Product Managers": {
+    "Product Manager": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 20,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 100,
         user_constants.COMPANY_TYPE_MNC_ENUM: 80,
@@ -8572,7 +8581,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 50,
     },
-    "Lawyers": {
+    "Lawyer": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 20,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 30,
         user_constants.COMPANY_TYPE_MNC_ENUM: 60,
@@ -8581,7 +8590,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 40,
     },
-    "Designers": {
+    "Designer": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 20,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 80,
         user_constants.COMPANY_TYPE_MNC_ENUM: 60,
@@ -8590,7 +8599,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 15,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 60,
     },
-    "Students/Interns": {
+    "Student/Intern": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 10,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 10,
         user_constants.COMPANY_TYPE_MNC_ENUM: 10,
@@ -8599,7 +8608,7 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 10,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 10,
     },
-    "Senior Executives": {
+    "Senior Executive": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 30,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 40,
         user_constants.COMPANY_TYPE_MNC_ENUM: 100,
@@ -8608,7 +8617,16 @@ TAG_TO_COMPANY_TYPE_SCORES = {
         user_constants.COMPANY_TYPE_FUND_ENUM: 40,
         user_constants.COMPANY_TYPE_FREELANCE_ENUM: 60,
       },
-    "Others": {
+    "HR Executive": {
+        user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 30,
+        user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 50,
+        user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 70,
+        user_constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM: 80,
+        user_constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM: 100,
+        user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
+        user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 100
+    },
+    "Other": {
         user_constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM: 15,
         user_constants.COMPANY_TYPES_START_UP_ENUM: 30,
         user_constants.COMPANY_TYPE_MNC_ENUM: 60,

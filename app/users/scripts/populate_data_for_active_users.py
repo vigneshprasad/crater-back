@@ -4,7 +4,7 @@ import csv
 from users import choices
 from users import models
 from tags import models as tag_models
-from users.scripts.migrate_from_old_to_new_tags import TAGS_TO_NEW_TAGS_MATCH
+from users.scripts.fix_new_tag_for_users import TAGS_TO_NEW_TAGS_MATCH
 
 
 def run(dry_run=True):

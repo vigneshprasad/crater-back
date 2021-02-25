@@ -1,9 +1,9 @@
 import csv
 
 from matching.engines import scoring_constants
-from users.scripts import migrate_from_old_to_new_tags
+from users.scripts import fix_new_tag_for_users
 
-TAG_MAP = migrate_from_old_to_new_tags.TAGS_TO_NEW_TAGS_MATCH
+TAG_MAP = fix_new_tag_for_users.TAGS_TO_NEW_TAGS_MATCH
 
 
 def run(dry_run=False):
