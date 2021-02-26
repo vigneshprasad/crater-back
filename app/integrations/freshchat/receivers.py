@@ -41,7 +41,7 @@ def send_registration_confirmation(sender, preference, **kwargs):
         user.email,
     ))
 
-    if user.source.base_source.name == user_constants.BASE_SOURCE_KODO:
+    if user.new_source and user.new_source.base_source and user.new_source.base_source.name == user_constants.BASE_SOURCE_KODO:
         return
 
     looking_for_objective = preference.objectives.filter(type=meeting_constants.OBJECTIVE_TYPES[0][0]).first()
