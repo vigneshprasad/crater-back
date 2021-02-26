@@ -70,7 +70,7 @@ def run(dry_run=True, users=None):
         print("Start", "*"*30)
         print("Updating tag for User: {}".format(user.email))
         profile = user.profile
-        new_tag_obj = profile.new_tags.all().first()
+        new_tag_obj = profile.new_tag.all().first()
 
         # If the user has not new tag, create on from old tags.
         if not new_tag_obj:
