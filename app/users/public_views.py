@@ -47,13 +47,13 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             elif fields[i]['ref'] == 'phone_number':
                 user['phone_number'] = answers[i]['phone_number']
             elif fields[i]['ref'] == 'years_of_experience':
-                user['years_of_experience'] = answers[i]['years_of_experience'].strip()
+                user['years_of_experience'] = answers[i]['choice']['label'].strip()
             elif fields[i]['ref'] == 'company_type':
-                user['company_type'] = answers[i]['company_type'].strip()
+                user['company_type'] = answers[i]['choice']['label'].strip()
             elif fields[i]['ref'] == 'education_level':
-                user['education_level'] = answers[i]['education_level'].strip()
+                user['education_level'] = answers[i]['choice']['label'].strip()
             elif fields[i]['ref'] == 'sector':
-                user['sector'] = answers[i]['sector'].strip()
+                user['sector'] = answers[i]['choice']['label'].strip()
             elif fields[i]['ref'] == 'meeting_days':
                 days = answers[i]['choice']['label']
                 if days == 'Both work':

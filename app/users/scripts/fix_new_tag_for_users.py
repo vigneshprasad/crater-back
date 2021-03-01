@@ -93,6 +93,11 @@ def run(dry_run=True, users=None):
         # If the user has new tag, migrate it to the correct new tag.
         new_tag = new_tag_obj.name
         print("Old Tag: {}".format(new_tag))
+
+        if new_tag in TAGS_TO_NEW_TAGS_MATCH.values():
+            print("Not changing tag, it's already updated.")
+            continue
+
         correct_new_tag = TAGS_TO_NEW_TAGS_MATCH.get(new_tag, "Other")
         print("New Tag: {}".format(correct_new_tag))
 
