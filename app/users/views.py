@@ -472,3 +472,66 @@ class PasswordResetConfirmAPIView(DefaultPasswordResetConfirmView):
         utils.mark_email_as_verified(user)
 
         return super().post(request, *args, **kwargs)
+
+
+class ProfileMetaViewSet(viewsets.GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def education(self, request, *args, **kwargs):
+        data = []
+        for item in models.Profile.EDUCATION_LEVEL_CHOICES:
+            data.append({
+                "value": item[0],
+                "name": item[1],
+            })
+
+        return Response(data)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def experience(self, request, *args, **kwargs):
+        data = []
+        for item in models.Profile.YEARS_OF_EXPERIENCE_CHOICES:
+            data.append({
+                "value": item[0],
+                "name": item[1],
+            })
+
+        return Response(data)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def company(self, request, *args, **kwargs):
+        data = []
+        for item in models.Profile.COMPANY_TYPE_CHOICES:
+            data.append({
+                "value": item[0],
+                "name": item[1],
+            })
+
+        return Response(data)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def sector(self, request, *args, **kwargs):
+        data = []
+        for item in models.Profile.SECTOR_CHOICES:
+            data.append({
+                "value": item[0],
+                "name": item[1],
+            })
+
+        return Response(data)
+
+
+

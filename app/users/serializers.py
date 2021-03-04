@@ -567,7 +567,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             'public_introduction',
             'cover_thumbnail',
             'cover_transcoder',
-            'is_cover_video'
+            'is_cover_video',
+            'education_level',
+            'years_of_experience',
+            'company_type',
+            'sector',
         )
         extra_kwargs = {
             'tags': {'write_only': True, 'allow_null': True, 'required': False }

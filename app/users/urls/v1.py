@@ -27,6 +27,10 @@ public_urls_patterns = [
     path('', include(public_router.urls))
 ]
 
+# Router for Profile Meta API's
+meta_router = routers.SimpleRouter()
+meta_router.register('profile', views.ProfileMetaViewSet, base_name='profile_meta')
+
 auth_urlpatterns = [
 
     path('logout/', views.LogoutView.as_view(), name='rest_logout'),
@@ -64,5 +68,6 @@ auth_urlpatterns = [
 ]
 
 urlpatterns = [
-    path('auth/', include(auth_urlpatterns))
+    path('auth/', include(auth_urlpatterns)),
+    path('meta/', include(meta_router.urls))
 ]
