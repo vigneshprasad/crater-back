@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     'integrations.freshchat',
     'integrations.google',
     'integrations.superpro',
+    'integrations.agora',
     'resources.events',
     'resources.curated_articles',
     'resources.masterclasses',
