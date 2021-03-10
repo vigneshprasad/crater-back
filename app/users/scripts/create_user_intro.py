@@ -59,7 +59,7 @@ def run(emails, dry_run=True):
             continue
         meeting_objective = meeting_preference.objectives.first().name
 
-        if not meeting_preference.objectives.first():
+        if not meeting_preference.interests.first():
             print("User does not have an interest")
             print("End", "*" * 30)
             continue
