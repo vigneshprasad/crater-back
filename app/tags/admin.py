@@ -19,7 +19,7 @@ class TagAdmin(SortableAdminMixin, ViewActionMixin, admin.ModelAdmin):
     Sortable User Tags admin configuration
     """
     icon_name = 'local_offer'
-    list_display = ('tag_name', 'action', 'order')
+    list_display = ('tag_name', 'action', 'order', 'is_active')
     search_fields = ['name']
 
     @staticmethod
