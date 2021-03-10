@@ -1,5 +1,7 @@
 from django.db import models
 
+from django.utils.translation import ugettext_lazy as _
+
 from integrations.agora import constants
 from base import models as base_models
 
