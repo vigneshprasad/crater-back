@@ -70,7 +70,7 @@ def run(emails, dry_run=True):
             introduction_string = "{} is a {}. {} is interested in the {} sector and is pursuing a {} degree. {} is keen to converse about {}, with {}." \
                 .format(first_name, tag, first_name, sector, education_level, first_name, meeting_objective, meeting_interest)
         else :
-            introduction_string = "{} is a {} with {} of work experience. {} is currently working with a {}, in {} sector. {} has completed a {} degree and is keen to converse about {} with {}." \
+            introduction_string = "{} is a {} with {} of work experience. {} is currently working with a {}, in the {} sector. {} has completed a {} degree and is keen to converse about {} with {}." \
                 .format(first_name, tag, years_of_experience, first_name, company_type, sector, first_name, education_level, meeting_objective, meeting_interest)    
         
         if dry_run:
