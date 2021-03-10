@@ -52,9 +52,9 @@ def run(
         print("Objectives: {}".format(objectives))
         
         if not dry_run:
-            for objective in objectives:
-                objective_object = meeting_models.Objective.objects.get(name=objective)
+            objective_objects = meeting_models.Objective.objects.filter(name__in=objectives)
+            for objective_object in objective_objects:
                 meeting_preference.objectives.add(objective_object)
-                print("Added new objective: {}".format(objective_object))
+            print("Added new objective: {}".format(objective_objects))
             
         print("End", "-" * 80)
