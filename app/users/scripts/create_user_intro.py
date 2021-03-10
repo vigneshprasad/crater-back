@@ -52,8 +52,19 @@ def run(emails, dry_run=True):
             print("User does not have a meeting preference")
             print("End", "*" * 30)
             continue
+        
+        if not meeting_preference.objectives.first():
+            print("User does not have an objective")
+            print("End", "*" * 30)
+            continue
         meeting_objective = meeting_preference.objectives.first().name
+
+        if not meeting_preference.objectives.first():
+            print("User does not have an interest")
+            print("End", "*" * 30)
+            continue
         meeting_interest = meeting_preference.interests.first().name
+
 
         if (tag == 'Student/Intern'):
             introduction_string = "{} is a {}. {} is interested in the {} sector and is pursuing a {} degree. {} is keen to converse about {}, with {}." \
@@ -66,6 +77,8 @@ def run(emails, dry_run=True):
             print(introduction_string)
 
         if not dry_run:
+            if(profile.introduction):
+                print("User has existing intro: {}".format(profile.introduction))
             profile.introduction = introduction_string
             profile.save()
             print("Added new introduction: {}".format(introduction_string))
