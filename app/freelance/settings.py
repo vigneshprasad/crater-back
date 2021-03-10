@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
+import conversations
 import datetime
 import os
 import sentry_sdk
@@ -111,7 +112,8 @@ INSTALLED_APPS = [
     'creative_exchange',
     'notifications',
     'dashboard',
-    'matching'
+    'matching',
+    'conversations',
 ]
 
 SITE_ID = 1

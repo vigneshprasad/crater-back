@@ -11,6 +11,18 @@ from resources.meetings import choices
 from community.mixins import SetCreatorRequestDataMixin
 
 
+
+class TimeSlotSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.TimeSlot
+        fields = (
+            'pk',
+            'end',
+            'start',
+        )
+        
+
 class ConfigPublicSerializer(serializers.ModelSerializer):
 
     class Meta:

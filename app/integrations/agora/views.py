@@ -7,7 +7,7 @@ from users import permissions
 from integrations.agora import private
 
 
-class AgoraChannelAuthentication(GenericViewSet):
+class AgoraChannelAuthenticationViewSet(GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     @staticmethod

@@ -1,0 +1,100 @@
+from rest_framework import mixins, viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from users import permissions
+from conversations import models, services, serializers
+
+from resources.meetings import services as meeting_services
+from resources.meetings import models as meeting_models
+
+
+class TopicViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.TopicSerializer
+    queryset = models.Topic.objects.filter(is_active=True)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        parent_id = self.request.query_params.get('parent', None)
+        if parent_id is not None:
+            return self.queryset.filter(parent__id__contains=parent_id)
+        return self.queryset.filter(parent=None)
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=["get"],
+        detail=False,
+    )
+    def of_groups(self, request):
+        groups = models.Group.objects.values_list('topic')
+        return Response({})
+
+    @action(
+        methods=["get"],
+        detail=False
+    )
+    def my(self, request, *args, **kwargs):
+        return super(TopicViewSet, self).list(request)
+
+    @action(
+        methods=["get"],
+        detail=True,
+    )
+    def root(self, request, pk=None, *args, **kwargs):
+        try:
+            topic = models.Topic.objects.get(id=pk)
+            result = services.get_root_topic(topic)
+
+        except models.Topic.DoesNotExist:
+            return self.generate_bad_request({
+                "error": "Incorrect Topic Id",
+            })
+
+        serialized = self.get_serializer(result)
+        return Response(serialized.data)
+
+
+class GroupsViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.GroupSerializer
+    queryset = models.Group.objects.filter(closed=False)
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(
+        methods=["get"],
+        detail=False
+    )
+    def my(self, request, *args, **kwargs):
+        user = request.user
+        groups = models.Group.objects.filter(
+            speakers=user,
+        )
+        serialized = self.get_serializer(groups, many=True)
+        return Response(serialized.data)
+
+
+class OptinViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.OptinSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = meeting_models.MeetingPreference.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        preferences = meeting_services.get_current_week_preferences(user, self.get_queryset())
+        serialized = self.get_serializer(preferences, many=True)
+        return Response(serialized.data)

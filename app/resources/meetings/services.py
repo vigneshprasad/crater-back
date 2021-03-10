@@ -531,3 +531,22 @@ def get_user_from_opt_in_url(query):
         
     except get_user_model().DoesNotExist:
         raise get_user_model().DoesNotExist
+
+
+def get_current_week_preferences(user, queryset=None):
+    """
+    Returns List of [MeetingPreference] for current week
+    registrations.
+
+    Args:
+        user(User): Current user
+        queryset(QuerySet<MeetingPreference>: Base queryset to filter
+
+    Returns:
+        List[MeetingPreference]: List of preferncess
+
+    """
+    config = get_current_week_meeting_config()
+    if queryset is None:
+        queryset = models.MeetingPreference.objects.all()
+    return queryset.filter(user=user, meeting=config)
