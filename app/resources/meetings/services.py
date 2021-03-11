@@ -339,8 +339,8 @@ def get_meeting_config_time_slots(meeting):
             available_slots[date_str] = []
         available_slots[date_str].append({
             'pk': slot.pk,
-            'start': slot.start_time,
-            'end': slot.end_time
+            'start': str(slot.start),
+            'end': str(slot.end)
         })
     return available_slots
 
