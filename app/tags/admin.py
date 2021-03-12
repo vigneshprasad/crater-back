@@ -8,15 +8,9 @@ from tags.models import Tag, ArticleTag, MasterClassTag, Industry, Funding, Comp
 from utils.mixins import ViewActionMixin
 
 
-@register(models.Objective)
-class ObjectiveAdmin(admin.ModelAdmin):
-    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
-
-
-@register(Tag)
-class TagAdmin(SortableAdminMixin, ViewActionMixin, admin.ModelAdmin):
+class TagAdminBase(SortableAdminMixin, ViewActionMixin, admin.ModelAdmin):
     """
-    Sortable User Tags admin configuration
+    Base class for Tag Admin
     """
     icon_name = 'local_offer'
     list_display = ('tag_name', 'action', 'order')
@@ -26,16 +20,28 @@ class TagAdmin(SortableAdminMixin, ViewActionMixin, admin.ModelAdmin):
     def tag_name(tag):
         return mark_safe(f'<span class="new badge" data-badge-caption="{tag.name}"></span>')
 
+@register(models.Objective)
+class ObjectiveAdmin(admin.ModelAdmin):
+    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+
+
+@register(Tag)
+class TagAdmin(TagAdminBase):
+    """
+    Sortable User Tags admin configuration
+    """
+    list_display = ('tag_name', 'action', 'order', 'is_active')
+
 
 @register(ArticleTag)
-class ArticleTagAdmin(TagAdmin):
+class ArticleTagAdmin(TagAdminBase):
     """
     Sortable Curated Article Tags admin configuration
     """
 
 
 @register(SourceWebsite)
-class SourceWebsiteAdmin(TagAdmin):
+class SourceWebsiteAdmin(TagAdminBase):
     """
     Sortable Curated Article Tags admin configuration
     """
@@ -43,21 +49,21 @@ class SourceWebsiteAdmin(TagAdmin):
 
 
 @register(EventTag)
-class ArticleTagAdmin(TagAdmin):
+class ArticleTagAdmin(TagAdminBase):
     """
     Sortable Curated Article Tags admin configuration
     """
 
 
 @register(MasterClassTag)
-class MasterClassTagAdmin(TagAdmin):
+class MasterClassTagAdmin(TagAdminBase):
     """
     Sortable Master Classes Tags admin configuration
     """
 
 
 @register(Industry)
-class IndustryTagAdmin(TagAdmin):
+class IndustryTagAdmin(TagAdminBase):
     """
     Sortable Industry Tag admin configuration
     """
@@ -79,21 +85,21 @@ class InterestsAdmin(admin.ModelAdmin):
 
 
 @register(Funding)
-class FundingMasterClassTagAdmin(TagAdmin):
+class FundingMasterClassTagAdmin(TagAdminBase):
     """
     Sortable Funding Tag admin configuration
     """
 
 
 @register(Company)
-class CompanyTagAdmin(TagAdmin):
+class CompanyTagAdmin(TagAdminBase):
     """
     Sortable Company Tag admin configuration
     """
 
 
 @register(CityProxy)
-class CityTagAdmin(TagAdmin):
+class CityTagAdmin(TagAdminBase):
     """
     Sortable Company Tag admin configuration
     """
@@ -105,7 +111,7 @@ class CityTagAdmin(TagAdmin):
 
 
 @register(WorkCityProxy)
-class CityTagAdmin(TagAdmin):
+class CityTagAdmin(TagAdminBase):
     """
     Sortable Company Tag admin configuration
     """

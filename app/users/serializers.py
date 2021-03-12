@@ -527,7 +527,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     cover = serializers.PrimaryKeyRelatedField(
         queryset=models.CoverFile.objects.all(), allow_null=True, required=False
     )
-    tag_list = TagSerializer(source='tags', many=True, read_only=True, allow_null=True, required=False)
+    tag_list = TagSerializer(source='new_tag', many=True, read_only=True, allow_null=True, required=False)
     work_city_name = serializers.CharField(source='work_city.name', read_only=True, allow_null=True, required=False)
     cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
     cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
@@ -632,14 +632,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             Adding user group to investor if investor tag is selected
         """
         user_tags = validated_data.get('tags') if validated_data.get('tags') else []
+        instance.new_tag.clear()
         for tag in user_tags:
-            if tag.name == choices.INVESTOR_GROUP:
-                user = instance.user
-                investor_group = auth_models.Group.objects.get(name=choices.INVESTOR_GROUP)
-                user_group = auth_models.Group.objects.get(name=choices.USER_GROUP)
-                user.groups.add(investor_group)
-                user.groups.remove(user_group)
-                user.save()
+            instance.new_tag.add(tag)
         super().update(instance, validated_data)
         return instance
 
@@ -648,15 +643,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             Adding user group to investor if investor tag is selected
         """
         user_tags = validated_data['tags'] if validated_data['tags'] else []
-        for tag in user_tags:
-            if tag.name == choices.INVESTOR_GROUP:
-                user = validated_data['user']
-                investor_group = auth_models.Group.objects.get(name=choices.INVESTOR_GROUP)
-                user_group = auth_models.Group.objects.get(name=choices.USER_GROUP)
-                user.groups.add(investor_group)
-                user.groups.remove(user_group)
-                user.save()
         profile = super().create(validated_data)
+        profile.new_tag.clear()
+        for tag in user_tags:
+            profile.new_tag.add(tag)
+        profile.save()
         return profile
 
 class LogoutSerializer(serializers.Serializer):
