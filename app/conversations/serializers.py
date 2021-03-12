@@ -1,3 +1,5 @@
+import copy
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -96,10 +98,31 @@ class InviteSerializer(serializers.ModelSerializer):
 
 
 class RequestSerializer(serializers.ModelSerializer):
+    group_detail = GroupSerializer(source='group', read_only=True)
 
     class Meta:
         model = models.Request
-        fields = "__all__"
+        fields = (
+            'pk',
+            'requester',
+            'group',
+            'status',
+            'is_recommended',
+            'group_detail'
+        )
+
+    def to_internal_value(self, data):
+        """
+        Initial transform data for serializer, set creator as request user
+        :param data: request data
+        """
+        try:
+            data = copy.deepcopy(data)
+        except TypeError:
+            pass
+        if self.context.get('request'):
+            data['requester'] = self.context['request'].user.pk
+        return super().to_internal_value(data)
 
 
 class OptinSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):

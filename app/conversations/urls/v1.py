@@ -10,6 +10,7 @@ router = routers.SimpleRouter()
 router.register("topic", views.TopicViewSet, base_name="group_meeting_categories")
 router.register("groups", views.GroupsViewSet, base_name="group_meeting_groups")
 router.register("optin", views.OptinViewSet, base_name="group_meeting_optin")
+router.register("requests", views.RequestViewSet, base_name="group_meeting_requests")
 
 urlpatterns = [
     path('', include(router.urls))

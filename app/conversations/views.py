@@ -98,3 +98,28 @@ class OptinViewSet(
         preferences = meeting_services.get_current_week_preferences(user, self.get_queryset())
         serialized = self.get_serializer(preferences, many=True)
         return Response(serialized.data)
+
+
+class RequestViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = serializers.RequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.Request.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        group_request = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+
+        # Add user to group and update status to confirmed
+        group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
+        group_request.group.speakers.add(user)
+        group_request.save()
+
+        serializer = self.get_serializer(group_request)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
