@@ -632,9 +632,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             Adding user group to investor if investor tag is selected
         """
         user_tags = validated_data.get('tags') if validated_data.get('tags') else []
-        instance.new_tag.clear()
-        for tag in user_tags:
-            instance.new_tag.add(tag)
+        if len(user_tags) > 0:
+            instance.new_tag.clear()
+            instance.new_tag.add(user_tags[0])
         super().update(instance, validated_data)
         return instance
 
@@ -642,11 +642,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
             Adding user group to investor if investor tag is selected
         """
+        print(validated_data)
         user_tags = validated_data['tags'] if validated_data['tags'] else []
         profile = super().create(validated_data)
-        profile.new_tag.clear()
-        for tag in user_tags:
-            profile.new_tag.add(tag)
+        if len(user_tags) > 0:
+            profile.new_tag.clear()
+            profile.new_tag.add(user_tags[0])
         profile.save()
         return profile
 
