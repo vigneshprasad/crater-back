@@ -1,5 +1,5 @@
 from matching import constants
-from matching.engines import scoring_constants
+from matching.engines import new_scoring_constants
 from resources.meetings import services as meeting_services
 
 
@@ -58,7 +58,7 @@ def get_user_score_based_on_tags_and_experience(user):
         return 0
 
     for tag in tags:
-        tag_score = scoring_constants.TAG_TO_EXPERIENCE_SCORES.get(tag, {})
+        tag_score = new_scoring_constants.TAG_TO_EXPERIENCE_SCORES.get(tag, {})
         user_tag_to_experience_score += tag_score.get(years_of_experience, 0)
 
     return user_tag_to_experience_score/len(tags)
@@ -80,7 +80,7 @@ def get_user_score_based_on_tags_and_company_type(user):
         return 0
 
     for tag in tags:
-        tag_score = scoring_constants.TAG_TO_EXPERIENCE_SCORES.get(tag, {})
+        tag_score = new_scoring_constants.TAG_TO_COMPANY_TYPE_SCORES.get(tag, {})
         user_tag_to_experience_score += tag_score.get(company_type, 0)
 
     return user_tag_to_experience_score/len(tags)
@@ -96,7 +96,7 @@ def get_user_score_based_on_education(user):
     if education is None:
         return 0
 
-    return scoring_constants.EDUCATION_LEVEL_SCORES.get(education, 0)
+    return new_scoring_constants.EDUCATION_LEVEL_SCORES.get(education, 0)
 
 
 def get_user_score_based_on_source(user):

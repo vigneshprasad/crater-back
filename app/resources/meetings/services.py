@@ -531,3 +531,7 @@ def get_user_from_opt_in_url(query):
         
     except get_user_model().DoesNotExist:
         raise get_user_model().DoesNotExist
+
+
+def get_latest_preference_for_user(user):
+    return user.meeting_preferences.first()
