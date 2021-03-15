@@ -36,8 +36,9 @@ class TopicSerializer(serializers.ModelSerializer):
         return TopicSerializer(root).data
 
 
-class GroupHostSerializer(serializers.ModelSerializer):
-    photo = serializers.SerializerMethodField()
+class GroupUserSerializer(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField(read_only=True)
+    introduction = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = get_user_model()
@@ -46,6 +47,7 @@ class GroupHostSerializer(serializers.ModelSerializer):
             'email',
             'name',
             'photo',
+            'introduction',
         )
 
     @staticmethod
@@ -56,38 +58,56 @@ class GroupHostSerializer(serializers.ModelSerializer):
 
         return user.profile.get_photo_url()
 
-
-class GroupSpeakerSerializer(serializers.ModelSerializer):
-    photo = serializers.SerializerMethodField()
-
-    class Meta:
-        model = get_user_model()
-        fields = (
-            'pk',
-            'email',
-            'name',
-            'photo',
-        )
-
     @staticmethod
-    def get_photo(user):
-        profile = user.has_profile
-        if not profile:
-            return None
-
-        return user.profile.get_photo_url()
+    def get_introduction(user):
+        return user.profile.get_introduction() if user.has_profile else None
 
 
 class GroupSerializer(serializers.ModelSerializer):
-    topic = TopicSerializer()
-    interests = meeting_serializers.MeetingInterestSerializer(many=True)
-    speakers = GroupSpeakerSerializer(many=True)
-    host = GroupHostSerializer()
+    topic_detail = TopicSerializer(source='topic', read_only=True)
+    interests_detail_list = meeting_serializers.MeetingInterestSerializer(source='interests', read_only=True, many=True)
+    speakers_detail_list = GroupUserSerializer(source='speakers', read_only=True, many=True)
+    host_detail = GroupUserSerializer(source='host', read_only=True)
+    is_speaker = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         ref_name = "group_meeting"
         model = models.Group
-        fields = "__all__"
+        fields = (
+            'id',
+            'host',
+            'speakers',
+            'is_speaker',
+            'attendees',
+            'topic',
+            'description',
+            'interests',
+            'start',
+            'end',
+            'max_speakers',
+            'privacy',
+            'medium',
+            'closed',
+            'closed_at',
+            'topic_detail',
+            'host_detail',
+            'speakers_detail_list',
+            'interests_detail_list',
+        )
+
+    def get_is_speaker(self, group):
+        request = self.context.get('request')
+        # TODO(Abhishek): remove if unnecessary
+        if not request:
+            return False
+        user = request.user
+        if not user:
+            return False
+        if group.host == user:
+            return True
+        elif user in group.speakers.all():
+            return True
+        return False
 
 
 class InviteSerializer(serializers.ModelSerializer):

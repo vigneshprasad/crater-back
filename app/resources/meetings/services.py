@@ -547,6 +547,23 @@ def get_current_week_preferences(user, queryset=None):
 
     """
     config = get_current_week_meeting_config()
-    if queryset is None:
+    if not queryset:
         queryset = models.MeetingPreference.objects.all()
     return queryset.filter(user=user, meeting=config)
+
+
+def get_future_week_preferences(user, queryset=None):
+    """
+    Returns List of [MeetingPreference] for future weeks
+    registrations.
+
+    Args:
+        user(User): Current user
+        queryset(QuerySet<MeetingPreference>: Base queryset to filter
+
+    """
+
+    config = get_latest_active_meeting_config()
+    if not queryset:
+        queryset = models.MeetingPreference.objects.all()
+    return  queryset.filter(user=user, meeting=config)
