@@ -564,6 +564,7 @@ def get_future_week_preferences(user, queryset=None):
     """
 
     config = get_latest_active_meeting_config()
+    print(config)
     if not queryset:
         queryset = models.MeetingPreference.objects.all()
-    return  queryset.filter(user=user, meeting=config)
+    return queryset.filter(user=user, meeting=config)

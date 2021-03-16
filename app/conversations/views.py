@@ -29,35 +29,10 @@ class TopicViewSet(
 
     @action(
         methods=["get"],
-        detail=False,
-    )
-    def of_groups(self, request):
-        groups = models.Group.objects.values_list('topic')
-        return Response({})
-
-    @action(
-        methods=["get"],
         detail=False
     )
     def my(self, request, *args, **kwargs):
         return super(TopicViewSet, self).list(request)
-
-    @action(
-        methods=["get"],
-        detail=True,
-    )
-    def root(self, request, pk=None, *args, **kwargs):
-        try:
-            topic = models.Topic.objects.get(id=pk)
-            result = services.get_root_topic(topic)
-
-        except models.Topic.DoesNotExist:
-            return self.generate_bad_request({
-                "error": "Incorrect Topic Id",
-            })
-
-        serialized = self.get_serializer(result)
-        return Response(serialized.data)
 
 
 class GroupsViewSet(
@@ -95,7 +70,7 @@ class OptinViewSet(
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        preferences = meeting_services.get_current_week_preferences(user, self.get_queryset())
+        preferences = meeting_services.get_future_week_preferences(user, self.get_queryset())
         serialized = self.get_serializer(preferences, many=True)
         return Response(serialized.data)
 
