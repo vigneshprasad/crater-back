@@ -1,4 +1,3 @@
-from matching.engines import scoring_constants
 from resources.meetings import choices
 
 
@@ -24,14 +23,13 @@ def get_activity_score_between_users(user, matched_user):
             matched_user_activity_score -= 20
 
     # TODO(Nishant): Get score for when the user_activity_score is 0 or less than 0 as well.
-
     activity_score = 0
 
-    if user_activity_score > 0 and matched_user_activity_score < 0:
+    if user_activity_score * matched_user_activity_score < 0:
         activity_score = -30
-    elif user_activity_score > 0 and matched_user_activity_score == 0:
+    elif user_activity_score < 0 and matched_user_activity_score == 0:
         activity_score = -20
-    elif user_activity_score > 0 and matched_user_activity_score > 0:
+    elif user_activity_score * matched_user_activity_score > 0:
         activity_score = 10
 
     return activity_score

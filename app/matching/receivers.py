@@ -7,7 +7,8 @@ from matching import public
 from matching import models
 
 
-@receiver(post_save, sender=get_user_model())
+# TODO(Nishant): Make this live once we have tested it out on prod and this works.
+# @receiver(post_save, sender=get_user_model())
 def update_or_create_user_score(sender, instance, created, *args, **kwargs):
     """If the user models score changes, change the score on UserScore as well."""
     user_score = models.UserScore.objects.filter(user=instance).last()

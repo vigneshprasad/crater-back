@@ -17,13 +17,18 @@ def create_match_sets_for_opted_in_user(users=None):
 
     for opted_in_user in opted_in_users:
         meeting_preference = meeting_services.get_latest_meeting_preference(opted_in_user)
-        topic = meeting_preference.topic.name
 
-        if not create_topic_to_match_set_map.get(topic):
-            create_topic_to_match_set_map[topic] = []
-            create_topic_to_match_set_map[topic].append(opted_in_user)
-        else:
-            create_topic_to_match_set_map[topic].append(opted_in_user)
+        topic_list = []
+        topic = topic_list.append(meeting_preference.topic.name)
+        objective = meeting_preference.objectives.first()
+        topic_list.append(objective.name) if objective else topic_list
+
+        for topic in topic_list:
+            if not create_topic_to_match_set_map.get(topic):
+                create_topic_to_match_set_map[topic] = []
+                create_topic_to_match_set_map[topic].append(opted_in_user)
+            else:
+                create_topic_to_match_set_map[topic].append(opted_in_user)
 
     return create_topic_to_match_set_map
 
@@ -59,6 +64,7 @@ def create_matches_for_user_set(topic, user_set):
         user_set(list): List of users to be matched among themselves.
 
     """
+    # TODO(Nishant): Handle same users being in multiple user sets.
     matched_users = []
 
     for user in user_set:
@@ -69,7 +75,7 @@ def create_matches_for_user_set(topic, user_set):
         final_match_score = 0
         match_score = 0
         match_list = [user]
-        final_match_list = [user]
+        final_match_list = []
 
         while final_match_score >= match_score:
 
@@ -89,6 +95,6 @@ def create_matches_for_user_set(topic, user_set):
             final_match_score += matched_user_data["match_score"]
             final_match_score = final_match_score/len(match_list)
             if len(match_list) > 2:
-                final_match_score = final_match_score * matching_constants.TOPIC_GROUP_MULTIPLIER.get(topic, 1)
+                final_match_score = final_match_score * matching_constants.TOPIC_GROUP_MULTIPLIER.get(topic, 1.2)
 
         print(final_match_list, "----", final_match_score)

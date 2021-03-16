@@ -140,15 +140,30 @@ def get_match_score_between_users(user, matched_user):
     user_tag = user_profile.new_tag.first()
     matched_user_tag = matched_user_profile.new_tag.first()
 
+    print("User Tag: {}".format(user_tag))
+    print("Matched User Tag: {}".format(matched_user_tag))
+
     latest_user_preference = meeting_services.get_latest_preference_for_user(user)
     latest_matched_user_preference = meeting_services.get_latest_preference_for_user(matched_user)
 
     user_interests = latest_user_preference.interests.all()
     matched_user_interests = latest_matched_user_preference.interests.all()
 
+    print("User Interests: {}".format(user_interests))
+    print("Matched User Interests: {}".format(matched_user_interests))
+
     # TODO(Nishant): See how we can calculate score deviation here.
     user_score = users_scoring.get_user_score(user)
     matched_user_score = users_scoring.get_user_score(matched_user)
+
+    print("User Score: {}".format(user_score))
+    print("Matched User Score: {}".format(matched_user_score))
+
+    user_sector = user_profile.sector
+    matched_user_sector = matched_user_profile.sector
+
+    print("User Sector: {}".format(user_sector))
+    print("Matched User Sector: {}".format(matched_user_sector))
 
     score_deviation_score = user_to_user_score_deviation_engine.get_score_deviation_score_between_users(
         user_score,
@@ -178,8 +193,8 @@ def get_match_score_between_users(user, matched_user):
     sector_to_sector_engine_score = sector_to_sector_engine.get_sector_to_sector_score_for_users(
         user,
         matched_user,
-        user_profile.sector,
-        matched_user_profile.sector
+        user_sector,
+        matched_user_sector
     )
     detailed_score[matching_constants.TAG_TO_INTEREST_ENGINE] = round(sector_to_sector_engine_score, 2)
 

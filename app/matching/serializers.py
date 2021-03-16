@@ -1,9 +1,6 @@
-import datetime
-
 from rest_framework import serializers
 
 from matching import models
-from matching import public
 
 
 class UserScoreSerializer(serializers.ModelSerializer):

@@ -1,6 +1,6 @@
 import csv
 
-from matching.engines import scoring_constants
+from matching.engines import new_scoring_constants
 from users.scripts import fix_new_tag_for_users
 
 TAG_MAP = fix_new_tag_for_users.TAGS_TO_NEW_TAGS_MATCH
@@ -17,5 +17,5 @@ def run(dry_run=False):
         tag = row["Tag"]
         experience = row["Experience"] or 0
         new_tag = TAG_MAP.get(tag, "Others")
-        score = scoring_constants.TAG_TO_EXPERIENCE_SCORES[new_tag][int(experience)]
+        score = new_scoring_constants.TAG_TO_EXPERIENCE_SCORES[new_tag][int(experience)]
         print(email, ",", score)

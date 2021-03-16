@@ -1,7 +1,5 @@
 import csv
 
-from matching.engines import scoring_constants
-
 
 def run():
     """Curates a dictionary of dictionaries from Interest objectives tags engine CSV."""

@@ -1,9 +1,7 @@
 import csv
 
-from matching.engines import scoring_constants
 
-
-def run(dry_run=True):
+def run():
     """Creates tag to tag score in the codebase for the matching algorithm."""
 
     csv_file = open('/app/matching/data/tags_map_scores.csv', mode='r')
@@ -23,8 +21,5 @@ def run(dry_run=True):
             tags_score_dict[tag] = float(tags_score_dict[tag])
 
         tags_score_map[tags] = tags_score_dict
-
-    if not dry_run:
-        scoring_constants.TAG_TO_TAG_SCORES = tags_score_map
 
     return tags_score_map
