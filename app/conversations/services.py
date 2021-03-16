@@ -21,15 +21,17 @@ def get_root_topic(topic):
     return root
 
 
-def add_user_to_group(user, group_id):
-    """ Add user to group check if condition match
+def update_request_and_add_user_to_group(user, group_request):
+    """ Add user to group and update the request status
     Args:
         user(User): user object to be added to group
-        group(Group): reference to group object user is added to
+        group_request(Request): reference to group object user is added to
 
+    Returns:
+        request(Request): group request object
     """
-    try:
-        group = models.Group.objects.get(pk=group_id)
-        
-    except models.Group.DoesNotExist:
-        raise models.Group.DoesNotExist
+    group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
+    group_request.group.speakers.add(user)
+    group_request.save()
+    return group_request
+

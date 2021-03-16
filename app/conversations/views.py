@@ -1,9 +1,11 @@
+from django.db.models import Q
+
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from users import permissions
-from conversations import models, services, serializers
+from conversations import models, serializers, services
 
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
@@ -52,9 +54,7 @@ class GroupsViewSet(
     )
     def my(self, request, *args, **kwargs):
         user = request.user
-        groups = models.Group.objects.filter(
-            speakers=user,
-        )
+        groups = models.Group.objects.filter(Q(speakers=user) | Q(host=user))
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)
 
@@ -70,8 +70,14 @@ class OptinViewSet(
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        preferences = meeting_services.get_future_week_preferences(user, self.get_queryset())
-        serialized = self.get_serializer(preferences, many=True)
+        current_preferences = meeting_services.get_current_week_preferences(user, self.get_queryset())
+        future_preferences = meeting_services.get_future_week_preferences(user, self.get_queryset())
+
+        print(current_preferences)
+        print(future_preferences)
+
+        all_preferences = list(current_preferences) + list(future_preferences)
+        serialized = self.get_serializer(all_preferences, many=True)
         return Response(serialized.data)
 
 
@@ -91,10 +97,8 @@ class RequestViewSet(
         headers = self.get_success_headers(serializer.data)
 
         # Add user to group and update status to confirmed
-        group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
-        group_request.group.speakers.add(user)
-        group_request.save()
+        updated_request = services.update_request_and_add_user_to_group(user, group_request)
 
-        serializer = self.get_serializer(group_request)
+        serializer = self.get_serializer(updated_request)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
