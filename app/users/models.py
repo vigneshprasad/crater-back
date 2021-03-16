@@ -23,6 +23,7 @@ from payment.models import Subscription
 from users.managers import UserManager
 from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
+from utils.deep_link_service import deep_link_service
 from . import choices
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
 
@@ -201,13 +202,17 @@ class User(AbstractUser):
         )
 
     def send_reset_password_email(self):
+        uid = urlsafe_base64_encode(force_bytes(self.pk))
+        token = default_token_generator.make_token(self)
+        password_reset_url = "https://{}/auth/new-password?uid={}&token={}".format(settings.FRONT_URL, uid, token)
+        deep_link = deep_link_service.make_firebase_deep_link(password_reset_url)
         data = {
             self.email: {
-                'uid': urlsafe_base64_encode(force_bytes(self.pk)),
+                'reset_password_url': deep_link, 
                 'name': self.name,
-                'token': default_token_generator.make_token(self)
             }
         }
+
         self.send_email(subject='Password reset', to=[self.email], from_email=choices.PASSWORD_RESET_FROM_EMAIL,
                         template_name=choices.template_names.get('password_reset'), content={},
                         merge_vars=data)

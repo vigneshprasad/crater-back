@@ -339,8 +339,8 @@ def get_meeting_config_time_slots(meeting):
             available_slots[date_str] = []
         available_slots[date_str].append({
             'pk': slot.pk,
-            'start': slot.start_time,
-            'end': slot.end_time
+            'start': str(slot.start),
+            'end': str(slot.end)
         })
     return available_slots
 
@@ -535,3 +535,40 @@ def get_user_from_opt_in_url(query):
 
 def get_latest_preference_for_user(user):
     return user.meeting_preferences.first()
+
+
+def get_current_week_preferences(user, queryset=None):
+    """
+    Returns List of [MeetingPreference] for current week
+    registrations.
+
+    Args:
+        user(User): Current user
+        queryset(QuerySet<MeetingPreference>: Base queryset to filter
+
+    Returns:
+        List[MeetingPreference]: List of preferncess
+
+    """
+    config = get_current_week_meeting_config()
+    if not queryset:
+        queryset = models.MeetingPreference.objects.all()
+    return queryset.filter(user=user, meeting=config)
+
+
+def get_future_week_preferences(user, queryset=None):
+    """
+    Returns List of [MeetingPreference] for future weeks
+    registrations.
+
+    Args:
+        user(User): Current user
+        queryset(QuerySet<MeetingPreference>: Base queryset to filter
+
+    """
+
+    config = get_latest_active_meeting_config()
+    print(config)
+    if not queryset:
+        queryset = models.MeetingPreference.objects.all()
+    return queryset.filter(user=user, meeting=config)

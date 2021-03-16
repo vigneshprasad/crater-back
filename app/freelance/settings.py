@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
+import conversations
 import datetime
 import os
 import sentry_sdk
@@ -97,6 +98,7 @@ INSTALLED_APPS = [
     'integrations.freshchat',
     'integrations.google',
     'integrations.superpro',
+    'integrations.agora',
     'resources.events',
     'resources.curated_articles',
     'resources.masterclasses',
@@ -110,7 +112,8 @@ INSTALLED_APPS = [
     'creative_exchange',
     'notifications',
     'dashboard',
-    'matching'
+    'matching',
+    'conversations',
 ]
 
 SITE_ID = 1
@@ -437,3 +440,6 @@ GOOGLE_API_CREDENTIALS = {
 
 SUPERPRO_BASE_URL = "https://roomsvc-dot-sprpro-282209.el.r.appspot.com"
 SUPERPRO_ACCESS_TOKEN = os.getenv('SUPERPRO_ACCESS_TOKEN', '')
+
+AGORA_APP_ID = os.getenv('AGORA_APP_ID', 'b935ed15c20644e59df9c946681e1dd5')
+AGORA_APP_CERTIFICATE = os.getenv('AGORA_APP_CERTIFICATE', 'eaedc7539d8747b99b61ab55d17fe463')
