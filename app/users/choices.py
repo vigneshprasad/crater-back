@@ -26,7 +26,7 @@ INTENT_CHOICES = (
 )
 
 template_names = {
-    'password_reset': 'Password reset',
+    'password_reset': 'Password Reset New',
     'verify_email': 'Verify email',
     'invite_friend': 'Invite Friend',
     'participate_event': 'Participate in Event',
