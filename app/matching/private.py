@@ -13,24 +13,30 @@ def create_match_sets_for_opted_in_user(users=None):
 
     """
     opted_in_users = users if users else meeting_services.get_opted_in_user_for_meetings()
-    create_topic_to_match_set_map = {}
+    topic_to_match_set_map = {}
 
     for opted_in_user in opted_in_users:
+
         meeting_preference = meeting_services.get_latest_meeting_preference(opted_in_user)
+        initial_topic = meeting_preference.topic.first()
+        initial_objective = meeting_preference.objectives.first()
+        if not (initial_objective or initial_topic):
+            continue
 
-        topic_list = []
-        topic = topic_list.append(meeting_preference.topic.name)
-        objective = meeting_preference.objectives.first()
-        topic_list.append(objective.name) if objective else topic_list
+        topic = initial_topic.name if initial_topic else initial_objective.name
 
-        for topic in topic_list:
-            if not create_topic_to_match_set_map.get(topic):
-                create_topic_to_match_set_map[topic] = []
-                create_topic_to_match_set_map[topic].append(opted_in_user)
-            else:
-                create_topic_to_match_set_map[topic].append(opted_in_user)
+        if not topic_to_match_set_map.get(topic):
+            topic_to_match_set_map[topic] = []
+            topic_to_match_set_map[topic].append(opted_in_user)
+        else:
+            topic_to_match_set_map[topic].append(opted_in_user)
 
-    return create_topic_to_match_set_map
+    sorted_topic_to_match_set_map = {}
+    # Sort the user sets for each topic.
+    for topic, user_set in topic_to_match_set_map.items():
+        sorted_topic_to_match_set_map[topic] = sort_users_by_user_score(user_set)
+
+    return sorted_topic_to_match_set_map
 
 
 def sort_users_by_user_score(user_set):
@@ -96,5 +102,9 @@ def create_matches_for_user_set(topic, user_set):
             final_match_score = final_match_score/len(match_list)
             if len(match_list) > 2:
                 final_match_score = final_match_score * matching_constants.TOPIC_GROUP_MULTIPLIER.get(topic, 1.2)
+
+        # Append the final match list to matched users.
+        for final_matched_user in final_match_list:
+            matched_users.append(final_matched_user)
 
         print(final_match_list, "----", final_match_score)
