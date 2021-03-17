@@ -1,84 +1,83 @@
 from users import models
-from resources.meetings import models as meeting_models
-from users import choices
+from resources.meetings import services as meeting_services
+
 
 def run(emails, dry_run=True):
     """Create new intros based on the input fields for users."""
 
     for email in emails:
-        user = models.User.objects.get(email=email)
-        print("Start", "*"*30)
-        print("Email: ", email)
+
+        print("Start", "*" * 30)
+        print("Email: {}".format(email))
+
+        try:
+            user = models.User.objects.get(email=email)
+        except models.User.DoesNotExist:
+            print("User does not exist")
+            continue
+
         if not user.has_profile:
             print("User does not have profile")
             print("End", "*" * 30)
             continue
-        
+
         profile = user.profile
         first_name = user.get_display_first_name()
 
-        if len(user.profile.new_tag.all()) == 0:
-            print("User does not have a tag")
-            print("End", "*" * 30)
-            continue
-        tag = profile.new_tag.all().first().name
+        user_tag = profile.new_tag.first()
+        user_tag_name = user_tag.name if user_tag else "None"
 
-        if not user.profile.years_of_experience:
-            print("User does not have years of experience")
-            print("End", "*" * 30)
-            continue
-        years_of_experience = dict(models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[profile.years_of_experience]
-        
-        if not user.profile.company_type:
-            print("User does not have company type")
-            print("End", "*" * 30)
-            continue
-        company_type = dict(models.Profile.COMPANY_TYPE_CHOICES)[profile.company_type]
+        user_experience = profile.years_of_experience
+        user_experience_str = dict(models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[profile.years_of_experience] if user_experience else "None"
 
-        if not user.profile.sector:
-            print("User does not have sector")
-            print("End", "*" * 30)
-            continue
-        sector = dict(models.Profile.SECTOR_CHOICES)[profile.sector]
+        user_company_type = profile.company_type
+        user_company_type_str = dict(models.Profile.COMPANY_TYPE_CHOICES)[profile.company_type] if user_company_type else "None"
 
-        if not user.profile.education_level:
-            print("User does not have education level")
-            print("End", "*" * 30)
-            continue
-        education_level = dict(models.Profile.EDUCATION_LEVEL_CHOICES)[profile.education_level]
-        
-        meeting_preference = meeting_models.MeetingPreference.objects.filter(user=user).last()
-        if not meeting_preference:
-            print("User does not have a meeting preference")
-            print("End", "*" * 30)
-            continue
-        
-        if not meeting_preference.objectives.first():
-            print("User does not have an objective")
-            print("End", "*" * 30)
-            continue
-        meeting_objective = meeting_preference.objectives.first().name
+        user_sector = profile.sector
+        user_sector_str = dict(models.Profile.SECTOR_CHOICES)[profile.sector] if user_sector else "None"
 
-        if not meeting_preference.interests.first():
-            print("User does not have an interest")
-            print("End", "*" * 30)
-            continue
-        meeting_interest = meeting_preference.interests.first().name
+        user_education = profile.education_level
+        user_education_str = dict(models.Profile.EDUCATION_LEVEL_CHOICES)[profile.education_level] if user_education else "None"
 
+        user_meeting_preference = meeting_services.get_latest_preference_for_user(user)
+        user_meeting_preference_id = user_meeting_preference.id if user_meeting_preference else "None"
 
-        if (tag == 'Student/Intern'):
-            introduction_string = "{} is a {}. {} is interested in the {} sector and is pursuing a {} degree. {} is keen to converse about {}, with {}." \
-                .format(first_name, tag, first_name, sector, education_level, first_name, meeting_objective, meeting_interest)
-        else :
+        user_meeting_objective = None
+        user_meeting_interest = None
+        user_meeting_topic = None
+
+        if user_meeting_preference:
+            user_meeting_objective = user_meeting_preference.objectives.first()
+            user_meeting_interest = user_meeting_preference.interests.first()
+            user_meeting_topic = user_meeting_preference.topic.first()
+
+        user_meeting_objective_name = user_meeting_objective.name if user_meeting_objective else "None"
+        user_meeting_interest_name = user_meeting_interest.name if user_meeting_interest else "None"
+        user_meeting_topic_name = user_meeting_topic.name if user_meeting_topic else "None"
+
+        print("User Tag: {}".format(user_tag_name))
+        print("User Experience: {}".format(user_experience_str))
+        print("User Company Type: {}".format(user_company_type_str))
+        print("User Sector: {}".format(user_sector_str))
+        print("User Education: {}".format(user_education_str))
+        print("User Meeting Preference: {}".format(user_meeting_preference_id))
+        print("User Meeting Objective: {}".format(user_meeting_objective_name))
+        print("User Meeting Interest: {}".format(user_meeting_interest_name))
+        print("User Meeting Topic: {}".format(user_meeting_topic_name))
+
+        if not user_tag_name or user_tag_name != "Student/Intern":
             introduction_string = "{} is a {} with {} of work experience. {} is currently working with a {}, in the {} sector. {} has completed a {} degree and is keen to converse about {} with {}." \
-                .format(first_name, tag, years_of_experience, first_name, company_type, sector, first_name, education_level, meeting_objective, meeting_interest)    
-        
-        if dry_run:
-            print(introduction_string)
+                .format(first_name, user_tag_name, user_experience_str, first_name, user_company_type_str, user_sector_str, first_name, user_education_str, user_meeting_objective_name, user_meeting_interest_name)
+        else:
+            introduction_string = "{} is a {}. {} is interested in the {} sector and is pursuing a {} degree. {} is keen to converse about {}, with {}." \
+                .format(first_name, user_tag_name, first_name, user_sector_str, user_education_str, first_name, user_meeting_objective_name, user_meeting_interest_name)
+
+        print(introduction_string)
 
         if not dry_run:
-            if(profile.introduction):
-                print("User has existing intro: {}".format(profile.introduction))
+            if profile.introduction:
+                print("User has existing introduction: {}".format(profile.introduction))
+
             profile.introduction = introduction_string
             profile.save()
             print("Added new introduction: {}".format(introduction_string))

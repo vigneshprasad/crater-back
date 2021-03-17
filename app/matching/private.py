@@ -5,6 +5,15 @@ from matching.engines import user_matching
 from matching.engines import matching_constants
 
 
+def create_matches_for_all_opted_in_users(users=None):
+    """Creates matches for all opted in users or users if provided."""
+    topic_match_sets_maps =  create_match_sets_for_opted_in_user(users=users)
+
+    for topic, user_set in topic_match_sets_maps.items():
+        # Creates matches for a given topic and user set.
+        create_matches_for_user_set(topic, user_set)
+
+
 def create_match_sets_for_opted_in_user(users=None):
     """Calculates user sets based on their topic.
 
