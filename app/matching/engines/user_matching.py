@@ -85,8 +85,6 @@ def get_top_match_for_user(user, match_set):
     """
 
     # Removing the user being matched from match set.
-    match_set.pop(user)
-
     max_match_score = 0
     best_match_user = None
     final_detailed_score = {}
@@ -98,8 +96,11 @@ def get_top_match_for_user(user, match_set):
 
         final_score, detailed_score = get_match_score_between_users(user, matched_user)
         # Getting the best match based on the maximum match score.
-        max_match_score, best_match_user, final_detailed_score = final_score, matched_user, detailed_score \
-            if final_score > max_match_score else (max_match_score, best_match_user, final_detailed_score)
+        if final_score > max_match_score:
+            max_match_score, best_match_user, final_detailed_score = final_score, matched_user, detailed_score
+
+    if not best_match_user:
+        return None
 
     data = {
         "email": best_match_user.email,
@@ -215,7 +216,7 @@ def get_match_score_from_detailed_score(detailed_score):
 
     score = 0
 
-    for key, weightage in matching_constants.ENGINE_WEIGHTAGE_MAP:
+    for key, weightage in matching_constants.ENGINE_WEIGHTAGE_MAP.items():
         score += detailed_score.get(key, 0) * weightage
 
     return score

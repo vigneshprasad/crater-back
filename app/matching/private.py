@@ -29,7 +29,11 @@ def create_match_sets_for_opted_in_user(users=None):
     for opted_in_user in opted_in_users:
 
         meeting_preference = meeting_services.get_latest_meeting_preference(opted_in_user)
-        initial_topic = meeting_preference.topic.first()
+        # If the user doesn't have meeting preference move to the next user.
+        if not meeting_preference:
+            continue
+
+        initial_topic = meeting_preference.topic
         initial_objective = meeting_preference.objectives.first()
         if not (initial_objective or initial_topic):
             continue
@@ -64,7 +68,7 @@ def sort_users_by_user_score(user_set):
 
     for user in user_set:
         # TODO(Nishant): Calculate scores for all users.
-        user_to_user_score_map[user.email] = user.score
+        user_to_user_score_map[user] = user.score
 
     sorted_user_set = [k for k, v in sorted(
         user_to_user_score_map.items(), key=lambda item: item[1], reverse=True
@@ -102,9 +106,14 @@ def create_matches_for_user_set(topic, user_set):
             match_score = final_match_score
 
             # Pop the user from user set.
-            user_set.pop(user_to_be_matched)
+            index = user_set.index(user_to_be_matched)
+            user_set.pop(index)
             matched_user_data = user_matching.get_top_match_for_user(user_to_be_matched, user_set)
-            matched_user = get_user_model().objects.get(matched_user_data["email"])
+            # If the user has no good match. Break and start with the next user.
+            if not matched_user_data:
+                break
+
+            matched_user = get_user_model().objects.get(email=matched_user_data["email"])
             # Append the user to match list to calculate user score.
             match_list.append(matched_user)
 

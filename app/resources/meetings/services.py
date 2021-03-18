@@ -346,7 +346,8 @@ def get_meeting_config_time_slots(meeting):
 
 
 def get_latest_meeting_preference(user):
-    return models.MeetingPreference.objects.filter(user=user).last()
+    """Returns the latest meeting preference for a user."""
+    return models.MeetingPreference.objects.filter(user=user).first()
 
 
 def get_user_meeting_from_url(query):
