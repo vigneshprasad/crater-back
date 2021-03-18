@@ -6,7 +6,10 @@ from base import models as base_models
 
 
 class UserScore(base_models.BaseModel):
+    """User score model. It stores the user's score calculated based on the user's
+        profile details.
 
+    """
     user = models.ForeignKey(
         get_user_model(),
         related_name='match_score',
@@ -19,7 +22,7 @@ class UserScore(base_models.BaseModel):
 
 
 class UserToUserMatchScore(base_models.BaseModel):
-
+    """This model stores match score between two users."""
     user = models.ForeignKey(
         get_user_model(),
         related_name='matching_scores',
@@ -27,7 +30,6 @@ class UserToUserMatchScore(base_models.BaseModel):
     )
     matched_user = models.ForeignKey(
         get_user_model(),
-
         on_delete=models.CASCADE
     )
     score = models.FloatField(

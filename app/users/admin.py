@@ -43,7 +43,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     list_display_links = ('action', 'name')
     edit_icon = 'launch'
     icon_name = 'person'
-    list_display = ('name', 'email', 'group', 'date_joined', 'status', 'is_active', 'is_approved', 'action')
+    list_display = ('name', 'email', 'group', 'score', 'date_joined', 'status', 'is_active', 'is_approved', 'action')
     list_editable = ['is_active', 'is_approved']
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('is_active', GroupNameUserFilter, 'is_approved')

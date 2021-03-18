@@ -9,7 +9,7 @@ from matching.engines import matching_constants
 
 def create_matches_for_all_opted_in_users(users=None):
     """Creates matches for all opted in users or users if provided."""
-    topic_match_sets_maps =  create_match_sets_for_opted_in_user(users=users)
+    topic_match_sets_maps = create_match_sets_for_opted_in_user(users=users)
 
     for topic, user_set in topic_match_sets_maps.items():
         # Creates matches for a given topic and user set.
@@ -126,7 +126,7 @@ def get_group_match_score(users):
     group_score = 0
 
     for user, matched_user in all_user_sets:
-        match_score = user_matching.get_match_score_between_users(user, matched_user)
+        match_score, _ = user_matching.get_match_score_between_users(user, matched_user)
         group_score += match_score
 
     return group_score/len(all_user_sets)

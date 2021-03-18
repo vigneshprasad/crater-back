@@ -27,7 +27,7 @@ def get_activity_score_between_users(user, matched_user):
 
     if user_activity_score * matched_user_activity_score < 0:
         activity_score = -30
-    elif (user_activity_score < 0 and matched_user_activity_score == 0) and (user_activity_score == 0 and matched_user_activity_score < 0):
+    elif (user_activity_score < 0 and matched_user_activity_score == 0) or (user_activity_score == 0 and matched_user_activity_score < 0):
         activity_score = -20
     elif user_activity_score * matched_user_activity_score > 0:
         activity_score = 10
