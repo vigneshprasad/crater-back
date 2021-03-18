@@ -37,6 +37,27 @@ class TopicViewSet(
         return super(TopicViewSet, self).list(request)
 
 
+    @action(
+        methods=["get"],
+        detail=False
+    )
+    def for_groups(self, request, *args, **kwargs):
+        # TODO(Abhishek): Need to add end point to filter only my groups and return count
+        result_list = []
+        all_topics = self.get_queryset()
+        for root_topic in all_topics:
+            count = len(root_topic.group.all())
+            sub_topics = models.Topic.objects.filter(parent__id__contains=root_topic.id)
+            groups_count = len(models.Group.objects.filter(topic__in=sub_topics))
+            total_count = count + groups_count
+            if total_count > 0:
+                result_list.append({
+                    'topic': serializers.TopicSerializer(root_topic).data,
+                    'group_count': total_count
+                })
+        return Response(result_list)
+
+
 class GroupsViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -48,13 +69,22 @@ class GroupsViewSet(
     queryset = models.Group.objects.filter(closed=False)
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        topic_ids = self.request.data.get('topics', None)
+        if topic_ids is not None:
+            print(topic_ids)
+            return self.queryset.filter(
+                Q(topic__in=topic_ids) | Q(topic__parent__in=topic_ids)
+            )
+        return self.queryset
+
     @action(
         methods=["get"],
         detail=False
     )
     def my(self, request, *args, **kwargs):
         user = request.user
-        groups = models.Group.objects.filter(Q(speakers=user) | Q(host=user))
+        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user))
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)
 
