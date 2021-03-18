@@ -67,6 +67,3 @@ class RtcTokenBuilder:
             token.addPrivilege(_access_token.kPublishDataStream, self.privilege_expiry_ts)
 
         return token.build()
-
-
-rtc_token_builder = RtcTokenBuilder()

@@ -11,7 +11,6 @@ from resources.meetings import choices
 from community.mixins import SetCreatorRequestDataMixin
 
 
-
 class TimeSlotSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -235,6 +234,7 @@ class MeetingRSVPSerializer(serializers.ModelSerializer):
 class MeetingSerializer(serializers.ModelSerializer):
     is_past = serializers.SerializerMethodField(read_only=True)
     participants = serializers.SerializerMethodField()
+    participant_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Meeting
@@ -247,7 +247,16 @@ class MeetingSerializer(serializers.ModelSerializer):
             'end',
             'is_past',
             'status',
+            'participant_detail',
         ]
+
+    def get_participant_detail(self, meeting):
+        request = self.context.get('request')
+        user = request.user
+        if not user:
+            return None
+        participant = meeting.participants.exclude(email=user.email).first()
+        return MeetingUserSerializer(participant).data if participant else None
 
     @staticmethod
     def get_is_past(meeting):

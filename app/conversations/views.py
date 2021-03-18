@@ -73,9 +73,6 @@ class OptinViewSet(
         current_preferences = meeting_services.get_current_week_preferences(user, self.get_queryset())
         future_preferences = meeting_services.get_future_week_preferences(user, self.get_queryset())
 
-        print(current_preferences)
-        print(future_preferences)
-
         all_preferences = list(current_preferences) + list(future_preferences)
         serialized = self.get_serializer(all_preferences, many=True)
         return Response(serialized.data)

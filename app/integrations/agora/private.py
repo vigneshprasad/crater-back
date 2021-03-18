@@ -1,6 +1,6 @@
 import uuid
 
-from integrations.agora.token_builder import rtc_token_builder
+from integrations.agora.token_builder import RtcTokenBuilder
 from integrations.agora import constants, models
 
 
@@ -14,6 +14,7 @@ def generate_token_for_user_and_group(user, channel_id, channel_type=models.Agor
 
     """
     rtc_info = _get_rtc_model_info(channel_id, channel_type)
+    rtc_token_builder = RtcTokenBuilder()
 
     token = rtc_token_builder.build_token_with_account(
         channel_name=rtc_info.channel_name,
