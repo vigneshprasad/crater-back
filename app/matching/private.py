@@ -1,3 +1,5 @@
+import itertools
+
 from django.contrib.auth import get_user_model
 
 from resources.meetings import services as meeting_services
@@ -107,8 +109,7 @@ def create_matches_for_user_set(topic, user_set):
             match_list.append(matched_user)
 
             # Calculate the final match score
-            final_match_score += matched_user_data["match_score"]
-            final_match_score = final_match_score/len(match_list)
+            final_match_score = get_group_match_score(match_list)
             if len(match_list) > 2:
                 final_match_score = final_match_score * matching_constants.TOPIC_GROUP_MULTIPLIER.get(topic, 1.2)
 
@@ -117,3 +118,16 @@ def create_matches_for_user_set(topic, user_set):
             matched_users.append(final_matched_user)
 
         print(final_match_list, "----", final_match_score)
+
+
+def get_group_match_score(users):
+    """Calculates group score between all users provided."""
+    all_user_sets = list(itertools.permutations(users, 2))
+    group_score = 0
+
+    for user, matched_user in all_user_sets:
+        match_score = user_matching.get_match_score_between_users(user, matched_user)
+        group_score += match_score
+
+    return group_score/len(all_user_sets)
+
