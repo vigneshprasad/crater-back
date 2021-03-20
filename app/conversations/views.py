@@ -36,7 +36,6 @@ class TopicViewSet(
     def my(self, request, *args, **kwargs):
         return super(TopicViewSet, self).list(request)
 
-
     @action(
         methods=["get"],
         detail=False
@@ -70,13 +69,17 @@ class GroupsViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        q = models.Group.objects.filter(closed=False)
         topic_ids = self.request.data.get('topics', None)
-        if topic_ids is not None:
-            print(topic_ids)
-            return self.queryset.filter(
-                Q(topic__in=topic_ids) | Q(topic__parent__in=topic_ids)
-            )
-        return self.queryset
+        print(self.queryset)
+        print(topic_ids)
+        if not topic_ids:
+            return q
+        results = q.filter(
+            Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids)
+        )
+        print(results)
+        return results
 
     @action(
         methods=["get"],

@@ -337,11 +337,7 @@ def get_meeting_config_time_slots(meeting):
         date_str = str(slot.date)
         if not available_slots.get(date_str):
             available_slots[date_str] = []
-        available_slots[date_str].append({
-            'pk': slot.pk,
-            'start': str(slot.start),
-            'end': str(slot.end)
-        })
+        available_slots[date_str].append(serializers.TimeSlotSerializer(slot).data)
     return available_slots
 
 
