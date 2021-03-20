@@ -71,15 +71,11 @@ class GroupsViewSet(
     def get_queryset(self):
         q = models.Group.objects.filter(closed=False)
         topic_ids = self.request.data.get('topics', None)
-        print(self.queryset)
-        print(topic_ids)
         if not topic_ids:
             return q
-        results = q.filter(
+        return q.filter(
             Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids)
         )
-        print(results)
-        return results
 
     @action(
         methods=["get"],
