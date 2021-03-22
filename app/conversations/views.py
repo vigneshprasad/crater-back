@@ -1,4 +1,7 @@
+import datetime
+
 from django.db.models import Q
+from django.utils import timezone
 
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
@@ -71,17 +74,23 @@ class GroupsViewSet(
     def get_queryset(self):
         """Create queryset based on the params."""
         q = models.Group.objects.filter(closed=False)
-
         # Get the user's score.
-        user = self.request.user
-        user_score = user.score
-
         topic_ids = self.request.data.get('topics', None)
-
         if not topic_ids:
-            return q.filter(score__lte=user_score).order_by("-score")
+            return q
 
-        return q.filter(Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids), score__lte=user_score).order_by("-score")
+        return q.filter(Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids))
+
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        user_score = user.score
+        now_time = timezone.now()
+        groups = self.get_queryset().filter(
+            start_time__gt=(now_time - datetime.timedelta(minutes=30)),
+            score__lte=user_score
+        ).order_by("-score", "-start_time")
+        serialized = self.get_serializer(groups, many=True)
+        return Response(serialized.data)
 
     @action(
         methods=["get"],
