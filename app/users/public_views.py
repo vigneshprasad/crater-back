@@ -63,12 +63,18 @@ class TypeFormViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
                     user['meeting_days'].append(days)
             elif fields[i]['ref'] == 'linkedin_url':
                 user['linkedin_url'] = answers[i]['url']
-            elif fields[i]['ref'] == 'objective_looking_for':
+            #Objectives looking for
+            elif fields[i]['ref'] == 'objective_looking_for' and fields[i].get('allow_multiple_selections', False):
                 for objective_for in answers[i]['choices']['labels']:
                     user['objectives'].append(objective_for)
-            elif fields[i]['ref'] == 'objective_looking_to':
+            elif fields[i]['ref'] == 'objective_looking_for':
+                user['objectives'].append(answers[i]['choice']['label'])
+            #Objectives looking to
+            elif fields[i]['ref'] == 'objective_looking_to' and fields[i].get('allow_multiple_selections', False):
                 for objective_to in answers[i]['choices']['labels']:
                     user['objectives'].append(objective_to)
+            elif fields[i]['ref'] == 'objective_looking_to':
+                user['objectives'].append(answers[i]['choice']['label'])
             elif fields[i]['ref'] == 'interests' and fields[i].get('allow_multiple_selections', False):
                 for interest in answers[i]['choices']['labels']:
                     user['interests'].append(interest)
