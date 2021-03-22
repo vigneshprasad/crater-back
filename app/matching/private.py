@@ -104,7 +104,7 @@ def create_matches_for_user_set(topic, user_set):
         match_list = [user]
         final_match_list = []
 
-        while final_match_score > match_score and len(final_match_list) <= matching_constants.DEFAULT_GROUP_SIZE:
+        while final_match_score >= match_score and len(final_match_list) <= matching_constants.DEFAULT_GROUP_SIZE:
 
             # Get the last matched user as the user to be matched.
             user_to_be_matched = match_list[len(match_list) - 1]
@@ -157,6 +157,9 @@ def get_group_match_score(users):
 def get_average_group_score_based_on_user_score(users):
     """Calculate average group score based on user scores."""
     total_score = 0
+
+    if not users:
+      return total_score
 
     for user in users:
         total_score += users_scoring.get_user_score(user)
