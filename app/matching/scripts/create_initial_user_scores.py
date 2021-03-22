@@ -12,10 +12,18 @@ def run(users=None, dry_run=True):
         print("{}: {}".format(user.email, score))
 
         if not dry_run:
-            models.UserScore.objects.update_or_create(
-                user=user,
-                defaults={"score": score}
-            )
+            user_score = models.UserScore.objects.filter(
+                user=user
+            ).last()
+
+            if not user_score:
+                user_score = models.UserScore.objects.create(
+                    user=user,
+                    score=score
+                )
+
+            user_score = score
+            user_score.save()
             # Adding to user score field as well.
             user.score = score
             user.save()

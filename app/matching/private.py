@@ -156,4 +156,4 @@ def get_average_group_score_based_on_user_score(users):
     for user in users:
         total_score += users_scoring.get_user_score(user)
 
-    return total_score/len(users)
+    return round(total_score/len(users), 2)

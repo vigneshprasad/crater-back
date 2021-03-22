@@ -48,17 +48,29 @@ class TopicViewSet(
     def for_groups(self, request, *args, **kwargs):
         # TODO(Abhishek): Need to add end point to filter only my groups and return count
         result_list = []
+        user = request.user
+        user_score = user.score
+        now_time = timezone.now()
         all_topics = self.get_queryset()
+
         for root_topic in all_topics:
             count = len(root_topic.group.all())
             sub_topics = models.Topic.objects.filter(parent__id__contains=root_topic.id)
-            groups_count = len(models.Group.objects.filter(topic__in=sub_topics))
+            groups_count = len(models.Group.objects.filter(
+                topic__in=sub_topics,
+                score__lte=(user_score + 5),
+                start__lte=now_time - datetime.timedelta(minutes=30)
+            ))
+
             total_count = count + groups_count
-            if total_count > 0:
-                result_list.append({
-                    'topic': serializers.TopicSerializer(root_topic).data,
-                    'group_count': total_count
-                })
+            if total_count <= 0:
+                continue
+
+            result_list.append({
+                'topic': serializers.TopicSerializer(root_topic).data,
+                'group_count': total_count
+            })
+
         return Response(result_list)
 
 
