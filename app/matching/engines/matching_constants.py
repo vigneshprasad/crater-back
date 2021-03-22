@@ -22,3 +22,5 @@ TOPIC_GROUP_MULTIPLIER = {
     "Entrepreneurship": 1.6,
     "Stock market": 1.7
 }
+
+DEFAULT_GROUP_SIZE = 4

@@ -147,8 +147,14 @@ def get_match_score_between_users(user, matched_user):
     latest_user_preference = meeting_services.get_latest_preference_for_user(user)
     latest_matched_user_preference = meeting_services.get_latest_preference_for_user(matched_user)
 
-    user_interests = latest_user_preference.interests.all()
-    matched_user_interests = latest_matched_user_preference.interests.all()
+    user_interests = None
+    matched_user_interests = None
+
+    if latest_user_preference:
+        user_interests = latest_user_preference.interests.all()
+
+    if latest_matched_user_preference:
+        matched_user_interests = latest_matched_user_preference.interests.all()
 
     print("User Interests: {}".format(user_interests))
     print("Matched User Interests: {}".format(matched_user_interests))

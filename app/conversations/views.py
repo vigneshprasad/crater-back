@@ -21,9 +21,9 @@ class TopicViewSet(
 
     def get_queryset(self):
         parent_id = self.request.query_params.get('parent', None)
-        if parent_id is not None:
-            return self.queryset.filter(parent__id__contains=parent_id)
-        return self.queryset.filter(parent=None)
+        if not parent_id:
+            return self.queryset.filter(parent=None)
+        return self.queryset.filter(parent__id__contains=parent_id)
 
     @staticmethod
     def generate_bad_request(data):
@@ -69,13 +69,19 @@ class GroupsViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        """Create queryset based on the params."""
         q = models.Group.objects.filter(closed=False)
+
+        # Get the user's score.
+        user = self.request.user
+        user_score = user.score
+
         topic_ids = self.request.data.get('topics', None)
+
         if not topic_ids:
-            return q
-        return q.filter(
-            Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids)
-        )
+            return q.filter(score__lte=user_score).order_by("-score")
+
+        return q.filter(Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids), score__lte=user_score).order_by("-score")
 
     @action(
         methods=["get"],

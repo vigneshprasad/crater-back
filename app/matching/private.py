@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 from resources.meetings import services as meeting_services
 from matching.engines import user_matching
+from matching.engines import users_scoring
 from matching.engines import matching_constants
 
 
@@ -87,6 +88,7 @@ def create_matches_for_user_set(topic, user_set):
     """
     # TODO(Nishant): Handle same users being in multiple user sets.
     matched_users = []
+    all_matches = []
 
     for user in user_set:
         if user in matched_users:
@@ -98,7 +100,7 @@ def create_matches_for_user_set(topic, user_set):
         match_list = [user]
         final_match_list = []
 
-        while final_match_score >= match_score:
+        while final_match_score >= match_score and len(final_match_list) <= matching_constants.DEFAULT_GROUP_SIZE:
 
             # Get the last matched user as the user to be matched.
             user_to_be_matched = match_list[len(match_list) - 1]
@@ -106,8 +108,6 @@ def create_matches_for_user_set(topic, user_set):
             match_score = final_match_score
 
             # Pop the user from user set.
-            index = user_set.index(user_to_be_matched)
-            user_set.pop(index)
             matched_user_data = user_matching.get_top_match_for_user(user_to_be_matched, user_set)
             # If the user has no good match. Break and start with the next user.
             if not matched_user_data:
@@ -126,7 +126,15 @@ def create_matches_for_user_set(topic, user_set):
         for final_matched_user in final_match_list:
             matched_users.append(final_matched_user)
 
-        print(final_match_list, "----", final_match_score)
+        final_match_list_with_score = []
+        for final_matched_user in final_match_list:
+            final_match_list_with_score.append((final_matched_user.email, users_scoring.get_user_score(final_matched_user)))
+
+        print(final_match_list_with_score, "-", get_average_group_score_based_on_user_score(final_match_list), "-", final_match_score)
+
+        all_matches.append((final_match_list_with_score, final_match_score))
+
+    return all_matches
 
 
 def get_group_match_score(users):
@@ -140,3 +148,12 @@ def get_group_match_score(users):
 
     return group_score/len(all_user_sets)
 
+
+def get_average_group_score_based_on_user_score(users):
+    """Calculate average group score based on user scores."""
+    total_score = 0
+
+    for user in users:
+        total_score += users_scoring.get_user_score(user)
+
+    return total_score/len(users)
