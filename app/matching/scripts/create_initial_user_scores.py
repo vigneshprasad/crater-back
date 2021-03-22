@@ -22,7 +22,7 @@ def run(users=None, dry_run=True):
                     score=score
                 )
 
-            user_score = score
+            user_score.score = score
             user_score.save()
             # Adding to user score field as well.
             user.score = score
