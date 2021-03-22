@@ -89,9 +89,9 @@ class GroupsViewSet(
         now_time = timezone.now()
 
         groups = self.get_queryset().filter(
-            start_time__gt=(now_time - datetime.timedelta(minutes=30)),
+            start__gte=(now_time - datetime.timedelta(minutes=30)),
             score__lte=(user_score + 5)
-        ).order_by("-score", "-start_time")
+        ).order_by("-score", "-start")
 
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)

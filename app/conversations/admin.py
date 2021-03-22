@@ -18,6 +18,7 @@ class GroupAdmin(admin.ModelAdmin):
         "start",
         "privacy",
         "closed",
+        "score"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 

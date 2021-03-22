@@ -650,6 +650,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         profile.save()
         return profile
 
+
 class LogoutSerializer(serializers.Serializer):
     os_id = serializers.CharField(required=False, allow_blank=False, allow_null=True)
 

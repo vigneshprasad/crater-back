@@ -8,14 +8,13 @@ def run(users=None, dry_run=True):
     users = users if users else users_model.User.objects.all()
 
     for user in users:
-
         score = public.get_user_matching_score(user)
         print("{}: {}".format(user.email, score))
 
         if not dry_run:
-            models.UserScore.objects.get_or_create(
+            models.UserScore.objects.update_or_create(
                 user=user,
-                score=score
+                defaults={"score": score}
             )
             # Adding to user score field as well.
             user.score = score

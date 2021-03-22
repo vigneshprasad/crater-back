@@ -5,26 +5,33 @@ from django.dispatch import receiver
 
 from matching import public
 from matching import models
+from users import models as user_models
 
 
-# TODO(Nishant): Make this live once we have tested it out on prod and this works.
+# TODO(Nishant): Make these live once we are ready with the scoring.
 # @receiver(post_save, sender=get_user_model())
-def update_or_create_user_score(sender, instance, created, *args, **kwargs):
-    """If the user models score changes, change the score on UserScore as well."""
-    user_score = models.UserScore.objects.filter(user=instance).last()
+def update_or_create_user_score(sender, instance, *args, **kwargs):
+    """Update or create user score if the user model gets updated"""
+    user = instance
 
-    # If there is no user score created. Create a user score here.
-    if not user_score:
-        score = public.get_user_matching_score(instance)
-        return models.UserScore.objects.create(
-            user=instance,
-            score=score
-        )
+    score = public.get_user_matching_score(user)
+    user_score, created = models.UserScore.objects.update_or_create(
+        user=user,
+        defaults={"score": score}
+    )
+    user_score.score = instance.score
+    user_score.save()
 
-    if user_score.score == instance.score:
-        return
 
-    # If user score is separate from UserScore table score
-    # update the UserScore table.
+# @receiver(post_save, sender=user_models.Profile)
+def update_or_create_user_score(sender, instance, *args, **kwargs):
+    """Update or create user score if the user model gets updated"""
+    user = instance.user
+
+    score = public.get_user_matching_score(user)
+    user_score, created = models.UserScore.objects.update_or_create(
+        user=user,
+        defaults={"score": score}
+    )
     user_score.score = instance.score
     user_score.save()
