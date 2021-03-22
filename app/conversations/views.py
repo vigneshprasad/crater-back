@@ -8,7 +8,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from users import permissions
-from conversations import models, serializers, services
+from conversations import models
+from conversations import serializers
+from conversations import services
 
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
@@ -25,7 +27,7 @@ class TopicViewSet(
     def get_queryset(self):
         parent_id = self.request.query_params.get('parent', None)
         if not parent_id:
-            return self.queryset.filter(parent=None)
+            return self.queryset.filter(parent__isnull=True)
         return self.queryset.filter(parent__id__contains=parent_id)
 
     @staticmethod
@@ -85,10 +87,12 @@ class GroupsViewSet(
         user = request.user
         user_score = user.score
         now_time = timezone.now()
+
         groups = self.get_queryset().filter(
             start_time__gt=(now_time - datetime.timedelta(minutes=30)),
-            score__lte=user_score
+            score__lte=(user_score + 5)
         ).order_by("-score", "-start_time")
+
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)
 

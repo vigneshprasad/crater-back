@@ -109,8 +109,7 @@ class MeetingPreferencePublicViewSet(
             for time_slot in old_preference.time_slots.all():
                 day = time_slot.date.weekday()
                 date_diff = day - current_week_start_date.weekday()
-
-                if(date_diff < 0):
+                if date_diff < 0:
                     return self.generate_bad_request(
                         {"error": "Please check back at a later time."}
                     )
@@ -123,10 +122,18 @@ class MeetingPreferencePublicViewSet(
                 )
                 new_time_slots.append(time_slot)
 
-            new_meeting_preference, created = models.MeetingPreference.objects.get_or_create(
+            created = False
+            new_meeting_preference = models.MeetingPreference.objects.filter(
                 meeting=latest_meeting_config,
                 user=user,
-            )
+            ).first()
+
+            if not new_meeting_preference:
+                created = True
+                new_meeting_preference = models.MeetingPreference.objects.create(
+                    meeting=latest_meeting_config,
+                    user=user,
+                )
 
             if not created:
                 return self.generate_bad_request(

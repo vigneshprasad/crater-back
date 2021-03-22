@@ -13,7 +13,7 @@ class Topic(base_model.BaseModel):
     It has self-reference of the {parent} topic to create nesting.
 
     Example:
-        (Topic) How to build a brand?, a topic (Topic)  Marketing can be pareent
+        (Topic) How to build a brand?, a topic (Topic)  Marketing can be parent
         to create nesting
 
     """
