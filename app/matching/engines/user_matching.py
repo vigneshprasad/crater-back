@@ -85,6 +85,12 @@ def get_top_match_for_user(user, match_set):
     """
 
     # Removing the user being matched from match set.
+    try:
+        index = match_set.index(user)
+        match_set.pop(index)
+    except ValueError:
+        pass
+
     max_match_score = 0
     best_match_user = None
     final_detailed_score = {}

@@ -12,9 +12,13 @@ def create_matches_for_all_opted_in_users(users=None):
     """Creates matches for all opted in users or users if provided."""
     topic_match_sets_maps = create_match_sets_for_opted_in_user(users=users)
 
+    all_matches = []
+
     for topic, user_set in topic_match_sets_maps.items():
         # Creates matches for a given topic and user set.
-        create_matches_for_user_set(topic, user_set)
+        all_matches.append(create_matches_for_user_set(topic, user_set))
+
+    return all_matches
 
 
 def create_match_sets_for_opted_in_user(users=None):
@@ -100,14 +104,13 @@ def create_matches_for_user_set(topic, user_set):
         match_list = [user]
         final_match_list = []
 
-        while final_match_score >= match_score and len(final_match_list) <= matching_constants.DEFAULT_GROUP_SIZE:
+        while final_match_score > match_score and len(final_match_list) <= matching_constants.DEFAULT_GROUP_SIZE:
 
             # Get the last matched user as the user to be matched.
             user_to_be_matched = match_list[len(match_list) - 1]
             final_match_list.append(user_to_be_matched)
             match_score = final_match_score
 
-            # Pop the user from user set.
             matched_user_data = user_matching.get_top_match_for_user(user_to_be_matched, user_set)
             # If the user has no good match. Break and start with the next user.
             if not matched_user_data:
@@ -130,9 +133,11 @@ def create_matches_for_user_set(topic, user_set):
         for final_matched_user in final_match_list:
             final_match_list_with_score.append((final_matched_user.email, users_scoring.get_user_score(final_matched_user)))
 
-        print(final_match_list_with_score, "-", get_average_group_score_based_on_user_score(final_match_list), "-", final_match_score)
+        average_group_score = get_average_group_score_based_on_user_score(final_match_list)
 
-        all_matches.append((final_match_list_with_score, final_match_score))
+        print(final_match_list_with_score, "-", average_group_score, "-", final_match_score)
+
+        all_matches.append((final_match_list_with_score, average_group_score))
 
     return all_matches
 

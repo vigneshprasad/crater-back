@@ -49,7 +49,7 @@ def run(emails, dry_run=True):
         if user_meeting_preference:
             user_meeting_objective = user_meeting_preference.objectives.first()
             user_meeting_interest = user_meeting_preference.interests.first()
-            user_meeting_topic = user_meeting_preference.topic.first()
+            user_meeting_topic = user_meeting_preference.topic
 
         user_meeting_objective_name = user_meeting_objective.name if user_meeting_objective else "None"
         user_meeting_interest_name = user_meeting_interest.name if user_meeting_interest else "None"
