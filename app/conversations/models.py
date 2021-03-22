@@ -13,7 +13,7 @@ class Topic(base_model.BaseModel):
     It has self-reference of the {parent} topic to create nesting.
 
     Example:
-        (Topic) How to buid a brand?, a topic (Topic)  Marketing can be pareent
+        (Topic) How to build a brand?, a topic (Topic)  Marketing can be parent
         to create nesting
 
     """
@@ -36,7 +36,7 @@ class Topic(base_model.BaseModel):
     )
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["name"]
         verbose_name = _("Topic")
         verbose_name_plural = _("Topics")
 
@@ -76,8 +76,11 @@ class Group(base_model.BaseModel):
     # TODO(Nishant): Can change this into statuses as well.
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
+    # Group score.
+    score = models.FloatField(null=True, blank=True)
 
     class Meta:
+        ordering = ["-created_at"]
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
 
