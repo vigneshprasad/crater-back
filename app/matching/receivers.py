@@ -9,8 +9,8 @@ from users import models as user_models
 
 
 # TODO(Nishant): Make these live once we are ready with the scoring.
-# @receiver(post_save, sender=get_user_model())
-def update_or_create_user_score(sender, instance, *args, **kwargs):
+@receiver(post_save, sender=get_user_model())
+def update_or_create_user_score_on_user_update(sender, instance, *args, **kwargs):
     """Update or create user score if the user model gets updated"""
     user = instance
 
@@ -23,8 +23,8 @@ def update_or_create_user_score(sender, instance, *args, **kwargs):
     user_score.save()
 
 
-# @receiver(post_save, sender=user_models.Profile)
-def update_or_create_user_score(sender, instance, *args, **kwargs):
+@receiver(post_save, sender=user_models.Profile)
+def update_or_create_user_score_on_profile_update(sender, instance, *args, **kwargs):
     """Update or create user score if the user model gets updated"""
     user = instance.user
 
