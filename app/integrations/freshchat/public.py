@@ -133,6 +133,46 @@ def send_meeting_confirmation_rsvp(user, meeting):
         ]
     )
 
+def send_conversation_confirmation_rsvp(user, group):
+    """ Send a message with confirming time and a rsvp link for groups
+
+    Args:
+        user(User): User to whom this message will go.
+        group(Group): Group for which message confirmation goes
+
+    """
+
+    local_tz = pytz.timezone(settings.TIME_ZONE)
+
+    local_start_datetime = group.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
+
+    matched_users = group.speakers.all().exclude(pk=user.pk)
+    matched_list = []
+    for user in matched_users:
+        matched_list.append(user)
+    last_user = matched_list.pop()
+    matched_users_thread = ', '.join([user.get_display_first_name() for user in matched_list])
+    matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
+
+    topic = group.topic.name
+
+    date = group.start.strftime('%a, %d %b %Y')
+    start_time = local_start_datetime.strftime('%I:%M %p')
+    date_time = "{}, {}".format(start_time, date)
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.CONVERSATION_CONFIRMATION_TEMPLATE,
+        template_data=[
+            {"data": topic},
+            {"data": matched_users_thread},
+            {"data": date_time},
+            {"data": constants.CONVERSATION_PARTICIPANTS_APP_LINK.format(
+                    tiny_url_service.shorten(constants.APPSFLYER_APP_LINK)
+            )},
+            {"data": constants.CONVERSATION_RSVP},
+        ]
+    )
 
 def send_meeting_rsvp_reminder(user, meeting):
     """ Send a message reminding to rsvp for meeting

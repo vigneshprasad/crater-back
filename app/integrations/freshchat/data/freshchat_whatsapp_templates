@@ -89,3 +89,10 @@ We were unable to get a confirmation for the reschedule request from {{1}} To pr
 23. confirmation_of_meeting_preference
 Hey,
 We wanted to check-in to see if you would like to opt-in for a 1:1 networking meeting next week? Confirm your opt-in by {{1}}. To update your preferences {{2}}
+
+24. huddle_meeting_setup_group
+Hey,
+Your conversation to discuss {1} with {2} has been set up for {3}.
+Additional Information
+Participant details: {4}
+RSVP: {5}

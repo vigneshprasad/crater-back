@@ -17,6 +17,7 @@ from integrations.google import public as google_public
 from django.contrib.auth import get_user_model
 from rewards.services import get_max_rewards_rs_conversion
 from points import models as points_models
+from integrations.freshchat import constants as freshchat_constants
 
 
 @periodic_task(run_every=crontab(day_of_week='sunday', hour='17', minute='30'))
@@ -650,4 +651,64 @@ def _send_meeting_cancellation_email(meeting):
             content={},
             merge_vars=data,
             reply_to=reply_to,
+        )
+
+
+def send_conversation_confirmation_email(user, group):
+    """Send confirmation for conversation.
+
+    Args:
+       user(list/queryset): User to send the email to
+       group: Group 
+
+    """
+
+    local_tz = pytz.timezone(TIME_ZONE)
+
+    local_start_datetime = group.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
+
+    matched_users = group.speakers.all().exclude(pk=user.pk)
+    matched_list = []
+    for matched_user in matched_users:
+        matched_list.append(matched_user)
+    last_user = matched_list.pop()
+    matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
+    matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
+
+    topic = group.topic.name
+
+    date = group.start.strftime('%a, %d %b %Y')
+    start_time = local_start_datetime.strftime('%I:%M %p')
+    time = "{}, {}".format(start_time, date)
+
+    subject = 'Your upcoming conversation on {}'.format(topic)
+    
+    to_emails = [user.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
+    # Populating data.
+    data = {}
+    data[user.email] = {
+        'name': user.get_display_first_name(),
+        'topic': topic,
+        'time': time,
+        'description': group.description,
+        'participants': matched_users_thread,
+        'app_link': freshchat_constants.APPSFLYER_APP_LINK,
+        'email': user.email
+    }
+
+    from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
+    reply_to_email = [choices.MEETING_REPLY_EMAIL]
+
+    template_name = choices.GROUP_CONVERSATION_INTRODUCTION
+
+    # Sending the emails.
+    for to in to_emails:
+        user.send_email(
+            subject=subject,
+            to=[to],
+            reply_to=reply_to_email,
+            template_name=template_name,
+            content={},
+            from_email=from_email,
+            merge_vars=data
         )

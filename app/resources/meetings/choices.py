@@ -188,6 +188,7 @@ ONE_ON_ONE_INTRODUCTION_EMAIL_TEMPLATE = '1:1 Meeting Introduction'
 ONE_ON_ONE_FEEDBACK_EMAIL_TEMPLATE = '1:1 Meeting Feedback'
 ONE_ON_ONE_MEETING_CANCELED_TEMPLATE = '1:1 Meeting Canceled'
 ONE_ON_ONE_MEETING_CONFIRMED_TEMPLATE = "1:1 Meeting Confirmed"
+GROUP_CONVERSATION_INTRODUCTION = "Group Conversation Introduction"
 ONE_ON_ONE_OPT_IN_EMAIL_TEMPLATE = '1:1 Opt In'
 MEETING_WEEKLY_REWARDS_TEMPLATE = 'Meeting Points Weekly'
 MEETINGS_INTRO_FROM_EMAIL = 'keziah@worknetwork.in'
@@ -195,5 +196,6 @@ MEETING_COMMUNICATION_FROM_EMAIL = 'meetings@worknetwork.in'
 MEETINGS_OPT_IN_FROM_EMAIL = 'hello@worknetwork.in'
 EXTRA_EMAIL_FOR_INTRO_VERIFICATION = 'hello@worknetwork.in'
 MEETING_REWARDS_FROM_EMAIL = 'rewards@worknetwork.in'
+MEETING_REPLY_EMAIL="vivan@worknetwork.in"
 
 MAX_MEMBER_FOR_ONE_ON_ONE = 2

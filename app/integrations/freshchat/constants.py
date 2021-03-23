@@ -56,6 +56,11 @@ MEETING_RESCHEDULE_REQUEST_APPROVED_TEMPLATE = "meeting_reschdule_accepted"
 MEETING_RESCHEDULE_REQUEST_DECLINED_TEMPLATE = "meeting_reschedule_cancellation"
 MEETING_RESCHEDULE_REQUEST_DECLINED_PROMPT_MESSAGE = " if you have spoken to your match & believe this to be a mistake, please disregard the message."
 
+# Conversation templates
+CONVERSATION_CONFIRMATION_TEMPLATE = "huddle_meeting_setup_group"
+CONVERSATION_PARTICIPANTS_APP_LINK = "View on the app: {}"
+CONVERSATION_RSVP = "Please RSVP using the calendar invite. Note this meeting will take place on the mobile app."
+
 # Freshchat API responses.
 FRESHCHAT_STATUS_SUCCESS = 200
 FRESHCHAT_STATUS_CREATED = 201
