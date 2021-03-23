@@ -1,4 +1,7 @@
+import pytz
+
 from django.db import models
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 
@@ -86,6 +89,16 @@ class Group(base_model.BaseModel):
 
     def __str__(self):
         return "{}-{}-{}".format(self.pk, self.topic, self.host)
+
+    @property
+    def local_start(self):
+        """Return start in the local timezone."""
+        return self.start.astimezone(pytz.timezone(settings.TIME_ZONE))
+
+    @property
+    def local_end(self):
+        """Return start in the local timezone."""
+        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE))
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""

@@ -11,6 +11,7 @@ class GoogleCalendarEvent(base_models.BaseModel):
         related_name='calendar_events',
         on_delete=models.CASCADE
     )
+    # TODO(Nishant): Add group id here.
     meeting_id = models.IntegerField(null=True, blank=True)
     # What was the last status of the event.
     status = models.CharField(

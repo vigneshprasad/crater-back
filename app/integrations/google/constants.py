@@ -7,6 +7,8 @@ GOOGLE_API_CREDENTIALS = settings.GOOGLE_API_CREDENTIALS
 GOOGLE_API_VERSION = "v3"
 CALENDAR_SERVICE_NAME = "calendar"
 CONFERENCE_DATA_VERSION = 1
+# This version supports no conference data.
+NO_CONFERENCE_DATA_VERSION = 0
 DEFAULT_CALENDAR_ID = "hello@worknetwork.in"
 SEND_UPDATE_TO_ALL = "all"
 
@@ -22,6 +24,16 @@ DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS = "Hi, your 1:1 meeting has been schedule
                                          "details (an email from meetings@worknetwork.in would have been received). " \
                                          "In case you need to reschedule your meeting or for any other update, " \
                                          "please send an email on that thread to all participants."
+
+DEFAULT_SUMMARY_FOR_CONVERSATIONS = "Conversation on {topic_name} | WorkNetwork | Details in the description"
+DEFAULT_DESCRIPTION_FOR_CONVERSATIONS = "Hi, your conversation has been scheduled for the above time. \n" \
+                            "Format: Group Conversation.\n" \
+                            "Location: Virtual, on the mobile app.\n" \
+                            "Details: Visible under 'Your Conversations' on the app.\n" \
+                            "Link to the app: https://tinyurl.com/y5qxltwj \n" \
+                            "Login details: Please use the email on this thread. \n" \
+                            "Reschedule: Group conversation may not be rescheduled due to multiple participants."
+
 
 DEFAULT_TIMEZONE = "Asia/Kolkata"
 HANGOUT_MEET = "hangoutsMeet"

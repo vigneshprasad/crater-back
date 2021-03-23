@@ -39,6 +39,32 @@ def create_calendar_event_for_meeting(meeting):
     return meeting_link
 
 
+def create_calendar_event_for_conversations(group):
+    """Create calendar event for a group.
+
+     Args:
+        group(Group): Group object for which we have to
+            create the calendar event.
+
+    """
+    users = group.speakers.all()
+    start_datetime = group.local_start
+    end_datetime = group.local_end
+
+    summary = constants.DEFAULT_SUMMARY_FOR_CONVERSATIONS.format(topic_name=group.topic.name)
+    description = constants.DEFAULT_DESCRIPTION_FOR_CONVERSATIONS
+
+    event_id, meeting_link = calendar_services.google_calendar_service_without_conference_data.create_event(
+        start_datetime,
+        end_datetime,
+        users,
+        summary=summary,
+        description=description
+    )
+
+    return event_id
+
+
 def get_and_update_rsvp_status(meeting_rsvp):
     """ Get Status and update status of meetings rsvp object via google api
 

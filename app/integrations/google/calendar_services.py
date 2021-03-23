@@ -97,7 +97,8 @@ class GoogleCalendarService:
         summary = "{} <> {}| Professional Networking | WorkNetwork".format(
             user1.get_display_first_name(),
             user2.get_display_first_name()
-        )
+        ) if not summary else summary
+
         description = description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS
 
         request_body = {
@@ -183,6 +184,12 @@ class GoogleCalendarService:
 
 google_calendar_service = GoogleCalendarService(
     conference_data_version=constants.CONFERENCE_DATA_VERSION,
+    send_updates=constants.SEND_UPDATE_TO_ALL,
+    calendar_id=constants.DEFAULT_CALENDAR_ID
+)
+
+google_calendar_service_without_conference_data = GoogleCalendarService(
+    conference_data_version=constants.NO_CONFERENCE_DATA_VERSION,
     send_updates=constants.SEND_UPDATE_TO_ALL,
     calendar_id=constants.DEFAULT_CALENDAR_ID
 )
