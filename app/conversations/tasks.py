@@ -32,7 +32,8 @@ def send_conversation_confirmation_email_for_user(user, group):
 
     last_user = matched_list.pop()
     matched_users_thread = ", ".join([matched_user.get_display_first_name() for matched_user in matched_list])
-    matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
+    if not len(matched_list) == 1:
+        matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
 
     topic = group.topic.name
 
@@ -50,7 +51,7 @@ def send_conversation_confirmation_email_for_user(user, group):
                 "name": user.get_display_first_name(),
                 "topic": topic,
                 "time": time,
-                "description": group.description,
+                "description": group.topic.description,
                 "participants": matched_users_thread,
                 "app_link": freshchat_constants.APPSFLYER_APP_LINK,
                 "email": user.email

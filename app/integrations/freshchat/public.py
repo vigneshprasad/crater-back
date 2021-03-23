@@ -154,18 +154,17 @@ def send_conversation_confirmation_rsvp_for_user(user, group):
         group(Group): Group for which message confirmation goes
 
     """
-
-    local_tz = pytz.timezone(settings.TIME_ZONE)
-
-    local_start_datetime = group.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
+    local_start_datetime = group.local_start
 
     matched_users = group.speakers.all().exclude(pk=user.pk)
     matched_list = []
-    for user in matched_users:
-        matched_list.append(user)
+    for matched_user in matched_users:
+        matched_list.append(matched_user)
+
     last_user = matched_list.pop()
-    matched_users_thread = ', '.join([user.get_display_first_name() for user in matched_list])
-    matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
+    matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
+    if not len(matched_list) == 1:
+        matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
 
     topic = group.topic.name
 
