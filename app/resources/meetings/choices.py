@@ -196,3 +196,6 @@ MEETINGS_OPT_IN_FROM_EMAIL = 'hello@worknetwork.in'
 MEETING_REWARDS_FROM_EMAIL = 'rewards@worknetwork.in'
 
 MAX_MEMBER_FOR_ONE_ON_ONE = 2
+
+MEETING_COMMUNICATION_FROM_EMAIL = "meetings@worknetwork.in"
+EXTRA_EMAIL_FOR_INTRO_VERIFICATION = "hello@worknetwork.in"
