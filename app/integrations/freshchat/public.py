@@ -133,7 +133,20 @@ def send_meeting_confirmation_rsvp(user, meeting):
         ]
     )
 
-def send_conversation_confirmation_rsvp(user, group):
+
+def send_conversation_confirmation_rsvp_for_group(group):
+    """ Send a message with confirmed time and a rsvp link for groups
+
+    Args:
+        group(Group): Group for which message confirmation should be sent.
+
+    """
+    speakers = group.speakers.all()
+    for speaker in speakers:
+        send_conversation_confirmation_rsvp_for_user(speaker, group)
+
+
+def send_conversation_confirmation_rsvp_for_user(user, group):
     """ Send a message with confirming time and a rsvp link for groups
 
     Args:
@@ -173,6 +186,7 @@ def send_conversation_confirmation_rsvp(user, group):
             {"data": constants.CONVERSATION_RSVP},
         ]
     )
+
 
 def send_meeting_rsvp_reminder(user, meeting):
     """ Send a message reminding to rsvp for meeting

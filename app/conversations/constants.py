@@ -17,3 +17,8 @@ INVITE_TYPE_ATTENDEE = "attendee"
 REQUEST_STATUS_PENDING = "pending"
 REQUEST_STATUS_ACCEPTED = "accepted"
 REQUEST_STATUS_DECLINED = "declined"
+
+EXTRA_EMAIL_FOR_INTRO_VERIFICATION = "hello@worknetwork.in"
+MEETING_COMMUNICATION_FROM_EMAIL = "meetings@worknetwork.in"
+MEETING_REPLY_EMAIL = "vivan@worknetwork.in"
+GROUP_CONVERSATION_INTRODUCTION_TEMPLATE = "Group Conversation Introduction"

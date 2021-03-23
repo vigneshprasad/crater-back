@@ -3,12 +3,16 @@ import ast
 import datetime
 from urllib import request as urllib_request
 
+from integrations.freshchat import public as freshchat_public
 from integrations.google import public as google_public
 from conversations import models
 from conversations import services
+from conversations import tasks
 from resources.meetings import models as meeting_models
 from users import models as user_models
 
+
+# TODO(Nishant): Create tag to interest mapping and use that to populate interests in the group.
 FIELDS = [
     "Users",
     "Topic",
@@ -77,5 +81,13 @@ def run(
             print("Creating Calendar event for group")
             event_id = google_public.create_calendar_event_for_conversations(group)
             print("Created Calendar event for group: {}".format(event_id))
+
+            print("Sending Confirmation Email")
+            tasks.send_conversation_confirmation_email_for_group(group)
+            print("Sent Confirmation Email")
+
+            print("Sending Confirmation WhatsApp")
+            freshchat_public.send_conversation_confirmation_rsvp_for_group(group)
+            print("Sent Confirmation WhatsApp")
 
         print("End", "-" * 80)

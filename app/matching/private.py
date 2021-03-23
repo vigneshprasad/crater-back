@@ -16,7 +16,9 @@ def create_matches_for_all_opted_in_users(users=None):
 
     for topic, user_set in topic_match_sets_maps.items():
         # Creates matches for a given topic and user set.
-        all_matches.append(create_matches_for_user_set(topic, user_set))
+        matches = create_matches_for_user_set(topic, user_set)
+        for match in matches:
+            all_matches.append(match)
 
     return all_matches
 
@@ -104,13 +106,16 @@ def create_matches_for_user_set(topic, user_set):
         match_list = [user]
         final_match_list = []
 
-        while final_match_score >= match_score and len(final_match_list) <= matching_constants.DEFAULT_GROUP_SIZE:
+        while final_match_score >= match_score:
 
             # Get the last matched user as the user to be matched.
             user_to_be_matched = match_list[len(match_list) - 1]
+
+            if len(final_match_list) >= matching_constants.DEFAULT_GROUP_SIZE:
+                break
+
             final_match_list.append(user_to_be_matched)
             match_score = final_match_score
-
             matched_user_data = user_matching.get_top_match_for_user(user_to_be_matched, user_set)
             # If the user has no good match. Break and start with the next user.
             if not matched_user_data:
@@ -135,9 +140,9 @@ def create_matches_for_user_set(topic, user_set):
 
         average_group_score = get_average_group_score_based_on_user_score(final_match_list)
 
-        print(final_match_list_with_score, "-", average_group_score, "-", final_match_score)
+        print(final_match_list_with_score, "#", average_group_score, "#", topic)
 
-        all_matches.append((final_match_list_with_score, average_group_score))
+        all_matches.append((final_match_list_with_score, average_group_score, topic))
 
     return all_matches
 

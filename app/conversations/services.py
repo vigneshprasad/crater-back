@@ -43,8 +43,8 @@ def create_group_conversation(users, interests, topic, start, end):
         users(list): List of users that should be part of the group.
         interests(list): List of interest for the group.
         topic(Topic): Topic of the group.
-        start(datetime): Start datetime for the group conversation.
-        end(datetime): End datetime for the group conversation.
+        start(datetime.datetime): Start datetime for the group conversation.
+        end(datetime.datetime): End datetime for the group conversation.
 
     Returns:
         Created Group object.
