@@ -25,5 +25,8 @@ def run(users=None, dry_run=True):
             user_score.score = score
             user_score.save()
             # Adding to user score field as well.
-            user.score = score
-            user.save()
+            try:
+                user.score = score
+                user.save()
+            except TypeError:
+                print(user.email)
