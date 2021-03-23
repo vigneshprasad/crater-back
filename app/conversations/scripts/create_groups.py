@@ -33,15 +33,10 @@ def run(
         meeting_time = row.get("Meeting Time").strip()
         interests_str = row.get("Interests").strip()
 
-        # print("Users", users)
         emails_score_list = ast.literal_eval(emails_score_str)
-        # print("Users Score List", users_score_list)
         emails_list = [email_score[0] for email_score in list(emails_score_list)]
-        # print("Users List", users_list)
 
         interests_list = interests_str.split(",")
-
-        print(emails_list, topic, meeting_time, interests_list)
 
         users_list = []
         for email in emails_list:
