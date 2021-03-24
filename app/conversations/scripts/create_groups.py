@@ -56,7 +56,7 @@ def run(
 
         # Handles spaces between emails and interests.
         emails_list = [email.strip() for email in emails_str.split(",")]
-        interests_list = [interest.strip() for interest in interests_str.split(",")]
+        interests_list = [interest.strip() for interest in interests_str.split(",")] if interests_str else []
 
         users_list = []
         for email in emails_list:
@@ -71,10 +71,11 @@ def run(
 
         if not interests_list:
             tags_list = [(user.profile.new_tag.first().name if user.profile.new_tag.first() else None) for user in users_list]
+            print(tags_list)
             for tag in tags_list:
                 if not tag:
                     continue
-            interests_list.append(TAG_TO_INTEREST_MAP.get(tag))
+                interests_list.append(TAG_TO_INTEREST_MAP.get(tag))
 
         topic_obj = None
         try:
