@@ -13,7 +13,7 @@ from resources.meetings import services as meeting_services
 
 
 # Get top 10 matches for user.
-def get_top_10_matches_for_user(user, match_set):
+def calculate_top_10_matches_for_user(user, match_set):
     """Calculates top 10 matches for a user.
 
     Args:
@@ -24,13 +24,19 @@ def get_top_10_matches_for_user(user, match_set):
         List of top 10 matches with their match scores and detailed scores.
 
     """
+    try:
+        index = match_set.index(user)
+        match_set.pop(index)
+    except ValueError:
+        pass
+
     user_match_score_map = {}
 
     for opted_user in match_set:
         if not opted_user.has_profile:
             continue
 
-        final_score, detailed_score = get_match_score_between_users(user, opted_user)
+        final_score, detailed_score = calculate_match_score_between_users(user, opted_user)
         user_match_score_map[opted_user.email] = [final_score, detailed_score]
 
     # Removing user's match with the user itself.
@@ -72,7 +78,7 @@ def get_top_10_matches_for_user(user, match_set):
 
 
 # Get top match for user.
-def get_top_match_for_user(user, match_set):
+def calculate_top_match_for_user(user, match_set):
     """Calculates top match for a user.
 
     Args:
@@ -100,7 +106,7 @@ def get_top_match_for_user(user, match_set):
         if not matched_user.has_profile:
             continue
 
-        final_score, detailed_score = get_match_score_between_users(user, matched_user)
+        final_score, detailed_score = calculate_match_score_between_users(user, matched_user)
         # Getting the best match based on the maximum match score.
         if final_score > max_match_score:
             max_match_score, best_match_user, final_detailed_score = final_score, matched_user, detailed_score
@@ -122,7 +128,7 @@ def get_top_match_for_user(user, match_set):
 
 
 # Get match score between users.
-def get_match_score_between_users(user, matched_user):
+def calculate_match_score_between_users(user, matched_user):
     """Calculates match scores between given users.
 
     Returns:
@@ -166,8 +172,8 @@ def get_match_score_between_users(user, matched_user):
     print("Matched User Interests: {}".format(matched_user_interests))
 
     # TODO(Nishant): See how we can calculate score deviation here.
-    user_score = users_scoring.get_user_score(user)
-    matched_user_score = users_scoring.get_user_score(matched_user)
+    user_score = user.score if user.score else users_scoring.calculate_user_score(user)
+    matched_user_score = matched_user.score if matched_user.score else users_scoring.calculate_user_score(matched_user)
 
     print("User Score: {}".format(user_score))
     print("Matched User Score: {}".format(matched_user_score))

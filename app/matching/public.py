@@ -135,9 +135,14 @@ def get_top_users_for_user(user, from_users=None):
     return final_results
 
 
-def get_user_matching_score(user):
+def calculate_user_score(user):
     """Returns user score for matching."""
-    return users_scoring.get_user_score(user)
+    return users_scoring.calculate_user_score(user)
+
+
+def get_user_score(user):
+    """Returns user score for a user."""
+    return user.score
 
 
 def get_user_info(user):

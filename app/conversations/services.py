@@ -66,3 +66,8 @@ def create_group_conversation(users, interests, topic, start, end):
     group.refresh_from_db()
 
     return group
+
+
+def get_groups_attended_for_user(user):
+    """Returns groups attended for a user."""
+    return models.Group.objects.filter(speaker=user).count()

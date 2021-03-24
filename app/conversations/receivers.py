@@ -12,7 +12,7 @@ def update_group_score(sender, instance, *args, **kwargs):
         return
 
     speakers = instance.speakers.all()
-    score = matching_private.get_average_group_score_based_on_user_score(speakers)
+    score = matching_private.calculate_average_group_score_based_on_user_score(speakers)
 
     instance.score = score
     instance.save()

@@ -12,7 +12,7 @@ def update_or_create_user_score_on_profile_update(sender, instance, *args, **kwa
     """Update or create user score if the user model gets updated"""
     user = instance.user
 
-    score = public.get_user_matching_score(user)
+    score = public.calculate_user_score(user)
     user_score, created = models.UserScore.objects.update_or_create(
         user=user,
         defaults={"score": score}

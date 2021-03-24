@@ -8,7 +8,7 @@ def run(users=None, dry_run=True):
     users = users if users else users_model.User.objects.all()
 
     for user in users:
-        score = public.get_user_matching_score(user)
+        score = public.calculate_user_score(user)
         print("{}: {}".format(user.email, score))
 
         if not dry_run:

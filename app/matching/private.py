@@ -91,6 +91,9 @@ def create_matches_for_user_set(topic, user_set):
         topic(str): Topic we are matching the user set for.
         user_set(list): List of users to be matched among themselves.
 
+    Returns:
+        List of tuples, each tuple consists of (email, user_score), group_score, topic.
+
     """
     # TODO(Nishant): Handle same users being in multiple user sets.
     matched_users = []
@@ -116,7 +119,7 @@ def create_matches_for_user_set(topic, user_set):
 
             final_match_list.append(user_to_be_matched)
             match_score = final_match_score
-            matched_user_data = user_matching.get_top_match_for_user(user_to_be_matched, user_set)
+            matched_user_data = user_matching.calculate_top_match_for_user(user_to_be_matched, user_set)
             # If the user has no good match. Break and start with the next user.
             if not matched_user_data:
                 break
@@ -126,7 +129,7 @@ def create_matches_for_user_set(topic, user_set):
             match_list.append(matched_user)
 
             # Calculate the final match score
-            final_match_score = get_group_match_score(match_list)
+            final_match_score = calculate_group_match_score(match_list)
             if len(match_list) > 2:
                 final_match_score = final_match_score * matching_constants.TOPIC_GROUP_MULTIPLIER.get(topic, 1.2)
 
@@ -136,9 +139,9 @@ def create_matches_for_user_set(topic, user_set):
 
         final_match_list_with_score = []
         for final_matched_user in final_match_list:
-            final_match_list_with_score.append((final_matched_user.email, users_scoring.get_user_score(final_matched_user)))
+            final_match_list_with_score.append((final_matched_user.email, users_scoring.calculate_user_score(final_matched_user)))
 
-        average_group_score = get_average_group_score_based_on_user_score(final_match_list)
+        average_group_score = calculate_average_group_score_based_on_user_score(final_match_list)
 
         print(final_match_list_with_score, "#", average_group_score, "#", topic)
 
@@ -147,26 +150,26 @@ def create_matches_for_user_set(topic, user_set):
     return all_matches
 
 
-def get_group_match_score(users):
+def calculate_group_match_score(users):
     """Calculates group score between all users provided."""
     all_user_sets = list(itertools.permutations(users, 2))
     group_score = 0
 
     for user, matched_user in all_user_sets:
-        match_score, _ = user_matching.get_match_score_between_users(user, matched_user)
+        match_score, _ = user_matching.calculate_match_score_between_users(user, matched_user)
         group_score += match_score
 
-    return group_score/len(all_user_sets)
+    return round(group_score/len(all_user_sets), 2)
 
 
-def get_average_group_score_based_on_user_score(users):
+def calculate_average_group_score_based_on_user_score(users):
     """Calculate average group score based on user scores."""
     total_score = 0
 
     if not users:
-      return total_score
+        return total_score
 
     for user in users:
-        total_score += users_scoring.get_user_score(user)
+        total_score += users_scoring.calculate_user_score(user)
 
     return round(total_score/len(users), 2)

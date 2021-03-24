@@ -12,6 +12,23 @@ from resources.meetings import models as meeting_models
 from users import models as user_models
 
 
+TAG_TO_INTEREST_MAP = {
+    "Business Advisor": "Business Advisors",
+    "Business Development Executive": "Business Development Executives",
+    "Engineer": "Engineers",
+    "Financial Expert": "Financial Experts",
+    "HR Executive": "HR Executives",
+    "Senior Executive": "Senior Executives",
+    "SME Owner": "Business Owners (SME)",
+    "Student/Intern": "Students",
+    "Lawyer": "Lawyers",
+    "Marketing Expert": "Marketing Experts",
+    "Product Manager": "Product Managers",
+    "Startup Founder": "Startup Founders",
+    "Startup Investor": "Startup Investors"
+}
+
+
 # TODO(Nishant): Create tag to interest mapping and use that to populate interests in the group.
 FIELDS = [
     "Users",
@@ -32,45 +49,58 @@ def run(
     for row in reader:
         print("Start", "-" * 80)
         # Getting all the fields in the right format.
-        emails_score_str = row.get("Users").strip()
+        emails_str = row.get("Users").strip()
         topic = row.get("Topic").strip()
         meeting_time = row.get("Meeting Time").strip()
-        interests_str = row.get("Interests").strip()
+        interests_str = row.get("Interests", "").strip()
 
-        emails_score_list = ast.literal_eval(emails_score_str)
-        emails_list = [email_score[0] for email_score in list(emails_score_list)]
-
-        interests_list = interests_str.split(",")
+        # Handles spaces between emails and interests.
+        emails_list = [email.strip() for email in emails_str.split(",")]
+        interests_list = [interest.strip() for interest in interests_str.split(",")]
 
         users_list = []
         for email in emails_list:
             try:
                 user = user_models.User.objects.get(email=email)
             except user_models.User.DoesNotExist:
-                print("Email Does Not Exist: ", email)
+                print("***** Email Does Not Exist: ", email)
                 continue
             users_list.append(user)
+
+        print("Creating Conversation for users: {}".format(users_list))
+
+        tags_list = [(user.new_tag.first().name if user.new_tag.first() else None) for user in users_list]
+
+        if not interests_list:
+            for tag in tags_list:
+                if not tag:
+                    continue
+            interests_list.append(TAG_TO_INTEREST_MAP.get(tag))
 
         topic_obj = None
         try:
             topic_obj = models.Topic.objects.get(name=topic)
         except models.Topic.DoesNotExist:
-            print("Topic Does Not Exist: ", topic)
+            print("***** Topic Does Not Exist: ", topic)
+
+        print("Creating Conversation for topic: {}".format(topic))
 
         start = datetime.datetime.strptime(meeting_time, "%d/%m/%y %H:%M")
         end = start + datetime.timedelta(hours=1)
 
-        print("Start: {}".format(start))
-        print("End: {}".format(end))
+        print("Conversation Start: {}".format(start))
+        print("Conversation End: {}".format(end))
 
         interests_objs = []
         for interest in interests_list:
             try:
                 interest_obj = meeting_models.Interest.objects.get(name=interest)
             except meeting_models.Interest.DoesNotExist:
-                print("Interest Does Not Exist: ", interest)
+                print("***** Interest Does Not Exist: ", interest)
                 continue
             interests_objs.append(interest_obj)
+
+        print("Creating Conversation for interests: {}".format(interests_objs))
 
         if not dry_run:
 

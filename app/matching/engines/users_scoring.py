@@ -1,18 +1,19 @@
+from conversations import services as conversation_services
 from matching import constants
 from matching.engines import new_scoring_constants
 from resources.meetings import services as meeting_services
 
 
-def get_user_score(user):
+def calculate_user_score(user):
     """Get user score based on multiple factors."""
     user_score = 0
 
     detailed_score = {
-        constants.TAG_TO_EXPERIENCE_ENGINE: get_user_score_based_on_tags_and_experience(user),
-        constants.TAG_TO_COMPANY_TYPE_ENGINE: get_user_score_based_on_tags_and_company_type(user),
-        constants.SOURCE_ENGINE: get_user_score_based_on_source(user),
-        constants.EDUCATION_LEVEL_ENGINE: get_user_score_based_on_education(user),
-        constants.ACTIVITY_ENGINE: get_user_activity_score(user)
+        constants.TAG_TO_EXPERIENCE_ENGINE: calculate_user_score_based_on_tags_and_experience(user),
+        constants.TAG_TO_COMPANY_TYPE_ENGINE: calculate_user_score_based_on_tags_and_company_type(user),
+        constants.SOURCE_ENGINE: calculate_user_score_based_on_source(user),
+        constants.EDUCATION_LEVEL_ENGINE: calculate_user_score_based_on_education(user),
+        constants.ACTIVITY_ENGINE: calculate_user_activity_score(user)
     }
     # Adding a print for visualization.
     print(detailed_score)
@@ -23,15 +24,15 @@ def get_user_score(user):
     return user_score
 
 
-def get_user_score_without_activity(user):
+def calculate_user_score_without_activity(user):
     """Get user score based on multiple factors excluding the activity score."""
     user_score = 0
 
     detailed_score = {
-        constants.TAG_TO_EXPERIENCE_ENGINE: get_user_score_based_on_tags_and_experience(user),
-        constants.TAG_TO_COMPANY_TYPE_ENGINE: get_user_score_based_on_tags_and_company_type(user),
-        constants.SOURCE_ENGINE: get_user_score_based_on_source(user),
-        constants.EDUCATION_LEVEL_ENGINE: get_user_score_based_on_education(user),
+        constants.TAG_TO_EXPERIENCE_ENGINE: calculate_user_score_based_on_tags_and_experience(user),
+        constants.TAG_TO_COMPANY_TYPE_ENGINE: calculate_user_score_based_on_tags_and_company_type(user),
+        constants.SOURCE_ENGINE: calculate_user_score_based_on_source(user),
+        constants.EDUCATION_LEVEL_ENGINE: calculate_user_score_based_on_education(user),
     }
     # Adding a print for visualization.
     print(detailed_score)
@@ -42,7 +43,7 @@ def get_user_score_without_activity(user):
     return user_score
 
 
-def get_user_score_based_on_tags_and_experience(user):
+def calculate_user_score_based_on_tags_and_experience(user):
     """Returns score based on user's tag and years of experience."""
     if not user.has_profile:
         return 0
@@ -64,7 +65,7 @@ def get_user_score_based_on_tags_and_experience(user):
     return user_tag_to_experience_score/len(tags)
 
 
-def get_user_score_based_on_tags_and_company_type(user):
+def calculate_user_score_based_on_tags_and_company_type(user):
     """Returns score based on tag and user's company type."""
     if not user.has_profile:
         return 0
@@ -86,7 +87,7 @@ def get_user_score_based_on_tags_and_company_type(user):
     return user_tag_to_experience_score/len(tags)
 
 
-def get_user_score_based_on_education(user):
+def calculate_user_score_based_on_education(user):
     """Get the user's score based on the user education level."""
     if not user.has_profile:
         return 0
@@ -99,7 +100,7 @@ def get_user_score_based_on_education(user):
     return new_scoring_constants.EDUCATION_LEVEL_SCORES.get(education, 0)
 
 
-def get_user_score_based_on_source(user):
+def calculate_user_score_based_on_source(user):
     """Returns score based on user's signup source."""
     user_source = user.new_source
     if not user_source:
@@ -108,16 +109,12 @@ def get_user_score_based_on_source(user):
     return user_source.score or user_source.base_source.score
 
 
-def get_user_activity_score(user):
-    """Returns score based on number of meeting a user has had.
+def calculate_user_activity_score(user):
+    """Returns score based on number of meeting a user has had."""
+    meetings_attended = meeting_services.get_meetings_attended(user)
+    groups_attended = conversation_services.get_groups_attended_for_user(user)
 
-    Note:
-        TODO(Nishant): Include groups into this once groups are live.
-
-    """
-    meetings = meeting_services.get_meetings_attended(user)
-
-    if not meetings:
+    if not (meetings_attended and groups_attended):
         return 0
 
-    return meetings.count() * 10
+    return meetings_attended.count() * 10 + groups_attended.count() * 10
