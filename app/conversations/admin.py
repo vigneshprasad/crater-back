@@ -4,8 +4,8 @@ from conversations import models
 
 
 @admin.register(models.Topic)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "image", "is_active")
+class TopicAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "parent", "image", "is_active")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
@@ -13,14 +13,22 @@ class CategoryAdmin(admin.ModelAdmin):
 class GroupAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "host",
+        "score",
         "topic",
+        "group_speakers",
+        "group_interests",
         "start",
-        "privacy",
         "closed",
-        "score"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    @staticmethod
+    def group_speakers(obj):
+        return ", ".join(speaker.email for speaker in obj.speakers.all())
+
+    @staticmethod
+    def group_interests(obj):
+        return ", ".join(interest.name for interest in obj.interests.all())
 
 
 @admin.register(models.Invite)
