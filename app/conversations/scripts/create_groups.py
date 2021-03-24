@@ -69,9 +69,8 @@ def run(
 
         print("Creating Conversation for users: {}".format(users_list))
 
-        tags_list = [(user.new_tag.first().name if user.new_tag.first() else None) for user in users_list]
-
         if not interests_list:
+            tags_list = [(user.profile.new_tag.first().name if user.profile.new_tag.first() else None) for user in users_list]
             for tag in tags_list:
                 if not tag:
                     continue
