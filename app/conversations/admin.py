@@ -22,21 +22,19 @@ class GroupAdmin(admin.ModelAdmin):
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = ("speakers__email", )
-    list_filter = (
-        ("start", admin.DateFieldListFilter),
-    )
+    list_filter = ("start", "topic")
 
     @staticmethod
     def group_speakers(obj):
         if not obj.speakers.all():
             return ""
-        return ", ".join(speaker.email for speaker in obj.speakers.all())
+        return ", ".join((speaker.email or "") for speaker in obj.speakers.all())
 
     @staticmethod
     def group_interests(obj):
         if not obj.interests.all():
             return ""
-        return ", ".join(interest.name for interest in obj.interests.all())
+        return ", ".join((interest.name or "") for interest in obj.interests.all())
 
 
 @admin.register(models.Invite)
