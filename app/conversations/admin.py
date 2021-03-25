@@ -21,6 +21,10 @@ class GroupAdmin(admin.ModelAdmin):
         "closed",
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    search_fields = ("speakers__email", )
+    list_filter = (
+        ("start", admin.DateFieldListFilter),
+    )
 
     @staticmethod
     def group_speakers(obj):
