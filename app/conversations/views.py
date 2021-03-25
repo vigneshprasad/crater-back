@@ -11,6 +11,7 @@ from users import permissions
 from conversations import models
 from conversations import serializers
 from conversations import services
+from conversations import exceptions
 
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
@@ -47,31 +48,27 @@ class TopicViewSet(
     )
     def for_groups(self, request, *args, **kwargs):
         # TODO(Abhishek): Need to add end point to filter only my groups and return count
-        result_list = []
         user = request.user
-        user_score = user.score
-        now_time = timezone.now()
-        all_topics = self.get_queryset()
+        groups = services.get_groups_for_user(user)
+        response = []
+        topic_ids = []
 
-        for root_topic in all_topics:
-            count = len(root_topic.group.all())
-            sub_topics = models.Topic.objects.filter(parent__id__contains=root_topic.id)
-            groups_count = len(models.Group.objects.filter(
-                topic__in=sub_topics,
-                score__lte=(user_score + 5),
-                start__lte=now_time - datetime.timedelta(minutes=30)
-            ))
+        for group in groups:
+            topic = group.topic
 
-            total_count = count + groups_count
-            if total_count <= 0:
-                continue
+            if not topic.parent:
+                topic_ids.append(topic.id)
+            else:
+                topic_ids.append(topic.parent.id)
 
-            result_list.append({
-                'topic': serializers.TopicSerializer(root_topic).data,
-                'group_count': total_count
+        results = models.Topic.objects.filter(id__in=topic_ids)
+
+        for result in results:
+            response.append({
+                'topic': serializers.TopicSerializer(result).data,
             })
 
-        return Response(result_list)
+        return Response(response)
 
 
 class GroupsViewSet(
@@ -97,13 +94,8 @@ class GroupsViewSet(
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        user_score = user.score
-        now_time = timezone.now()
 
-        groups = self.get_queryset().filter(
-            start__gte=(now_time - datetime.timedelta(minutes=30)),
-            score__lte=(user_score + 5)
-        ).order_by("-score", "-start")
+        groups = services.get_groups_for_user(user)
 
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)
@@ -153,9 +145,11 @@ class RequestViewSet(
         group_request = serializer.save()
         headers = self.get_success_headers(serializer.data)
 
-        # Add user to group and update status to confirmed
-        updated_request = services.update_request_and_add_user_to_group(user, group_request)
+        try:
+            result = services.add_speaker_to_group(user, group_request)
+            serializer = self.get_serializer(result)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-        serializer = self.get_serializer(updated_request)
+        except exceptions.GroupMaxSpeakersException as e:
+            return Response(e.get_error_body(), status=e.status_code)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
