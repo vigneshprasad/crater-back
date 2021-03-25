@@ -97,8 +97,8 @@ def send_whatsapp_conversation_reminders(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    start_datetime = (now_time + datetime.timedelta(minutes=30))
-    end_datetime = (now_time + datetime.timedelta(minutes=45))
+    start_datetime = (now_time + datetime.timedelta(minutes=15))
+    end_datetime = (now_time + datetime.timedelta(minutes=30))
 
     groups = models.Group.objects.filter(
         start__gt=start_datetime,
