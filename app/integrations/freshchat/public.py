@@ -161,9 +161,11 @@ def send_conversation_confirmation_rsvp_for_user(user, group):
     for matched_user in matched_users:
         matched_list.append(matched_user)
 
-    last_user = matched_list.pop()
-    matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
-    if not len(matched_list) == 1:
+    if len(matched_list) == 1:
+        matched_users_thread = matched_list.pop().get_display_first_name()
+    else:
+        last_user = matched_list.pop()
+        matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
         matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
 
     topic = group.topic.name
@@ -183,6 +185,47 @@ def send_conversation_confirmation_rsvp_for_user(user, group):
                     tiny_url_service.shorten(constants.APPSFLYER_APP_LINK)
             )},
             {"data": constants.CONVERSATION_RSVP},
+        ]
+    )
+
+def send_conversation_reminder_for_user(user, group):
+    """ Send a message reminding user of upcoming meeting
+
+    Args:
+        user(User): User to whom this message will go.
+        group(Group): Group for which message confirmation goes
+
+    """
+    local_start_datetime = group.local_start
+
+    matched_users = group.speakers.all().exclude(pk=user.pk)
+    matched_list = []
+    for matched_user in matched_users:
+        matched_list.append(matched_user)
+
+    if len(matched_list) == 1:
+        matched_users_thread = matched_list.pop().get_display_first_name()
+    else:
+        last_user = matched_list.pop()
+        matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
+        matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
+
+    topic = group.topic.name
+
+    date = group.start.strftime('%a, %d %b %Y')
+    start_time = local_start_datetime.strftime('%I:%M %p')
+    date_time = "{}, {}".format(start_time, date)
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.CONVERSATION_REMINDER_TEMPLATE,
+        template_data=[
+            {"data": date_time},
+            {"data": matched_users_thread},
+            {"data": topic},
+            {"data": constants.CONVERSATION_PARTICIPANTS_APP_LINK.format(
+                    tiny_url_service.shorten(constants.APPSFLYER_APP_LINK)
+            )},
         ]
     )
 

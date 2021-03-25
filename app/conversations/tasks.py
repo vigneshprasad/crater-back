@@ -1,5 +1,13 @@
-from conversations import constants
+import datetime
+import logging
+
+from conversations import constants, models
 from integrations.freshchat import constants as freshchat_constants
+
+from freshchat import public as freshchat_public
+
+from celery.schedules import crontab
+from celery.task import periodic_task
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -30,11 +38,13 @@ def send_conversation_confirmation_email_for_user(user, group):
     for matched_user in matched_users:
         matched_list.append(matched_user)
 
-    last_user = matched_list.pop()
-    matched_users_thread = ", ".join([matched_user.get_display_first_name() for matched_user in matched_list])
-    if not len(matched_list) == 1:
+    if len(matched_list) == 1:
+        matched_users_thread = matched_list.pop().get_display_first_name()
+    else:
+        last_user = matched_list.pop()
+        matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
         matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
-
+    
     topic = group.topic.name
 
     date = group.start.strftime("%a, %d %b %Y")
@@ -74,3 +84,40 @@ def send_conversation_confirmation_email_for_user(user, group):
             from_email=from_email,
             merge_vars=data
         )
+
+@periodic_task(run_every=crontab(minute='*/5'))
+def send_whatsapp_conversation_reminders(meetings=None):
+    """Sends whatsapp reminders for people 30 minutes before their meetings.
+
+    Args:
+        meetings(Meeting queryset): Queryset of meeting you want to send this
+            reminder to. Added for testing.
+
+    """
+    now_time = datetime.datetime.now()
+
+    logging.info("THIS TASK RUNS {}".format(now_time))
+
+    start_datetime = (now_time + datetime.timedelta(minutes=30))
+    end_datetime = (now_time + datetime.timedelta(minutes=45))
+
+    groups = models.Group.objects.filter(
+        config__is_active=True,
+        start__gt=start_datetime,
+        start__lte=end_datetime,
+    )
+
+    logging.info("Sending reminders for groups between {} - {}. Groups count: {}".format(
+            start_datetime, end_datetime, groups.count()
+    ))
+
+    exclude_list = []
+
+    for group in groups:
+        for speaker in group.speaker.all():
+            if (not speaker in exclude_list):
+                freshchat_public.send_meeting_whatsapp_reminder_to_user(
+                    speaker,
+                    group
+                )
+                exclude_list.append(speaker)

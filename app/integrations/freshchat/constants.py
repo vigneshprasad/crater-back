@@ -58,6 +58,7 @@ MEETING_RESCHEDULE_REQUEST_DECLINED_PROMPT_MESSAGE = " if you have spoken to you
 
 # Conversation templates
 CONVERSATION_CONFIRMATION_TEMPLATE = "huddle_meeting_setup_group"
+CONVERSATION_REMINDER_TEMPLATE = "huddle_meeting_reminder_group"
 CONVERSATION_PARTICIPANTS_APP_LINK = "View on the app: {}"
 CONVERSATION_RSVP = "Please RSVP using the calendar invite. Note this meeting will take place on the mobile app."
 
