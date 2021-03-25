@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'consumers.chat',
     'material.admin',
     'material.admin.default',
+    'rangefilter',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from rangefilter import filter
 
 from conversations import models
 
@@ -22,7 +23,10 @@ class GroupAdmin(admin.ModelAdmin):
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = ("speakers__email", )
-    list_filter = ("start", "topic")
+    list_filter = (
+        ("start", filter.DateRangeFilter),
+        "topic"
+    )
 
     @staticmethod
     def group_speakers(obj):
@@ -35,6 +39,11 @@ class GroupAdmin(admin.ModelAdmin):
         if not obj.interests.all():
             return ""
         return ", ".join((interest.name or "") for interest in obj.interests.all())
+
+    @staticmethod
+    def get_rangefilter_start_title(request, field_path="start"):
+        """Returns the title for the start date filter."""
+        return "Filter by Start Date"
 
 
 @admin.register(models.Invite)

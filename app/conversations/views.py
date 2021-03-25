@@ -59,7 +59,7 @@ class TopicViewSet(
             groups_count = len(models.Group.objects.filter(
                 topic__in=sub_topics,
                 score__lte=(user_score + 5),
-                start__lte=now_time - datetime.timedelta(minutes=30)
+                start__lte=now_time - datetime.timedelta(days=2)
             ))
 
             total_count = count + groups_count
@@ -101,7 +101,7 @@ class GroupsViewSet(
         now_time = timezone.now()
 
         groups = self.get_queryset().filter(
-            start__gte=(now_time - datetime.timedelta(minutes=30)),
+            start__gte=(now_time - datetime.timedelta(days=2)),
             score__lte=(user_score + 5)
         ).order_by("-score", "-start")
 
