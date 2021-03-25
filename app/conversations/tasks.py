@@ -97,8 +97,6 @@ def send_whatsapp_conversation_reminders(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    logging.info("THIS TASK RUNS {}".format(now_time))
-
     start_datetime = (now_time + datetime.timedelta(minutes=30))
     end_datetime = (now_time + datetime.timedelta(minutes=45))
 
