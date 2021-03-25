@@ -188,6 +188,7 @@ def send_conversation_confirmation_rsvp_for_user(user, group):
         ]
     )
 
+
 def send_conversation_reminder_for_user(user, group):
     """ Send a message reminding user of upcoming meeting
 

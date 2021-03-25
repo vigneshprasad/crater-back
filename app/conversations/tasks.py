@@ -1,13 +1,13 @@
 import datetime
 import logging
 
-from conversations import constants, models
-from integrations.freshchat import constants as freshchat_constants
-
-from freshchat import public as freshchat_public
-
 from celery.schedules import crontab
 from celery.task import periodic_task
+
+from conversations import constants
+from conversations import models
+from integrations.freshchat import constants as freshchat_constants
+from integrations.freshchat import public as freshchat_public
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -85,7 +85,8 @@ def send_conversation_confirmation_email_for_user(user, group):
             merge_vars=data
         )
 
-@periodic_task(run_every=crontab(minute='*/5'))
+
+@periodic_task(run_every=crontab(minute='*/15'))
 def send_whatsapp_conversation_reminders(meetings=None):
     """Sends whatsapp reminders for people 30 minutes before their meetings.
 
@@ -102,7 +103,6 @@ def send_whatsapp_conversation_reminders(meetings=None):
     end_datetime = (now_time + datetime.timedelta(minutes=45))
 
     groups = models.Group.objects.filter(
-        config__is_active=True,
         start__gt=start_datetime,
         start__lte=end_datetime,
     )
@@ -114,10 +114,11 @@ def send_whatsapp_conversation_reminders(meetings=None):
     exclude_list = []
 
     for group in groups:
-        for speaker in group.speaker.all():
-            if (not speaker in exclude_list):
-                freshchat_public.send_meeting_whatsapp_reminder_to_user(
-                    speaker,
-                    group
-                )
-                exclude_list.append(speaker)
+        for speaker in group.speakers.all():
+            if speaker in exclude_list:
+                continue
+            freshchat_public.send_conversation_reminder_for_user(
+                speaker,
+                group
+            )
+            exclude_list.append(speaker)
