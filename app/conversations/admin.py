@@ -28,10 +28,14 @@ class GroupAdmin(admin.ModelAdmin):
 
     @staticmethod
     def group_speakers(obj):
+        if not obj.speakers.all():
+            return ""
         return ", ".join(speaker.email for speaker in obj.speakers.all())
 
     @staticmethod
     def group_interests(obj):
+        if not obj.interests.all():
+            return ""
         return ", ".join(interest.name for interest in obj.interests.all())
 
 
