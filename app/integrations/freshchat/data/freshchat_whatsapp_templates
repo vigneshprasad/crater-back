@@ -96,3 +96,9 @@ Your conversation to discuss {1} with {2} has been set up for {3}.
 Additional Information
 Participant details: {4}
 RSVP: {5}
+
+25. huddle_meeting_reminder_group
+Hey,
+A gentle reminder of your upcoming conversation at {1} with {2} to discuss {3}.
+Details
+Meeting link: {4}
