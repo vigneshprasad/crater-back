@@ -146,7 +146,7 @@ class RequestViewSet(
         headers = self.get_success_headers(serializer.data)
 
         try:
-            result = services.add_speaker_to_group(user, group_request)
+            result = services.add_speaker_to_group_for_request(user, group_request)
             serializer = self.get_serializer(result)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

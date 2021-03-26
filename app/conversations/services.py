@@ -24,7 +24,7 @@ def get_root_topic(topic):
     return root
 
 
-def add_speaker_to_group(speaker, group_request):
+def add_speaker_to_group_for_request(speaker, group_request):
     """Add speaker to group and raise exception if conditions not met
 
     Args:
