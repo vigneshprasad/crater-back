@@ -58,7 +58,8 @@ class TopicViewSet(
             topic_ids.append(topic.parent.id) if topic.parent else topic_ids.append(topic.id)
 
         all_topics = models.Topic.objects.filter(id__in=topic_ids)
-        response.append({"topic": serializers.TopicSerializer(topic).data} for topic in all_topics)
+        for topic in all_topics:
+            response.append({"topic": serializers.TopicSerializer(topic).data})
         return Response(response)
 
 
