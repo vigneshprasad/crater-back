@@ -1,4 +1,8 @@
-from conversations import models
+import datetime
+
+from django.utils import timezone
+
+from conversations import models, exceptions
 
 
 def get_root_topic(topic):
@@ -20,18 +24,25 @@ def get_root_topic(topic):
     return root
 
 
-def update_request_and_add_user_to_group(user, group_request):
-    """ Add user to group and update the request status
+def add_speaker_to_group_for_request(speaker, group_request):
+    """Add speaker to group and raise exception if conditions not met
 
     Args:
-        user(User): user object to be added to group
-        group_request(Request): reference to group object user is added to
+        speaker(User): speaker to be added to group
+        group_request(Request): request to the group to which user to be added
 
     Returns:
-        request(Request): group request object
+        group(Group): group with speaker added
+
     """
+    group = group_request.group
+    current_members_count = len(group.speakers.all())
+
+    if current_members_count >= group.max_speakers:
+        raise exceptions.GroupMaxSpeakersException()
+
     group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
-    group_request.group.speakers.add(user)
+    group_request.group.speakers.add(speaker)
     group_request.save()
     return group_request
 
@@ -71,3 +82,28 @@ def create_group_conversation(users, interests, topic, start, end):
 def get_groups_attended_for_user(user):
     """Returns groups attended for a user."""
     return models.Group.objects.filter(speakers=user)
+
+    
+def get_groups_for_user(user, queryset=None):
+    """ Return list of groups for user filtered based on start time < 30 mins before now
+    and >= user score + 5
+
+    Args:
+        user(User): user from the context or request
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
+        not closed.
+
+    Returns:
+        Queryset<Group>: queryset of filtered groups for user
+
+    """
+    user_score = user.score
+    now_time = timezone.now()
+
+    if not queryset:
+        queryset = models.Group.objects.filter(closed=False)
+
+    return queryset.filter(
+        start__gte=(now_time - datetime.timedelta(days=2)),
+        score__lte=(user_score + 5)
+    ).order_by("-score", "-start")
