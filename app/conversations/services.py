@@ -104,6 +104,6 @@ def get_groups_for_user(user, queryset=None):
         queryset = models.Group.objects.filter(closed=False)
 
     return queryset.filter(
-        start__gte=(now_time - datetime.timedelta(minutes=30)),
+        start__gte=(now_time - datetime.timedelta(days=2)),
         score__lte=(user_score + 5)
     ).order_by("-score", "-start")
