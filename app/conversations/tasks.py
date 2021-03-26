@@ -122,7 +122,7 @@ def send_whatsapp_conversation_reminders(meetings=None):
             exclude_list.append(speaker)
 
 
-@periodic_task(run_every=crontab(minute='*/5'))
+@periodic_task(run_every=crontab(minute='*/15'))
 def send_group_feedback_emails(groups=None):
     """Send feedback mails for convesations after 90 minutes of the
         meeting.
