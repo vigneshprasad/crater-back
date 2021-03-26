@@ -120,3 +120,56 @@ def send_whatsapp_conversation_reminders(meetings=None):
                 group
             )
             exclude_list.append(speaker)
+
+
+@periodic_task(run_every=crontab(minute='*/5'))
+def send_group_feedback_emails(groups=None):
+    """Send feedback mails for convesations after 90 minutes of the
+        meeting.
+
+    Args:
+        groups(Group queryset): Queryset of groups you want to send this
+            reminder to. Added for testing.
+
+    """
+    now_time = datetime.datetime.now()
+
+    start_datetime = (now_time - datetime.timedelta(minutes=105))
+    end_datetime = (now_time - datetime.timedelta(minutes=90))
+
+    groups = models.Group.objects.filter(
+        end__gte=start_datetime,
+        end__lt=end_datetime,
+    ) if not groups else groups
+
+    logging.info("Sending feedback emails for groups between {} - {}. groups count: {}".format(
+        start_datetime, end_datetime, groups.count()
+    ))
+
+    exclude_list = []
+
+    for group in groups:
+
+        for speaker in group.speakers.all():
+            if speaker in exclude_list:
+                continue
+
+            subject = 'How was your group meeting?'
+
+            to_emails = [speaker.email]
+            from_email = constants.MEETING_COMMUNICATION_FROM_EMAIL
+
+            template_name = constants.GROUP_CONVERSATION_FEEDBACK_TEMPLATE
+
+            # Sending the emails.
+            for to in to_emails:
+                speaker.send_email(
+                    subject=subject,
+                    to=[to],
+                    template_name=template_name,
+                    content={},
+                    from_email=from_email,
+                    merge_vars={
+                        to: {'email': to}
+                    }
+                )
