@@ -130,7 +130,7 @@ def create_user_and_profile(
             user.new_source = new_source
 
         # Get or create Email address object for user.
-        email_address = EmailAddress.objects.get_or_create(
+        email_address, _ = EmailAddress.objects.get_or_create(
             primary=True,
             user=user,
             email=email

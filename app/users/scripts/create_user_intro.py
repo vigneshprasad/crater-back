@@ -54,7 +54,7 @@ def run(emails, dry_run=True):
         user_meeting_objective_name = user_meeting_objective.name if user_meeting_objective else None
         user_meeting_interest_name = user_meeting_interest.name if user_meeting_interest else None
         user_meeting_topic_name = user_meeting_topic.name if user_meeting_topic else None
-        user_meeting_objective_or_topic_name = user_meeting_objective_name if user_meeting_objective_name else user_meeting_topic_name
+        user_meeting_objective_or_topic_name = user_meeting_topic_name if user_meeting_topic_name else user_meeting_objective_name
 
         print("User Tag: {}".format(user_tag_name))
         print("User Experience: {}".format(user_experience_str))
