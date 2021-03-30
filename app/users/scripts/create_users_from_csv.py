@@ -111,7 +111,7 @@ def create_user_and_profile(
     if not phone_number:
         phone_number = None
 
-    # Creating User.
+    # Creating/updating user with the provided email.
     try:
         user = models.User.objects.get(email=email)
     except models.User.DoesNotExist:
@@ -129,8 +129,8 @@ def create_user_and_profile(
         if new_source:
             user.new_source = new_source
 
-        # Create Email address object for user.
-        email_address = EmailAddress.objects.create(
+        # Get or create Email address object for user.
+        email_address = EmailAddress.objects.get_or_create(
             primary=True,
             user=user,
             email=email
@@ -163,7 +163,7 @@ def create_user_and_profile(
 
     user.save()
 
-    # Creating Profile
+    # Creating profile.
     profile, created = models.Profile.objects.get_or_create(
         user=user
     )
@@ -181,16 +181,16 @@ def create_user_and_profile(
 
     # Add tags to profile.
     if tags:
-        tags = tags_models.Tag.objects.filter(
+        tag = tags_models.Tag.objects.filter(
             name__in=tags,
             is_active=True
-        )
-        for tag in tags:
+        ).first()
+        if tag:
             profile.new_tag.add(tag)
 
-    created_or_updated_user = 'Created' if user_created else 'Updated'
+    created_or_updated_user = "Created" if user_created else "Updated"
     print("{} user: {}".format(created_or_updated_user, user.pk))
-    created_or_updated_profile = 'Created' if profile_created else 'Updated'
+    created_or_updated_profile = "Created" if profile_created else "Updated"
     print("{} profile: {}".format(created_or_updated_profile, profile.pk))
 
     return user, profile
