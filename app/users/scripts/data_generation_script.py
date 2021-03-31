@@ -29,9 +29,9 @@ def get_all_month_by_month_data(start):
         print("Paid User Count: ", get_paid_users_count_as_of_date(start=start, end=end))
 
         print("Profile Data", "*"*30)
-        print("Tag Distribution of Users: ", get_users_distribution_based_on_tag_as_of_date(start=start, end=end))
-        print("Experience Distribution of Users: ", get_users_distribution_based_on_experience_as_of_date(start=start, end=end))
-        print("Sector Distribution of Users: ", get_users_distribution_based_on_sector_as_of_date(start=start, end=end))
+        print("Tag Distribution of Users:\n", get_users_distribution_based_on_tag_as_of_date(start=start, end=end))
+        print("Experience Distribution of Users:\n", get_users_distribution_based_on_experience_as_of_date(start=start, end=end))
+        print("Sector Distribution of Users:\n", get_users_distribution_based_on_sector_as_of_date(start=start, end=end))
 
         print("Conversations Metrics", "*"*30)
         print("Total Users Signed up for Conversations: ", get_total_users_signed_up_for_meetings_as_of_date(start=start, end=end))
