@@ -5,7 +5,7 @@ from base import exceptions as base_exceptions
 
 class GroupMaxSpeakersException(base_exceptions.BaseAPIException):
     """Exception raised when max members reached in group and attempting to add one more
-    user
+        user.
 
     """
 
@@ -20,8 +20,8 @@ class GroupMaxSpeakersException(base_exceptions.BaseAPIException):
 
 
 class GroupJoinedAtTheSameTime(base_exceptions.BaseAPIException):
-    """Exception raised when max members reached in group and attempting to add one more
-    user
+    """Exception raised when a user tries to join groups happening at the
+        same time.
 
     """
 
