@@ -140,6 +140,5 @@ class RequestViewSet(
             serializer = self.get_serializer(result)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-        except exceptions.GroupMaxSpeakersException as e:
+        except (exceptions.GroupMaxSpeakersException, exceptions.GroupJoinedAtTheSameTime) as e:
             return Response(e.get_error_body(), status=e.status_code)
-

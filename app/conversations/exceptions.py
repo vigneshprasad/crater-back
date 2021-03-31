@@ -16,4 +16,20 @@ class GroupMaxSpeakersException(base_exceptions.BaseAPIException):
         )
 
     def __str__(self):
-        return f'{self.message}'
+        return f"{self.message}"
+
+
+class GroupJoinedAtTheSameTime(base_exceptions.BaseAPIException):
+    """Exception raised when max members reached in group and attempting to add one more
+    user
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            message="You have a conversation at the same time. Try to join conversation at different time.",
+            error_code="groupJoinedAtTheSameTime"
+        )
+
+    def __str__(self):
+        return f"{self.message}"

@@ -43,6 +43,10 @@ def add_speaker_to_group_for_request(speaker, group_request):
     if current_members_count >= group.max_speakers:
         raise exceptions.GroupMaxSpeakersException()
 
+    # If the user is already part of the group at the same time. Don't allow.
+    if models.Group.objects.filter(start=group.start, speakers=speaker):
+        raise exceptions.GroupJoinedAtTheSameTime()
+
     group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
     group_request.group.speakers.add(speaker)
     group_request.save()
