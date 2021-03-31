@@ -72,19 +72,17 @@ def send_analytics_for_meeting_config_creation(sender, instance, created, *args,
 def create_meeting_preference_for_typeform_user(
         sender, user, time_preferences, interests, days, objectives, *args, **kwargs
 ):
+
     clean_time_preferences = []
     for time_preference in time_preferences:
         clean_time_preferences.append(_clean_time_preference(time_preference))
-    # Was adding users to the previous config according to the scripts.
-    # Changed it to add user"s to current meeting.
+
     meeting_config = services.get_latest_active_meeting_config()
     # Get respective objectives for User Meeting Preference.
     objective_objs = models.Objective.objects.filter(name__in=objectives)
 
     # Calculate time slots for the data provided.
-    start_date = meeting_config.week_start_date
     end_date = meeting_config.week_end_date
-
     end_date_weekday = end_date.weekday()
 
     dates = []
@@ -113,10 +111,13 @@ def create_meeting_preference_for_typeform_user(
             )
             user_time_slots.append(time_slot)
 
-    meeting_preference, _ = models.MeetingPreference.objects.get_or_create(
-        meeting=meeting_config,
-        user=user,
-    )
+    try:
+        meeting_preference, _ = models.MeetingPreference.objects.get_or_create(
+            meeting=meeting_config,
+            user=user,
+        )
+    except models.MeetingPreference.MultipleObjectsReturned:
+        return
 
     for obj in objective_objs:
         meeting_preference.objectives.add(obj)
