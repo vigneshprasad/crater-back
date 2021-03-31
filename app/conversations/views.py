@@ -96,7 +96,7 @@ class GroupsViewSet(
     )
     def my(self, request, *args, **kwargs):
         user = request.user
-        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user))
+        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)
 

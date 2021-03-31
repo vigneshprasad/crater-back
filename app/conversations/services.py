@@ -2,7 +2,9 @@ import datetime
 
 from django.utils import timezone
 
-from conversations import models, exceptions
+from conversations import exceptions
+from conversations import models
+from conversations import signals
 
 
 def get_root_topic(topic):
@@ -44,6 +46,14 @@ def add_speaker_to_group_for_request(speaker, group_request):
     group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
     group_request.group.speakers.add(speaker)
     group_request.save()
+
+    # Sending a signal when user joins a group successfully.
+    signals.user_joined_group(
+        sender=group.__class__,
+        user=speaker,
+        group=group
+    )
+
     return group_request
 
 

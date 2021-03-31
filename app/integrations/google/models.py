@@ -13,6 +13,7 @@ class GoogleCalendarEvent(base_models.BaseModel):
     )
     # TODO(Nishant): Add group id here.
     meeting_id = models.IntegerField(null=True, blank=True)
+    group_id = models.IntegerField(null=True, blank=True)
     # What was the last status of the event.
     status = models.CharField(
         max_length=64,

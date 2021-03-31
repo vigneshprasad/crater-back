@@ -62,6 +62,17 @@ def create_calendar_event_for_conversations(group):
         description=description
     )
 
+    # Create rows for users.
+    for user in users:
+        models.GoogleCalendarEvent.objects.create(
+            user=user,
+            group_id=group.id,
+            meeting_link=meeting_link,
+            event_id=event_id,
+            starts_at=start_datetime,
+            ends_at=end_datetime
+        )
+
     return event_id
 
 
@@ -86,4 +97,3 @@ def get_and_update_rsvp_status(meeting_rsvp):
     updated_status = constants.CALENDAR_RESPONSE_TO_MEETING_RSVP_STATUS_MAP[status]
     meeting_rsvp.status = updated_status
     meeting_rsvp.save()
-

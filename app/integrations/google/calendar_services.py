@@ -158,10 +158,12 @@ class GoogleCalendarService:
 
         return event_id, hangout_link
 
-    def update_event(self, event_id, patch_body):
-        """Updates an existing event on WorkNetwork Calendar."""
+    def update_event_attendees(self, event_id, users):
+        """Updates attendees for an existing event on WorkNetwork Calendar."""
         if not self.service:
             return None
+
+        patch_body = {"attendees": [{"email": user.email} for user in users]}
 
         return self.service.events().patch(
             calendarId=self.calendar_id,

@@ -6,7 +6,6 @@ from integrations.google import models
 
 
 def get_and_update_event_status_for_event(google_calendar_event):
-
     # If the calendar status is already in accepted status, don't do anything.
     if google_calendar_event.status in constants.ACCEPTED_CALENDAR_STATUSES:
         return google_calendar_event.status
@@ -40,7 +39,7 @@ def delete_calendar_for_meeting(meeting):
 
     """
     if not meeting:
-        return True
+        return False
 
     google_calendar_event_ids = models.GoogleCalendarEvent.objects.filter(
         meeting_id=meeting.id
@@ -59,5 +58,36 @@ def delete_calendar_for_meeting(meeting):
                 "Google calendar delete failed with status {} for: {}".format(e, event_id)
             )
             continue
+
+    return True
+
+
+def update_calendar_event_for_conversation(group):
+    """Updates the google calendar event for a conversation.
+
+    Args:
+        group(Group): Group for which we have to update the event.
+
+    """
+    google_calendar_event = models.GoogleCalendarEvent.objects.filter(
+        group_id=group.id,
+    ).last()
+
+    if not google_calendar_event:
+        return False
+
+    # Refreshing the group instance.
+    group.refresh_from_db()
+    event_id = google_calendar_event.event_id
+
+    try:
+        calendar_services.google_calendar_service.update_event_attendees(
+            event_id,
+            group.speakers.all()
+        )
+    except Exception as e:
+        logging.error(
+            "Google calendar update failed with status {} for: {}".format(e, group.id)
+        )
 
     return True

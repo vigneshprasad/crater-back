@@ -9,4 +9,5 @@ class ConversationsConfig(AppConfig):
     verbose_name_plural = _('Conversations')
 
     def ready(self):
+        import conversations.signals
         import conversations.receivers

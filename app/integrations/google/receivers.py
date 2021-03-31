@@ -2,6 +2,7 @@ from django.dispatch import receiver
 
 from integrations.google import private
 from resources.meetings import signals as meeting_signals
+from conversations import signals as conversations_signals
 
 
 @receiver(meeting_signals.meeting_marked_cancelled)
@@ -28,3 +29,16 @@ def delete_calendar_event_on_meeting_reschedule(sender, reschedule_request, *arg
     """
     # Getting distinct event id's for calendar events.
     private.delete_calendar_for_meeting(meeting=reschedule_request.old_meeting)
+
+
+@receiver(conversations_signals.user_joined_group)
+def update_calendar_event_for_user_joining_a_group(sender, user, group, **kwargs):
+    """Updates google calendar event when a user joins a group.
+
+    Args:
+        sender(Group Class): Group class representation for the group joined.
+        user(User): User that joined the group.
+        group(Group): Group the user joined into.
+
+    """
+    return private.update_calendar_event_for_conversation(group)
