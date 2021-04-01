@@ -28,7 +28,8 @@ class GroupJoinedAtTheSameTime(base_exceptions.BaseAPIException):
     def __init__(self):
         super().__init__(
             message="You have a conversation at the same time. Try to join conversation at different time.",
-            error_code="groupJoinedAtTheSameTime"
+            # TODO(Abhishek): Change this to groupJoinedAtTheSameTime once app push handle multiple error codes.
+            error_code="groupMaxSpeakersError"
         )
 
     def __str__(self):
