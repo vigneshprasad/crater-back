@@ -9,6 +9,7 @@ from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat import services
 from utils.tiny_url_service import tiny_url_service
+from utils.deep_link_service import deep_link_service
 
 
 def send_meeting_whatsapp_reminder_to_user(user, meeting):
@@ -216,6 +217,8 @@ def send_conversation_reminder_for_user(user, group):
     date = group.start.strftime('%a, %d %b %Y')
     start_time = local_start_datetime.strftime('%I:%M %p')
     date_time = "{}, {}".format(start_time, date)
+    group_link = "https://{}/group?id={}".format(settings.FRONT_URL, group.id)
+    deeplink = deep_link_service.make_firebase_deep_link(group_link)
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
@@ -224,9 +227,7 @@ def send_conversation_reminder_for_user(user, group):
             {"data": date_time},
             {"data": matched_users_thread},
             {"data": topic},
-            {"data": constants.CONVERSATION_PARTICIPANTS_APP_LINK.format(
-                    tiny_url_service.shorten(constants.APPSFLYER_APP_LINK)
-            )},
+            {"data": deeplink},
         ]
     )
 
