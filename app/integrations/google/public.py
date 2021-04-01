@@ -58,7 +58,7 @@ def create_calendar_event_for_conversations(group):
     deeplink = deep_link_service.make_firebase_deep_link(group_link)
 
     summary = constants.DEFAULT_SUMMARY_FOR_CONVERSATIONS.format(topic_name=group.topic.name)
-    description = constants.DEFAULT_DESCRIPTION_FOR_CONVERSATIONS.format(deeplink)
+    description = constants.DEFAULT_DESCRIPTION_FOR_CONVERSATIONS.format(deeplink=deeplink)
 
     event_id, meeting_link = calendar_services.google_calendar_service_without_conference_data.create_event(
         start_datetime,
