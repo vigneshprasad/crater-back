@@ -30,7 +30,7 @@ DEFAULT_DESCRIPTION_FOR_CONVERSATIONS = "Hi, your conversation has been schedule
                             "Format: Group Conversation.\n" \
                             "Location: Virtual, on the mobile app.\n" \
                             "Details: Visible under 'Your Conversations' on the app.\n" \
-                            "Link to the app: https://tinyurl.com/y5qxltwj \n" \
+                            "Link to the app: {deeplink} \n" \
                             "Login details: Please use the email on this thread. \n" \
                             "Reschedule: Group conversation may not be rescheduled due to multiple participants."
 

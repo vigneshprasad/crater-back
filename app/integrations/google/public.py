@@ -1,8 +1,11 @@
+from django.conf import settings
+
 from integrations.google import calendar_services
 from integrations.google import models
 from integrations.google import private
 from integrations.google import constants
 from integrations.superpro import public as superpro_public
+from utils. deep_link_service import deep_link_service
 
 
 def create_calendar_event_for_meeting(meeting):
@@ -51,8 +54,11 @@ def create_calendar_event_for_conversations(group):
     start_datetime = group.local_start
     end_datetime = group.local_end
 
+    group_link = "https://{}/group?id={}".format(settings.FRONT_URL, group.id)
+    deeplink = deep_link_service.make_firebase_deep_link(group_link)
+
     summary = constants.DEFAULT_SUMMARY_FOR_CONVERSATIONS.format(topic_name=group.topic.name)
-    description = constants.DEFAULT_DESCRIPTION_FOR_CONVERSATIONS
+    description = constants.DEFAULT_DESCRIPTION_FOR_CONVERSATIONS.format(deeplink)
 
     event_id, meeting_link = calendar_services.google_calendar_service_without_conference_data.create_event(
         start_datetime,
