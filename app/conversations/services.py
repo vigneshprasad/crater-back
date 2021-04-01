@@ -52,7 +52,7 @@ def add_speaker_to_group_for_request(speaker, group_request):
     group_request.save()
 
     # Sending a signal when user joins a group successfully.
-    signals.user_joined_group(
+    signals.user_joined_group.send(
         sender=group.__class__,
         user=speaker,
         group=group
