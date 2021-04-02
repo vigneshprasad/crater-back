@@ -9,6 +9,7 @@ from conversations import models
 from conversations import serializers
 from conversations import services
 from conversations import exceptions
+from conversations import signals
 
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
@@ -118,6 +119,19 @@ class OptinViewSet(
         all_preferences = list(current_preferences) + list(future_preferences)
         serialized = self.get_serializer(all_preferences, many=True)
         return Response(serialized.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        response_serializer = self.get_serializer(instance)
+        headers = self.get_success_headers(serializer.data)
+        # Send a signal on new preference creation.
+        signals.new_conversation_registration.send(
+            sender=instance.__class__,
+            preference=instance
+        )
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class RequestViewSet(

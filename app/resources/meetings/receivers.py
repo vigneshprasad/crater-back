@@ -10,6 +10,8 @@ from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
 from resources.meetings import choices
+from conversations import models as conversation_models
+from conversations import constants as conversation_constants
 from consumers.chat import signals as chat_signals
 from users import services as users_services
 from django.contrib.auth import get_user_model
@@ -80,6 +82,7 @@ def create_meeting_preference_for_typeform_user(
     meeting_config = services.get_latest_active_meeting_config()
     # Get respective objectives for User Meeting Preference.
     objective_objs = models.Objective.objects.filter(name__in=objectives)
+    topic = conversation_models.Topic.objects.filter(name__in=objectives).first()
 
     # Calculate time slots for the data provided.
     end_date = meeting_config.week_end_date
@@ -114,6 +117,7 @@ def create_meeting_preference_for_typeform_user(
     try:
         meeting_preference, _ = models.MeetingPreference.objects.get_or_create(
             meeting=meeting_config,
+            topic=topic,
             user=user,
         )
     except models.MeetingPreference.MultipleObjectsReturned:
@@ -131,7 +135,7 @@ def create_meeting_preference_for_typeform_user(
         meeting_preference.time_slots.add(slot)
 
     # Adding signal which will send the registration whatsapp message.
-    signals.new_meeting_registration.send(
+    signals.new_conversation_registration.send(
         sender=meeting_preference.__class__,
         preference=meeting_preference
     )
