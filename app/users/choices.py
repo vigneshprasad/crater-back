@@ -288,3 +288,6 @@ SECTOR_TYPE_STR_TO_ENUM = {
     SECTOR_TYPE_LOGISTICS: SECTOR_TYPE_LOGISTICS_ENUM,
     SECTOR_TYPE_OTHER: SECTOR_TYPE_OTHER_ENUM,
 }
+
+
+DEFAULT_INTRODUCTION_STR = "{first_name} | {tag} | {experience} years experience | {sector} sector | Received a {education} degree | {conversation_str} on WorkNetwork"

@@ -644,9 +644,9 @@ class Profile(models.Model):
         default=True,
         verbose_name=_('Public Profile')
     )
-    public_introduction = models.TextField(
+    generated_introduction = models.TextField(
         max_length=1024,
-        verbose_name=_('Public Introduction'),
+        verbose_name=_("Auto Generated Introduction"),
         blank=True,
         null=True
     )
@@ -691,8 +691,7 @@ class Profile(models.Model):
         return bool(self.instagram)
 
     def get_introduction(self):
-        return (self.public_introduction
-                if self.public_introduction else self.introduction)
+        return self.introduction if self.introduction else self.generated_introduction
 
     def get_photo_url(self):
         return self.photo.url if self.photo else self.photo_url

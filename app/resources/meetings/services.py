@@ -346,6 +346,13 @@ def get_latest_meeting_preference(user):
     return models.MeetingPreference.objects.filter(user=user).first()
 
 
+def get_meetings_for_users(user):
+    """Get all, but cancelled meetings for users."""
+    return models.Meeting.objects.filter(
+        participants=user
+    ).exclude(status=choices.MEETING_STATUS_CANCELLED)
+
+
 def get_user_meeting_from_url(query):
     """
     Get user and meeting object from the query string param of the url

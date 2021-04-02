@@ -8,6 +8,9 @@ from conversations import constants
 from conversations import models
 from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import public as freshchat_public
+from resources.meetings import services as meeting_services
+from users import choices as user_constants
+from users import models as user_models
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -124,7 +127,7 @@ def send_whatsapp_conversation_reminders(meetings=None):
 
 @periodic_task(run_every=crontab(minute='*/15'))
 def send_group_feedback_emails(groups=None):
-    """Send feedback mails for convesations after 90 minutes of the
+    """Send feedback mails for conversations after 90 minutes of the
         meeting.
 
     Args:
@@ -173,3 +176,65 @@ def send_group_feedback_emails(groups=None):
                         to: {'email': to}
                     }
                 )
+
+
+# TODO(Nishant): Cleanup this during refactor of code.
+@periodic_task(run_every=crontab(hour=10, minute=30))
+def create_user_introductions_for_eligible_users(test_profiles=None):
+    """Create introductions for users without introduction."""
+    profiles = user_models.Profile.objects.all() if not test_profiles else test_profiles
+
+    for profile in profiles:
+        if profile.introduction or profile.generated_introduction:
+            continue
+
+        user = profile.user
+        first_name = user.get_display_first_name()
+        # Get tag data.
+        user_tag = profile.new_tag.first()
+        if not user_tag:
+            return
+        user_tag_name = user_tag.name
+
+        user_experience = profile.years_of_experience
+        if not user_experience:
+            continue
+        user_experience_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES).get(profile.years_of_experience)
+
+        user_company_type = profile.company_type
+        if not user_company_type:
+            continue
+        user_company_type_str = dict(user_models.Profile.COMPANY_TYPE_CHOICES).get(profile.company_type)
+
+        user_sector = profile.sector
+        if not user_sector:
+            continue
+        user_sector_str = dict(user_models.Profile.SECTOR_CHOICES).get(profile.sector)
+
+        user_education = profile.education_level
+        if not user_education:
+            continue
+        user_education_str = dict(user_models.Profile.EDUCATION_LEVEL_CHOICES).get(profile.education_level)
+
+        user_meetings = meeting_services.get_meetings_for_users(user)
+        user_groups = models.Group.objects.filter(speakers=user)
+
+        conversation_count = (user_meetings.count() + user_groups.count())
+
+        if conversation_count:
+            conversation_str = "{}+ conversations".format(conversation_count)
+        else:
+            conversation_str = "First conversation"
+
+        introduction_string = user_constants.DEFAULT_INTRODUCTION_STR.format(
+            first_name=first_name,
+            tag=user_tag_name,
+            experience=user_experience_str,
+            company_type=user_company_type_str,
+            sector=user_sector_str,
+            education=user_education_str,
+            conversation_str=conversation_str
+        )
+
+        profile.generated_introduction = introduction_string
+        profile.save()

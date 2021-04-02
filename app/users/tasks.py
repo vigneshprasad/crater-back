@@ -8,11 +8,11 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
+from freelance.settings import DEFAULT_FROM_EMAIL
 from utils.instagram_service import instagram_service
 from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
-from freelance.settings import DEFAULT_FROM_EMAIL
 
 
 @shared_task(name="send_twilio_message")
@@ -69,7 +69,6 @@ def start_transcoding_for_cover_file(self, cover_file_pk):
             cover_file.save()
     except CoverFile.DoesNotExist:
         print(f'Profile does not exist')
-        pass
 
 
 @shared_task(bind=True, name='check_transcoding_for_cover_file')

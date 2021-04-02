@@ -97,7 +97,7 @@ def get_groups_attended_for_user(user):
     """Returns groups attended for a user."""
     return models.Group.objects.filter(speakers=user)
 
-    
+
 def get_groups_for_user(user, queryset=None):
     """ Return list of groups for user filtered based on start time < 30 mins before now
     and >= user score + 5

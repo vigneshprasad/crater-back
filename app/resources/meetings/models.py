@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from base import models as base_model
 from resources.meetings import choices
 
+
 class Interest(base_model.BaseModel):
     """
     Interest for a user who opt in for a meeting.
