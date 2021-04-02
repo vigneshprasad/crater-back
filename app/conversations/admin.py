@@ -19,6 +19,7 @@ class GroupAdmin(admin.ModelAdmin):
         "group_speakers",
         "group_interests",
         "start",
+        "end",
         "closed",
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
