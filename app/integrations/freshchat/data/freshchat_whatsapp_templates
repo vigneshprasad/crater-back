@@ -102,3 +102,22 @@ Hey,
 A gentle reminder of your upcoming conversation at {1} with {2} to discuss {3}.
 Details
 Meeting link: {4}
+
+26. huddle_welcome
+Welcome to WorkNetwork!
+Have conversations about {1}. Gain & share knowledge, advance your career/business and build authentic relationships.
+Your registered email is {2}.
+How it works: {3}
+The app: {4}
+
+27. huddle_request_recieved
+Hey,
+We have received your request. We will set up a conversation regarding {1} with relevant people based on your time preferences of {2}.
+
+28. huddle_meeting_setup_1
+Hey, 
+We wanted to confirm if you would like us to set up another conversation this week?
+Options
+Set up with current preferences: {1}
+Change preferences: {2}
+Note: {3}

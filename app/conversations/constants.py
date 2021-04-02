@@ -23,3 +23,5 @@ MEETING_COMMUNICATION_FROM_EMAIL = "meetings@worknetwork.in"
 MEETING_REPLY_EMAIL = "vivan@worknetwork.in"
 GROUP_CONVERSATION_INTRODUCTION_TEMPLATE = "Group Conversation Introduction"
 GROUP_CONVERSATION_FEEDBACK_TEMPLATE = "Group Conversation Feedback"
+
+DEFAULT_TOPIC_NAME = "Default"

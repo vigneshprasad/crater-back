@@ -1,6 +1,7 @@
 from django.conf import settings
 
 APPSFLYER_APP_LINK = "https://worknetwork.onelink.me/KbQv/AppStore"
+LANDING_PAGE = "https://worknetwork.in"
 
 # Freshchat Whatsapp details.
 FRESHCHAT_BASE_URL = settings.FRESHCHAT_BASE_URL
@@ -23,11 +24,14 @@ MEETING_CONFIRMATION_RSVP_LINK = "meeting_confirmation_link"
 # Deprecated
 MEETING_CONFIRMATION_RSVP = "meeting_has_been_confirmed"
 MEETING_REMINDER_RSVP_LINK = "meeting_unconfirmed_link"
-# Deprecated.
-REGISTRATION_CONFIRMATION = "registration_confirmation"
+# Deprecated
+MEETING_REGISTRATION_TEMPLATE = "confirmation_of_registration_updated"
+
+# Registration Templates
+REGISTRATION_CONFIRMATION = "huddle_welcome"
+REGISTRATION_TEMPLATE_DEFAULT_TOPIC = "startup funding, building a business and product management"
 
 # Meeting registration updated.
-MEETING_REGISTRATION_TEMPLATE = "confirmation_of_registration_updated"
 MEETING_REGISTRATION_FREQUENCY_PLACEHOLDER = "1:1 meetings"
 MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT = "Meet Interesting People"
 
@@ -56,7 +60,13 @@ MEETING_RESCHEDULE_REQUEST_APPROVED_TEMPLATE = "meeting_reschdule_accepted"
 MEETING_RESCHEDULE_REQUEST_DECLINED_TEMPLATE = "meeting_reschedule_cancellation"
 MEETING_RESCHEDULE_REQUEST_DECLINED_PROMPT_MESSAGE = " if you have spoken to your match & believe this to be a mistake, please disregard the message."
 
-# Conversation templates
+# Opt In template
+CONVERSATION_OPT_IN_TEMPLATE = "huddle_meeting_setup_1"
+CONVERSATION_OPT_IN_NOTE = "If you'd like to stop WhatsApp notifications reply to this message with the word UNSUBSCRIBE"
+
+# Group templates
+CONVERSATION_REGISTRATION_TEMPLATE = "huddle_request_recieved"
+CONVERSATION_REGISTRATION_DEFAULT_ABOUT = "networking"
 CONVERSATION_CONFIRMATION_TEMPLATE = "huddle_meeting_setup_group"
 CONVERSATION_REMINDER_TEMPLATE = "huddle_meeting_reminder_group"
 CONVERSATION_PARTICIPANTS_APP_LINK = "View on the app: {}"

@@ -11,6 +11,7 @@ from integrations.freshchat import services
 from integrations.freshchat import tasks
 from resources.meetings import signals as meeting_signals
 from resources.meetings import choices as meeting_constants
+from conversations import signals as conversation_signals
 from utils.tiny_url_service import tiny_url_service
 
 
@@ -28,7 +29,64 @@ def create_or_update_freshchat_user(sender, user, *args, **kwargs):
 
     tasks.create_or_update_freshchat_user.delay(user.pk)
 
+@receiver(user_signals.phone_number_verified)
+def send_worknetwork_registration_confirmation(sender, user, **kwargs):
+    """Send a whatsapp message with confirmation once a
+        user registers for a meeting.
 
+    """
+    logging.info("Send a message to a user who has verified phone number".format(
+        user.email,
+    ))
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.REGISTRATION_CONFIRMATION,
+        template_data=[
+            {"data": constants.REGISTRATION_TEMPLATE_DEFAULT_TOPIC},
+            {"data": user.email},
+            {"data": constants.LANDING_PAGE},
+            {"data": constants.APPSFLYER_APP_LINK},
+        ]
+    )
+
+@receiver(conversation_signals.new_conversation_registration)
+def send_conversation_registration_confirmation(sender, preference, **kwargs):
+    """Send a whatsapp message with confirmation once a
+        user registers for a meeting.
+
+    """
+    user = preference.user
+
+    logging.info("Send a message to a user who has created a meeting preference".format(
+        user.email,
+    ))
+
+    if user.new_source and user.new_source.base_source and user.new_source.base_source.name == user_constants.BASE_SOURCE_KODO:
+        return
+        
+    objective = preference.objectives.first()
+    topic = preference.topic.name
+
+    topic_str = topic if topic else objective
+    topic_str = topic_str if topic_str else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
+
+    time_slots = preference.time_slots.all()
+    time_list = [time_slot.get_display() for time_slot in time_slots] if time_slots else "No Time Slots Selected." 
+    time_str = ', '.join(time_list)
+
+    logging.info("Send a message to a user who has created a meeting preference".format(user.email))
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.CONVERSATION_REGISTRATION_TEMPLATE,
+        template_data=[
+            {"data": topic_str},
+            {"data": time_str},
+        ]
+    )
+
+#TODO: To delete once we migrate MeetingPreference
 @receiver(meeting_signals.new_meeting_registration)
 def send_registration_confirmation(sender, preference, **kwargs):
     """Send a whatsapp message with confirmation once a
