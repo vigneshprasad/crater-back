@@ -98,6 +98,7 @@ def send_meeting_time_confirmation(user, start_time, end_time):
         ]
     )
 
+# TODO: Update above function to this once we add topics to 1:1 Meetings
 
 # def send_meeting_confirmation_rsvp(user, meeting):
 #     """ Send a message with confirming time and a rsvp link
