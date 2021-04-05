@@ -507,58 +507,6 @@ def cancel_meetings_for_no_rsvp(meetings=None):
             meeting=meeting
         )
 
-
-@periodic_task(run_every=crontab(day_of_week='monday', hour=2, minute=30))
-def send_weekly_meeting_rewards_email(users=None):
-    users = get_user_model().objects.all() if not users else users
-
-    meeting_points_value = points_models.PointsRule.objects.get(key=15).points_value
-
-    for user in users:
-        now = datetime.datetime.now().date()
-        week_start_date = now - datetime.timedelta(days=7)
-        week_end_date = now - datetime.timedelta(days=1)
-
-        meetings = user.meeting_set.filter(
-            start__gte=week_start_date,
-            end__lte=week_end_date,
-            status=choices.MEETING_STATUS_CONFIRMED
-        )
-
-        # If no meetings last week. continue
-        if not meetings:
-            continue
-
-        # Send email to user
-        subject = 'You have earned new rewards'
-        template = choices.MEETING_WEEKLY_REWARDS_TEMPLATE
-        from_email = choices.MEETING_REWARDS_FROM_EMAIL
-        rewards_link = ''
-
-        max_conversion = get_max_rewards_rs_conversion()
-        week_rs_value = int(len(meetings) * meeting_points_value * max_conversion)
-        total_points = user.points.points
-        total_rs_value = int(user.points.points * max_conversion)
-
-        data = {user.email: {
-            'week_rs_value': week_rs_value,
-            'total_points': total_points,
-            'total_rs_value': total_rs_value,
-            'contact_us': CONTACT_US_URL,
-            'website_url': WEBSITE_URL,
-            'rewards_link': rewards_link,
-        }}
-
-        user.send_email(
-            subject=subject,
-            template_name=template,
-            to=[user.email],
-            from_email=from_email,
-            content={},
-            merge_vars=data,
-        )
-
-
 # @periodic_task(run_every=crontab(minute="*/15"))
 def cancel_expired_reschedule_requests():
     """Cancels reschedule requests for meeting if not responded to

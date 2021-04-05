@@ -197,13 +197,13 @@ class VerificationView(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         request.user.sms_code = ''
         if request.user.new_phone_number:
+            request.user.phone_number = request.user.new_phone_number
+            request.user.new_phone_number = ''
             phone_number_verified.send(
                 sender=self.__class__,
                 user=request.user,
                 request=request
             )
-            request.user.phone_number = request.user.new_phone_number
-            request.user.new_phone_number = ''
 
         request.user.set_phone_number_verified()
 
