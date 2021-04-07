@@ -80,6 +80,7 @@ class Group(base_model.BaseModel):
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
     # Group score.
+    calculate_score = models.BooleanField(default=True)
     score = models.FloatField(null=True, blank=True)
 
     class Meta:

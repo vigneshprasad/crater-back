@@ -68,6 +68,16 @@ def send_conversation_confirmation_email_for_user(user, group):
                 "participants": matched_users_thread,
                 "app_link": freshchat_constants.APPSFLYER_APP_LINK,
                 "email": user.email
+            },
+        constants.EXTRA_EMAIL_FOR_INTRO_VERIFICATION:
+            {
+                "name": user.get_display_first_name(),
+                "topic": topic,
+                "time": time,
+                "description": group.topic.description,
+                "participants": matched_users_thread,
+                "app_link": freshchat_constants.APPSFLYER_APP_LINK,
+                "email": user.email
             }
     }
 

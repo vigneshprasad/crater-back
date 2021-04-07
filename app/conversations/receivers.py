@@ -11,6 +11,9 @@ def update_group_score(sender, instance, *args, **kwargs):
     if kwargs.get("action") not in ["post_add", "post_remove"]:
         return
 
+    if not instance.calculate_score:
+        return
+
     speakers = instance.speakers.all()
     score = matching_private.calculate_average_group_score_based_on_user_score(speakers)
 
