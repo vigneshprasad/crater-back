@@ -21,6 +21,7 @@ class GroupAdmin(admin.ModelAdmin):
         "start",
         "end",
         "closed",
+        "calculate_score"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = ("speakers__email", )
