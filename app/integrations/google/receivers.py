@@ -41,4 +41,4 @@ def update_calendar_event_for_user_joining_a_group(sender, user, group, **kwargs
         group(Group): Group the user joined into.
 
     """
-    return private.update_calendar_event_for_conversation(group)
+    return private.update_or_create_calendar_event_for_conversation(user, group)

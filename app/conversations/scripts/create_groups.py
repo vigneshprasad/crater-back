@@ -4,7 +4,7 @@ import datetime
 from urllib import request as urllib_request
 
 from integrations.freshchat import public as freshchat_public
-from integrations.google import public as google_public
+from integrations.google import private as google_private
 from conversations import models
 from conversations import services
 from conversations import tasks
@@ -109,7 +109,7 @@ def run(
             print("Group Created: {}".format(group.id))
 
             print("Creating Calendar event for group")
-            event_id = google_public.create_calendar_event_for_conversations(group)
+            event_id = google_private.create_calendar_event_for_conversations(group)
             print("Created Calendar event for group: {}".format(event_id))
 
             print("Sending Confirmation Email")

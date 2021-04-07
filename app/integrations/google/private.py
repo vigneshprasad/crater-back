@@ -1,8 +1,11 @@
 import logging
 
+from django.conf import settings
+
 from integrations.google import calendar_services
 from integrations.google import constants
 from integrations.google import models
+from utils.deep_link_service import deep_link_service
 
 
 def get_and_update_event_status_for_event(google_calendar_event):
@@ -62,10 +65,11 @@ def delete_calendar_for_meeting(meeting):
     return True
 
 
-def update_calendar_event_for_conversation(group):
+def update_or_create_calendar_event_for_conversation(user, group):
     """Updates the google calendar event for a conversation.
 
     Args:
+        user(User): User that was recently added to the group.
         group(Group): Group for which we have to update the event.
 
     """
@@ -74,7 +78,9 @@ def update_calendar_event_for_conversation(group):
     ).last()
 
     if not google_calendar_event:
-        return False
+        # Create the calendar event for the group.
+        create_calendar_event_for_conversations(group)
+        return True
 
     # Refreshing the group instance.
     group.refresh_from_db()
@@ -85,9 +91,56 @@ def update_calendar_event_for_conversation(group):
             event_id,
             group.speakers.all()
         )
+        # Creating calendar event entry.
+        models.GoogleCalendarEvent.objects.create(
+            user=user,
+            group_id=group.id,
+            event_id=event_id,
+            starts_at=group.local_start,
+            ends_at=group.local_end
+        )
     except Exception as e:
         logging.error(
             "Google calendar update failed with status {} for: {}".format(e, group.id)
         )
 
     return True
+
+
+def create_calendar_event_for_conversations(group):
+    """Create calendar event for a group.
+
+     Args:
+        group(Group): Group object for which we have to
+            create the calendar event.
+
+    """
+    users = group.speakers.all()
+    start_datetime = group.local_start
+    end_datetime = group.local_end
+
+    group_link = "https://{}/group?id={}".format(settings.FRONT_URL, group.id)
+    deeplink = deep_link_service.make_firebase_deep_link(group_link)
+
+    summary = constants.DEFAULT_SUMMARY_FOR_CONVERSATIONS.format(topic_name=group.topic.name)
+    description = constants.DEFAULT_DESCRIPTION_FOR_CONVERSATIONS.format(deeplink=deeplink)
+
+    event_id, _ = calendar_services.google_calendar_service_without_conference_data.create_event(
+        start_datetime,
+        end_datetime,
+        users,
+        summary=summary,
+        description=description
+    )
+
+    # Create rows for users.
+    for user in users:
+        models.GoogleCalendarEvent.objects.create(
+            user=user,
+            group_id=group.id,
+            event_id=event_id,
+            starts_at=start_datetime,
+            ends_at=end_datetime
+        )
+
+    return event_id
