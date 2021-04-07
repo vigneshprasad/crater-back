@@ -113,8 +113,4 @@ def calculate_user_activity_score(user):
     """Returns score based on number of meeting a user has had."""
     meetings_attended = meeting_services.get_meetings_attended(user)
     groups_attended = conversation_services.get_groups_attended_for_user(user)
-
-    if not (meetings_attended and groups_attended):
-        return 0
-
     return meetings_attended.count() * 10 + groups_attended.count() * 10

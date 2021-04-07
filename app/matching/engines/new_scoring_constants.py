@@ -13,24 +13,24 @@ TAG_TO_EXPERIENCE_SCORES = {
         user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 40,
         user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 70,
         user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 100,
-        user_constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM: 70,
-        user_constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM: 80,
-        user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 70,
-        user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 80
+        user_constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM: 60,
+        user_constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM: 70,
+        user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 90,
+        user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 70
     },
     "SME Owner": {
-        user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 20,
-        user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 40,
-        user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 60,
-        user_constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM: 70,
-        user_constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM: 80,
-        user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
-        user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 80
+        user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 10,
+        user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 30,
+        user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 50,
+        user_constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM: 60,
+        user_constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM: 70,
+        user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 90,
+        user_constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM: 70
     },
     "Startup Investor": {
-        user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 50,
-        user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 70,
-        user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 80,
+        user_constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM: 60,
+        user_constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM: 80,
+        user_constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM: 90,
         user_constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM: 100,
         user_constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM: 100,
