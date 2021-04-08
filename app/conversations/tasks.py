@@ -99,7 +99,7 @@ def send_conversation_confirmation_email_for_user(user, group):
         )
 
 
-@periodic_task(run_every=crontab(minute='*/15'))
+@periodic_task(run_every=crontab(minute='*/10'))
 def send_whatsapp_conversation_reminders(meetings=None):
     """Sends whatsapp reminders for people 30 minutes before their meetings.
 
@@ -110,8 +110,8 @@ def send_whatsapp_conversation_reminders(meetings=None):
     """
     now_time = datetime.datetime.now()
 
-    start_datetime = (now_time + datetime.timedelta(minutes=15))
-    end_datetime = (now_time + datetime.timedelta(minutes=30))
+    start_datetime = now_time
+    end_datetime = (now_time + datetime.timedelta(minutes=10))
 
     groups = models.Group.objects.filter(
         start__gt=start_datetime,
