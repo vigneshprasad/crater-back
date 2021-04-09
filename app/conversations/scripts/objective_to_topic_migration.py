@@ -1,0 +1,36 @@
+from conversations import models
+from conversations import constants
+from resources.meetings import models as meeting_models
+
+
+def run(dry_run=True):
+
+    preferences_without_topic = meeting_models.MeetingPreference.objects.filter(topic__isnull=True)
+
+    for preference in preferences_without_topic:
+        # Preference object already has a topic.
+        if preference.topic:
+            continue
+
+        print("Preference: ", preference.id)
+
+        objectives = preference.objectives.all()
+        print("Objectives: ", objectives)
+
+        topic_names = [constants.OBJECTIVE_TO_TOPIC_NAME.get(objective.name) for objective in objectives]
+        if not topic_names:
+            print("No Match Found.")
+
+        topic = models.Topic.objects.filter(name__in=topic_names).first()
+
+        if not topic:
+            # Doing a filter in case Default topic is not present on the environment.
+            topic = models.Topic.objects.filter(name="Default").first()
+
+        print("Topic: ", topic)
+
+        if not dry_run:
+
+            print("Updating Topic for Preference: ", preference.id)
+            preference.topic = topic
+            preference.save()
