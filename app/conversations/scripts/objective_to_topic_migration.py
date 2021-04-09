@@ -17,7 +17,14 @@ def run(dry_run=True):
         objectives = preference.objectives.all()
         print("Objectives: ", objectives)
 
-        topic_names = [constants.OBJECTIVE_TO_TOPIC_NAME.get(objective.name) for objective in objectives]
+        topic_names = []
+
+        for objective in objectives:
+            topic_name = constants.OBJECTIVE_TO_TOPIC_MAP.get(objective.name)
+            if not topic_name:
+                continue
+            topic_names.append(topic_name)
+
         if not topic_names:
             print("No Match Found.")
 

@@ -32,7 +32,14 @@ def update_topic_for_meeting_preference(sender, preference, *args, **kwargs):
         return
 
     objectives = preference.objectives.all()
-    topic_names = [constants.OBJECTIVE_TO_TOPIC_NAME.get(objective.name) for objective in objectives]
+    topic_names = []
+
+    for objective in objectives:
+        topic_name = constants.OBJECTIVE_TO_TOPIC_MAP.get(objective.name)
+        if not topic_name:
+            continue
+        topic_names.append(topic_name)
+
     topic = models.Topic.objects.filter(name__in=topic_names).first()
 
     if not topic:
