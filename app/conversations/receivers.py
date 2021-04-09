@@ -44,7 +44,7 @@ def update_topic_for_meeting_preference(sender, preference, *args, **kwargs):
 
     if not topic:
         # Doing a filter in case Default topic is not present on the environment.
-        topic = models.Topic.objects.filter(name="Default").first()
+        topic = models.Topic.objects.filter(name=constants.DEFAULT_TOPIC_NAME).first()
 
     preference.topic = topic
     preference.save()

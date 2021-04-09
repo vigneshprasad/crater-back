@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from conversations import models
 from conversations import constants
 from resources.meetings import models as meeting_models
@@ -5,7 +7,9 @@ from resources.meetings import models as meeting_models
 
 def run(dry_run=True):
 
-    preferences_without_topic = meeting_models.MeetingPreference.objects.filter(topic__isnull=True)
+    preferences_without_topic = meeting_models.MeetingPreference.objects.filter(
+        Q(topic__isnull=True) | Q(topic__name="Default")
+    )
 
     for preference in preferences_without_topic:
         # Preference object already has a topic.
@@ -32,7 +36,7 @@ def run(dry_run=True):
 
         if not topic:
             # Doing a filter in case Default topic is not present on the environment.
-            topic = models.Topic.objects.filter(name="Default").first()
+            topic = models.Topic.objects.filter(name=constants.DEFAULT_TOPIC_NAME).first()
 
         print("Topic: ", topic)
 
