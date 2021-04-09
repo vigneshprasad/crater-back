@@ -13,8 +13,7 @@ def run(dry_run=True):
 
     for preference in preferences_without_topic:
         # Preference object already has a topic.
-        if preference.topic:
-            continue
+        print("Start: ", "*"*30)
 
         print("Preference: ", preference.id)
 
@@ -45,3 +44,5 @@ def run(dry_run=True):
             print("Updating Topic for Preference: ", preference.id)
             preference.topic = topic
             preference.save()
+
+        print("Start: ", "*" * 30)

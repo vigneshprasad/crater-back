@@ -26,5 +26,17 @@ GROUP_CONVERSATION_FEEDBACK_TEMPLATE = "Group Conversation Feedback"
 
 DEFAULT_TOPIC_NAME = "Default"
 
-
-OBJECTIVE_TO_TOPIC_MAP = {}
+OBJECTIVE_TO_TOPIC_MAP = {
+    "Marketing strategies": "Marketing strategies",
+    "Product development": "Product management",
+    "Career growth": "Building a business",
+    "Financial planning": "Building a business",
+    "Startup funding": "Startup funding",
+    "Building a business": "Building a business",
+    "Start a Company": "Building a business",
+    "Explore shared interests": "Building a business",
+    "Learn about specific industries": "Building a business",
+    "Invest in companies / make investor introductions": "Startup funding",
+    "Explore work & other partnerships": "Building a business",
+    "Acquire customers": "Marketing strategies",
+}
