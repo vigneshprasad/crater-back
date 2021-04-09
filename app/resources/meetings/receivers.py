@@ -1,26 +1,30 @@
 import datetime
 from copy import copy
 
-from django.db.models.signals import post_save, m2m_changed
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
+from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 from django.utils import timezone
 
-from freelance.settings import FRONT_URL, WEBSITE_URL, CONTACT_US_URL
 from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
 from resources.meetings import choices
 from conversations import models as conversation_models
-from conversations import constants as conversation_constants
+from conversations import signals as conversation_signals
 from consumers.chat import signals as chat_signals
 from users import services as users_services
-from django.contrib.auth import get_user_model
 
 MEETING_ADD_USER_POINTS_KEY = 15
 
 
 @receiver(post_save, sender=models.MeetingPreference)
 def send_analytics_for_user_meeting_preference(sender, instance, created, *args, **kwargs):
+    if not created:
+        return
+
     time_slots = instance.time_slots.all()
     all_time_slots = []
     for time_slot in time_slots:
@@ -135,7 +139,7 @@ def create_meeting_preference_for_typeform_user(
         meeting_preference.time_slots.add(slot)
 
     # Adding signal which will send the registration whatsapp message.
-    signals.new_conversation_registration.send(
+    conversation_signals.new_conversation_registration.send(
         sender=meeting_preference.__class__,
         preference=meeting_preference
     )
@@ -337,7 +341,7 @@ def _send_meeting_confirmed_email(meeting):
     subject = "1:1 Meeting Confirmed"
     to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
 
-    message_link = "https://{}/dashboard/inbox".format(FRONT_URL)
+    message_link = "https://{}/dashboard/inbox".format(settings.FRONT_URL)
     display_day = meeting.get_display_day()
     display_time = meeting.get_display_time()
 
@@ -349,8 +353,8 @@ def _send_meeting_confirmed_email(meeting):
             "link": meeting.link,
             "message_link": message_link,
             "meeting_link": meeting.link,
-            "contact_us": CONTACT_US_URL,
-            "website_url": WEBSITE_URL,
+            "contact_us": settings.CONTACT_US_URL,
+            "settings.WEBSITE_URL": settings.WEBSITE_URL,
         }
 
     from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
@@ -423,8 +427,8 @@ def _send_meeting_cancellation_email(meeting):
     else:
         declined_string = p2_rsvp.participant.email
 
-    message_link = 'https://{}/dashboard/inbox'.format(FRONT_URL)
-    rsvp_link = 'https://{}/meetings/'.format(FRONT_URL)
+    message_link = 'https://{}/dashboard/inbox'.format(settings.FRONT_URL)
+    rsvp_link = 'https://{}/meetings/'.format(settings.FRONT_URL)
 
     data = {}
     for email in to_emails:
@@ -434,8 +438,8 @@ def _send_meeting_cancellation_email(meeting):
             'declined_users': declined_string,
             'message_link': message_link,
             'rsvp_link': rsvp_link,
-            'contact_us': CONTACT_US_URL,
-            'website_url': WEBSITE_URL,
+            'contact_us': settings.CONTACT_US_URL,
+            'settings.WEBSITE_URL': settings.WEBSITE_URL,
         }
 
     from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL

@@ -29,6 +29,7 @@ def create_or_update_freshchat_user(sender, user, *args, **kwargs):
 
     tasks.create_or_update_freshchat_user.delay(user.pk)
 
+
 @receiver(user_signals.phone_number_verified)
 def send_worknetwork_registration_confirmation(sender, user, **kwargs):
     """Send a whatsapp message with confirmation once a
@@ -49,6 +50,7 @@ def send_worknetwork_registration_confirmation(sender, user, **kwargs):
             {"data": constants.APPSFLYER_APP_LINK},
         ]
     )
+
 
 @receiver(conversation_signals.new_conversation_registration)
 def send_conversation_registration_confirmation(sender, preference, **kwargs):
@@ -86,7 +88,8 @@ def send_conversation_registration_confirmation(sender, preference, **kwargs):
         ]
     )
 
-#TODO: To delete once we migrate MeetingPreference
+
+# TODO: To delete once we migrate MeetingPreference
 @receiver(meeting_signals.new_meeting_registration)
 def send_registration_confirmation(sender, preference, **kwargs):
     """Send a whatsapp message with confirmation once a
