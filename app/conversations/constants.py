@@ -40,3 +40,4 @@ OBJECTIVE_TO_TOPIC_MAP = {
     "Explore work & other partnerships": "Building a business",
     "Acquire customers": "Marketing strategies",
 }
+DEFAULT_APP_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"

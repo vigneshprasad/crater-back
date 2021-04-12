@@ -1,3 +1,5 @@
+import datetime
+
 from django.db.models import Q
 
 from rest_framework import mixins, viewsets, status
@@ -10,6 +12,7 @@ from conversations import serializers
 from conversations import services
 from conversations import exceptions
 from conversations import signals
+from conversations import constants
 
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
@@ -156,3 +159,48 @@ class RequestViewSet(
 
         except (exceptions.GroupMaxSpeakersException, exceptions.GroupJoinedAtTheSameTime) as e:
             return Response(e.get_error_body(), status=e.status_code)
+
+
+class GroupCalendarViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = serializers.GroupSerializer
+    queryset = models.Group.objects.filter(closed=False)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+
+        start = self.request.query_params.get('start', None)
+        end = self.request.query_params.get('end', None)
+
+        start_datetime = datetime.datetime.strptime(start, constants.DEFAULT_APP_DATETIME_FORMAT) \
+            if start else datetime.datetime.now()
+        end_datetime = datetime.datetime.strptime(end, constants.DEFAULT_APP_DATETIME_FORMAT) \
+            if end else start_datetime + datetime.timedelta(days=7)
+        return self.queryset.filter(
+            start__gte=start_datetime,
+            end__lte=end_datetime,
+        ).order_by('start')
+
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        user_groups = services.get_groups_for_user(user, queryset=self.get_queryset())
+        groups_dates = list(set(user_groups.values_list('start__date', flat=True)))
+        groups_dates.sort()
+        response = []
+        for date in groups_dates:
+            items = user_groups.filter(
+                start__year=date.year,
+                start__month=date.month,
+                start__day=date.day,
+            ).order_by('start')
+
+            response.append({
+              'date': str(date),
+              'conversations': self.get_serializer(items, many=True).data
+            })
+        return Response(response)
+
+
+
