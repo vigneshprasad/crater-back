@@ -123,6 +123,34 @@ class OptinViewSet(
         serialized = self.get_serializer(all_preferences, many=True)
         return Response(serialized.data)
 
+    @action(
+        methods=["GET"],
+        detail=False,
+    )
+    def by_date(self, request, *args, **kwargs):
+        user = request.user
+        current_preferences = meeting_services.get_current_week_preferences(user, self.get_queryset())
+        future_preferences = meeting_services.get_future_week_preferences(user, self.get_queryset())
+
+        all_preferences = list(current_preferences) + list(future_preferences)
+        dates_dict = {}
+        for preference in all_preferences:
+            date = preference.time_slots.first().start.date()
+            if not dates_dict.get(str(date)):
+                dates_dict[str(date)] = [preference]
+            else:
+                value = dates_dict[str(date)]
+                value.append(preference)
+                dates_dict[str(date)] = value
+        response = []
+        for date, optins in dates_dict.items():
+            response.append({
+                "date": date,
+                "optins": self.get_serializer(optins, many=True).data
+            })
+        response.sort(key=lambda i: i['date'])
+        return Response(response)
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -169,6 +197,23 @@ class GroupCalendarViewSet(
     queryset = models.Group.objects.filter(closed=False)
     permission_classes = [permissions.IsAuthenticated]
 
+    def _make_date_dict(self, queryset):
+        dates_list = list(set(queryset.values_list('start__date', flat=True)))
+        dates_list.sort()
+        data = []
+        for date in dates_list:
+            items = queryset.filter(
+                start__year=date.year,
+                start__month=date.month,
+                start__day=date.day,
+            ).order_by('start')
+
+            data.append({
+              'date': str(date),
+              'conversations': self.get_serializer(items, many=True).data
+            })
+        return data
+
     def get_queryset(self):
 
         start = self.request.query_params.get('start', None)
@@ -179,28 +224,23 @@ class GroupCalendarViewSet(
         end_datetime = datetime.datetime.strptime(end, constants.DEFAULT_APP_DATETIME_FORMAT) \
             if end else start_datetime + datetime.timedelta(days=7)
         return self.queryset.filter(
-            start__gte=start_datetime,
-            end__lte=end_datetime,
+            start__date__gte=start_datetime.date(),
+            end__date__lte=end_datetime.date(),
         ).order_by('start')
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        user_groups = services.get_groups_for_user(user, queryset=self.get_queryset())
-        groups_dates = list(set(user_groups.values_list('start__date', flat=True)))
-        groups_dates.sort()
-        response = []
-        for date in groups_dates:
-            items = user_groups.filter(
-                start__year=date.year,
-                start__month=date.month,
-                start__day=date.day,
-            ).order_by('start')
-
-            response.append({
-              'date': str(date),
-              'conversations': self.get_serializer(items, many=True).data
-            })
+        user_groups = services.filter_groups_by_score(user, queryset=self.get_queryset())
+        response = self._make_date_dict(user_groups)
         return Response(response)
 
-
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def my(self, request, *args, **kwargs):
+        user = request.user
+        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
+        response = self._make_date_dict(groups)
+        return Response(response)
 

@@ -114,10 +114,32 @@ def get_groups_for_user(user, queryset=None):
     user_score = user.score
     now_time = timezone.now()
 
-    if not queryset:
+    if queryset is None:
         queryset = models.Group.objects.filter(closed=False)
 
     return queryset.filter(
         start__gte=(now_time - datetime.timedelta(days=2)),
+        score__lte=(user_score + 5)
+    ).order_by("-score", "-start")
+
+
+def filter_groups_by_score(user, queryset=None):
+    """ Return list of groups for user filtered based on >= user score + 5
+
+    Args:
+        user(User): user from the context or request
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
+        not closed.
+
+    Returns:
+        Queryset<Group>: queryset of filtered groups for user
+
+    """
+    user_score = user.score
+
+    if queryset is None:
+        queryset = models.Group.objects.filter(closed=False)
+
+    return queryset.filter(
         score__lte=(user_score + 5)
     ).order_by("-score", "-start")

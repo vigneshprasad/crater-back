@@ -1,4 +1,7 @@
 import copy
+from datetime import timezone, timedelta
+
+from django.utils import timezone
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -69,6 +72,7 @@ class GroupSerializer(serializers.ModelSerializer):
     speakers_detail_list = GroupUserSerializer(source='speakers', read_only=True, many=True)
     host_detail = GroupUserSerializer(source='host', read_only=True)
     is_speaker = serializers.SerializerMethodField(read_only=True)
+    is_past = serializers.SerializerMethodField()
 
     class Meta:
         ref_name = "group_meeting"
@@ -93,7 +97,13 @@ class GroupSerializer(serializers.ModelSerializer):
             'host_detail',
             'speakers_detail_list',
             'interests_detail_list',
+            'is_past',
         )
+
+    @staticmethod
+    def get_is_past(group):
+        now = timezone.now() - timedelta(days=1)
+        return now >= group.start
 
     def get_is_speaker(self, group):
         request = self.context.get('request')
