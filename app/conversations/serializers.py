@@ -73,6 +73,7 @@ class GroupSerializer(serializers.ModelSerializer):
     host_detail = GroupUserSerializer(source='host', read_only=True)
     is_speaker = serializers.SerializerMethodField(read_only=True)
     is_past = serializers.SerializerMethodField()
+    relevancy = serializers.SerializerMethodField()
 
     class Meta:
         ref_name = "group_meeting"
@@ -98,12 +99,21 @@ class GroupSerializer(serializers.ModelSerializer):
             'speakers_detail_list',
             'interests_detail_list',
             'is_past',
+            'relevancy',
         )
 
     @staticmethod
     def get_is_past(group):
         now = timezone.now() - timedelta(days=1)
         return now >= group.start
+
+    def get_relevancy(self, group):
+        user = self.context.get('request').user
+        if not user:
+            return 0
+        if group.score >= user.score:
+            return 100
+        return int(group.score / user.score * 100)
 
     def get_is_speaker(self, group):
         request = self.context.get('request')
