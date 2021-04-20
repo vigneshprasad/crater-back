@@ -28,13 +28,16 @@ class OneSignalService:
             "contents": contents,
             "data": data
         }
+
         if content_available:
             payload["content-available"] = True
+
         response = requests.post(
             self.get_api_endpoint("notifications"),
             json=payload,
             headers=self.get_headers()
         ).json()
+
         return response
 
 

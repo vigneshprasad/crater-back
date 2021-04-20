@@ -1,10 +1,6 @@
-import pytz
-
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
 
