@@ -10,7 +10,7 @@ from communications.notifications import private
 from conversations import models as conversations_models
 
 
-@periodic_task(run_every=crontab(minute="*/10"))
+# @periodic_task(run_every=crontab(minute="*/10"))
 def send_conversation_reminders_notifications(groups=None):
     """Sends notification reminders for people 10 minutes before their
         conversations.
@@ -43,7 +43,7 @@ def send_conversation_reminders_notifications(groups=None):
             private.send_notifications_for_group(speaker, notification, group)
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+# @periodic_task(run_every=crontab(minute="*/5"))
 def send_conversation_live_reminder_notifications(groups=None):
     """Sends notification for people as soon as their meeting is live.
 

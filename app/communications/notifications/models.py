@@ -11,14 +11,14 @@ class Notification(base_model.BaseModel):
     is_active = models.BooleanField(default=True)
 
 
-class UserNotifications(base_model.BaseModel):
+class NotificationLogs(base_model.BaseModel):
     # TODO(Nishant): Add is_read, read_time fields.
     user = models.ForeignKey(
         get_user_model(),
-        related_name='notifications',
+        related_name='app_notifications',
         on_delete=models.CASCADE
     )
     notification = models.ForeignKey(
-        "communications.notifications.Notification",
+        "notifications.Notification",
         on_delete=models.CASCADE
     )
