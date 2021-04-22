@@ -29,6 +29,12 @@ class Topic(base_model.BaseModel):
         null=True,
         on_delete=models.CASCADE
     )
+    article = models.ForeignKey(
+        "curated_articles.CuratedArticle",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
     is_approved = models.BooleanField(default=True)
     description = models.TextField(max_length=255, null=True, blank=True)
     creator = models.ForeignKey(
