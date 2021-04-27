@@ -110,19 +110,17 @@ def create_meeting_preference_for_typeform_user(
             start, end = time_preference.split("-")
 
             try:
-                start = datetime.datetime.strptime(start, "%H")
+                start_datetime = datetime.datetime.strptime(start.strip(), "%H")
             except ValueError:
-                start = datetime.datetime.strptime(start, "%H:%M")
+                start_datetime = datetime.datetime.strptime(start.strip(), "%H:%M")
 
-            try:
-                end = datetime.datetime.strptime(start, "%H")
-            except ValueError:
-                end = datetime.datetime.strptime(start, "%H:%M")
+            end_datetime = start_datetime + datetime.timedelta(minutes=30)
 
-            if not start and end:
+            if not (start_datetime and end_datetime):
                 continue
 
             start_time, end_time = start.time(), end.time()
+
             time_slot, _ = models.TimeSlot.objects.get_or_create(
                 date=date,
                 start_time=start_time,
