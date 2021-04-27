@@ -108,9 +108,21 @@ def create_meeting_preference_for_typeform_user(
     for date in dates:
         for time_preference in clean_time_preferences:
             start, end = time_preference.split("-")
-            start = int(start.strip()) + 12
-            end = int(end.strip()) + 12
-            start_time, end_time = datetime.time(start), datetime.time(end)
+
+            try:
+                start = datetime.datetime.strptime(start, "%H")
+            except ValueError:
+                start = datetime.datetime.strptime(start, "%H:%M")
+
+            try:
+                end = datetime.datetime.strptime(start, "%H")
+            except ValueError:
+                end = datetime.datetime.strptime(start, "%H:%M")
+
+            if not start and end:
+                continue
+
+            start_time, end_time = start.time(), end.time()
             time_slot, _ = models.TimeSlot.objects.get_or_create(
                 date=date,
                 start_time=start_time,

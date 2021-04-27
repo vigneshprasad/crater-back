@@ -128,27 +128,38 @@ class OptinViewSet(
         detail=False,
     )
     def by_date(self, request, *args, **kwargs):
+        """Returns optins by date selected by user."""
         user = request.user
         current_preferences = meeting_services.get_current_week_preferences(user, self.get_queryset())
         future_preferences = meeting_services.get_future_week_preferences(user, self.get_queryset())
 
         all_preferences = list(current_preferences) + list(future_preferences)
         dates_dict = {}
+
         for preference in all_preferences:
+            # Some meeting preferences don't have time slots.
+            # Fix for that.
+            if not preference.time_slots.first():
+                continue
+
             date = preference.time_slots.first().start.date()
-            if not dates_dict.get(str(date)):
-                dates_dict[str(date)] = [preference]
+            date_str = str(date)
+
+            if not dates_dict.get(date_str):
+                dates_dict[date_str] = [preference]
             else:
-                value = dates_dict[str(date)]
-                value.append(preference)
-                dates_dict[str(date)] = value
+                dates_dict[date_str].append(preference)
+
         response = []
         for date, optins in dates_dict.items():
-            response.append({
-                "date": date,
-                "optins": self.get_serializer(optins, many=True).data
-            })
-        response.sort(key=lambda i: i['date'])
+            response.append(
+                {
+                    "date": date,
+                    "optins": self.get_serializer(optins, many=True).data
+                }
+            )
+        response.sort(key=lambda i: i["date"])
+
         return Response(response)
 
     def create(self, request, *args, **kwargs):
