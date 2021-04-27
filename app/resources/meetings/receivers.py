@@ -119,7 +119,9 @@ def create_meeting_preference_for_typeform_user(
             if not (start_datetime and end_datetime):
                 continue
 
-            start_time, end_time = start.time(), end.time()
+            # Adding 12 to to times to convert it to 24HR format.
+            start_time = (start_datetime + datetime.timedelta(hours=12)).time()
+            end_time = (end_datetime + datetime.timedelta(hours=12)).time()
 
             time_slot, _ = models.TimeSlot.objects.get_or_create(
                 date=date,
