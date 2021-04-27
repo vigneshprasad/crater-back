@@ -40,6 +40,19 @@ class OneSignalService:
 
         return response
 
+    def send_notification(self, player_id, notification_json):
+        """Sends notifications give notification json and player id."""
+        notification_json["app_id"] = self.app_id
+        notification_json["player_id"] = player_id
+
+        response = requests.post(
+            self.get_api_endpoint("notifications"),
+            json=notification_json,
+            headers=self.get_headers()
+        ).json()
+
+        return response
+
 
 os_service = OneSignalService(
     settings.ONESIGNAL_APP_ID,

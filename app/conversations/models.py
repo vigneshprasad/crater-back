@@ -107,6 +107,51 @@ class Group(base_model.BaseModel):
             return False
         return True
 
+    def get_display(self):
+        """This is the display date time for a Group.
+            ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
+
+        """
+        display_time = self.get_display_time()
+        display_date = self.get_display_day()
+        return '{} @ {}'.format(display_date, display_time)
+
+    def get_display_day(self):
+        """Give a displayable date for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.start.strftime("%A, %d %B")
+
+    def get_display_time(self):
+        """Give a displayable time (start plus end) for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return '{} - {}'.format(self.get_display_start_time(), self.get_display_end_time())
+
+    def get_display_start_time(self):
+        """Give a displayable start time for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.local_start.strftime("%I:%M %p")
+
+    def get_display_end_time(self):
+        """Give a displayable end time for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.local_end.strftime("%I:%M %p")
+
 
 class Invite(base_model.BaseModel):
 

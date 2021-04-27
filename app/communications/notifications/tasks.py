@@ -29,7 +29,11 @@ def send_conversation_reminders_notifications(groups=None):
         start__lte=end_datetime,
     ) if not groups else groups
 
-    notification = models.Notification.objects.get(name=constants.GROUP_REMINDER_NOTIFICATION)
+    notification = models.Notification.objects.filter(name=constants.GROUP_REMINDER_NOTIFICATION).first()
+
+    if not notification:
+        logging.error("Notification not present: {}".format(constants.GROUP_REMINDER_NOTIFICATION))
+        return
 
     logging.info("Sending notification reminders for groups between {} - {}. Groups count: {}".format(
             start_datetime, end_datetime, groups.count()
@@ -40,7 +44,16 @@ def send_conversation_reminders_notifications(groups=None):
         for speaker in group.speakers.all():
             if speaker in exclude_list:
                 continue
-            private.send_notifications_for_group(speaker, notification, group)
+
+            notification_json = private.create_notification_json_from_notification(notification)
+            notification_json["contents"]["en"].format(time=group.get_display_start_time(), day=group.get_display_day())
+            data = {
+                "obj_type": constants.OBJECT_TYPE_CONVERSATIONS,
+                "group_id": group.id,
+                "auto_connect": False
+            }
+            sent_notification_json = private.send_notification.delay(speaker, notification_json, data=data)
+            private.create_notification_log(speaker, notification, sent_notification_json)
 
 
 # @periodic_task(run_every=crontab(minute="*/5"))
@@ -61,7 +74,11 @@ def send_conversation_live_reminder_notifications(groups=None):
         start__lte=end_datetime,
     ) if not groups else groups
 
-    notification = models.Notification.objects.get(name=constants.GROUP_LIVE_NOTIFICATION)
+    notification = models.Notification.objects.filter(name=constants.GROUP_LIVE_NOTIFICATION).first()
+
+    if not notification:
+        logging.error("Notification not present: {}".format(constants.GROUP_LIVE_NOTIFICATION))
+        return
 
     logging.info("Sending notification reminders for groups going live at {}. Groups count: {}".format(
             start_datetime, groups.count()
@@ -72,4 +89,12 @@ def send_conversation_live_reminder_notifications(groups=None):
         for speaker in group.speakers.all():
             if speaker in exclude_list:
                 continue
-            private.send_notifications_for_group(speaker, notification, group)
+
+            notification_json = private.create_notification_json_from_notification(notification)
+            data = {
+                "obj_type": constants.OBJECT_TYPE_CONVERSATIONS,
+                "group_id": group.id,
+                "auto_connect": True
+            }
+            sent_notification_json = private.send_notification.delay(speaker, notification_json, data=data)
+            private.create_notification_log(speaker, notification, sent_notification_json)

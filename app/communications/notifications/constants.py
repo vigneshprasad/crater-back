@@ -2,3 +2,11 @@ GROUP_REMINDER_NOTIFICATION = "group_conversation_reminder"
 GROUP_CONVERSATION_CREATED = "group_conversation_created"
 OPTIN_NOTIFICATION = "optin"
 GROUP_LIVE_NOTIFICATION = "group_conversation_live"
+
+
+DEFAULT_NOTIFICATION_SMALL_ICON = "ic_notification"
+DEFAULT_NOTIFICATION_ANDROID_ACCENT_COLOR = "FF283845"
+
+OBJECT_TYPE_UPCOMING_MEETING = "upcoming_meeting"
+OBJECT_TYPE_CONVERSATIONS = "conversation"
+OBJECT_TYPE_CREATE_CONVERSATIONS = "create_conversation"

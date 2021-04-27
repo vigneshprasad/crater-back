@@ -5,6 +5,7 @@ from urllib import request as urllib_request
 
 from integrations.freshchat import public as freshchat_public
 from integrations.google import private as google_private
+from communications.notifications import public as notifications_public
 from conversations import models
 from conversations import services
 from conversations import tasks
@@ -119,5 +120,9 @@ def run(
             print("Sending Confirmation WhatsApp")
             freshchat_public.send_conversation_confirmation_rsvp_for_group(group)
             print("Sent Confirmation WhatsApp")
+
+            print("Sending Notifications for Group")
+            notifications_public.send_conversation_create_notification_for_group(group)
+            print("Sent Notifications for Group")
 
         print("End", "-" * 80)
