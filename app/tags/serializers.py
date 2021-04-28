@@ -68,6 +68,7 @@ class ArticleWebsiteSerializer(serializers.ModelSerializer):
             'pk',
             'name',
             'url',
+            'image',
         )
 
 

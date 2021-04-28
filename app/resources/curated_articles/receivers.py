@@ -16,6 +16,6 @@ def article_post_save(sender, instance,  created, *args, **kwargs):
 
     """
     if created:
-        signals.curated_article_created(sender=models.CuratedArticle.__class__, article=instance)
+        signals.curated_article_created.send(sender=models.CuratedArticle.__class__, article=instance)
 
-    signals.curated_article_updated(sender=models.CuratedArticle.__class__, article=instance)
+    signals.curated_article_updated.send(sender=models.CuratedArticle.__class__, article=instance)

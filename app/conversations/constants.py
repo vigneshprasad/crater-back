@@ -1,3 +1,5 @@
+from datetime import time
+
 GROUP_PRIVACY_PUBLIC = "public"
 GROUP_PRIVACY_PRIVATE = "private"
 
@@ -41,3 +43,10 @@ OBJECTIVE_TO_TOPIC_MAP = {
     "Acquire customers": "Marketing strategies",
 }
 DEFAULT_APP_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+
+INSTANT_CONVERSATION_TIME_SLOTS = [
+    time(14, 00, 00),
+    time(16, 00, 00),
+    time(18, 00, 00),
+    time(20, 00, 00),
+]

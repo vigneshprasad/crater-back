@@ -10,10 +10,10 @@ from utils.mixins import ViewActionMixin
 @register(CuratedArticle)
 class CuratedArticleAdmin(ViewActionMixin, ModelAdmin):
     icon_name = 'local_library'
-    list_display = ('title', 'created', 'tags', 'website', 'image', 'action')
-    list_filter = ('created', 'tag__name')
+    list_display = ('title', 'created_at', 'tags', 'website', 'image', 'action')
+    list_filter = ('created_at', 'tag__name')
     search_fields = ('title', 'website_tag__name', 'website_tag__url')
-    form = CuratedArticleForm
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     @staticmethod
     def tags(curated_article):

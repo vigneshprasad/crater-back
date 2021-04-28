@@ -20,6 +20,7 @@ class TagAdminBase(SortableAdminMixin, ViewActionMixin, admin.ModelAdmin):
     def tag_name(tag):
         return mark_safe(f'<span class="new badge" data-badge-caption="{tag.name}"></span>')
 
+
 @register(models.Objective)
 class ObjectiveAdmin(admin.ModelAdmin):
     exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
@@ -41,11 +42,11 @@ class ArticleTagAdmin(TagAdminBase):
 
 
 @register(SourceWebsite)
-class SourceWebsiteAdmin(TagAdminBase):
+class SourceWebsiteAdmin(admin.ModelAdmin):
     """
     Sortable Curated Article Tags admin configuration
     """
-    list_display = ('tag_name', 'url', 'action', 'order')
+    list_display = ('name', 'url', 'order')
 
 
 @register(EventTag)
