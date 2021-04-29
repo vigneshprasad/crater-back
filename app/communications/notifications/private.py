@@ -21,19 +21,21 @@ def create_notification_json_from_notification(notification):
     }
 
 
-def create_notification_log(user, notification, notification_json):
+def create_notification_log(user, notification, notification_json, data=None):
     """Creates notification log for a notification and json sent.
 
     Args:
         user(User): User the notification was sent to.
         notification(Notification): Notification object that was used.
         notification_json(JSON): Actual notification json sent to the client.
+        data(JSON): Addition data sent to the client.
 
     """
     return models.NotificationLogs.objects.create(
         user=user,
         notification=notification,
-        notification_json=notification_json
+        notification_json=notification_json,
+        data=data
     )
 
 

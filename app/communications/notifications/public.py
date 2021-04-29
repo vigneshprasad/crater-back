@@ -38,8 +38,8 @@ def send_conversation_created_notification(user, group):
         "obj_type": constants.OBJECT_TYPE_CONVERSATION,
         "group_id": group.id
     }
-    sent_notification_json = private.send_notification.delay(user.pk, notification_json, data=data)
-    private.create_notification_log(user, notification, sent_notification_json)
+    private.send_notification.delay(user.pk, notification_json, data=data)
+    private.create_notification_log(user, notification, notification_json, data=data)
 
 
 def send_optin_notifications_for_users(users=None):
@@ -79,5 +79,5 @@ def send_optin_notifications(user):
     data = {
         "obj_type": constants.OBJECT_TYPE_CREATE_CONVERSATION
     }
-    sent_notification_json = private.send_notification.delay(user.pk, notification_json, data=data)
-    private.create_notification_log(user, notification, sent_notification_json)
+    private.send_notification.delay(user.pk, notification_json, data=data)
+    private.create_notification_log(user, notification, notification_json, data=data)

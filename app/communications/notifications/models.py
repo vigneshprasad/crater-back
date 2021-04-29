@@ -64,3 +64,7 @@ class NotificationLogs(base_model.BaseModel):
         null=True,
         blank=True
     )
+    data = JSONField(
+        null=True,
+        blank=True
+    )

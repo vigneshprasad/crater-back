@@ -53,8 +53,8 @@ def send_conversation_reminders_notifications(groups=None):
                 "group_id": group.id,
                 "auto_connect": False
             }
-            sent_notification_json = private.send_notification.delay(speaker.pk, notification_json, data=data)
-            private.create_notification_log(speaker, notification, sent_notification_json)
+            private.send_notification.delay(speaker.pk, notification_json, data=data)
+            private.create_notification_log(speaker, notification, notification_json, data=data)
 
 
 @periodic_task(run_every=crontab(minute="*/5"))
@@ -99,5 +99,5 @@ def send_conversation_live_reminder_notifications(groups=None):
                 "group_id": group.id,
                 "auto_connect": True
             }
-            sent_notification_json = private.send_notification.delay(speaker.pk, notification_json, data=data)
-            private.create_notification_log(speaker, notification, sent_notification_json)
+            private.send_notification.delay(speaker.pk, notification_json, data=data)
+            private.create_notification_log(speaker, notification, notification_json, data=data)
