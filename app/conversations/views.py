@@ -16,6 +16,7 @@ from conversations import constants
 
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
+from freelance import settings
 
 
 class TopicViewSet(
@@ -66,6 +67,15 @@ class TopicViewSet(
             response.append({"topic": serializers.TopicSerializer(topic).data})
         return Response(response)
 
+    @action(
+        methods=["get"],
+        detail=False
+    )
+    def articles(self, request, *args, **kwargs):
+        queryset = models.Topic.objects.exclude(article__isnull=True).order_by("created_at")
+        serialized = self.get_serializer(queryset, many=True)
+        return Response(serialized.data)
+
 
 class GroupsViewSet(
     mixins.ListModelMixin,
@@ -103,6 +113,36 @@ class GroupsViewSet(
         groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)
+
+    @action(
+        methods=["get"],
+        detail=False,
+    )
+    def instant_time_slots(self, request, *args, **kwargs):
+        now = datetime.datetime.now()
+        response = [now]
+        for time in constants.INSTANT_CONVERSATION_TIME_SLOTS:
+            slot = datetime.datetime.combine(now.date(), time)
+            if slot > now:
+                response.append(slot)
+        return Response(response)
+
+    @action(
+        methods=["post"],
+        detail=False,
+    )
+    def instant(self, request, *args, **kwargs):
+        user = request.user
+        data = request.data
+        data["host"] = user.pk
+        data["speakers"] = [user.pk]
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class OptinViewSet(

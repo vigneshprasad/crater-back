@@ -1,5 +1,7 @@
 import pytz
 
+from datetime import timedelta
+
 from django.db import models
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -27,6 +29,12 @@ class Topic(base_model.BaseModel):
         'conversations.Topic',
         blank=True,
         null=True,
+        on_delete=models.CASCADE
+    )
+    article = models.ForeignKey(
+        "curated_articles.CuratedArticle",
+        null=True,
+        blank=True,
         on_delete=models.CASCADE
     )
     is_approved = models.BooleanField(default=True)
@@ -59,8 +67,18 @@ class Group(base_model.BaseModel):
         (1, constants.GROUP_MEDIUM_AUDIO_VIDEO)
     )
 
-    host = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="groups_hosted", null=True, blank=True)
-    speakers = models.ManyToManyField(get_user_model(), verbose_name=_("Speakers"), related_name="groups_speaker")
+    host = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="groups_hosted",
+        null=True,
+        blank=True
+    )
+    speakers = models.ManyToManyField(
+        get_user_model(),
+        verbose_name=_("Speakers"),
+        related_name="groups_speaker"
+    )
     attendees = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Attendees"),
@@ -90,6 +108,12 @@ class Group(base_model.BaseModel):
 
     def __str__(self):
         return "{}-{}-{}".format(self.pk, self.topic, self.host)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.end:
+            self.end = self.start + timedelta(hours=1)
+        return super(Group, self).save(force_insert, force_update, using, update_fields)
 
     @property
     def local_start(self):

@@ -6,15 +6,17 @@ from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from conversations import models, services
+from conversations import models, services, constants
 from resources.meetings import serializers as meeting_serializers
 from resources.meetings import models as meeting_models
+from resources.curated_articles import serializers as articles_serializer
 
 from community.mixins import SetCreatorRequestDataMixin
 
 
 class TopicSerializer(serializers.ModelSerializer):
     root = serializers.SerializerMethodField(read_only=True)
+    article_detail = articles_serializer.CuratedArticleSerializer(source="article", read_only=True)
 
     class Meta:
         ref_name = "group_topic"
@@ -24,11 +26,13 @@ class TopicSerializer(serializers.ModelSerializer):
             "name",
             "image",
             "is_active",
+            "article",
             "parent",
             "is_approved",
             "description",
             "creator",
-            "root"
+            "root",
+            "article_detail"
         )
 
     @staticmethod

@@ -5,6 +5,7 @@ from conversations import constants
 from conversations import models
 from matching import private as matching_private
 from resources.meetings import signals as meeting_signals
+from resources.curated_articles import signals as article_signals
 
 
 @receiver(m2m_changed, sender=models.Group.speakers.through)
@@ -48,3 +49,33 @@ def update_topic_for_meeting_preference(sender, preference, *args, **kwargs):
 
     preference.topic = topic
     preference.save()
+
+
+@receiver(article_signals.curated_article_created)
+@receiver(article_signals.curated_article_updated)
+def create_topic_for_article(sender, article, *args, **kwargs):
+    """Create topic from articles.
+
+    Args:
+        sender(CuratedArticle.__class__): Sender for the post save event.
+        article(CuratedArticle): Instance of CuratedArticle created or updated.
+
+    """
+    if not article.is_topic:
+        return
+
+    parent_topic = models.Topic.objects.filter(name="Other").first()
+
+    # Update or create a topic for the article.
+    topic, _ = models.Topic.objects.update_or_create(
+        article=article,
+        defaults={
+            "name": article.title,
+            "image": article.image,
+            "parent": parent_topic,
+            "description": article.description,
+            "is_active": False
+        }
+    )
+
+    return topic
