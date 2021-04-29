@@ -46,13 +46,13 @@ def send_conversation_reminders_notifications(groups=None):
                 continue
 
             notification_json = private.create_notification_json_from_notification(notification)
-            notification_json["contents"]["en"].format(time=group.get_display_start_time(), day=group.get_display_day())
+            notification_json["contents"]["en"].format(time=group.get_display_start_time(), topic=group.topic.name)
             data = {
                 "obj_type": constants.OBJECT_TYPE_CONVERSATION,
                 "group_id": group.id,
                 "auto_connect": False
             }
-            sent_notification_json = private.send_notification.delay(speaker, notification_json, data=data)
+            sent_notification_json = private.send_notification.delay(speaker.pk, notification_json, data=data)
             private.create_notification_log(speaker, notification, sent_notification_json)
 
 
@@ -96,5 +96,5 @@ def send_conversation_live_reminder_notifications(groups=None):
                 "group_id": group.id,
                 "auto_connect": True
             }
-            sent_notification_json = private.send_notification.delay(speaker, notification_json, data=data)
+            sent_notification_json = private.send_notification.delay(speaker.pk, notification_json, data=data)
             private.create_notification_log(speaker, notification, sent_notification_json)
