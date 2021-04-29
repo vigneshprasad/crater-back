@@ -35,11 +35,26 @@ def send_conversation_created_notification(user, group):
     notification_json["contents"]["en"].format(time=group.get_display_start_time(), topic=group.topic.name)
     # Get data for the notification.
     data = {
-        "obj_type": constants.OBJECT_TYPE_CONVERSATIONS,
+        "obj_type": constants.OBJECT_TYPE_CONVERSATION,
         "group_id": group.id
     }
     sent_notification_json = private.send_notification.delay(user, notification_json, data=data)
     private.create_notification_log(user, notification, sent_notification_json)
+
+
+def send_optin_notifications_for_users(users=None):
+    """Wrapper to send notification to multiple users.
+
+    Args:
+        users(List(User)): List of users we want to send
+            optin notifications.
+
+    """
+    if not users:
+        return False
+
+    for user in users:
+        send_optin_notifications(user)
 
 
 def send_optin_notifications(user):
@@ -62,7 +77,7 @@ def send_optin_notifications(user):
     # Create notification json and data.
     notification_json = private.create_notification_json_from_notification(notification)
     data = {
-        "obj_type": constants.OBJECT_TYPE_CREATE_CONVERSATIONS
+        "obj_type": constants.OBJECT_TYPE_CREATE_CONVERSATION
     }
     sent_notification_json = private.send_notification.delay(user, notification_json, data=data)
     private.create_notification_log(user, notification, sent_notification_json)

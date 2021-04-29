@@ -4,6 +4,7 @@ import logging
 from celery import shared_task
 from django.contrib.auth import get_user_model
 
+from communications.notifications import public as notification_public
 from integrations.freshchat import freshchat_service as freshchat_service
 from integrations.freshchat import models
 from integrations.freshchat import constants
@@ -110,3 +111,4 @@ def send_opt_in_message(emails=None):
     users = get_user_model().objects.filter(email__in=emails)
 
     public.send_meeting_opt_in_messages(users=users)
+    notification_public.send_optin_notifications_for_users(users=users)
