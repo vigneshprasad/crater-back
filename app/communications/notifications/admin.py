@@ -7,3 +7,9 @@ from communications.notifications import models
 class NotificationAdmin(ModelAdmin):
     list_display = ("id", "name", "is_active")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
+@register(models.NotificationLogs)
+class NotificationLogsAdmin(ModelAdmin):
+    list_display = ("user", "notification")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
