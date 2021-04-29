@@ -165,7 +165,12 @@ class SourceWebsite(models.Model):
     """Source Website for Article created by Admin."""
     name = models.CharField(_("Name"), max_length=255)
     url = models.URLField(_("Url"), max_length=255, blank=True, null=True)
-    image = models.ImageField(_("Source Image"), upload_to="articles/%Y/%m/%d",)
+    image = models.ImageField(
+        _("Source Image"),
+        upload_to="articles/%Y/%m/%d",
+        null=True,
+        blank=True,
+    )
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
