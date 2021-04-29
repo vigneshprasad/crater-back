@@ -55,7 +55,7 @@ def send_worknetwork_registration_confirmation(sender, user, **kwargs):
 @receiver(conversation_signals.new_conversation_registration)
 def send_conversation_registration_confirmation(sender, preference, **kwargs):
     """Send a whatsapp message with confirmation once a
-        user registers for a meeting.
+        user registers for a conversation(group).
 
     """
     user = preference.user
@@ -68,9 +68,9 @@ def send_conversation_registration_confirmation(sender, preference, **kwargs):
         return
         
     objective = preference.objectives.first()
-    topic = preference.topic.name
+    topic = preference.topic
 
-    topic_str = topic if topic else objective
+    topic_str = topic.name if topic else objective.name
     topic_str = topic_str if topic_str else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
 
     time_slots = preference.time_slots.all()
@@ -93,7 +93,7 @@ def send_conversation_registration_confirmation(sender, preference, **kwargs):
 @receiver(meeting_signals.new_meeting_registration)
 def send_registration_confirmation(sender, preference, **kwargs):
     """Send a whatsapp message with confirmation once a
-        user registers for a meeting.
+        user registers for a meeting(1:1).
 
     """
     user = preference.user
@@ -130,7 +130,6 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
 
     Args:
         sender(Meeting Class): Meeting class object for the meeting message is being sent.
-        user(User): User that has cancelled the meeting.
         meeting(Meeting): Meeting object for which we are sending the reminder.
 
     """

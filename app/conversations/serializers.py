@@ -108,29 +108,40 @@ class GroupSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_is_past(group):
+        """Return True if the meeting was in the past."""
         now = timezone.now() - timedelta(days=1)
         return now >= group.start
 
     def get_relevancy(self, group):
-        user = self.context.get('request').user
-        if not user or not group.score:
+        """Returns the relevancy score of a group with
+            regards to the user.
+
+        """
+
+        user = self.context.get("request").user
+        # If group score or user score is not there return zero.
+        if not (user and (group.score and user.score)):
             return 0
+
         if group.score >= user.score:
             return 100
+
         return int(group.score / user.score * 100)
 
     def get_is_speaker(self, group):
-        request = self.context.get('request')
-        # TODO(Abhishek): remove if unnecessary
-        if not request:
+        """Returns True if the user is a speaker in the group."""
+        request = self.context.get("request")
+
+        # TODO(Abhishek): Remove if unnecessary
+        if not (request and request.user):
             return False
+
         user = request.user
-        if not user:
-            return False
         if group.host == user:
             return True
         elif user in group.speakers.all():
             return True
+
         return False
 
 
