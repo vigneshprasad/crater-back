@@ -57,7 +57,7 @@ class NotificationLogs(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     notification = models.ForeignKey(
-        "notifications.Notification",
+        "comms_notifications.Notification",
         on_delete=models.CASCADE
     )
     notification_json = JSONField(

@@ -50,7 +50,7 @@ def send_notification(user_pk, notification_json, data=None):
         notification_json(JSON): Final JSON that was sent to the client.
 
     """
-    user = get_user_model().objets.get(pk=user_pk)
+    user = get_user_model().objects.get(pk=user_pk)
     devices = user.devices.filter(is_active=True)
     notification_json["data"] = data
 

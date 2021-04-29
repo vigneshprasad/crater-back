@@ -32,7 +32,7 @@ def send_conversation_created_notification(user, group):
 
     # Get the notification json and append variables to it.
     notification_json = private.create_notification_json_from_notification(notification)
-    notification_json["contents"]["en"].format(time=group.get_display_start_time(), topic=group.topic.name)
+    notification_json["contents"]["en"] = notification_json["contents"]["en"].format(time=group.get_display_start_time(), topic=group.topic.name)
     # Get data for the notification.
     data = {
         "obj_type": constants.OBJECT_TYPE_CONVERSATION,

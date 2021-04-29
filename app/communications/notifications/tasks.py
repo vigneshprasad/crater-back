@@ -44,9 +44,10 @@ def send_conversation_reminders_notifications(groups=None):
         for speaker in group.speakers.all():
             if speaker in exclude_list:
                 continue
+            exclude_list.append(speaker)
 
             notification_json = private.create_notification_json_from_notification(notification)
-            notification_json["contents"]["en"].format(time=group.get_display_start_time(), topic=group.topic.name)
+            notification_json["contents"]["en"] = notification_json["contents"]["en"].format(time=group.get_display_start_time(), topic=group.topic.name)
             data = {
                 "obj_type": constants.OBJECT_TYPE_CONVERSATION,
                 "group_id": group.id,
@@ -89,6 +90,8 @@ def send_conversation_live_reminder_notifications(groups=None):
         for speaker in group.speakers.all():
             if speaker in exclude_list:
                 continue
+
+            exclude_list.append(speaker)
 
             notification_json = private.create_notification_json_from_notification(notification)
             data = {
