@@ -10,7 +10,7 @@ from communications.notifications import private
 from conversations import models as conversations_models
 
 
-# @periodic_task(run_every=crontab(minute="*/10"))
+@periodic_task(run_every=crontab(minute="*/10"))
 def send_conversation_reminders_notifications(groups=None):
     """Sends notification reminders for people 10 minutes before their
         conversations.
@@ -48,7 +48,7 @@ def send_conversation_reminders_notifications(groups=None):
             notification_json = private.create_notification_json_from_notification(notification)
             notification_json["contents"]["en"].format(time=group.get_display_start_time(), day=group.get_display_day())
             data = {
-                "obj_type": constants.OBJECT_TYPE_CONVERSATIONS,
+                "obj_type": constants.OBJECT_TYPE_CONVERSATION,
                 "group_id": group.id,
                 "auto_connect": False
             }
@@ -56,7 +56,7 @@ def send_conversation_reminders_notifications(groups=None):
             private.create_notification_log(speaker, notification, sent_notification_json)
 
 
-# @periodic_task(run_every=crontab(minute="*/5"))
+@periodic_task(run_every=crontab(minute="*/5"))
 def send_conversation_live_reminder_notifications(groups=None):
     """Sends notification for people as soon as their meeting is live.
 
@@ -92,7 +92,7 @@ def send_conversation_live_reminder_notifications(groups=None):
 
             notification_json = private.create_notification_json_from_notification(notification)
             data = {
-                "obj_type": constants.OBJECT_TYPE_CONVERSATIONS,
+                "obj_type": constants.OBJECT_TYPE_CONVERSATION,
                 "group_id": group.id,
                 "auto_connect": True
             }
