@@ -3,7 +3,7 @@ from resources.curated_articles.serializers import CuratedArticleSerializer
 
 
 def get_curated_articles():
-    return CuratedArticle.objects.all()
+    return CuratedArticle.objects.filter(is_active=True)
 
 
 def get_company_curated_articles_data():

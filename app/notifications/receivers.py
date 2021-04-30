@@ -5,7 +5,7 @@ from notifications import models
 from resources.curated_articles import signals as article_signals
 
 
-@receiver(article_signals.curated_article_created)
+# @receiver(article_signals.curated_article_created)
 def article_post_save(sender, article, *args, **kwargs):
     """Create notifications on Article creation.
 
@@ -14,7 +14,9 @@ def article_post_save(sender, article, *args, **kwargs):
         article(CuratedArticle): Instance of CuratedArticle created or updated.
 
     """
-    notification = models.Notification.objects.create(article=article)
-    users = get_user_model().objects.filter(profile__isnull=False)
-    for user in users:
-        models.UserNotification.objects.create(user=user, notification=notification)
+    # TODO(Nishant): Temporarily removing article uploaded notification.
+    return False
+    # notification = models.Notification.objects.create(article=article)
+    # users = get_user_model().objects.filter(profile__isnull=False)
+    # for user in users:
+    #     models.UserNotification.objects.create(user=user, notification=notification)
