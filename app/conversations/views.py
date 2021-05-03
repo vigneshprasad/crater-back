@@ -2,7 +2,9 @@ import datetime
 
 from django.db.models import Q
 
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins
+from rest_framework import viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -16,7 +18,6 @@ from conversations import constants
 
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
-from freelance import settings
 
 
 class TopicViewSet(
@@ -72,7 +73,8 @@ class TopicViewSet(
         detail=False
     )
     def articles(self, request, *args, **kwargs):
-        queryset = models.Topic.objects.exclude(article__isnull=True).order_by("created_at")
+        """Returns topics based on articles."""
+        queryset = models.Topic.objects.exclude(article__isnull=True).order_by("-created_at")
         serialized = self.get_serializer(queryset, many=True)
         return Response(serialized.data)
 

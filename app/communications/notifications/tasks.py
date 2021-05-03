@@ -57,7 +57,7 @@ def send_conversation_reminders_notifications(groups=None):
             private.create_notification_log(speaker, notification, notification_json, data=data)
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+@periodic_task(run_every=crontab(minute="*/1"))
 def send_conversation_live_reminder_notifications(groups=None):
     """Sends notification for people as soon as their meeting is live.
 
@@ -68,11 +68,13 @@ def send_conversation_live_reminder_notifications(groups=None):
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=5))
 
     groups = conversations_models.Group.objects.filter(
-        start__gt=start_datetime,
-        start__lte=end_datetime,
+        start__year=start_datetime.year,
+        start__month=start_datetime.month,
+        start__day=start_datetime.day,
+        start__hour=start_datetime.hour,
+        start__minute=start_datetime.minute,
     ) if not groups else groups
 
     notification = models.Notification.objects.filter(name=constants.GROUP_LIVE_NOTIFICATION).first()
