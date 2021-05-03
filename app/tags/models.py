@@ -172,6 +172,7 @@ class SourceWebsite(models.Model):
         blank=True,
     )
     order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = _("Source Website")

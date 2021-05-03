@@ -22,7 +22,7 @@ class Topic(base_model.BaseModel):
         to create nesting
 
     """
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=255)
     image = models.ImageField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     parent = models.ForeignKey(

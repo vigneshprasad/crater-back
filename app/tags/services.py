@@ -3,4 +3,5 @@ from django.db.models.functions import Lower
 
 
 def get_websites():
-    return SourceWebsite.objects.all().order_by(Lower('name'))
+    """Get active source websites for articles."""
+    return SourceWebsite.objects.filter(is_active=True).order_by(Lower('name'))
