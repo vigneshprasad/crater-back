@@ -13,7 +13,7 @@ class CuratedArticle(base_models.BaseModel):
         blank=True,
         null=True,
     )
-    description = models.TextField(_("Short Intro"))
+    description = models.TextField(_("Short Intro"), null=True, blank=True)
     tag = models.ForeignKey(
         "tags.ArticleTag",
         verbose_name=_("Tag"),
