@@ -179,3 +179,41 @@ def filter_groups_by_score(user, queryset=None):
     return queryset.filter(
         score__lte=(user_score + 5)
     ).order_by("-score", "-start")
+
+
+def get_distinct_groups_by_score(user, queryset=None):
+    """ Return one group per topic for user filtered based on start time < 2 days
+        before now and >= user score + 5,
+
+    Args:
+        user(User): user from the context or request
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
+        not closed.
+
+    Returns:
+        Queryset<Group>: queryset of filtered groups for user
+
+    """
+    user_score = user.score
+    now_time = timezone.now()
+
+    if queryset is None:
+        queryset = models.Group.objects.filter(closed=False)
+
+    distinct_topics = queryset.values_list("topic", flat=True)
+
+    filtered_queryset = queryset.filter(
+        start__gte=(now_time - datetime.timedelta(days=2)),
+        score__lte=(user_score + 5),
+        is_full=False
+    ).order_by("-score", "-start")
+
+    final_groups = []
+
+    for topic in distinct_topics:
+        group = filtered_queryset.filter(topic_id=topic).first()
+        final_groups.append(group)
+
+    final_group_ids = [group.id for group in final_groups]
+
+    return models.Group.objects.filter(id__in=final_group_ids)

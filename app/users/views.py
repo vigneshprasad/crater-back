@@ -44,9 +44,11 @@ class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     success_url = reverse_lazy('admin:dashboard_dashboard_changelist')
 
 
-class ProfileViewSet(mixins.CreateModelMixin,
-                     mixins.ListModelMixin,
-                     viewsets.GenericViewSet):
+class ProfileViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = serializers.ProfileSerializer
     queryset = models.Profile.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -95,6 +97,7 @@ class ProfileViewSet(mixins.CreateModelMixin,
     @action(
         methods=["get"],
         detail=False,
+        pagination_class=Pagination
     )
     def connections(self, request, *args, **kwargs):
         """Return connections for the user on the platform."""
@@ -109,7 +112,10 @@ class ProfileViewSet(mixins.CreateModelMixin,
             for speaker in group.speakers.all().exclude(pk=user.pk):
                 connections.append(speaker)
 
-        serialized = self.get_serializer(connections, many=True)
+        unique_connections = list(set(connections))
+        # Sorting the users by score.
+        unique_connections.sort(key=lambda x: x.score, reverse=True)
+        serialized = self.get_serializer(unique_connections, many=True)
         return Response(serialized.data)
 
 

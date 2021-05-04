@@ -102,7 +102,7 @@ class GroupsViewSet(
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        user_groups = services.get_distinct_user_groups(user)
+        user_groups = services.get_groups_for_user(user)
         serialized = self.get_serializer(user_groups, many=True)
         return Response(serialized.data)
 
@@ -122,11 +122,19 @@ class GroupsViewSet(
     )
     def instant_time_slots(self, request, *args, **kwargs):
         now = datetime.datetime.now()
-        response = [now]
+        response = []
+
         for time in constants.INSTANT_CONVERSATION_TIME_SLOTS:
             slot = datetime.datetime.combine(now.date(), time)
             if slot > now:
                 response.append(slot)
+
+        if len(response) == 0:
+            now = now + datetime.timedelta(days=1)
+            for time in constants.INSTANT_CONVERSATION_TIME_SLOTS:
+                slot = datetime.datetime.combine(now.date(), time)
+                response.append(slot)
+
         return Response(response)
 
     @action(
@@ -283,7 +291,7 @@ class GroupCalendarViewSet(
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        user_groups = services.filter_groups_by_score(user, queryset=self.get_queryset())
+        user_groups = services.get_distinct_groups_by_score(user, queryset=self.get_queryset())
         response = self._make_date_dict(user_groups)
         return Response(response)
 
