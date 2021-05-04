@@ -102,7 +102,7 @@ class GroupsViewSet(
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        user_groups = services.get_groups_for_user(user)
+        user_groups = services.get_distinct_user_groups(user)
         serialized = self.get_serializer(user_groups, many=True)
         return Response(serialized.data)
 

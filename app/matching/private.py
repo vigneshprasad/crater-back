@@ -3,8 +3,8 @@ import itertools
 from django.contrib.auth import get_user_model
 
 from resources.meetings import services as meeting_services
+from matching import public as matching_public
 from matching.engines import user_matching
-from matching.engines import users_scoring
 from matching.engines import matching_constants
 
 
@@ -170,6 +170,6 @@ def calculate_average_group_score_based_on_user_score(users):
         return total_score
 
     for user in users:
-        total_score += users_scoring.calculate_user_score(user)
+        total_score += matching_public.get_user_score(user)
 
     return round(total_score/len(users), 2)

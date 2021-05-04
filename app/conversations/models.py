@@ -93,6 +93,7 @@ class Group(base_model.BaseModel):
     max_speakers = models.PositiveIntegerField(default=constants.DEFAULT_MAX_SPEAKERS)
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=GROUP_PRIVACY_CHOICES[0][0])
     medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=GROUP_MEDIUM_CHOICES[0][0])
+    is_full = models.BooleanField(default=False)
     # Group closed status and datetime of closure.
     # TODO(Nishant): Can change this into statuses as well.
     closed = models.BooleanField(default=False)

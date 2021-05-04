@@ -70,3 +70,4 @@ def get_social_account_info(social_account):
             'photo_url': extra_data['picture']
         }
     return data
+

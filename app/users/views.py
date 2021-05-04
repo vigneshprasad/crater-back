@@ -34,6 +34,8 @@ from .paginators import Pagination
 from .signals import basic_profile_created, service_created, phone_number_verified, referred_friend
 from .swagger_schemas import referer_email
 from .tasks import send_email
+from resources.meetings import models as meeting_models
+from conversations import models as conversation_models
 
 
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
@@ -89,6 +91,26 @@ class ProfileViewSet(mixins.CreateModelMixin,
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+    @action(
+        methods=["get"],
+        detail=False,
+    )
+    def connections(self, request, *args, **kwargs):
+        """Return connections for the user on the platform."""
+        user = request.user
+        connections = []
+
+        for meeting in meeting_models.Meeting.objects.filter(participants=user):
+            for participant in meeting.participants.all().exclude(pk=user.pk):
+                connections.append(participant)
+
+        for group in conversation_models.Group.objects.filter(speakers=user):
+            for speaker in group.speakers.all().exclude(pk=user.pk):
+                connections.append(speaker)
+
+        serialized = self.get_serializer(connections, many=True)
+        return Response(serialized.data)
 
 
 class BankDetailViewSet(mixins.CreateModelMixin,

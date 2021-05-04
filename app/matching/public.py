@@ -142,6 +142,11 @@ def calculate_user_score(user):
 
 def get_user_score(user):
     """Returns user score for a user."""
+    if not user.score:
+        score = users_scoring.calculate_user_score(user)
+        user.score = score
+        user.save()
+
     return user.score
 
 
@@ -183,4 +188,3 @@ def get_user_info(user):
     user_info["interests"] = user_interests
 
     return user_info
-

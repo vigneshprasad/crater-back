@@ -1,4 +1,4 @@
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
 from conversations import constants
@@ -21,6 +21,23 @@ def update_group_score(sender, instance, *args, **kwargs):
     score = matching_private.calculate_average_group_score_based_on_user_score(speakers)
 
     instance.score = score
+    instance.save()
+
+
+@receiver(m2m_changed, sender=models.Group.speakers.through)
+def change_group_occupancy_status(sender, instance, *args, **kwargs):
+    """Update group is_full as a user is removed or added to the group."""
+    if kwargs.get("action") not in ["post_add", "post_remove"]:
+        return
+
+    speakers_count = instance.speakers.count()
+
+    if constants.DEFAULT_MAX_SPEAKERS > speakers_count:
+        instance.is_full = False
+        instance.save()
+        return
+
+    instance.is_full = True
     instance.save()
 
 
