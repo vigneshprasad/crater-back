@@ -99,15 +99,17 @@ class ProfileViewSet(
         detail=False,
         pagination_class=Pagination
     )
-    def connections(self, request, *args, **kwargs):
+    def connections(self, request, pk, *args, **kwargs):
         """Return connections for the user on the platform."""
-        user = request.user
-        connections = []
+        try:
+            user = models.User.objects.get(pk=pk)
+        except models.User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        connections = []
         for meeting in meeting_models.Meeting.objects.filter(participants=user):
             for participant in meeting.participants.all().exclude(pk=user.pk):
                 connections.append(participant)
-
         for group in conversation_models.Group.objects.filter(speakers=user):
             for speaker in group.speakers.all().exclude(pk=user.pk):
                 connections.append(speaker)
@@ -115,7 +117,8 @@ class ProfileViewSet(
         unique_connections = list(set(connections))
         # Sorting the users by score.
         unique_connections.sort(key=lambda x: x.score, reverse=True)
-        serialized = self.get_serializer(unique_connections, many=True)
+        profiles = list(map(lambda x: x.profile, unique_connections))
+        serialized = self.get_serializer(profiles, many=True)
         return Response(serialized.data)
 
 
@@ -384,7 +387,6 @@ class NetworkView(mixins.RetrieveModelMixin,
             data['photo'] = photo.url if hasattr(photo, 'url') else photo
             return Response(data)
         raise NotFound()
-
 
     def get(self, request, *args, **kwargs):
         pk = kwargs.get('pk')
