@@ -249,7 +249,10 @@ def send_conversation_reminder_for_user(user, group):
     for matched_user in matched_users:
         matched_list.append(matched_user)
 
-    if len(matched_list) == 1:
+    # If there are no users in the group. Don't send this message.
+    if not matched_list:
+        return
+    elif len(matched_list) == 1:
         matched_users_thread = matched_list.pop().get_display_first_name()
     else:
         last_user = matched_list.pop()
