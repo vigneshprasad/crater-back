@@ -96,7 +96,7 @@ class ProfileViewSet(
 
     @action(
         methods=["get"],
-        detail=False,
+        detail=True,
         pagination_class=Pagination
     )
     def connections(self, request, pk, *args, **kwargs):
