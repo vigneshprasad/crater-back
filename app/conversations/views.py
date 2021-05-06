@@ -291,7 +291,7 @@ class GroupCalendarViewSet(
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        user_groups = services.get_distinct_groups_by_score(user, queryset=self.get_queryset())
+        user_groups = services.filter_groups_by_score(user, queryset=self.get_queryset())
         response = self._make_date_dict(user_groups)
         return Response(response)
 
