@@ -159,17 +159,16 @@ def get_distinct_groups_by_score(user, queryset=None):
 
     """
     user_score = user.score
-    now_time = timezone.now()
+
     if queryset is None:
         queryset = models.Group.objects.filter(closed=False)
 
     filtered_queryset = queryset.filter(
-        start__gte=(now_time - datetime.timedelta(days=2)),
         score__lte=(user_score + 5),
         is_full=False
-    ).order_by("-score", "-start")
+    ).order_by("-score", "start")
 
-    distinct_topics = filtered_queryset.values_list("topic", flat=True).distinct()
+    distinct_topics = list(set(filtered_queryset.values_list("topic", flat=True)))
     final_groups = []
 
     for topic in distinct_topics:

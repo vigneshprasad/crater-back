@@ -1,10 +1,12 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from .signals import profile_completed, referal_success_points_signal, user_signed_up, user_updated
+
 from notifications import signals as notification_signals
 from users import choices
 from users import services
+from users import signals
+
 
 PROFILE_COMPLETED_POINTS_KEY = 1
 REFERAL_SUCCESS_POINTS_KEY = 13
@@ -14,13 +16,13 @@ User = get_user_model()
 
 @receiver(post_save, sender=User)
 def send_profile_completed_points_signal(sender, instance, created, *args, **kwargs):
-    user_updated.send(
+    signals.user_updated.send(
         sender=instance.__class__,
         user=instance,
     )
     
     if created:
-        user_signed_up.send(
+        signals.user_signed_up.send(
             sender=instance.__class__,
             user=instance
         )
@@ -28,7 +30,7 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
     if instance.profile_completed:
         points_log = instance.points_log
         if not points_log.filter(action__key=PROFILE_COMPLETED_POINTS_KEY).exists():
-            profile_completed.send(
+            signals.profile_completed.send(
                 sender=instance.__class__,
                 rule_key=PROFILE_COMPLETED_POINTS_KEY,
                 user=instance
@@ -36,7 +38,7 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
         if instance.referer:
             referer_points_log = instance.referer.points_log
             if not referer_points_log.filter(action__key=REFERAL_SUCCESS_POINTS_KEY).exists():
-                referal_success_points_signal.send(
+                signals.referal_success_points_signal.send(
                     sender=instance.referer.__class__,
                     user=instance.referer,
                     rule_key=REFERAL_SUCCESS_POINTS_KEY
@@ -79,7 +81,7 @@ def create_or_update_user_device_info(sender, user, device_info, **kwargs):
         **user_device_info
     )
     if created:
-        user_updated.send(
+        signals.user_updated.send(
             sender=instance.user.__class__,
             user=user
         )

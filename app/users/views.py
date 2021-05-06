@@ -103,7 +103,7 @@ class ProfileViewSet(
         """Return connections for the user on the platform."""
         try:
             user = models.User.objects.get(pk=pk)
-        except models.User.DoesNotExist:
+        except (models.User.DoesNotExist, ValidationError):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         connections = []
