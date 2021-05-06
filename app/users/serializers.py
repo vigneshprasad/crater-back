@@ -572,6 +572,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'years_of_experience',
             'company_type',
             'sector',
+            'generated_introduction',
         )
         extra_kwargs = {
             'tags': {'write_only': True, 'allow_null': True, 'required': False }
