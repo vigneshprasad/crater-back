@@ -115,10 +115,18 @@ class ProfileViewSet(
                 connections.append(speaker)
 
         unique_connections = list(set(connections))
+
+        # Need only connections with profile.
+        unique_connections_with_profile = []
+        for user in unique_connections:
+            if not user.has_profile:
+                continue
+            unique_connections_with_profile.append(user.profile)
+
         # Sorting the users by score.
-        unique_connections.sort(key=lambda x: x.score, reverse=True)
-        profiles = list(map(lambda x: x.profile, unique_connections))
-        serialized = self.get_serializer(profiles, many=True)
+        unique_connections_with_profile.sort(key=lambda x: x.user.score, reverse=True)
+        serialized = self.get_serializer(unique_connections_with_profile, many=True)
+
         return Response(serialized.data)
 
 

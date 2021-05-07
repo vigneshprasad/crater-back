@@ -5,10 +5,13 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from order.serializers import EmptySerializer
+from order import serializers as order_serializers
+from notifications import models
+from notifications import serializers
+from notifications import signals
+from notifications import paginators
+from notifications.schema import batch_notification_read
 from users import permissions
-from . import models, serializers, paginators
-from .schema import batch_notification_read
 
 
 class UserNotificationSettingsViesSet(mixins.ListModelMixin,
@@ -47,11 +50,11 @@ class NotificationViewSet(mixins.ListModelMixin,
         # TODO(Nishant): Will reuse this code when Flutter app is released.
         # This is the call that always happens as you open the app
         # Hence firing the app started signal.
-        # signals.app_started_signal.send(
-        #     sender=None,
-        #     user=request.user,
-        #     device_info=request.user_agent
-        # )
+        signals.app_started_signal.send(
+            sender=None,
+            user=request.user,
+            device_info=request.user_agent
+        )
         return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -62,7 +65,7 @@ class NotificationViewSet(mixins.ListModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=EmptySerializer,
+        serializer_class=order_serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )

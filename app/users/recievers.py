@@ -1,3 +1,6 @@
+import datetime
+import logging
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
@@ -46,6 +49,14 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
 
 
 @receiver(notification_signals.app_started_signal)
+def update_user_activity(sender, user, **kwargs):
+    logging.info(
+        "User has been active: {}".format(user.email),
+        time=datetime.datetime.now()
+    )
+
+
+# @receiver(notification_signals.app_started_signal)
 def create_or_update_user_device_info(sender, user, device_info, **kwargs):
     """
     Delegates creation or update of user device info.
