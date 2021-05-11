@@ -3,7 +3,6 @@ import datetime
 from urllib import request as urllib_request
 
 from integrations.freshchat import public
-from resources.meetings import choices
 from resources.meetings import services
 from resources.meetings import tasks
 from users import models as user_models
@@ -120,11 +119,7 @@ def _check_if_users_had_a_meeting(user_a, user_b):
         The common meeting ids for both users.
 
     """
-    meetings_a = user_a.meeting_set.exclude(
-        status=choices.MEETING_STATUS_CANCELLED
-    ).values_list("id", flat=True)
-    meetings_b = user_b.meeting_set.exclude(
-        status=choices.MEETING_STATUS_CANCELLED
-    ).values_list("id", flat=True)
+    meetings_a = user_a.meeting_set.values_list("id", flat=True)
+    meetings_b = user_b.meeting_set.values_list("id", flat=True)
 
     return set(meetings_a) & set(meetings_b)

@@ -161,7 +161,7 @@ def new_meeting_config_created_track(sender, user, **kwargs):
 @receiver(meetings_signals.new_meeting_created)
 def new_meeting_created_track(sender, user, **kwargs):
     """Sending new meeting creations to Analytics."""
-    kwargs.pop('signal')
+    kwargs.pop("signal")
 
     event = MEETING_CREATED
     analytics_track_properties = kwargs
