@@ -793,6 +793,12 @@ class Source(base_models.BaseModel):
         return "{} - {}".format(self.name, self.score)
 
 
+class UserActivity(base_models.BaseModel):
+    """This model stores users last active time."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_active = models.DateTimeField()
+
+
 @receiver(post_save, sender=CoverFile)
 def profile_post_save(sender, instance, created,  *args, **kwargs):
     if created:

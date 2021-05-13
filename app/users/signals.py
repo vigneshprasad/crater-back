@@ -66,3 +66,7 @@ referal_success_points_signal = Signal(providing_args=[
     "rule_key",
     "user",
 ])
+
+profile_requested = Signal(providing_args=[
+    "profile"
+])

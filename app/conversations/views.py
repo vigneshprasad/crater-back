@@ -137,22 +137,32 @@ class GroupsViewSet(
 
         return Response(response)
 
-    @action(
-        methods=["post"],
-        detail=False,
-    )
+    @action(methods=["post"], detail=False)
     def instant(self, request, *args, **kwargs):
+        """Creates a conversation(group) for a user and topic
+            selected from client.
+
+        """
         user = request.user
         data = request.data
+        # Adding request user as host and speaker both.
         data["host"] = user.pk
         data["speakers"] = [user.pk]
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        instance = serializer.save()
+        # Sending conversation created signal.
+        signals.conversation_created.send(
+            sender=instance.__class__,
+            group=instance
+        )
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=self.get_success_headers(serializer.data)
+        )
 
 
 class OptinViewSet(

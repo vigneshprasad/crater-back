@@ -9,6 +9,7 @@ from notifications import signals as notification_signals
 from users import choices
 from users import services
 from users import signals
+from users import models
 
 
 PROFILE_COMPLETED_POINTS_KEY = 1
@@ -48,12 +49,24 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
                 )
 
 
-@receiver(notification_signals.app_started_signal)
-def update_user_activity(sender, user, **kwargs):
-    logging.info(
-        "User has been active: {}".format(user.email),
-        time=datetime.datetime.now()
+@receiver(signals.profile_requested)
+def update_user_activity(sender, profile, **kwargs):
+    """Updates user activity on every profile retrieve call.
+
+    Args:
+        sender(Profile class): Class value of the profile model.
+        profile(Profile): Profile object of the user that made the
+            request.
+
+    """
+    user_activity, created = models.UserActivity.objects.update_or_create(
+        user=profile.user,
+        defaults={
+            "last_active": datetime.datetime.now()
+        }
     )
+
+    return created
 
 
 # @receiver(notification_signals.app_started_signal)

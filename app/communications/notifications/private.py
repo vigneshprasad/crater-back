@@ -2,6 +2,7 @@ from celery.task import task
 from django.contrib.auth import get_user_model
 
 from communications.notifications import models
+from communications.notifications import constants
 from utils.one_signal_service import os_service
 
 
@@ -19,6 +20,20 @@ def create_notification_json_from_notification(notification):
         "android_accent_color": notification.android_accent_color,
         "buttons": notification.buttons
     }
+
+
+def create_notification_logs(users, notification, notification_json, data=data):
+    """Creates notification log for a notification and json sent.
+
+    Args:
+        users(Queryset/List): Users the notification was sent to.
+        notification(Notification): Notification object that was used.
+        notification_json(JSON): Actual notification json sent to the client.
+        data(JSON): Addition data sent to the client.
+
+    """
+    for user in users:
+        create_notification_log(user, notification, notification_json, data=data)
 
 
 def create_notification_log(user, notification, notification_json, data=None):
@@ -62,4 +77,42 @@ def send_notification(user_pk, notification_json, data=None):
             notification_json=notification_json
         )
 
-    return notification_json
+    return True
+
+
+@task()
+def send_bulk_notifications(user_pks, notification_json, data=None):
+    """Sends notification to list of users.
+
+    Args:
+        user_pks(list): List of User IDs of the users notification should be sent to.
+        notification_json(JSON): Actual notification json sent to the client.
+        data(JSON): Extra data sent to the client.
+
+    Returns:
+        notification_json(JSON): Final JSON that was sent to the client.
+
+    """
+    users = get_user_model().objects.get(pk__in=user_pks)
+    notification_json["data"] = data
+
+    user_os_ids = []
+    for user in users:
+        devices = user.devices.filter(is_active=True)
+        for device in devices:
+            user_os_ids.append(device.os_id)
+
+    count = 0
+    count_of_os_ids = len(user_os_ids)
+
+    while count < count_of_os_ids:
+        max_count = count + constants.MAX_PLAYER_IDS_FOR_BULK_NOTIFICATIONS
+        # Sending only 2000 os_ids in one go because of max player ids limit.
+        os_ids = user_os_ids[count: max_count]
+        os_service.send_bulk_notification(
+            os_ids,
+            notification_json=notification_json
+        )
+        count = max_count
+
+    return True

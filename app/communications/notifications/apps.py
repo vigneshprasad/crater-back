@@ -9,4 +9,4 @@ class NotificationsConfig(AppConfig):
     verbose_name_plural = _("Notifications")
 
     def ready(self):
-        pass
+        import communications.notifications.receivers
