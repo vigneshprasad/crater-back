@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from users.models import User
-from wn_analytics.models import UserSource
-from tags.serializers import TagSerializer
+from users import models as user_models
+from wn_analytics import models
+from tags import serializers as tag_serializers
 
 
 class UserTraitsSerializer(serializers.ModelSerializer):
@@ -12,41 +12,44 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     twitter = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
-    user_objectives = serializers.SerializerMethodField(
-        read_only=True
-    )
-    utm_source = serializers.SerializerMethodField(
-        read_only=True
-    )
-    utm_campaign = serializers.SerializerMethodField(
-        read_only=True
-    )
+    user_objectives = serializers.SerializerMethodField(read_only=True)
+    utm_source = serializers.SerializerMethodField(read_only=True)
+    utm_campaign = serializers.SerializerMethodField(read_only=True)
     linkedin = serializers.CharField(
-        source='profile.linkedin_url',
+        source="profile.linkedin_url",
         read_only=True
     )
+    years_of_experience = serializers.SerializerMethodField(read_only=True)
+    sector = serializers.SerializerMethodField(read_only=True)
+    education_level = serializers.SerializerMethodField(read_only=True)
+    company_type = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = User
+        model = user_models.User
         fields = (
-            'name',
-            'email',
-            'role',
-            'city',
-            'work_city',
-            'phone',
-            'intent',
-            'email_verified',
-            'phone_number_verified',
-            'social_auth',
-            'referer',
-            'user_tags',
-            'twitter',
-            'source',
-            'user_objectives',
-            'linkedin',
-            'utm_source',
-            'utm_campaign',
+            "name",
+            "email",
+            "role",
+            "city",
+            "work_city",
+            "phone",
+            "intent",
+            "email_verified",
+            "phone_number_verified",
+            "social_auth",
+            "referer",
+            "user_tags",
+            "twitter",
+            "source",
+            "user_objectives",
+            "linkedin",
+            "utm_source",
+            "utm_campaign",
+            "date_joined",
+            "years_of_experience",
+            "sector",
+            "education_level",
+            "company_type"
         )
 
     @staticmethod
@@ -69,22 +72,28 @@ class UserTraitsSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_utm_source(user):
-        source = UserSource.objects.filter(user=user).last()    
-        if source:
-            return source.utm_source
+        source = models.UserSource.objects.filter(user=user).last()
+        if not source:
+            return None
+        return source.utm_source
 
     @staticmethod
     def get_utm_campaign(user):
-        source = UserSource.objects.filter(user=user).last()     
-        if source:
-            return source.utm_campaign
+        source = models.UserSource.objects.filter(user=user).last()
+        if not source:
+            return None
+        return source.utm_campaign
 
     @staticmethod
     def get_user_tags(user):
         if not user.has_profile:
             return None
-        user_tags = TagSerializer(user.profile.tags, many=True, read_only=True).data
-        return ', '.join([tag['name'] for tag in user_tags])
+        user_tags = tag_serializers.TagSerializer(
+            user.profile.tags,
+            many=True,
+            read_only=True
+        ).data
+        return ", ".join([tag["name"] for tag in user_tags])
 
     @staticmethod
     def get_twitter(user):
@@ -100,6 +109,38 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     def get_user_objectives(user):
         if not user.objectives.all():
             return None
-        return ', '.join(
+        return ", ".join(
             [objective.name for objective in user.objectives.all()]
         )
+
+    @staticmethod
+    def get_years_of_experience(user):
+        profile = user.profile
+        years_of_experience = profile.years_of_experience
+        years_of_experience_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[
+            years_of_experience] if years_of_experience else None
+        return years_of_experience_str
+
+    @staticmethod
+    def get_sector(user):
+        profile = user.profile
+        sector = profile.sector
+        sector_str = dict(user_models.Profile.SECTOR_CHOICES)[
+            sector] if sector else None
+        return sector_str
+
+    @staticmethod
+    def get_education_level(user):
+        profile = user.profile
+        education_level = profile.education_level
+        education_level_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[
+            education_level] if education_level else None
+        return education_level_str
+
+    @staticmethod
+    def get_company_type(user):
+        profile = user.profile
+        company_type = profile.company_type
+        company_type_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[
+            company_type] if company_type else None
+        return company_type_str
