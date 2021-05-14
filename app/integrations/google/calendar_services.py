@@ -76,7 +76,7 @@ class GoogleCalendarService:
         Args:
             start_datetime(datetime.datetime): Starting time for the calendar event.
             end_datetime(datetime.datetime): Ending time for the calendar event.
-            users(list/queryset): List of user's who are attending the event.
+            users(list/queryset): List of user"s who are attending the event.
             summary(str): The title of the Google calendar event.
             description(str): The description for Google calendar event.
             meeting_link(str): External meeting link to be added to the event.
@@ -153,8 +153,8 @@ class GoogleCalendarService:
             conferenceDataVersion=self.conference_data_version
         ).execute()
 
-        hangout_link = meeting_link if meeting_link else event.get('hangoutLink', '')
-        event_id = event.get('id', '')
+        hangout_link = meeting_link if meeting_link else event.get("hangoutLink", "")
+        event_id = event.get("id", "")
 
         return event_id, hangout_link
 
@@ -171,6 +171,36 @@ class GoogleCalendarService:
             body=patch_body,
             conferenceDataVersion=self.conference_data_version
         ).execute()
+
+    def update_event_conference_to_google_meet(self, event_id):
+        """Updates conference type to google meets for WorkNetwork Calendar.
+
+        Note:
+            We generally use SuperPro links. This is a fallback in case
+                superpro is down.
+        """
+        request_id = str(uuid.uuid4())
+        patch_body = {
+            "conferenceData": {
+                "createRequest": {
+                    "conferenceSolutionKey": {
+                        "type": constants.HANGOUT_MEET
+                    },
+                    "requestId": request_id,
+                }
+            }
+        }
+        event = self.service.events().patch(
+            calendarId=self.calendar_id,
+            eventId=event_id,
+            body=patch_body,
+            conferenceDataVersion=self.conference_data_version
+        ).execute()
+
+        # Return the updated google meet link for the event.
+        hangout_link = event.get("hangoutLink", "")
+
+        return hangout_link
 
     def delete_event(self, event_id):
         """Deletes an event from the WorkNetwork calendar."""

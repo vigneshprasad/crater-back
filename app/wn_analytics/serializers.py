@@ -6,6 +6,7 @@ from tags import serializers as tag_serializers
 
 
 class UserTraitsSerializer(serializers.ModelSerializer):
+    """These parameters are sent to segment for tracking."""
     work_city = serializers.SerializerMethodField()
     social_auth = serializers.SerializerMethodField()
     user_tags = serializers.SerializerMethodField()
