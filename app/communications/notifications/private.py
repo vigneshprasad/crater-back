@@ -22,7 +22,7 @@ def create_notification_json_from_notification(notification):
     }
 
 
-def create_notification_logs(users, notification, notification_json, data=data):
+def create_notification_logs(users, notification, notification_json, data=None):
     """Creates notification log for a notification and json sent.
 
     Args:

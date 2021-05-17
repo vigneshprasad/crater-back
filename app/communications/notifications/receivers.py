@@ -21,12 +21,17 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
 
     """
     group_host = group.host
+    group_host_profile = group_host.profile if group_host.has_profile else None
+
+    if not (group_host and group_host_profile):
+        logging.info("Group has no host or host profile: {}".format(group.id))
+        return
 
     min_score = group_host.score
     max_score = min_score + (min_score * 0.3)
 
     # Getting the notification that has to be sent.
-    conversation_create_notification = models.Notification.objects.get(name=constants.GROUP_CONVERSATION_CREATED)
+    conversation_create_notification = models.Notification.objects.get(name=constants.GROUP_CONVERSATION_INVITE)
 
     group_start = group.start
     # Groups that start at the same time as the group created.
@@ -61,13 +66,27 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
         final_eligible_users.append(user)
 
     final_eligible_user_ids = [user.pk for user in final_eligible_users]
+
+    # Get user data needed for notification.
+    tag_name = group_host_profile.new_tag.first().name() if group_host_profile.new_tag.first() else "Professional"
+    year_of_experience = group_host_profile.years_of_experience or 1
+    year_of_experience_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES).get(
+        year_of_experience
+    )
+
     # Get the notification json and append variables to it.
     notification_json = private.create_notification_json_from_notification(conversation_create_notification)
+    notification_json["headings"]["en"] = notification_json["contents"]["en"].format(
+        time=group.get_display_start_time(), topic=group.topic
+    )
     notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
-        time=group.get_display_start_time(), day=group.get_display_day())
+        first_name=group.host.get_display_first_name(),
+        tag=tag_name,
+        year_of_experience=year_of_experience_str
+    )
     # Get data for the notification.
     data = {
-        "obj_type": constants.OBJECT_TYPE_CONVERSATION,
+        "obj_type": conversation_create_notification.obj_type,
         "group_id": group.id
     }
     private.send_bulk_notifications.delay(final_eligible_user_ids, notification_json, data=data)
