@@ -80,7 +80,7 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
         time=group.get_display_start_time(), topic=group.topic
     )
     notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
-        first_name=group.host.get_display_first_name(),
+        first_name=group_host.get_display_first_name(),
         tag=tag_name,
         year_of_experience=year_of_experience_str
     )
