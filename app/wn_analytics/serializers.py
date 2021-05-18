@@ -116,6 +116,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_years_of_experience(user):
+        if not user.has_profile:
+            return None
         profile = user.profile
         years_of_experience = profile.years_of_experience
         years_of_experience_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[
@@ -124,6 +126,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_sector(user):
+        if not user.has_profile:
+            return None
         profile = user.profile
         sector = profile.sector
         sector_str = dict(user_models.Profile.SECTOR_CHOICES)[
@@ -132,6 +136,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_education_level(user):
+        if not user.has_profile:
+            return None
         profile = user.profile
         education_level = profile.education_level
         education_level_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[
@@ -140,6 +146,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_company_type(user):
+        if not user.has_profile:
+            return None
         profile = user.profile
         company_type = profile.company_type
         company_type_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[
