@@ -68,7 +68,7 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
     final_eligible_user_ids = [user.pk for user in final_eligible_users]
 
     # Get user data needed for notification.
-    tag_name = group_host_profile.new_tag.first().name() if group_host_profile.new_tag.first() else "Professional"
+    tag_name = group_host_profile.new_tag.first().name if group_host_profile.new_tag.first() else "Professional"
     year_of_experience = group_host_profile.years_of_experience or 1
     year_of_experience_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES).get(
         year_of_experience
