@@ -52,7 +52,7 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
             continue
 
         notifications_sent = models.NotificationLogs.objects.filter(
-            user,
+            user=user,
             notification=conversation_create_notification,
             created_at__year=now_time.year,
             created_at__month=now_time.month,
