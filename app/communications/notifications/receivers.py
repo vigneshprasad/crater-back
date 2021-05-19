@@ -76,7 +76,7 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
 
     # Get the notification json and append variables to it.
     notification_json = private.create_notification_json_from_notification(conversation_create_notification)
-    notification_json["headings"]["en"] = notification_json["contents"]["en"].format(
+    notification_json["headings"]["en"] = notification_json["headings"]["en"].format(
         time=group.get_display_start_time(), topic=group.topic
     )
     notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
