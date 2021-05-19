@@ -81,8 +81,8 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
     )
     notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
         first_name=group_host.get_display_first_name(),
-        tag=tag_name,
-        year_of_experience=year_of_experience_str
+        new_tag=tag_name,
+        years_of_experience=year_of_experience_str
     )
     # Get data for the notification.
     data = {
