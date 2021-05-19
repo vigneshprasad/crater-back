@@ -93,7 +93,7 @@ def send_bulk_notifications(user_pks, notification_json, data=None):
         notification_json(JSON): Final JSON that was sent to the client.
 
     """
-    users = get_user_model().objects.get(pk__in=user_pks)
+    users = get_user_model().objects.filter(pk__in=user_pks)
     notification_json["data"] = data
 
     user_os_ids = []
