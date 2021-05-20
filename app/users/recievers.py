@@ -2,6 +2,7 @@ import datetime
 import logging
 
 from django.db.models.signals import post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 
@@ -16,6 +17,19 @@ PROFILE_COMPLETED_POINTS_KEY = 1
 REFERAL_SUCCESS_POINTS_KEY = 13
 
 User = get_user_model()
+
+
+@receiver(pre_save, sender=get_user_model())
+def create_push_and_rent(sender, instance, *args, **kwargs):
+    if not instance.name:
+        instance.name = f'{instance.first_name} {instance.last_name}'
+    return instance
+
+
+@receiver(post_save, sender=get_user_model())
+def set_referrer_relation(sender, instance, *args, **kwargs):
+    if instance.referer:
+        models.Referral.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=User)

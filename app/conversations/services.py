@@ -90,6 +90,12 @@ def create_group_conversation(users, interests, topic, start, end):
     # Refreshing for updated values.
     group.refresh_from_db()
 
+    # Sending group created signal.
+    signals.conversation_created.send(
+        sender=group.__class__,
+        group=group
+    )
+
     return group
 
 

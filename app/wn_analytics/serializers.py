@@ -3,6 +3,8 @@ from rest_framework import serializers
 from users import models as user_models
 from wn_analytics import models
 from tags import serializers as tag_serializers
+from conversations import services as conversation_services
+from resources.meetings import services as meeting_services
 
 
 class UserTraitsSerializer(serializers.ModelSerializer):
@@ -24,6 +26,10 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     sector = serializers.SerializerMethodField(read_only=True)
     education_level = serializers.SerializerMethodField(read_only=True)
     company_type = serializers.SerializerMethodField(read_only=True)
+    last_meeting_date = serializers.SerializerMethodField(read_only=True)
+    last_conversation_date = serializers.SerializerMethodField(read_only=True)
+    total_conversations = serializers.SerializerMethodField(read_only=True)
+    total_meetings = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = user_models.User
@@ -153,3 +159,23 @@ class UserTraitsSerializer(serializers.ModelSerializer):
         company_type_str = dict(user_models.Profile.YEARS_OF_EXPERIENCE_CHOICES)[
             company_type] if company_type else None
         return company_type_str
+
+    @staticmethod
+    def get_total_conversations(user):
+        user_groups = conversation_services.get_groups_attended_for_user(user)
+        return user_groups.count()
+
+    @staticmethod
+    def get_total_meetings(user):
+        user_meetings = meeting_services.get_meetings_attended(user)
+        return user_meetings.count()
+
+    @staticmethod
+    def get_last_conversation_date(user):
+        latest_user_group = conversation_services.get_groups_attended_for_user(user).first()
+        return latest_user_group.local_start if latest_user_group else None
+
+    @staticmethod
+    def get_last_meeting_date(user):
+        latest_user_meeting = meeting_services.get_meetings_attended(user).first()
+        return latest_user_meeting.local_start if latest_user_meeting else None
