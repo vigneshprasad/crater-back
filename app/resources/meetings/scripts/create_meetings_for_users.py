@@ -2,6 +2,7 @@ import csv
 import datetime
 from urllib import request as urllib_request
 
+from conversations import tasks as conversation_tasks
 from integrations.freshchat import public
 from resources.meetings import services
 from resources.meetings import tasks
@@ -105,6 +106,16 @@ def run(
             for user in participants:
                 print("Sending WA message to: {}".format(user.email))
                 public.send_meeting_confirmation_rsvp(user, meeting)
+
+            profiles_without_introduction = []
+            for user in participants:
+                if not user.profile.get_introduction():
+                    profiles_without_introduction.append(user.profile)
+
+            # Creating introduction if not present.
+            conversation_tasks.create_user_introductions_for_eligible_users(
+                profiles=profiles_without_introduction
+            )
 
             print("Sending Intro emails to both user's")
             tasks.send_1_on_1_meeting_intro_emails(meetings=[meeting])
