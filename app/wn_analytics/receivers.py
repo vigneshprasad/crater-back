@@ -284,7 +284,7 @@ def conversation_created(sender, group, *args, **kwargs):
 
 
 @receiver(conversation_signals.user_joined_group)
-def conversation_created(sender, user, group, *args, **kwargs):
+def conversation_joined(sender, user, group, *args, **kwargs):
     """Sending an event when user joined """
     event = constants.CONVERSATION_JOINED
 
