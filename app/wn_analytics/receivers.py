@@ -272,9 +272,9 @@ def conversation_created(sender, group, *args, **kwargs):
         analytics_track_properties = {
             "id": group.id,
             "host": group.host.email if group.host else None,
-            "speakers": group.speakers.all(),
+            "speakers": list(group.speakers.all().values_list("email", flat=True)),
             "topic": group.topic.name,
-            "start": group.local_start
+            "start": group.get_display()
         }
         analytics_track(
             user=user,
@@ -291,9 +291,9 @@ def conversation_joined(sender, user, group, *args, **kwargs):
     analytics_track_properties = {
         "id": group.id,
         "host": group.host.email if group.host else None,
-        "speakers": group.speakers.all(),
+        "speakers": list(group.speakers.all().values_list("email", flat=True)),
         "topic": group.topic.name,
-        "start": group.local_start
+        "start": group.get_display()
     }
     analytics_track(
         user=user,
