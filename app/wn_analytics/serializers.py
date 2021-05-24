@@ -56,7 +56,11 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             "years_of_experience",
             "sector",
             "education_level",
-            "company_type"
+            "company_type",
+            "last_meeting_date",
+            "last_conversation_date",
+            "total_conversations",
+            "total_meetings"
         )
 
     @staticmethod
