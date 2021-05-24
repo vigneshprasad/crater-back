@@ -177,9 +177,9 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_last_conversation_date(user):
         latest_user_group = conversation_services.get_groups_attended_for_user(user).first()
-        return latest_user_group.local_start if latest_user_group else None
+        return latest_user_group.get_display() if latest_user_group else None
 
     @staticmethod
     def get_last_meeting_date(user):
         latest_user_meeting = meeting_services.get_meetings_attended(user).first()
-        return latest_user_meeting.local_start if latest_user_meeting else None
+        return latest_user_meeting.get_display() if latest_user_meeting else None
