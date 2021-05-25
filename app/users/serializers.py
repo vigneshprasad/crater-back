@@ -33,7 +33,7 @@ from wn_analytics import models as wn_analytics_models
 
 UserModel = get_user_model()
 
-logger = logging.getLogger('django.request')
+logger = logging.getLogger("django.request")
 logger.setLevel(logging.ERROR)
 
 
@@ -42,17 +42,17 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
     email = serializers.EmailField(
         required=True,
         error_messages={
-            'blank': _('Please enter your email'),
-            'invalid': _('Please enter a valid email'),
-            'max_length': _('Please enter a valid email'),
+            "blank": _("Please enter your email"),
+            "invalid": _("Please enter a valid email"),
+            "max_length": _("Please enter a valid email"),
         },
         max_length=100
     )
     password = serializers.CharField(
-        style={'input_type': 'password'},
+        style={"input_type": "password"},
         error_messages={
-            'blank': _('Please enter the password'),
-            'min_length': _('Password should have 8 or more symbols')
+            "blank": _("Please enter the password"),
+            "min_length": _("Password should have 8 or more symbols")
         },
         min_length=8,
         max_length=128
@@ -69,8 +69,8 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
 
     @staticmethod
     def check_device(attrs):
-        os_id = attrs.get('os_id', '')
-        user = attrs.get('user', '')
+        os_id = attrs.get("os_id", "")
+        user = attrs.get("user", "")
         if user and os_id:
             device, created = models.Device.objects.get_or_create(user=user, os_id=os_id)
             if not created:
@@ -78,13 +78,13 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
                 device.save()
 
     def validate(self, attrs):
-        username = attrs.get('username')
-        email = attrs.get('email')
-        password = attrs.get('password')
+        username = attrs.get("username")
+        email = attrs.get("email")
+        password = attrs.get("password")
 
         user = None
 
-        if 'allauth' in settings.INSTALLED_APPS:
+        if "allauth" in settings.INSTALLED_APPS:
             from allauth.account import app_settings
 
             # Authentication through email
@@ -108,29 +108,29 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
                     pass
 
             if username:
-                user = self._validate_username_email(username, '', password)
+                user = self._validate_username_email(username, "", password)
 
         # Did we get back an active user?
         if user:
             if not user.is_active:
-                msg = _('User account is disabled.')
+                msg = _("User account is disabled.")
                 raise exceptions.ValidationError(msg)
             # if not user.email_verified:
-            #     msg = _('Please  confirm your e-mail first.')
+            #     msg = _("Please  confirm your e-mail first.")
             #     raise exceptions.ValidationError(msg)
         else:
-            msg = _('Email or password is not correct')
+            msg = _("Email or password is not correct")
             raise exceptions.ValidationError(msg)
 
         # If required, is the email verified?
-        if 'rest_auth.registration' in settings.INSTALLED_APPS:
+        if "rest_auth.registration" in settings.INSTALLED_APPS:
             from allauth.account import app_settings
             if app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY:
                 email_address = user.emailaddress_set.get(email=user.email)
                 if not email_address.verified:
-                    raise serializers.ValidationError(_('E-mail is not verified.'))
+                    raise serializers.ValidationError(_("E-mail is not verified."))
 
-        attrs['user'] = user
+        attrs["user"] = user
         self.check_device(attrs)
         return attrs
 
@@ -140,15 +140,15 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
     name = serializers.CharField(
         max_length=100,
         error_messages={
-            'blank': _('Please enter your name'),
-            'max_length': _('Please enter the valid name'),
+            "blank": _("Please enter your name"),
+            "max_length": _("Please enter the valid name"),
         },
     )
     password = serializers.CharField(
-        style={'input_type': 'password'},
+        style={"input_type": "password"},
         error_messages={
-            'blank': _('Please enter the password'),
-            'min_length': _('Password should have 8 or more symbols')
+            "blank": _("Please enter the password"),
+            "min_length": _("Password should have 8 or more symbols")
         },
         min_length=8,
         max_length=128,
@@ -157,9 +157,9 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
     email = serializers.EmailField(
         required=True,
         error_messages={
-            'blank': _('Please enter your email'),
-            'invalid': _('Please enter a valid email'),
-            'max_length': _('Please enter a valid email'),
+            "blank": _("Please enter your email"),
+            "invalid": _("Please enter a valid email"),
+            "max_length": _("Please enter a valid email"),
         },
         max_length=100
     )
@@ -171,10 +171,10 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
     utm_source = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     role = serializers.ChoiceField(
         choices=(
-            ('user', 'User'),
-            ('investor', 'Investor')
+            ("user", "User"),
+            ("investor", "Investor")
         ),
-        default='user'
+        default="user"
     )
     referer = serializers.CharField(
         required=False,
@@ -202,12 +202,12 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
 
     def get_cleaned_data(self):
         return {
-            'username': self.validated_data.get('username', ''),
-            'password1': self.validated_data.get('password', ''),
-            'email': self.validated_data.get('email', ''),
-            'utm_source': self.validated_data.get('utm_source', None),
-            'utm_campaign': self.validated_data.get('utm_campaign', None),
-            'name': self.validated_data.get('name', None)
+            "username": self.validated_data.get("username", ""),
+            "password1": self.validated_data.get("password", ""),
+            "email": self.validated_data.get("email", ""),
+            "utm_source": self.validated_data.get("utm_source", None),
+            "utm_campaign": self.validated_data.get("utm_campaign", None),
+            "name": self.validated_data.get("name", None)
         }
 
     def save(self, request):
@@ -218,15 +218,15 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         self.cleaned_data = self.get_cleaned_data()
         adapter.save_user(request, user, self, commit=False)
         self.custom_signup(request, user)
-        utm_source = self.cleaned_data.get('utm_source')
-        utm_campaign = self.cleaned_data.get('utm_campaign')
-        name = self.cleaned_data.get('name')
+        utm_source = self.cleaned_data.get("utm_source")
+        utm_campaign = self.cleaned_data.get("utm_campaign")
+        name = self.cleaned_data.get("name")
         if name:
             name_list = name.split()
             first_name = name[0]
             last_name = name[1:]
             user.first_name = name_list[0]
-            user.last_name = ' '.join(name_list[1:])
+            user.last_name = " ".join(name_list[1:])
         user.save()
         if utm_source or utm_campaign:
             wn_analytics_models.UserSource.objects.create(
@@ -241,10 +241,10 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         return user
 
     def custom_signup(self, request, user):
-        user.name = self.validated_data.get('name')
+        user.name = self.validated_data.get("name")
 
     def add_to_group(self, user):
-        role = self.validated_data.get('role', 'user')
+        role = self.validated_data.get("role", "user")
         try:
             group = auth_models.Group.objects.get(name=role.capitalize())
             user.groups.add(group)
@@ -253,18 +253,18 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
 
     def _get_referer(self):
         try:
-            code = self.validated_data.get('referer')
+            code = self.validated_data.get("referer")
             fernet = Fernet(settings.FERNET_KEY)
-            uuid = fernet.decrypt(code.encode('ascii')).decode('ascii')
+            uuid = fernet.decrypt(code.encode("ascii")).decode("ascii")
             return get_user_model().objects.get(uuid=uuid)
         except (cryptography.fernet.InvalidToken, AttributeError):
             return None
 
     def _get_intent(self):
-        return self.validated_data.get('intent', choices.INTENT_NETWORK)
+        return self.validated_data.get("intent", choices.INTENT_NETWORK)
 
     def check_device(self, user):
-        os_id = self.validated_data.get('os_id', '')
+        os_id = self.validated_data.get("os_id", "")
         if user and os_id:
             device, created = models.Device.objects.get_or_create(user=user, os_id=os_id)
             if not created:
@@ -281,61 +281,60 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     unread_notifications = serializers.SerializerMethodField()
     social_account = serializers.SerializerMethodField()
     linkedin_url = serializers.URLField(source="profile.linkedin_url", read_only=True, default=None)
-    tag_list = TagSerializer(source='profile.tags', many=True, read_only=True, allow_null=True, required=False)
-
+    tag_list = TagSerializer(source="profile.tags", many=True, read_only=True, allow_null=True, required=False)
 
     class Meta:
         model = UserModel
         fields = (
-            'pk',
-            'photo',
-            'email',
-            'email_verified',
-            'name',
-            'city',
-            'reason',
-            'phone_number',
-            'phone_number_verified',
-            'role',
-            'full_registered',
-            'has_profile',
-            'has_bank_details',
-            'has_services',
-            'has_active_subscription',
-            'intent',
-            'linkedin_url',
-            'active_subscription_membership',
-            'pan_card',
-            'pan_card_base64',
-            'pan_card_size',
-            'unread_notifications',
-            'is_approved',
-            'objectives',
-            'objectives_items',
-            'social_account',
-            'tag_list',
+            "pk",
+            "photo",
+            "email",
+            "email_verified",
+            "name",
+            "city",
+            "reason",
+            "phone_number",
+            "phone_number_verified",
+            "role",
+            "full_registered",
+            "has_profile",
+            "has_bank_details",
+            "has_services",
+            "has_active_subscription",
+            "intent",
+            "linkedin_url",
+            "active_subscription_membership",
+            "pan_card",
+            "pan_card_base64",
+            "pan_card_size",
+            "unread_notifications",
+            "is_approved",
+            "objectives",
+            "objectives_items",
+            "social_account",
+            "tag_list",
         )
         read_only_fields = (
-            'full_registered',
-            'has_profile',
-            'has_bank_details',
-            'has_services',
-            'phone_number_verified',
-            'email_verified',
-            'phone_number',
-            'objectives_items',
-            'role',
-            'intent',
-            'has_active_subscription',
-            'active_subscription_membership',
-            'pan_card_size',
-            'is_approved',
+            "full_registered",
+            "has_profile",
+            "has_bank_details",
+            "has_services",
+            "phone_number_verified",
+            "email_verified",
+            "phone_number",
+            "objectives_items",
+            "role",
+            "intent",
+            "has_active_subscription",
+            "active_subscription_membership",
+            "pan_card_size",
+            "is_approved",
         )
 
     def validate(self, attrs):
-        if 'pan_card_base64' in attrs:
-            pan_card = attrs.pop('pan_card_base64', None)
-            attrs['pan_card'] = pan_card
+        if "pan_card_base64" in attrs:
+            pan_card = attrs.pop("pan_card_base64", None)
+            attrs["pan_card"] = pan_card
         return attrs
 
     @staticmethod
@@ -350,7 +349,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
     @staticmethod
     def get_photo(obj):
-        if not hasattr(obj, 'profile'):
+        if not hasattr(obj, "profile"):
             return None
         return obj.profile.photo.url if obj.profile.photo else obj.profile.photo_url
 
@@ -372,9 +371,9 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         super().update(instance, validated_data)
         new_email = instance.email
         new_city = instance.city
-        if validated_data.get('objectives') and (len(validated_data.get('objectives')) > 0):
+        if validated_data.get("objectives") and (len(validated_data.get("objectives")) > 0):
             objectives=[]
-            for objective in validated_data['objectives']:
+            for objective in validated_data["objectives"]:
                 objectives.append(objective.name)
             objectives_added.send(
                 sender=self.__class__,
@@ -389,10 +388,10 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
 class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
     new_password = serializers.CharField(
-        style={'input_type': 'password'},
+        style={"input_type": "password"},
         error_messages={
-            'blank': _('Please enter the password'),
-            'min_length': _('Password should have 8 or more symbols')
+            "blank": _("Please enter the password"),
+            "min_length": _("Password should have 8 or more symbols")
         },
         min_length=8,
         max_length=128,
@@ -405,9 +404,9 @@ class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
         self.set_password_form = self.set_password_form_class(
             user=self.user,
             data={
-                'new_password1': attrs.get('new_password'),
-                'new_password2': attrs.get('new_password'),
-                'old_password': attrs.get('old_password')
+                "new_password1": attrs.get("new_password"),
+                "new_password2": attrs.get("new_password"),
+                "old_password": attrs.get("old_password")
             }
         )
 
@@ -420,9 +419,9 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
     email = serializers.EmailField(
         required=True,
         error_messages={
-            'blank': _('Please enter your email'),
-            'invalid': _('Please enter a valid email'),
-            'max_length': _('Please enter a valid email'),
+            "blank": _("Please enter your email"),
+            "invalid": _("Please enter a valid email"),
+            "max_length": _("Please enter a valid email"),
         },
         max_length=100
     )
@@ -432,7 +431,7 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
         return email.strip().lower()
 
     def save(self):
-        email = self.validated_data.get('email')
+        email = self.validated_data.get("email")
         try:
             user = UserModel.objects.get(email=email)
             user.send_reset_password_email()
@@ -442,10 +441,10 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
 
 class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmSerializer):
     new_password = serializers.CharField(
-        style={'input_type': 'password'},
+        style={"input_type": "password"},
         error_messages={
-            'blank': _('Please enter the password'),
-            'min_length': _('Password should have 8 or more symbols')
+            "blank": _("Please enter the password"),
+            "min_length": _("Password should have 8 or more symbols")
         },
         validators=[password_validate_symbols],
         min_length=8,
@@ -457,29 +456,29 @@ class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmS
     def validate(self, attrs):
         attrs.update(
             {
-                'new_password1': attrs.get('new_password'),
-                'new_password2': attrs.get('new_password')
+                "new_password1": attrs.get("new_password"),
+                "new_password2": attrs.get("new_password")
             }
         )
         return super().validate(attrs)
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    uuid = serializers.UUIDField(source='user.uuid', required=False)
-    role = serializers.CharField(source='user.role', required=False, read_only=True)
+    uuid = serializers.UUIDField(source="user.uuid", required=False)
+    role = serializers.CharField(source="user.role", required=False, read_only=True)
     professional_service_provider = serializers.BooleanField(
-        source='user.user_services_info.professional_service_provider', required=False, read_only=True
+        source="user.user_services_info.professional_service_provider", required=False, read_only=True
     )
     name = serializers.CharField(
         required=False,
         error_messages={
-            'max_length': _('Invalid name'),
+            "max_length": _("Invalid name"),
         },
         max_length=100
     )
     tag_line = serializers.CharField(
         error_messages={
-            'max_length': _('Tag line should not be longer than 100 symbols'),
+            "max_length": _("Tag line should not be longer than 100 symbols"),
         },
         max_length=100,
         allow_blank=True,
@@ -489,7 +488,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     introduction = serializers.CharField(
         max_length=800,
         error_messages={
-            'max_length': _('Max symbols exceeded'),
+            "max_length": _("Max symbols exceeded"),
         },
         allow_blank=True,
         allow_null=True,
@@ -498,7 +497,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     focus = serializers.CharField(
         max_length=800,
         error_messages={
-            'max_length': _('Max symbols exceeded'),
+            "max_length": _("Max symbols exceeded"),
         },
         allow_blank=True,
         allow_null=True,
@@ -507,7 +506,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     additional_information = serializers.CharField(
         max_length=800,
         error_messages={
-            'max_length': _('Max symbols exceeded'),
+            "max_length": _("Max symbols exceeded"),
         },
         allow_blank=True,
         allow_null=True,
@@ -516,82 +515,82 @@ class ProfileSerializer(serializers.ModelSerializer):
     public_introduction = serializers.CharField(
         max_length=1024, 
         error_messages={
-            'max_length': _('Max symbols exceeded'),
+            "max_length": _("Max symbols exceeded"),
         },
         allow_null=True, 
         allow_blank=True, 
         required=False
     )
-    photo = Base64FileField(file_formats=['.jpg', '.png', '.tiff', '.bmp'], allow_null=True, required=False)
+    photo = Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
     photo_url = serializers.URLField(allow_null=True, required=False, allow_blank=True)
     cover = serializers.PrimaryKeyRelatedField(
         queryset=models.CoverFile.objects.all(), allow_null=True, required=False
     )
-    tag_list = TagSerializer(source='new_tag', many=True, read_only=True, allow_null=True, required=False)
-    work_city_name = serializers.CharField(source='work_city.name', read_only=True, allow_null=True, required=False)
-    cover_transcoder = serializers.CharField(source='cover.cover_transcoder', read_only=True, allow_null=True)
-    cover_file = serializers.FileField(source='cover.file', read_only=True, allow_null=True)
+    tag_list = TagSerializer(source="new_tag", many=True, read_only=True, allow_null=True, required=False)
+    work_city_name = serializers.CharField(source="work_city.name", read_only=True, allow_null=True, required=False)
+    cover_transcoder = serializers.CharField(source="cover.cover_transcoder", read_only=True, allow_null=True)
+    cover_file = serializers.FileField(source="cover.file", read_only=True, allow_null=True)
     is_cover_video = serializers.SerializerMethodField()
     cover_thumbnail = serializers.SerializerMethodField()
 
-    instagram_id = ''
+    instagram_id = ""
     instagram_token = None
 
     class Meta:
         model = models.Profile
         fields = (
-            'pk',
-            'uuid',
-            'name',
-            'role',
-            'professional_service_provider',
-            'tag_line',
-            'photo',
-            'photo_url',
-            'cover',
-            'cover_file',
-            'introduction',
-            'linkedin_url',
-            'focus',
-            'additional_information',
-            'instagram',
-            'instagram_id',
-            'instagram_username',
-            'is_instagram_set',
-            'twitter',
-            'work_city',
-            'work_city_name',
-            'tags',
-            'tag_list',
-            'public_profile',
-            'public_introduction',
-            'cover_thumbnail',
-            'cover_transcoder',
-            'is_cover_video',
-            'education_level',
-            'years_of_experience',
-            'company_type',
-            'sector',
-            'generated_introduction',
+            "pk",
+            "uuid",
+            "name",
+            "role",
+            "professional_service_provider",
+            "tag_line",
+            "photo",
+            "photo_url",
+            "cover",
+            "cover_file",
+            "introduction",
+            "linkedin_url",
+            "focus",
+            "additional_information",
+            "instagram",
+            "instagram_id",
+            "instagram_username",
+            "is_instagram_set",
+            "twitter",
+            "work_city",
+            "work_city_name",
+            "tags",
+            "tag_list",
+            "public_profile",
+            "public_introduction",
+            "cover_thumbnail",
+            "cover_transcoder",
+            "is_cover_video",
+            "education_level",
+            "years_of_experience",
+            "company_type",
+            "sector",
+            "generated_introduction",
         )
         extra_kwargs = {
-            'tags': {'write_only': True, 'allow_null': True, 'required': False }
+            "tags": {"write_only": True, "allow_null": True, "required": False}
         }
         read_only_fields = (
-            'role',
-            'professional_service_provider',
-            'cover_thumbnail',
-            'cover_transcoder',
-            'cover_file',
-            'is_instagram_set',
-            'is_cover_video'
+            "role",
+            "professional_service_provider",
+            "cover_thumbnail",
+            "cover_transcoder",
+            "cover_file",
+            "is_instagram_set",
+            "is_cover_video"
         )
 
     def validate_cover(self, cover):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if cover:
             if cover not in user.cover_files.all():
-                raise serializers.ValidationError(_('Please use your cover file'))
+                raise serializers.ValidationError(_("Please use your cover file"))
         return cover
 
     def validate_instagram(self, instagram_token):
@@ -603,10 +602,10 @@ class ProfileSerializer(serializers.ModelSerializer):
                 self.instagram_token = instagram_service.get_long_access_token(instagram_token)
             if not self.instagram_token:
                 raise serializers.ValidationError(
-                    _('Instagram token is not valid')
+                    _("Instagram token is not valid")
                 )
             return self.instagram_token
-        return ''
+        return ""
 
     def validate_instagram_id(self, instagram_id):
         return instagram_id or self.instagram_id
@@ -615,8 +614,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_is_cover_video(obj):
         if obj.cover:
             cover_file = obj.cover.file
-            ext = cover_file.url.split('.')[-1]
-            if ext in ['mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']:
+            ext = cover_file.url.split(".")[-1]
+            if ext in ["mov", "mpeg", "avi", "mp4", "3gp", "mwv", "flv"]:
                 return True
         return False
 
@@ -632,7 +631,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
             Adding user group to investor if investor tag is selected
         """
-        user_tags = validated_data.get('tags') if validated_data.get('tags') else []
+        user_tags = validated_data.get("tags") if validated_data.get("tags") else []
         if len(user_tags) > 0:
             instance.new_tag.clear()
             instance.new_tag.add(user_tags[0])
@@ -643,7 +642,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
             Adding user group to investor if investor tag is selected
         """
-        user_tags = validated_data['tags'] if validated_data['tags'] else []
+        user_tags = validated_data.get("tags") if validated_data.get("tags") else []
         profile = super().create(validated_data)
         if len(user_tags) > 0:
             profile.new_tag.clear()
@@ -667,10 +666,10 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
     utm_source = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     role = serializers.ChoiceField(
         choices=(
-            ('user', 'User'),
-            ('investor', 'Investor')
+            ("user", "User"),
+            ("investor", "Investor")
         ),
-        default='user'
+        default="user"
     )
     email = serializers.EmailField(
         required=False,
@@ -688,7 +687,7 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
     def validate_email(email):
         if UserModel.objects.filter(email=email):
             raise serializers.ValidationError(
-                _('This email is registered')
+                _("This email is registered")
             )
         return email.lower()
 
@@ -702,18 +701,18 @@ class AppleSocialLoginSerializer(SocialLoginSerializer):
             Usually OAuthAdapter or Auth2Adapter
         :param app: `allauth.socialaccount.SocialApp` instance
         :param token: `allauth.socialaccount.SocialToken` instance
-        :param response: Provider's response for OAuth1. Not used in the
+        :param response: Provider"s response for OAuth1. Not used in the
         :returns: A populated instance of the
             `allauth.socialaccount.SocialLoginView` instance
         """
         request = self._get_request()
-        is_web = self.initial_data.get('is_web', False)
+        is_web = self.initial_data.get("is_web", False)
         social_login = adapter.complete_login(request, app, token, response=response, is_web=is_web)
         social_login.token = token
         return social_login
 
     def validate(self, attrs):
-        view = self.context.get('view')
+        view = self.context.get("view")
         request = self._get_request()
 
         if not view:
@@ -721,7 +720,7 @@ class AppleSocialLoginSerializer(SocialLoginSerializer):
                 _("View is not defined, pass it as a context variable")
             )
 
-        adapter_class = getattr(view, 'adapter_class', None)
+        adapter_class = getattr(view, "adapter_class", None)
         if not adapter_class:
             raise serializers.ValidationError(_("Define adapter_class in view"))
 
@@ -732,13 +731,13 @@ class AppleSocialLoginSerializer(SocialLoginSerializer):
         # http://stackoverflow.com/questions/8666316/facebook-oauth-2-0-code-and-token
 
         # Case 1: We received the access_token
-        if attrs.get('access_token'):
-            access_token = attrs.get('access_token')
+        if attrs.get("access_token"):
+            access_token = attrs.get("access_token")
 
         # Case 2: We received the authorization code
-        elif attrs.get('code'):
-            self.callback_url = getattr(view, 'callback_url', None)
-            self.client_class = getattr(view, 'client_class', None)
+        elif attrs.get("code"):
+            self.callback_url = getattr(view, "callback_url", None)
+            self.client_class = getattr(view, "client_class", None)
 
             if not self.callback_url:
                 raise serializers.ValidationError(
@@ -749,7 +748,7 @@ class AppleSocialLoginSerializer(SocialLoginSerializer):
                     _("Define client_class in view")
                 )
 
-            code = attrs.get('code')
+            code = attrs.get("code")
 
             provider = adapter.get_provider()
             scope = provider.get_scope(request)
@@ -763,13 +762,13 @@ class AppleSocialLoginSerializer(SocialLoginSerializer):
                 scope
             )
             token = client.get_access_token(code)
-            access_token = token['access_token']
+            access_token = token["access_token"]
 
         else:
             raise serializers.ValidationError(
                 _("Incorrect input. access_token or code is required."))
 
-        social_token = adapter.parse_token({'access_token': access_token})
+        social_token = adapter.parse_token({"access_token": access_token})
         social_token.app = app
 
         try:
@@ -799,7 +798,7 @@ class AppleSocialLoginSerializer(SocialLoginSerializer):
             login.lookup()
             login.save(request, connect=True)
 
-        attrs['user'] = login.account.user
+        attrs["user"] = login.account.user
 
         return attrs
 
@@ -808,10 +807,10 @@ class ConnectSerializer(register_serializers.SocialConnectSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        user = self.context['request'].user
-        if attrs['user'] != user:
+        user = self.context["request"].user
+        if attrs["user"] != user:
             raise serializers.ValidationError(
-                _('User with that social account already registered')
+                _("User with that social account already registered")
             )
         return attrs
 
@@ -823,7 +822,7 @@ class NewPhoneNumberSerializer(serializers.ModelSerializer):
         model = UserModel
 
         fields = [
-            'phone_number'
+            "phone_number"
         ]
 
 
@@ -833,11 +832,11 @@ class CheckCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = [
-            'sms_code',
+            "sms_code",
         ]
 
     def validate_sms_code(self, code):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if user.sms_code != code:
             raise serializers.ValidationError(
                 messages.PHONE_CODE_WRONG
@@ -866,7 +865,7 @@ class VerifyEmailSerializer(register_serializers.VerifyEmailSerializer):
 
 class CoverFileSerializer(serializers.ModelSerializer):
     file_base64 = Base64FileField(
-        file_formats=['.jpg', '.png', '.tiff', '.bmp',  '.mov', '.mpeg', '.avi', '.mp4', '.3gp', '.mwv', '.flv'],
+        file_formats=[".jpg", ".png", ".tiff", ".bmp",  ".mov", ".mpeg", ".avi", ".mp4", ".3gp", ".mwv", ".flv"],
         allow_null=True,
         required=False,
         write_only=True
@@ -876,46 +875,46 @@ class CoverFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CoverFile
         fields = [
-            'pk',
-            'file',
-            'file_base64',
+            "pk",
+            "file",
+            "file_base64",
         ]
 
     @staticmethod
     def validate_file(file):
         ext = file.name.split(".")[-1]
-        ext_list = ['jpg', 'png', 'tiff', 'bmp',  'mov', 'mpeg', 'avi', 'mp4', '3gp', 'mwv', 'flv']
+        ext_list = ["jpg", "png", "tiff", "bmp",  "mov", "mpeg", "avi", "mp4", "3gp", "mwv", "flv"]
         if ext not in ext_list:
             raise serializers.ValidationError(
-                _(f'File extension not valid. Valid extensions: {ext_list}')
+                _(f"File extension not valid. Valid extensions: {ext_list}")
             )
         return file
 
     def validate(self, attrs):
-        file = attrs.get('file')
-        file_base64 = attrs.get('file_base64')
+        file = attrs.get("file")
+        file_base64 = attrs.get("file_base64")
         if not (file or file_base64):
             raise serializers.ValidationError(
                 {
-                    'file': _('This field is required')
+                    "file": _("This field is required")
                 }
             )
-        user = self.context['request'].user
+        user = self.context["request"].user
         cover_files = user.cover_files.filter(created__date=timezone.now().date())
         if cover_files.count() > 20:
             raise serializers.ValidationError(
                 {
-                    'file': _('You have to many uploaded files today')
+                    "file": _("You have to many uploaded files today")
                 }
             )
         return attrs
 
     def create(self, validated_data):
-        file_base64 = validated_data.pop('file_base64', [])
-        file = validated_data.pop('file', None)
+        file_base64 = validated_data.pop("file_base64", [])
+        file = validated_data.pop("file", None)
         if file:
-            validated_data['file'] = file
+            validated_data["file"] = file
         else:
-            validated_data['file'] = file_base64
+            validated_data["file"] = file_base64
         obj = super().create(validated_data)
         return obj
