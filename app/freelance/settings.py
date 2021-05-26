@@ -21,6 +21,13 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
 
+# All environment variables.
+ENVIRONMENT = os.getenv("ENVIRONMENT")
+ENVIRONMENT_PREPROD = "preprod"
+ENVIRONMENT_PROD = "prod"
+ENVIRONMENT_STAGE = "stage"
+ENVIRONMENT_DEV = "dev"
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(BASE_DIR)
@@ -99,6 +106,7 @@ INSTALLED_APPS = [
     "integrations.google",
     "integrations.superpro",
     "integrations.agora",
+    "integrations.dyte",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -362,6 +370,7 @@ GOOGLE_BUNDLE_ID = os.getenv("GOOGLE_BUNDLE_ID", "example.bundle")
 GOOGLE_SERVICE_ACCOUNT_KEY_FILE = os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY_FILE", "example.bundle")
 APPLE_BUNDLE_ID = os.getenv("APPLE_BUNDLE_ID", "example.bundle")
 
+# ------------ INSTAGRAM ---------- #
 # INSTAGRAM_API_CLIENT_ID = os.getenv("INSTAGRAM_API_CLIENT_ID", "1249340341943985")
 # INSTAGRAM_API_CLIENT_SECRET = os.getenv("INSTAGRAM_API_CLIENT_SECRET", "1eb6a178285043e55c1bdd7d4e73e4a3")
 # INSTAGRAM_REDIRECT_URL = os.getenv("INSTAGRAM_REDIRECT_URL", "https://back-dev-freelance.scenario-projects.com/")
@@ -370,7 +379,7 @@ INSTAGRAM_API_CLIENT_ID = os.getenv("INSTAGRAM_API_CLIENT_ID", "1249340341943985
 INSTAGRAM_API_CLIENT_SECRET = os.getenv("INSTAGRAM_API_CLIENT_SECRET", "1eb6a178285043e55c1bdd7d4e73e4a3")
 INSTAGRAM_REDIRECT_URL = os.getenv("INSTAGRAM_REDIRECT_URL", "https://dev.1worknetwork.com/dashboard/account")
 
-
+# ------------ TWITTER ---------- #
 TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN", "756173937130766336-CiFVnyxmQFddis6mjW1SYrh3DFCzv5z")
 TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", "DLCdTtph7eZ1UVd5O4JfbkyMQv67hOWwD591ZyrngiPTR")
 TWITTER_CUSTOMER_API_KEY = os.getenv("TWITTER_ACCESS_TOKEN", "llqApN9vKJz2Rn4moGa3CChUw")
@@ -399,13 +408,7 @@ FRESHCHAT_MESSAGING_PHONE_NUMBER = os.getenv("FRESHCHAT_MESSAGING_PHONE_NUMBER")
 FRESHCHAT_WHATSAPP_NAMESPACE = os.getenv("FRESHCHAT_WHATSAPP_NAMESPACE")
 FRESHCHAT_ACCESS_TOKEN = os.getenv("FRESHCHAT_ACCESS_TOKEN")
 
-# All environment variables.
-ENVIRONMENT = os.getenv("ENVIRONMENT")
-ENVIRONMENT_PREPROD = "preprod"
-ENVIRONMENT_PROD = "prod"
-ENVIRONMENT_STAGE = "stage"
-ENVIRONMENT_DEV = "dev"
-
+# -------------- GOOGLE ------------ #
 GOOGLE_API_ACCOUNT_TYPE = os.getenv("GOOGLE_API_ACCOUNT_TYPE", "")
 GOOGLE_API_PROJECT_ID = os.getenv("GOOGLE_API_PROJECT_ID", "")
 GOOGLE_API_PRIVATE_KEY_ID = os.getenv("GOOGLE_API_PRIVATE_KEY_ID", "")
@@ -431,9 +434,17 @@ GOOGLE_API_CREDENTIALS = {
   "client_x509_cert_url": GOOGLE_API_CLIENT_CERT_URL
 }
 
-
+# -------------- SUPERPRO ------------ #
 SUPERPRO_BASE_URL = "https://roomsvc-dot-sprpro-282209.el.r.appspot.com"
 SUPERPRO_ACCESS_TOKEN = os.getenv("SUPERPRO_ACCESS_TOKEN", "")
 
+# -------------- AGORA ------------ #
 AGORA_APP_ID = os.getenv("AGORA_APP_ID", "b935ed15c20644e59df9c946681e1dd5")
 AGORA_APP_CERTIFICATE = os.getenv("AGORA_APP_CERTIFICATE", "eaedc7539d8747b99b61ab55d17fe463")
+
+# ---------------- DYTE ------------- #
+DYTE_ORD_ID = os.getenv("DYTE_ORG_ID", "a446c4de-979e-4d4f-97f7-2b695e75ef90")
+DYTE_APP_ID = os.getenv("DYTE_APP_ID", "649454884b7925512fae")
+
+DYTE_PROD_BASE_URL = "https://api.cluster.dyte.in"
+DYTE_JOIN_MEETING_BASE_URL = "https://app.dyte.in"

@@ -1,0 +1,11 @@
+from django.conf import settings
+
+DYTE_PROD_BASE_URL = settings.DYTE_PROD_BASE_URL
+DYTE_JOIN_MEETING_BASE_URL = settings.DYTE_JOIN_MEETING_BASE_URL
+
+DATETIME_EXCHANGE_FORMAT = "YYYY-MM-DDThh:mm:ss.SSSZ"
+
+DYTE_ORG_ID = settings.DYTE_ORD_ID
+DYTE_APP_ID = settings.DYTE_APP_ID
+
+DEFAULT_PRESET_NAME = "participant"
