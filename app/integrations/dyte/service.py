@@ -39,11 +39,13 @@ class DyteService:
         """
         return self.DYTE_API_ENDPOINTS["join_meeting"].format(room_name=room_name)
 
-    def create_meeting(self, meeting):
+    def create_meeting(self, meeting, preset_name=constants.DEFAULT_PRESET_NAME):
         """Creates meeting on Dyte for a given meeting object.
 
         Args:
             meeting(Meeting): Meeting object from the server.
+            preset_name(str): Name of the preset being used by Dyte. Can be setup
+                on their Developer dashboard.
 
         """
         create_meeting_endpoint = self.DYTE_API_ENDPOINTS["create_meeting"].format(org_id=self.org_id)
@@ -52,7 +54,7 @@ class DyteService:
 
         data = {
             "title": "1:1_Professional Networking_WorkNetwork | " + " &".join([user.get_display_first_name() for user in participants]),
-            "presetName": constants.DEFAULT_PRESET_NAME,
+            "presetName": preset_name,
             "authorization": {
                 "waitingRoom": False,
                 "closed": False
@@ -77,6 +79,42 @@ class DyteService:
         )
         if not created:
             logging.info("Dyte meeting updated for: {}".format(meeting.id))
+
+        return self._create_meeting_url_for_room_name(room_name=room_name)
+
+    def create_custom_meetings(self, title=None, preset_name=constants.DEFAULT_PRESET_NAME):
+        """Create custom meetings with custom title and preset on Dyte.
+
+        Args:
+            title(str): Title of the Dyte meeting.
+            preset_name(str): Name of the preset being used by Dyte. Can be setup
+                on their Developer dashboard.
+
+        """
+        create_meeting_endpoint = self.DYTE_API_ENDPOINTS["create_meeting"].format(org_id=self.org_id)
+
+        data = {
+            "title": title,
+            "presetName": preset_name,
+            "authorization": {
+                "waitingRoom": False,
+                "closed": False
+            }
+        }
+        response = requests.request(
+            "POST",
+            create_meeting_endpoint,
+            headers=self._get_authorization_headers(),
+            json=data
+        )
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            logging.error("Dyte custom meeting creation failed")
+            return None
+
+        meeting_data = response_json["data"]["meeting"]
+        room_name = meeting_data["roomName"]
 
         return self._create_meeting_url_for_room_name(room_name=room_name)
 
