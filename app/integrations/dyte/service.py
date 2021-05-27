@@ -82,13 +82,16 @@ class DyteService:
 
         return self._create_meeting_url_for_room_name(room_name=room_name)
 
-    def create_custom_meetings(self, title=None, preset_name=constants.DEFAULT_PRESET_NAME):
+    def create_custom_meeting(self, title=None, preset_name=constants.DEFAULT_PRESET_NAME):
         """Create custom meetings with custom title and preset on Dyte.
 
         Args:
             title(str): Title of the Dyte meeting.
             preset_name(str): Name of the preset being used by Dyte. Can be setup
                 on their Developer dashboard.
+
+        Note:
+            Used for creating test/internal meetings.
 
         """
         create_meeting_endpoint = self.DYTE_API_ENDPOINTS["create_meeting"].format(org_id=self.org_id)
@@ -118,7 +121,7 @@ class DyteService:
 
         return self._create_meeting_url_for_room_name(room_name=room_name)
 
-    def get_all_meetings(self):
+    def get_all_meetings_data(self):
         """Returns all meetings created by organisation."""
         get_all_meetings_url = self.DYTE_API_ENDPOINTS["get_all_meetings"].format(org_id=self.org_id)
         response = requests.request("GET", get_all_meetings_url, headers=self._get_authorization_headers())
@@ -132,7 +135,7 @@ class DyteService:
         meetings_data = response_json["data"]["meetings"]
         return meetings_data
 
-    def get_meeting(self, meeting):
+    def get_meeting_data(self, meeting):
         """Get a single meeting on Dyte for given meeting id.
 
         Args:
@@ -145,6 +148,28 @@ class DyteService:
             return None
 
         dyte_meeting_id = dyte_meeting.dyte_meeting_id
+        url = self.DYTE_API_ENDPOINTS["get_meeting"].format(org_id=self.org_id, dyte_meeting_id=dyte_meeting_id)
+        response = requests.request("GET", url, headers=self._get_authorization_headers())
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            logging.error("Dyte get all meetings failed")
+            return None
+
+        meeting_data = response_json["data"]["meeting"]
+        return meeting_data
+
+    def get_custom_meeting_data(self, dyte_meeting_id):
+        """Get a single meeting on Dyte for dyte meeting id.
+
+        Args:
+            dyte_meeting_id(str): Dyte Meeting ID from the server.
+
+        Note:
+            Used for testing and data visualisation.
+
+        """
         url = self.DYTE_API_ENDPOINTS["get_meeting"].format(org_id=self.org_id, dyte_meeting_id=dyte_meeting_id)
         response = requests.request("GET", url, headers=self._get_authorization_headers())
 
