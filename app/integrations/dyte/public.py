@@ -1,7 +1,7 @@
 from integrations.dyte.service import dyte_service
 
 
-def create_meeting(meeting):
+def create_meeting_link(meeting):
     """Create meeting on Dyte for Meeting object.
 
     Args:

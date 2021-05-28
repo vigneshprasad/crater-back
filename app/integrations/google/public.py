@@ -18,7 +18,7 @@ def create_calendar_event_for_meeting(meeting):
     end_datetime = meeting.local_end
 
     # Create meeting link using Dyte.
-    meeting_link = dyte_pubic.create_meeting(meeting)
+    meeting_link = dyte_pubic.create_meeting_link(meeting)
     event_id, meeting_link = calendar_services.google_calendar_service.create_event(
         start_datetime,
         end_datetime,
