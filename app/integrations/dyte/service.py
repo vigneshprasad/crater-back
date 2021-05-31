@@ -50,10 +50,15 @@ class DyteService:
         """
         create_meeting_endpoint = self.DYTE_API_ENDPOINTS["create_meeting"].format(org_id=self.org_id)
 
+        # Adding this check so we don't update meeting links.
+        if meeting.link:
+            logging.error("Meeting already has a meeting link:{}, {}".format(meeting.id, meeting.link))
+            return None
+
         participants = meeting.participants.all()
 
         data = {
-            "title": "1:1_Professional Networking_WorkNetwork | " + " &".join([user.get_display_first_name() for user in participants]),
+            "title": "1:1 Professional Networking | " + " & ".join([user.get_display_first_name() for user in participants]),
             "presetName": preset_name,
             "authorization": {
                 "waitingRoom": False,
@@ -72,16 +77,12 @@ class DyteService:
         room_name = meeting_data["roomName"]
         dyte_meeting_id = meeting_data["id"]
 
-        # Creating or updating the dyte meeting object for a meeting.
-        dyte_meeting, created = models.DyteMeeting.objects.update_or_create(
+        # Creating the dyte meeting object for a meeting.
+        models.DyteMeeting.objects.create(
             meeting=meeting,
-            defaults={
-                "dyte_meeting_id": dyte_meeting_id,
-                "room_name": room_name
-            }
+            dyte_meeting_id=dyte_meeting_id,
+            room_name=room_name
         )
-        if not created:
-            logging.info("Dyte meeting updated for: {}".format(meeting.id))
 
         return self._create_meeting_url_for_room_name(room_name=room_name)
 

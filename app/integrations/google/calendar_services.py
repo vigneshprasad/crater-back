@@ -159,7 +159,14 @@ class GoogleCalendarService:
         return event_id, hangout_link
 
     def update_event_attendees(self, event_id, users):
-        """Updates attendees for an existing event on WorkNetwork Calendar."""
+        """Updates attendees for an existing event on WorkNetwork Calendar.
+
+        Args:
+            event_id(str): Event ID for the google calendar event.
+            users(list): List of user in the event to be update on the
+                calendar.
+
+        """
         if not self.service:
             return None
 
@@ -201,6 +208,41 @@ class GoogleCalendarService:
         hangout_link = event.get("hangoutLink", "")
 
         return hangout_link
+
+    def update_event_to_new_meeting_link(self, event_id, meeting_link):
+        """Updates new meeting link in the users WorkNetwork Calendar.
+
+        Args:
+            event_id(str): Event ID for the google calendar event.
+            meeting_link(str): New meeting link for the calendar.
+
+        """
+        patch_body = {
+            "conferenceData": {
+                "conferenceSolution": {
+                    "name": "1:1 Meeting",
+                    "key": {
+                        "type": constants.ADD_ON_LINK
+                    },
+                    # TODO(Nishant): Change this from default Google Meets icon to our icon.
+                    "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
+                },
+                "entryPoints": [
+                    {
+                        "entryPointType": "video",
+                        "label": meeting_link,
+                        "uri": meeting_link
+                    }
+                ]
+            }
+        }
+
+        return self.service.events().patch(
+            calendarId=self.calendar_id,
+            eventId=event_id,
+            body=patch_body,
+            conferenceDataVersion=self.conference_data_version
+        ).execute()
 
     def delete_event(self, event_id):
         """Deletes an event from the WorkNetwork calendar."""
