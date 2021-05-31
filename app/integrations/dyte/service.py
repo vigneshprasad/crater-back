@@ -72,10 +72,13 @@ class DyteService:
         room_name = meeting_data["roomName"]
         dyte_meeting_id = meeting_data["id"]
 
+        # Creating or updating the dyte meeting object for a meeting.
         dyte_meeting, created = models.DyteMeeting.objects.update_or_create(
             meeting=meeting,
-            dyte_meeting_id=dyte_meeting_id,
-            room_name=room_name
+            defaults={
+                "dyte_meeting_id": dyte_meeting_id,
+                "room_name": room_name
+            }
         )
         if not created:
             logging.info("Dyte meeting updated for: {}".format(meeting.id))
