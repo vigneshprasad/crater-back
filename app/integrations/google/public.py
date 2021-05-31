@@ -2,7 +2,7 @@ from integrations.google import calendar_services
 from integrations.google import models
 from integrations.google import private
 from integrations.google import constants
-from integrations.dyte import public as dyte_pubic
+from integrations.dyte import public as dyte_public
 
 
 def create_calendar_event_for_meeting(meeting):
@@ -18,7 +18,7 @@ def create_calendar_event_for_meeting(meeting):
     end_datetime = meeting.local_end
 
     # Create meeting link using Dyte.
-    meeting_link = dyte_pubic.create_meeting_link(meeting)
+    meeting_link = dyte_public.create_meeting_link(meeting)
     event_id, meeting_link = calendar_services.google_calendar_service.create_event(
         start_datetime,
         end_datetime,

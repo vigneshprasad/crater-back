@@ -24,6 +24,24 @@ def calculate_user_score(user):
     return user_score
 
 
+def calculate_user_score_with_detailed_score(user):
+    """Get user score based on multiple factors."""
+    user_score = 0
+
+    detailed_score = {
+        constants.TAG_TO_EXPERIENCE_ENGINE: calculate_user_score_based_on_tags_and_experience(user),
+        constants.TAG_TO_COMPANY_TYPE_ENGINE: calculate_user_score_based_on_tags_and_company_type(user),
+        constants.SOURCE_ENGINE: calculate_user_score_based_on_source(user),
+        constants.EDUCATION_LEVEL_ENGINE: calculate_user_score_based_on_education(user),
+        constants.ACTIVITY_ENGINE: calculate_user_activity_score(user)
+    }
+
+    for key, value in constants.USER_SCORE_ENGINE_WEIGHTAGES.items():
+        user_score += detailed_score.get(key, 0) * value
+
+    return user_score, detailed_score
+
+
 def calculate_user_score_without_activity(user):
     """Get user score based on multiple factors excluding the activity score."""
     user_score = 0
