@@ -4,8 +4,9 @@ from django.contrib.auth import get_user_model
 
 from resources.meetings import services as meeting_services
 from matching import public as matching_public
-from matching.engines import user_matching
 from matching.engines import matching_constants
+from matching.engines import user_matching
+from matching.engines import users_scoring
 
 
 def create_matches_for_all_opted_in_users(users=None):

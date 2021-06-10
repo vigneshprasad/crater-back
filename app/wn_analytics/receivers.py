@@ -25,7 +25,7 @@ def analytics_track(user, event, analytics_track_properties=None):
 
     user_id = str(user.pk)
     # TODO(Nishant): Will reuse this code when Flutter app is released.
-    # Added user device info to the track properties.
+    # Added user devices info to the track properties.
     # _add_user_device_info(user, analytics_track_properties)
 
     analytics_track_properties = analytics_track_properties if analytics_track_properties else {}
@@ -308,7 +308,7 @@ def _add_user_device_info(user, analytics_track_properties):
         return
 
     analytics_track_properties["os"] = device_info.get_os_info()
-    analytics_track_properties["device"] = device_info.get_device_info()
+    analytics_track_properties["devices"] = device_info.get_device_info()
     analytics_track_properties["device_type"] = device_info.type
 
     return

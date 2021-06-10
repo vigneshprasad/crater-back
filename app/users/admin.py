@@ -163,8 +163,3 @@ class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).all()
-
-
-@admin.register(models.UserDeviceInfo)
-class UserDeviceInfoAdmin(admin.ModelAdmin):
-    exclude = ('created', 'modified',)

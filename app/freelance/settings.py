@@ -122,7 +122,8 @@ INSTALLED_APPS = [
     "dashboard",
     "matching",
     "conversations",
-    "communications.notifications"
+    "communications.notifications",
+    "devices"
 ]
 
 SITE_ID = 1

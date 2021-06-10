@@ -21,6 +21,11 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
 
     """
     group_host = group.host
+    # If there is no group host don't send notifications. That group
+    # is either backend created, or manual created.
+    if not group_host:
+        return
+
     group_host_profile = group_host.profile if group_host.has_profile else None
 
     if not (group_host and group_host_profile):
