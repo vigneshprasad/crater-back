@@ -24,10 +24,6 @@ def analytics_track(user, event, analytics_track_properties=None):
     """
 
     user_id = str(user.pk)
-    # TODO(Nishant): Will reuse this code when Flutter app is released.
-    # Added user devices info to the track properties.
-    # _add_user_device_info(user, analytics_track_properties)
-
     analytics_track_properties = analytics_track_properties if analytics_track_properties else {}
     segment_service.track(
         user_id=user_id, 
@@ -300,15 +296,3 @@ def conversation_joined(sender, user, group, *args, **kwargs):
         event=event,
         analytics_track_properties=analytics_track_properties
     )
-
-
-def _add_user_device_info(user, analytics_track_properties):
-    device_info = user.device_info.first()
-    if not device_info:
-        return
-
-    analytics_track_properties["os"] = device_info.get_os_info()
-    analytics_track_properties["devices"] = device_info.get_device_info()
-    analytics_track_properties["device_type"] = device_info.type
-
-    return
