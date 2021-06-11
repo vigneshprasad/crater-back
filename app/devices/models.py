@@ -19,7 +19,7 @@ class Device(base_models.BaseModel):
     price = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
-        unique_together = ["name", "model"]
+        unique_together = ("name", "model")
 
 
 class UserDevice(base_models.BaseModel):

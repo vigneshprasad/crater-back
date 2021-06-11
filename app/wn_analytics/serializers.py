@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from devices import public as device_public
 from users import models as user_models
 from wn_analytics import models
 from tags import serializers as tag_serializers
@@ -30,6 +31,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     last_conversation_date = serializers.SerializerMethodField(read_only=True)
     total_conversations = serializers.SerializerMethodField(read_only=True)
     total_meetings = serializers.SerializerMethodField(read_only=True)
+    device_info = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = user_models.User
@@ -183,3 +185,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     def get_last_meeting_date(user):
         latest_user_meeting = meeting_services.get_meetings_attended(user).first()
         return latest_user_meeting.get_display() if latest_user_meeting else None
+
+    @staticmethod
+    def get_device_info(user):
+        return device_public.get_device_info_for_user(user)

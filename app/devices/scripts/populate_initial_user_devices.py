@@ -33,4 +33,7 @@ def run(dry_run=True):
             user_device = private.create_or_update_user_device(user, device_name, device_model, device_price)
             print("User Device created: {}".format(user_device.id))
 
+            print("Saving user to trigger analytics track call.")
+            user.save()
+
         print("*"*30)
