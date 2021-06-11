@@ -105,8 +105,8 @@ def get_groups_attended_for_user(user):
 
 
 def get_groups_for_user(user, queryset=None):
-    """ Return list of groups for user filtered based on start time < 30 mins before now
-    and >= user score + 5
+    """ Return list of groups for user filtered based on start time < 30 minutes
+        before now and >= user score + 5
 
     Args:
         user(User): user from the context or request

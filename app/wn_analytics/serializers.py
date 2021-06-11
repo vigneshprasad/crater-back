@@ -62,7 +62,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             "last_meeting_date",
             "last_conversation_date",
             "total_conversations",
-            "total_meetings"
+            "total_meetings",
+            "score"
         )
 
     @staticmethod
