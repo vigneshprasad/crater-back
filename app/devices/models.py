@@ -21,6 +21,9 @@ class Device(base_models.BaseModel):
     class Meta:
         unique_together = ("name", "model")
 
+    def __str__(self):
+        return "{} - {}".format(self.name, self.model)
+
 
 class UserDevice(base_models.BaseModel):
     """User's device info with activity.

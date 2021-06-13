@@ -63,6 +63,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             "last_conversation_date",
             "total_conversations",
             "total_meetings",
+            "device_info",
             "score"
         )
 
