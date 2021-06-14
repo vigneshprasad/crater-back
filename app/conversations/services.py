@@ -1,5 +1,6 @@
 import datetime
 
+from django.db.models import Q
 from django.utils import timezone
 
 from conversations import exceptions
@@ -186,3 +187,19 @@ def get_distinct_groups_by_score(user, queryset=None):
     # Doing this to return queryset instead of list.
     final_group_ids = [group.id for group in final_groups]
     return models.Group.objects.filter(id__in=final_group_ids)
+
+
+def get_groups_for_user_and_start(user, start):
+    """Return groups for a user scheduled at the given start
+        time.
+
+    Args:
+        user(User): Group host or speaker.
+        start(datetime.datetime): Start datetime for the
+            groups.
+
+    """
+    return models.Group.objects.filter(
+        Q(host=user) | Q(speakers=user),
+        start=start
+    ) or None

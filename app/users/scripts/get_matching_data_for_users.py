@@ -3,11 +3,15 @@ from django.conf import settings
 
 from resources.meetings import models as meeting_models
 from resources.meetings import services as meeting_services
+from resources.meetings.scripts import create_start_and_end_in_time_slots
 from conversations import models as conversation_models
 from users import models
 
 
-def get_matching_data_for_users(emails):
+def run(emails):
+    print("Creating start and end for Time slots")
+    # Creating start and end for all time slots.
+    create_start_and_end_in_time_slots.run(dry_run=False)
 
     print("Number of emails: {}".format(len(emails)))
     users = models.User.objects.filter(email__in=emails)
@@ -38,7 +42,7 @@ def get_matching_data_for_users(emails):
         else:
             topic_name = latest_meeting_preference.topic.name if latest_meeting_preference.topic else None
             interests_list = [interest.name for interest in latest_meeting_preference.interests.all()]
-            times_list = [time_slot.start.astimezone(tz=local_tz).strftime("%d/%m/%y %H:%M") for time_slot in latest_meeting_preference.time_slots.all()]
+            times_list = [time_slot.start.astimezone(tz=local_tz).strftime("%A %d/%m/%y %H:%M") for time_slot in latest_meeting_preference.time_slots.all()]
 
         print("{} # {} # {} # {} # {} # {} # {} # {} # {} # {}".format(
             email,

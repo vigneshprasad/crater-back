@@ -3,6 +3,7 @@ import datetime
 from django.db.models import Q
 
 from rest_framework import mixins
+from rest_framework import serializers
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.decorators import action
@@ -121,26 +122,47 @@ class GroupsViewSet(
         detail=False,
     )
     def instant_time_slots(self, request, *args, **kwargs):
+        """Returns eligible time slots for instant conversations.
+
+        Note:
+            Doesn't send times at which the user already has
+            a conversation. Done to prevent creation of
+            multiple conversations at the same time.
+
+        """
+        user = request.user
         now = datetime.datetime.now()
-        response = []
+        eligible_slots = []
 
         for time in constants.INSTANT_CONVERSATION_TIME_SLOTS:
             slot = datetime.datetime.combine(now.date(), time)
-            if slot > now:
-                response.append(slot)
+            # If the slot is greater than now time and the user has no
+            # conversation at the same time append it to response.
+            if slot > now and not services.get_groups_for_user_and_start(user, slot):
+                eligible_slots.append(slot)
 
-        if len(response) == 0:
-            now = now + datetime.timedelta(days=1)
-            for time in constants.INSTANT_CONVERSATION_TIME_SLOTS:
-                slot = datetime.datetime.combine(now.date(), time)
-                response.append(slot)
+        if eligible_slots:
+            return Response(eligible_slots)
 
-        return Response(response)
+        # If there are no eligible slot of the day, return slots for
+        # the next day.
+        now = now + datetime.timedelta(days=1)
+        for time in constants.INSTANT_CONVERSATION_TIME_SLOTS:
+            slot = datetime.datetime.combine(now.date(), time)
+            # If user has no conversation at the same time append it to response.
+            if not services.get_groups_for_user_and_start(user, slot):
+                eligible_slots.append(slot)
+
+        return Response(eligible_slots)
 
     @action(methods=["post"], detail=False)
     def instant(self, request, *args, **kwargs):
         """Creates a conversation(group) for a user and topic
             selected from client.
+
+        Note:
+            Doesn't create conversation if the user already has
+            a conversation at the same time.
 
         """
         user = request.user
@@ -149,10 +171,15 @@ class GroupsViewSet(
         data["host"] = user.pk
         data["speakers"] = [user.pk]
 
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        instance = serializer.save()
-        # Sending conversation created signal.
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save()
+            # Sending conversation created signal.
+        except exceptions.GroupCreatedAtTheSameTime as e:
+            return Response(e.get_error_body(), status=e.status_code)
+
+        # Send signal for conversation created.
         signals.conversation_created.send(
             sender=instance.__class__,
             group=instance

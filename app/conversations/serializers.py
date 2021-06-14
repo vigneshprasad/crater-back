@@ -1,11 +1,13 @@
 import copy
 import datetime
 
+from django.db.models import Q
 from django.utils import timezone
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+from conversations import exceptions
 from conversations import models
 from conversations import services
 from resources.meetings import serializers as meeting_serializers
@@ -144,6 +146,18 @@ class GroupSerializer(serializers.ModelSerializer):
             return True
 
         return False
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = request.user
+
+        # Raise an exception if the user already has a group
+        # at the same time.
+        start = validated_data["start"]
+        if services.get_groups_for_user_and_start(user, start):
+            raise exceptions.GroupCreatedAtTheSameTime()
+
+        return super().create(validated_data)
 
 
 class InviteSerializer(serializers.ModelSerializer):

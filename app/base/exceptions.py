@@ -8,6 +8,7 @@ class BaseAPIException(Exception):
         message: explanation of the error
         error_code(string): string error Code for Exception
         status_code: status code for error
+
     """
 
     def __init__(self, message, error_code, status_code=status.HTTP_400_BAD_REQUEST):
@@ -17,12 +18,10 @@ class BaseAPIException(Exception):
         super(BaseAPIException, self).__init__(self.message)
 
     def __str__(self):
-        return f'{self.message}'
+        return "{}".format(self.message)
 
     def get_error_body(self):
         return {
-            'error_code': self.error_code,
-            'error_message': self.message,
+            "error_code": self.error_code,
+            "error_message": self.message,
         }
-
-
