@@ -8,3 +8,4 @@ class DevicesAppConfig(AppConfig):
 
     def ready(self):
         from devices import receivers
+        from devices import signals
