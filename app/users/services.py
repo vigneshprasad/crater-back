@@ -71,3 +71,131 @@ def get_social_account_info(social_account):
         }
     return data
 
+
+def get_education_level_field_info():
+    options = []
+    for item in models.Profile.EDUCATION_LEVEL_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Education level',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }
+
+
+def get_company_type_field_info():
+    options = []
+    for item in models.Profile.COMPANY_TYPE_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Company type',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }
+
+
+def get_years_of_experience_field_info():
+    options = []
+    for item in models.Profile.YEARS_OF_EXPERIENCE_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Years of experience',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }
+
+
+def get_sector_field_info():
+    options = []
+    for item in models.Profile.SECTOR_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Sector',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }
+
+
+def get_name_field_info():
+    return {
+        'label': 'Name',
+        'type': 'text-field',
+        'options': None,
+        'blank': False,
+    }
+
+
+def get_number_of_employees_field_info():
+    options = []
+    for item in models.Profile.NUMBER_OF_EMPLOYEE_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Number of employees',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }
+
+
+def get_project_type_field_info():
+    options = []
+    for item in models.Profile.PROJECT_TYPE_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Project Type',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }
+
+
+def get_stage_of_company_field_info():
+    options = []
+    for item in models.Profile.STAGE_OF_COMPANY_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Stage of company',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }
+
+
+def get_aspiration_field_info():
+    options = []
+    for item in models.Profile.ASPIRATION_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': 'Aspiration',
+        'type': 'drop-down',
+        'options': options,
+        'blank': False,
+    }

@@ -168,3 +168,8 @@ class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
 @admin.register(models.UserDeviceInfo)
 class UserDeviceInfoAdmin(admin.ModelAdmin):
     exclude = ('created', 'modified',)
+
+
+@admin.register(models.ProfileExtraInfoMeta)
+class ProfileExtraMetaAdmin(admin.ModelAdmin):
+    exclude = ()

@@ -183,6 +183,26 @@ class GoogleCalendarService:
             sendUpdates="all",
         ).execute()
 
+    def update_event_to_google_meet(self, event_id):
+        """Updates attendees for an existing event on WorkNetwork Calendar."""
+        request_id = str(uuid.uuid4())
+        patch_body = {
+            "conferenceData": {
+                "createRequest": {
+                    "conferenceSolutionKey": {
+                        "type": constants.HANGOUT_MEET
+                    },
+                    "requestId": request_id,
+                }
+            }
+        }
+        return self.service.events().patch(
+            calendarId=self.calendar_id,
+            eventId=event_id,
+            body=patch_body,
+            conferenceDataVersion=self.conference_data_version
+        ).execute()
+
 
 google_calendar_service = GoogleCalendarService(
     conference_data_version=constants.CONFERENCE_DATA_VERSION,

@@ -504,6 +504,19 @@ class ProfileMetaViewSet(viewsets.GenericViewSet):
 
     @action(
         methods=["GET"],
+        detail=True,
+    )
+    def tag_extra_info(self, request, pk, *args, **kwargs):
+        try:
+            meta_object = models.ProfileExtraInfoMeta.objects.get(tag=pk)
+            serialized = serializers.ProfileExtraInfoMetaSerializer(meta_object)
+
+            return Response(serialized.data)
+        except models.ProfileExtraInfoMeta.DoesNotExist:
+            return Response("Missing object", status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=["GET"],
         detail=False
     )
     def education(self, request, *args, **kwargs):

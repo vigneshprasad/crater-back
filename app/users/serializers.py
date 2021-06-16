@@ -26,6 +26,7 @@ from utils.fields import Base64FileField
 from utils.instagram_service import instagram_service
 from . import models
 from . import choices
+from . import services
 from .validators import password_validate_symbols
 from .signals import objectives_added, email_verified
 from .services import get_social_account_info
@@ -643,7 +644,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
             Adding user group to investor if investor tag is selected
         """
-        user_tags = validated_data['tags'] if validated_data['tags'] else []
+        user_tags = validated_data.get('tags') if validated_data.get('tags') else []
         profile = super().create(validated_data)
         if len(user_tags) > 0:
             profile.new_tag.clear()
@@ -919,3 +920,29 @@ class CoverFileSerializer(serializers.ModelSerializer):
             validated_data['file'] = file_base64
         obj = super().create(validated_data)
         return obj
+
+
+class ProfileExtraInfoMetaSerializer(serializers.ModelSerializer):
+    meta = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.ProfileExtraInfoMeta
+        fields = (
+            'tag',
+            'question',
+            'meta',
+        )
+
+    @staticmethod
+    def get_meta(meta):
+        return {
+            'education_level': services.get_education_level_field_info(),
+            'years_of_experience': services.get_years_of_experience_field_info(),
+            'company_type': services.get_company_type_field_info(),
+            'sector': services.get_sector_field_info(),
+            'name': services.get_name_field_info(),
+            'number_of_employees': services.get_number_of_employees_field_info(),
+            'project_type': services.get_project_type_field_info(),
+            'stage_of_company': services.get_stage_of_company_field_info(),
+            'aspiration': services.get_aspiration_field_info(),
+        }
