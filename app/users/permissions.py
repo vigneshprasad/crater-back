@@ -36,7 +36,11 @@ class HasActiveSubscription(permissions.BasePermission):
 
 
 class SegmentRequest(permissions.BasePermission):
-    """Allows access only to segment webhooks."""
+    """Allows access only to segment webhooks.
+
+    TODO(Nishant): Use this for segment webhooks after testing.
+
+    """
 
     def has_permission(self, request, view):
         signature = request.headers["x-signature"]
