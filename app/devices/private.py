@@ -16,6 +16,9 @@ def get_or_create_device(device_name, device_model, device_price):
             device for the details.
 
     """
+    if not (device_name or device_model):
+        return None
+
     try:
         device = models.Device.objects.get(
             name=device_name.lower(),
@@ -79,6 +82,9 @@ def create_or_update_user_device(
 
     # This will always give you a device.
     device = get_or_create_device(device_name, device_model, device_price)
+
+    if not device:
+        return None
 
     user_device, created = models.UserDevice.objects.update_or_create(
         user=user,

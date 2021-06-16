@@ -43,7 +43,7 @@ class SegmentRequest(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        signature = request.headers["x-signature"]
+        signature = request.headers.get("x-signature")
         if not signature:
             return True
 

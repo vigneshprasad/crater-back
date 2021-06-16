@@ -7,7 +7,7 @@ app_name = "wn_analytics"
 
 router = routers.SimpleRouter()
 
-router.register("segment/", views.SegmentWebhookViewSet, base_name="segment_webhook")
+router.register("segment", views.SegmentWebhookViewSet, base_name="segment_webhook")
 
 urlpatterns = [
     path("", include(router.urls))

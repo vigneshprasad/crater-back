@@ -18,10 +18,81 @@ RESCHEDULE_UPDATED = "reschedule_updated"
 CONVERSATION_CREATED = "conversation_created"
 CONVERSATION_JOINED = "conversation_joined"
 
+# Constants for device population.
 SEGMENT_IDENTIFY = "identify"
+DEVICE_TYPE_IOS = "ios"
+
+DEFAULT_IOS_DEVICE_MANUFACTURER = "apple"
+DEFAULT_IOS_DEVICE_MODEL = "iphone10,1"
+
+FRONT_END_IDENTIFY_CALL_IOS = {
+    "anonymousId": "FD419365-2623-470C-B445-36C419892A98",
+    "channel": "server",
+    "context": {
+        "app": {
+            "build": "26",
+            "name": "",
+            "namespace": "com.wurknet.mobile",
+            "version": "1.9.2"
+        },
+        "device": {
+            "token": "896e8bb5ee2f3ffc9d7c0e63077bbc79efbd45e6af5fb0942583046c2ff374fc",
+            "type": "ios"
+        },
+        "ip": "223.184.21.146",
+        "library": {
+            "name": "analytics-ios",
+            "version": "3.7.0"
+        },
+        "locale": "en-IN",
+        "network": {
+            "carrier": "AirTel",
+            "cellular": False,
+            "wifi": True
+        },
+        "os": {
+            "name": "iOS",
+            "version": "14.6"
+        },
+        "screen": {
+            "height": 812,
+            "width": 375
+        },
+        "timezone": "Asia/Kolkata",
+        "traits": {
+            "email": "nishantkparashar@gmail.com",
+            "email_verified": True,
+            "has_introduction": True,
+            "intent": "network",
+            "is_approved": True,
+            "linkedin_url": "https://www.linkedin.com/in/nishant-k-parashar",
+            "objectives": [],
+            "phone_number": "+918722438458",
+            "phone_number_verified": True,
+            "role": "user",
+            "user_tags": ["Startup Founder"]
+        }
+    },
+    "integrations": {},
+    "messageId": "3563AC50-D33C-45CD-990A-AEC8004AF1AA",
+    "originalTimestamp": "2021-06-16T11:10:17.974Z",
+    "projectId": "uPE38upe1KABCRw7kk6UK2",
+    "receivedAt": "2021-06-16T11:10:48.395Z",
+    "sentAt": "2021-06-16T11:10:47.458Z",
+    "timestamp": "2021-06-16T11:10:18.911Z",
+    "traits": {
+        "has_introduction": True,
+        "role": "user",
+        "user_tags": ["Startup Founder"]
+    },
+    "type": "identify",
+    "userId": "e22679b0-03fc-4398-a2f9-45e81813c623",
+    "version": 2,
+    "writeKey": "iGbaBkLh7gb9l1rkZjGFSqmzkj13z4YN"
+}
 
 # Keeping this for testing purposes.
-FRONT_END_IDENTIFY_CALL = {
+FRONT_END_IDENTIFY_CALL_ANDROID = {
     "anonymousId": "f3691a5b-a7f5-4e94-ad20-13ed740f6397",
     "channel": "server",
     "context": {

@@ -10,7 +10,6 @@ from wn_analytics import constants
 
 
 class SegmentWebhookViewSet(viewsets.GenericViewSet):
-
     permission_classes = [permissions.SegmentRequest]
 
     @staticmethod
@@ -52,6 +51,11 @@ class SegmentWebhookViewSet(viewsets.GenericViewSet):
 
         device_manufacturer = device_data.get("manufacture")
         device_model = device_data.get("model")
+        device_type = device_data.get("type")
+
+        if not (device_manufacturer or device_model) and device_type == constants.DEVICE_TYPE_IOS:
+            device_manufacturer = constants.DEFAULT_IOS_DEVICE_MANUFACTURER
+            device_model = constants.DEFAULT_IOS_DEVICE_MODEL
 
         # Create user device for the user.
         device_signals.new_user_device_detected.send(
