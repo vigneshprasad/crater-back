@@ -45,8 +45,23 @@ class GroupCreatedAtTheSameTime(base_exceptions.BaseAPIException):
     def __init__(self):
         super().__init__(
             message="You already have a conversation at the same time. Please select a different time",
-            # TODO(Abhishek): Change this to groupJoinedAtTheSameTime once app push handle multiple error codes.
             error_code="groupCreationError"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)
+
+
+class TopicAlreadySuggested(base_exceptions.BaseAPIException):
+    """Exception raised when a user tries to create group at the same
+        time as his scheduled groups.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            message="The topic is already suggested.",
+            error_code="topicAlreadySuggested"
         )
 
     def __str__(self):

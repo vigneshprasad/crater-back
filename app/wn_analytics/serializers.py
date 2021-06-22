@@ -31,7 +31,9 @@ class UserTraitsSerializer(serializers.ModelSerializer):
     last_conversation_date = serializers.SerializerMethodField(read_only=True)
     total_conversations = serializers.SerializerMethodField(read_only=True)
     total_meetings = serializers.SerializerMethodField(read_only=True)
-    device_info = serializers.SerializerMethodField(read_only=True)
+    device_name = serializers.SerializerMethodField(read_only=True)
+    device_model = serializers.SerializerMethodField(read_only=True)
+    device_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = user_models.User
@@ -63,7 +65,9 @@ class UserTraitsSerializer(serializers.ModelSerializer):
             "last_conversation_date",
             "total_conversations",
             "total_meetings",
-            "device_info",
+            "device_name",
+            "device_model",
+            "device_price",
             "score"
         )
 
@@ -189,5 +193,22 @@ class UserTraitsSerializer(serializers.ModelSerializer):
         return latest_user_meeting.get_display() if latest_user_meeting else None
 
     @staticmethod
-    def get_device_info(user):
-        return device_public.get_device_info_for_user(user)
+    def get_device_name(user):
+        device_info = device_public.get_device_info_for_user(user)
+        if not device_info:
+            return None
+        return device_info.get("device_name")
+
+    @staticmethod
+    def get_device_model(user):
+        device_info = device_public.get_device_info_for_user(user)
+        if not device_info:
+            return None
+        return device_info.get("device_model")
+
+    @staticmethod
+    def get_device_price(user):
+        device_info = device_public.get_device_info_for_user(user)
+        if not device_info:
+            return None
+        return device_info.get("device_price")
