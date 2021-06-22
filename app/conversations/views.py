@@ -79,6 +79,37 @@ class TopicViewSet(
         serialized = self.get_serializer(queryset, many=True)
         return Response(serialized.data)
 
+    @action(
+        methods=["post"],
+        detail=False,
+        serializers=serializers.SuggestedTopicSerializer
+    )
+    def suggest(self, request, *args, **kwargs):
+        """Allows a user to suggest a topic."""
+        request_data = request.data
+        suggested_topic = request_data.get("topic")
+        suggested_by = request.user
+
+        # Serializer data.
+        data = {
+            "topic": suggested_topic,
+            "suggested_by": suggested_by
+        }
+
+        try:
+            serializer = self.get_serializer(data)
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save()
+        except exceptions.TopicAlreadySuggested as e:
+            return self.generate_bad_request(
+                {"error": e.__str__()}
+            )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
 
 class GroupsViewSet(
     mixins.ListModelMixin,
