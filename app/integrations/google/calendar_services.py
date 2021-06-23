@@ -179,36 +179,6 @@ class GoogleCalendarService:
             conferenceDataVersion=self.conference_data_version
         ).execute()
 
-    def update_event_conference_to_google_meet(self, event_id):
-        """Updates conference type to google meets for WorkNetwork Calendar.
-
-        Note:
-            We generally use SuperPro links. This is a fallback in case
-                superpro is down.
-        """
-        request_id = str(uuid.uuid4())
-        patch_body = {
-            "conferenceData": {
-                "createRequest": {
-                    "conferenceSolutionKey": {
-                        "type": constants.HANGOUT_MEET
-                    },
-                    "requestId": request_id,
-                }
-            }
-        }
-        event = self.service.events().patch(
-            calendarId=self.calendar_id,
-            eventId=event_id,
-            body=patch_body,
-            conferenceDataVersion=self.conference_data_version
-        ).execute()
-
-        # Return the updated google meet link for the event.
-        hangout_link = event.get("hangoutLink", "")
-
-        return hangout_link
-
     def update_event_to_new_meeting_link(self, event_id, meeting_link):
         """Updates new meeting link in the users WorkNetwork Calendar.
 
@@ -255,7 +225,7 @@ class GoogleCalendarService:
             sendUpdates="all",
         ).execute()
 
-    def update_event_to_google_meet(self, event_id):
+    def update_event_conference_to_google_meet(self, event_id):
         """Updates attendees for an existing event on WorkNetwork Calendar."""
         request_id = str(uuid.uuid4())
         patch_body = {
