@@ -707,6 +707,11 @@ class Profile(models.Model):
         blank=True,
         choices=YEARS_OF_EXPERIENCE_CHOICES
     )
+    company_name = models.TextField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
     company_type = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -736,6 +741,9 @@ class Profile(models.Model):
         null=True,
         blank=True,
         choices=ASPIRATION_CHOICES
+    )
+    profile_intro_updated = models.BooleanField(
+        default=False,
     )
 
     class Meta:

@@ -574,6 +574,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             'company_type',
             'sector',
             'generated_introduction',
+            'number_of_employees',
+            'project_type',
+            'stage_of_company',
+            'aspiration',
+            'profile_intro_updated',
         )
         extra_kwargs = {
             'tags': {'write_only': True, 'allow_null': True, 'required': False }
@@ -945,4 +950,5 @@ class ProfileExtraInfoMetaSerializer(serializers.ModelSerializer):
             'project_type': services.get_project_type_field_info(),
             'stage_of_company': services.get_stage_of_company_field_info(),
             'aspiration': services.get_aspiration_field_info(),
+            'company_name': services.get_company_name_field_info(),
         }

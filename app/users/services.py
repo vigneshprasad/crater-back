@@ -132,6 +132,15 @@ def get_sector_field_info():
     }
 
 
+def get_company_name_field_info():
+    return {
+        'label': 'Company name',
+        'type': 'text-field',
+        'options': None,
+        'blank': False,
+    }
+
+
 def get_name_field_info():
     return {
         'label': 'Name',
