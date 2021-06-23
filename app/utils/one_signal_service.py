@@ -40,6 +40,24 @@ class OneSignalService:
 
         return response
 
+    def send_bulk_notification(self, player_ids, notification_json):
+        """Sends notifications give notification json and player id.
+
+        Note:
+            player_ids should always be less than 2000 per call.
+
+        """
+        notification_json["app_id"] = self.app_id
+        notification_json["include_player_ids"] = player_ids
+
+        response = requests.post(
+            self.get_api_endpoint("notifications"),
+            json=notification_json,
+            headers=self.get_headers()
+        ).json()
+
+        return response
+
     def send_notification(self, player_id, notification_json):
         """Sends notifications give notification json and player id."""
         notification_json["app_id"] = self.app_id

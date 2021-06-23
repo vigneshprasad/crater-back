@@ -7,3 +7,7 @@ user_joined_group = Signal(providing_args=[
 new_conversation_registration = Signal(providing_args=[
     "preference"
 ])
+
+conversation_created = Signal(providing_args=[
+    "group"
+])

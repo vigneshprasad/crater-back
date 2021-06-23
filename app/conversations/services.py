@@ -1,5 +1,6 @@
 import datetime
 
+from django.db.models import Q
 from django.utils import timezone
 
 from conversations import exceptions
@@ -90,6 +91,12 @@ def create_group_conversation(users, interests, topic, start, end):
     # Refreshing for updated values.
     group.refresh_from_db()
 
+    # Sending group created signal.
+    signals.conversation_created.send(
+        sender=group.__class__,
+        group=group
+    )
+
     return group
 
 
@@ -99,8 +106,8 @@ def get_groups_attended_for_user(user):
 
 
 def get_groups_for_user(user, queryset=None):
-    """ Return list of groups for user filtered based on start time < 30 mins before now
-    and >= user score + 5
+    """ Return list of groups for user filtered based on start time < 30 minutes
+        before now and >= user score + 5
 
     Args:
         user(User): user from the context or request
@@ -180,3 +187,19 @@ def get_distinct_groups_by_score(user, queryset=None):
     # Doing this to return queryset instead of list.
     final_group_ids = [group.id for group in final_groups]
     return models.Group.objects.filter(id__in=final_group_ids)
+
+
+def get_groups_for_user_and_start(user, start):
+    """Return groups for a user scheduled at the given start
+        time.
+
+    Args:
+        user(User): Group host or speaker.
+        start(datetime.datetime): Start datetime for the
+            groups.
+
+    """
+    return models.Group.objects.filter(
+        Q(host=user) | Q(speakers=user),
+        start=start
+    ) or None

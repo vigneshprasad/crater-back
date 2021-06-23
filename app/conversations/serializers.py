@@ -1,12 +1,15 @@
 import copy
-from datetime import timezone, timedelta
+import datetime
 
+from django.db.models import Q
 from django.utils import timezone
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from conversations import models, services, constants
+from conversations import exceptions
+from conversations import models
+from conversations import services
 from resources.meetings import serializers as meeting_serializers
 from resources.meetings import models as meeting_models
 from resources.curated_articles import serializers as articles_serializer
@@ -50,11 +53,11 @@ class GroupUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = (
-            'pk',
-            'email',
-            'name',
-            'photo',
-            'introduction',
+            "pk",
+            "email",
+            "name",
+            "photo",
+            "introduction",
         )
 
     @staticmethod
@@ -71,10 +74,10 @@ class GroupUserSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
-    topic_detail = TopicSerializer(source='topic', read_only=True)
-    interests_detail_list = meeting_serializers.MeetingInterestSerializer(source='interests', read_only=True, many=True)
-    speakers_detail_list = GroupUserSerializer(source='speakers', read_only=True, many=True)
-    host_detail = GroupUserSerializer(source='host', read_only=True)
+    topic_detail = TopicSerializer(source="topic", read_only=True)
+    interests_detail_list = meeting_serializers.MeetingInterestSerializer(source="interests", read_only=True, many=True)
+    speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
+    host_detail = GroupUserSerializer(source="host", read_only=True)
     is_speaker = serializers.SerializerMethodField(read_only=True)
     is_past = serializers.SerializerMethodField()
     relevancy = serializers.SerializerMethodField()
@@ -83,33 +86,33 @@ class GroupSerializer(serializers.ModelSerializer):
         ref_name = "group_meeting"
         model = models.Group
         fields = (
-            'id',
-            'host',
-            'speakers',
-            'is_speaker',
-            'attendees',
-            'topic',
-            'description',
-            'interests',
-            'start',
-            'end',
-            'max_speakers',
-            'privacy',
-            'medium',
-            'closed',
-            'closed_at',
-            'topic_detail',
-            'host_detail',
-            'speakers_detail_list',
-            'interests_detail_list',
-            'is_past',
-            'relevancy',
+            "id",
+            "host",
+            "speakers",
+            "is_speaker",
+            "attendees",
+            "topic",
+            "description",
+            "interests",
+            "start",
+            "end",
+            "max_speakers",
+            "privacy",
+            "medium",
+            "closed",
+            "closed_at",
+            "topic_detail",
+            "host_detail",
+            "speakers_detail_list",
+            "interests_detail_list",
+            "is_past",
+            "relevancy",
         )
 
     @staticmethod
     def get_is_past(group):
         """Return True if the meeting was in the past."""
-        now = timezone.now() - timedelta(days=1)
+        now = timezone.now() - datetime.timedelta(days=1)
         return now >= group.start
 
     def get_relevancy(self, group):
@@ -144,6 +147,18 @@ class GroupSerializer(serializers.ModelSerializer):
 
         return False
 
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = request.user
+
+        # Raise an exception if the user already has a group
+        # at the same time.
+        start = validated_data["start"]
+        if services.get_groups_for_user_and_start(user, start):
+            raise exceptions.GroupCreatedAtTheSameTime()
+
+        return super().create(validated_data)
+
 
 class InviteSerializer(serializers.ModelSerializer):
 
@@ -153,17 +168,17 @@ class InviteSerializer(serializers.ModelSerializer):
 
 
 class RequestSerializer(serializers.ModelSerializer):
-    group_detail = GroupSerializer(source='group', read_only=True)
+    group_detail = GroupSerializer(source="group", read_only=True)
 
     class Meta:
         model = models.Request
         fields = (
-            'pk',
-            'requester',
-            'group',
-            'status',
-            'is_recommended',
-            'group_detail'
+            "pk",
+            "requester",
+            "group",
+            "status",
+            "is_recommended",
+            "group_detail"
         )
 
     def to_internal_value(self, data):
@@ -175,8 +190,8 @@ class RequestSerializer(serializers.ModelSerializer):
             data = copy.deepcopy(data)
         except TypeError:
             pass
-        if self.context.get('request'):
-            data['requester'] = self.context['request'].user.pk
+        if self.context.get("request"):
+            data["requester"] = self.context["request"].user.pk
         return super().to_internal_value(data)
 
 
@@ -189,15 +204,15 @@ class OptinSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     class Meta:
         model = meeting_models.MeetingPreference
         fields = (
-            'user',
-            'interests',
-            'time_slots',
-            'meeting',
-            'topic',
-            'week_start',
-            'interest_list',
-            'time_slot_list',
-            'topic_detail',
+            "user",
+            "interests",
+            "time_slots",
+            "meeting",
+            "topic",
+            "week_start",
+            "interest_list",
+            "time_slot_list",
+            "topic_detail",
         )
 
     @staticmethod

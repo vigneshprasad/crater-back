@@ -31,7 +31,7 @@ from . import serializers, models, choices
 from .forms import AdminSetPasswordForm
 from .models import Profile
 from .paginators import Pagination
-from .signals import basic_profile_created, service_created, phone_number_verified, referred_friend
+from .signals import basic_profile_created, service_created, phone_number_verified, referred_friend, profile_requested
 from .swagger_schemas import referer_email
 from .tasks import send_email
 from resources.meetings import models as meeting_models
@@ -81,14 +81,18 @@ class ProfileViewSet(
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+
         if not instance:
             raise NotFound()
-        photo = instance.photo
-        if not photo:
-            photo = instance.photo_url
+
+        photo = instance.photo if instance.photo else instance.photo_url
         serializer = self.get_serializer(instance)
         data = serializer.data
         data['photo'] = photo.url if hasattr(photo, 'url') else photo
+
+        # Everytime profile retrieve gets called we update user activity.
+        profile_requested.send(sender=instance.__class__, profile=instance)
+
         return Response(data)
 
     def list(self, request, *args, **kwargs):
@@ -115,10 +119,18 @@ class ProfileViewSet(
                 connections.append(speaker)
 
         unique_connections = list(set(connections))
+
+        # Need only connections with profile.
+        unique_connections_with_profile = []
+        for user in unique_connections:
+            if not user.has_profile:
+                continue
+            unique_connections_with_profile.append(user.profile)
+
         # Sorting the users by score.
-        unique_connections.sort(key=lambda x: x.score, reverse=True)
-        profiles = list(map(lambda x: x.profile, unique_connections))
-        serialized = self.get_serializer(profiles, many=True)
+        unique_connections_with_profile.sort(key=lambda x: x.user.score, reverse=True)
+        serialized = self.get_serializer(unique_connections_with_profile, many=True)
+
         return Response(serialized.data)
 
 

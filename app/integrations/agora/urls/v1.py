@@ -7,8 +7,8 @@ app_name = "agora"
 
 router = routers.SimpleRouter()
 
-router.register('', views.AgoraChannelAuthenticationViewSet, base_name="agora_rtc")
+router.register("", views.AgoraChannelAuthenticationViewSet, base_name="agora_rtc")
 
 urlpatterns = [
-    path('', include(router.urls))
+    path("", include(router.urls))
 ]

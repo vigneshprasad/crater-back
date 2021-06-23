@@ -76,7 +76,7 @@ class GoogleCalendarService:
         Args:
             start_datetime(datetime.datetime): Starting time for the calendar event.
             end_datetime(datetime.datetime): Ending time for the calendar event.
-            users(list/queryset): List of user's who are attending the event.
+            users(list/queryset): List of user"s who are attending the event.
             summary(str): The title of the Google calendar event.
             description(str): The description for Google calendar event.
             meeting_link(str): External meeting link to be added to the event.
@@ -153,17 +153,89 @@ class GoogleCalendarService:
             conferenceDataVersion=self.conference_data_version
         ).execute()
 
-        hangout_link = meeting_link if meeting_link else event.get('hangoutLink', '')
-        event_id = event.get('id', '')
+        hangout_link = meeting_link if meeting_link else event.get("hangoutLink", "")
+        event_id = event.get("id", "")
 
         return event_id, hangout_link
 
     def update_event_attendees(self, event_id, users):
-        """Updates attendees for an existing event on WorkNetwork Calendar."""
+        """Updates attendees for an existing event on WorkNetwork Calendar.
+
+        Args:
+            event_id(str): Event ID for the google calendar event.
+            users(list): List of user in the event to be update on the
+                calendar.
+
+        """
         if not self.service:
             return None
 
         patch_body = {"attendees": [{"email": user.email} for user in users]}
+
+        return self.service.events().patch(
+            calendarId=self.calendar_id,
+            eventId=event_id,
+            body=patch_body,
+            conferenceDataVersion=self.conference_data_version
+        ).execute()
+
+    def update_event_conference_to_google_meet(self, event_id):
+        """Updates conference type to google meets for WorkNetwork Calendar.
+
+        Note:
+            We generally use SuperPro links. This is a fallback in case
+                superpro is down.
+        """
+        request_id = str(uuid.uuid4())
+        patch_body = {
+            "conferenceData": {
+                "createRequest": {
+                    "conferenceSolutionKey": {
+                        "type": constants.HANGOUT_MEET
+                    },
+                    "requestId": request_id,
+                }
+            }
+        }
+        event = self.service.events().patch(
+            calendarId=self.calendar_id,
+            eventId=event_id,
+            body=patch_body,
+            conferenceDataVersion=self.conference_data_version
+        ).execute()
+
+        # Return the updated google meet link for the event.
+        hangout_link = event.get("hangoutLink", "")
+
+        return hangout_link
+
+    def update_event_to_new_meeting_link(self, event_id, meeting_link):
+        """Updates new meeting link in the users WorkNetwork Calendar.
+
+        Args:
+            event_id(str): Event ID for the google calendar event.
+            meeting_link(str): New meeting link for the calendar.
+
+        """
+        patch_body = {
+            "conferenceData": {
+                "conferenceSolution": {
+                    "name": "1:1 Meeting",
+                    "key": {
+                        "type": constants.ADD_ON_LINK
+                    },
+                    # TODO(Nishant): Change this from default Google Meets icon to our icon.
+                    "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
+                },
+                "entryPoints": [
+                    {
+                        "entryPointType": "video",
+                        "label": meeting_link,
+                        "uri": meeting_link
+                    }
+                ]
+            }
+        }
 
         return self.service.events().patch(
             calendarId=self.calendar_id,

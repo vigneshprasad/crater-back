@@ -190,9 +190,9 @@ def send_group_feedback_emails(groups=None):
 
 # TODO(Nishant): Cleanup this during refactor of code.
 @periodic_task(run_every=crontab(hour=10, minute=30))
-def create_user_introductions_for_eligible_users(test_profiles=None):
+def create_user_introductions_for_eligible_users(profiles=None):
     """Create introductions for users without introduction."""
-    profiles = user_models.Profile.objects.all() if not test_profiles else test_profiles
+    profiles = user_models.Profile.objects.all() if not profiles else profiles
 
     for profile in profiles:
         if profile.introduction or profile.generated_introduction:

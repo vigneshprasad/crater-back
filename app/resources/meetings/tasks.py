@@ -1,26 +1,21 @@
 import datetime
 import logging
-import pytz
 from copy import copy
 
+from django.conf import settings
 from celery.schedules import crontab
 from celery.task import periodic_task
 from django.utils import timezone
 
-from freelance.settings import TIME_ZONE, CONTACT_US_URL, WEBSITE_URL, FRONT_URL
 from integrations.freshchat import public as freshchat_public
 from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import services
 from resources.meetings import signals
 from integrations.google import public as google_public
-from django.contrib.auth import get_user_model
-from rewards.services import get_max_rewards_rs_conversion
-from points import models as points_models
-from integrations.freshchat import constants as freshchat_constants
 
 
-@periodic_task(run_every=crontab(day_of_week='sunday', hour='17', minute='30'))
+@periodic_task(run_every=crontab(day_of_week="sunday", hour="17", minute="30"))
 def create_weekly_one_on_one_meeting_config(
         week_start_date=None,
         week_end_date=None,
@@ -38,14 +33,14 @@ def create_weekly_one_on_one_meeting_config(
             default time slots will be created.
 
     Notes:
-        week_start_date will be that week's Monday.
-        week_end_date will be that week's Saturday.
+        week_start_date will be that week"s Monday.
+        week_end_date will be that week"s Saturday.
         registration_end_date(default) will be that
-            week's Wednesday
+            week"s Wednesday
 
     """
     title = choices.DEFAULT_ONE_ON_ONE_MEETING_TITLE
-    # timezone.now() will provide Sunday's date. Since both are UTC.
+    # timezone.now() will provide Sunday"s date. Since both are UTC.
     if not week_start_date:
         week_start_date = timezone.now().date() + datetime.timedelta(days=8)
     if not week_end_date:
@@ -68,7 +63,7 @@ def create_weekly_one_on_one_meeting_config(
     )
 
 
-# @periodic_task(crontab(hour='0', minute='0'))
+# @periodic_task(crontab(hour="0", minute="0"))
 def close_last_weeks_meetings():
     """
     Closes meetings with week_end_date less
@@ -82,7 +77,7 @@ def close_last_weeks_meetings():
         meeting_config.close_meeting()
 
 
-# @periodic_task(crontab(hour='0', minute='0'))
+# @periodic_task(crontab(hour="0", minute="0"))
 def close_registration_for_last_weeks_meetings():
     """
     Closes registration for meetings with registration_end_date
@@ -109,7 +104,7 @@ def send_opt_in_reminder_for_new_meetings(opted_in_users=None):
     for user in opted_in_users:
         data = {
             user.email: {
-                'name': user.get_display_first_name()
+                "name": user.get_display_first_name()
             }
         }
         subject = "Signup for new connections this week"
@@ -124,7 +119,7 @@ def send_opt_in_reminder_for_new_meetings(opted_in_users=None):
 
 
 # Will run every Tuesday at 11 AM.
-# @periodic_task(crontab(day_of_week='tuesday', hour='11', minute='00'))
+# @periodic_task(crontab(day_of_week="tuesday", hour="11", minute="00"))
 def send_1_on_1_meeting_intro_emails(meetings=None):
     """Send intro for 1 on 1 meetings.
 
@@ -150,7 +145,7 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
         display_day = meeting.get_display_day()
         display_time = meeting.get_display_time()
 
-        subject = 'Introducing {} & {}'.format(
+        subject = "Introducing {} & {}".format(
             p1.name.title(),
             p2.name.title()
         )
@@ -195,23 +190,23 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
 
         for email in to_emails:
             data[email] = {
-                'day': display_day,
-                'time': display_time,
-                'name_a': p1.get_display_first_name(),
-                'name_b': p2.get_display_first_name(),
-                'link': meeting.link,
-                'introduction_a': p1.profile.get_introduction(),
-                'introduction_b': p2.profile.get_introduction(),
-                'linkedin_a': p1.profile.linkedin_url,
-                'linkedin_b': p2.profile.linkedin_url,
-                **({'objective_one_a': p1_objective_one} if p1_objective_one is not None else {}),
-                **({'objective_two_a': p1_objective_two} if p1_objective_two is not None else {}),
-                **({'objective_one_b': p2_objective_one} if p2_objective_one is not None else {}),
-                **({'objective_two_b': p2_objective_two} if p2_objective_two is not None else {}),
-                **({'interest_a': p1_interest} if p1_interest is not None else {}),
-                **({'interest_b': p2_interest} if p2_interest is not None else {}),
-                'contact_us': CONTACT_US_URL,
-                'website_url': WEBSITE_URL,
+                "day": display_day,
+                "time": display_time,
+                "name_a": p1.get_display_first_name(),
+                "name_b": p2.get_display_first_name(),
+                "link": meeting.link,
+                "introduction_a": p1.profile.get_introduction(),
+                "introduction_b": p2.profile.get_introduction(),
+                "linkedin_a": p1.profile.linkedin_url,
+                "linkedin_b": p2.profile.linkedin_url,
+                **({"objective_one_a": p1_objective_one} if p1_objective_one is not None else {}),
+                **({"objective_two_a": p1_objective_two} if p1_objective_two is not None else {}),
+                **({"objective_one_b": p2_objective_one} if p2_objective_one is not None else {}),
+                **({"objective_two_b": p2_objective_two} if p2_objective_two is not None else {}),
+                **({"interest_a": p1_interest} if p1_interest is not None else {}),
+                **({"interest_b": p2_interest} if p2_interest is not None else {}),
+                "contact_us": settings.CONTACT_US_URL,
+                "website_url": settings.WEBSITE_URL,
             }
 
         from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
@@ -237,10 +232,10 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
             )
 
 
-@periodic_task(run_every=crontab(hour='18', minute='20'))
+@periodic_task(run_every=crontab(hour="18", minute="20"))
 def send_active_meetings_data_to_analytics(meetings=None):
     """Sending meetings created everyday to analytics
-        platforms at midnight.
+        platforms at midnight (11:50 PM).
 
     Args:
         meetings(list/queryset): Meeting object queryset(optional).
@@ -251,13 +246,13 @@ def send_active_meetings_data_to_analytics(meetings=None):
     meetings_created_today = models.Meeting.objects.filter(
         created_at__day=today.day,
         created_at__month=today.month,
-        created_at__year= today.year,
+        created_at__year=today.year,
     ) if not meetings else meetings
 
     for meeting in meetings_created_today:
 
         participants = meeting.participants.all()
-        participants_emails = list(participants.values_list('email', flat=True))
+        participants_emails = list(participants.values_list("email", flat=True))
         for participant in meeting.participants.all():
             # This signal sends meeting data to analytics.
             signals.new_meeting_created.send(
@@ -271,7 +266,7 @@ def send_active_meetings_data_to_analytics(meetings=None):
 
 
 # https://docs.celeryproject.org/en/stable/userguide/periodic-tasks.html
-@periodic_task(run_every=crontab(minute='*/15'))
+@periodic_task(run_every=crontab(minute="*/15"))
 def send_whatsapp_meeting_reminders(meetings=None):
     """Sends whatsapp reminders for people 90 minutes before their meetings.
 
@@ -304,7 +299,7 @@ def send_whatsapp_meeting_reminders(meetings=None):
             )
 
 
-# @periodic_task(run_every=crontab(day_of_week='tuesday', hour='11', minute='00'))
+# @periodic_task(run_every=crontab(day_of_week="tuesday", hour="11", minute="00"))
 def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
     """Sends whatsapp messages for opting in for next weeks meetings.
 
@@ -315,11 +310,11 @@ def send_whatsapp_opt_ins_for_one_on_one_meetings(users=None):
     """
     users = services.get_opted_in_user_for_meetings() if not users else users
     # Logging info for users we are sending this to.
-    logging.info('Sending opt-in messages to {} users'.format(len(users)))
+    logging.info("Sending opt-in messages to {} users".format(len(users)))
     freshchat_public.send_meeting_opt_in_messages(users)
 
 
-@periodic_task(run_every=crontab(minute='*/15'))
+@periodic_task(run_every=crontab(minute="*/15"))
 def send_1_on_1_feedback_emails(meetings=None):
     """Send feedback mails for 1:1 meetings after 90 minutes of the
         meeting.
@@ -353,7 +348,7 @@ def send_1_on_1_feedback_emails(meetings=None):
         p2 = meeting.participants.all()[1]
 
         # Checking if profile exists.
-        subject = 'How was your 1:1 meeting?'
+        subject = "How was your 1:1 meeting?"
 
         to_emails = [p1.email, p2.email]
         from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL
@@ -369,7 +364,7 @@ def send_1_on_1_feedback_emails(meetings=None):
                 content={},
                 from_email=from_email,
                 merge_vars={
-                    to: {'email': to}
+                    to: {"email": to}
                 }
             )
 
@@ -448,7 +443,7 @@ def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
             freshchat_public.send_meeting_rsvp_reminder(rsvp.participant, meeting)
 
 
-@periodic_task(run_every=crontab(minute='*/15'))
+@periodic_task(run_every=crontab(minute="*/15"))
 def update_meeting_rsvp_status_from_google(meetings=None):
     """
     Update the Meetings Rsvp Status for participants of all upcoming meetings
@@ -513,7 +508,7 @@ def cancel_expired_reschedule_requests():
         by expiry time.
 
     """
-    # TODO(Nishant): We'll start using this once we have some data
+    # TODO(Nishant): We"ll start using this once we have some data
     # around reschedule
     pass
 
@@ -524,7 +519,7 @@ def send_reminders_for_pending_reschedule_requests():
         requests.
 
     """
-    # TODO(Nishant): We'll start using this once we have some data
+    # TODO(Nishant): We"ll start using this once we have some data
     # around reschedule
     pass
 
@@ -567,19 +562,19 @@ def _send_meeting_cancellation_email(meeting):
     else:
         declined_string = p2_rsvp.participant.email
 
-    message_link = 'https://{}/dashboard/inbox'.format(FRONT_URL)
-    rsvp_link = 'https://{}/meetings/'.format(FRONT_URL)
+    message_link = "https://{}/dashboard/inbox".format(settings.FRONT_URL)
+    rsvp_link = "https://{}/meetings/".format(settings.FRONT_URL)
 
     data = {}
     for email in to_emails:
         data[email] = {
-            'day': display_day,
-            'time': display_time,
-            'declined_users': declined_string,
-            'message_link': message_link,
-            'rsvp_link': rsvp_link,
-            'contact_us': CONTACT_US_URL,
-            'website_url': WEBSITE_URL,
+            "day": display_day,
+            "time": display_time,
+            "declined_users": declined_string,
+            "message_link": message_link,
+            "rsvp_link": rsvp_link,
+            "contact_us": settings.CONTACT_US_URL,
+            "website_url": settings.WEBSITE_URL,
         }
 
     from_email = choices.MEETING_COMMUNICATION_FROM_EMAIL

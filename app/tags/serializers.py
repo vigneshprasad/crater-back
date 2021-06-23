@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from . import models
+from tags import models
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -8,6 +8,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Tag
         fields = ('pk', 'name')
+
 
 class ObjectiveSerializer(serializers.ModelSerializer):
 

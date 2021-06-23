@@ -17,7 +17,6 @@ class GroupAdmin(admin.ModelAdmin):
         "score",
         "topic",
         "group_speakers",
-        "group_interests",
         "start",
         "end",
         "closed",

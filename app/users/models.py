@@ -410,64 +410,6 @@ class Device(TimeStampedModel):
         return f'{self.user.username} {self.os_id}'
 
 
-class UserDeviceInfo(TimeStampedModel):
-    user = models.ForeignKey(
-        'users.User',
-        verbose_name=_('User'),
-        on_delete=models.CASCADE,
-        related_name='device_info'
-    )
-    # Ex. Android, iOS, WEB.
-    os = models.CharField(
-        max_length=32,
-        null=True,
-        blank=True
-    )
-    # OS version.
-    os_version = models.CharField(
-        max_length=32,
-        null=True,
-        blank=True
-    )
-    # Device being used.
-    device_name = models.CharField(
-        max_length=256,
-        null=True,
-        blank=True
-    )
-    # Model number or the device.
-    device_model = models.CharField(
-        max_length=256,
-        null=True,
-        blank=True
-    )
-    # What type of device is this.
-    type = models.CharField(
-        max_length=32,
-        null=True,
-        blank=True
-    )
-    # When this device was last used.
-    last_used = models.DateTimeField(
-        default=timezone.now
-    )
-
-    class Meta:
-        ordering = ('-last_used', )
-
-    def get_os_info(self):
-        return "{} {}".format(
-            self.os or '',
-            self.os_version or ''
-        )
-
-    def get_device_info(self):
-        return "{} {}".format(
-            self.device_name or '',
-            self.device_model or ''
-        )
-
-
 class Profile(models.Model):
 
     EDUCATION_LEVEL_CHOICES = (
@@ -867,6 +809,12 @@ class Source(base_models.BaseModel):
 
     def __str__(self):
         return "{} - {}".format(self.name, self.score)
+
+
+class UserActivity(base_models.BaseModel):
+    """This model stores users last active time."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    last_active = models.DateTimeField()
 
 
 @receiver(post_save, sender=CoverFile)

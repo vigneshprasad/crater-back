@@ -5,10 +5,13 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from order.serializers import EmptySerializer
+from order import serializers as order_serializers
+from notifications import models
+from notifications import serializers
+from notifications import signals
+from notifications import paginators
+from notifications.schema import batch_notification_read
 from users import permissions
-from . import models, serializers, paginators
-from .schema import batch_notification_read
 
 
 class UserNotificationSettingsViesSet(mixins.ListModelMixin,
@@ -62,7 +65,7 @@ class NotificationViewSet(mixins.ListModelMixin,
 
     @action(
         methods=['post'],
-        serializer_class=EmptySerializer,
+        serializer_class=order_serializers.EmptySerializer,
         permission_classes=[permissions.IsAuthenticated],
         detail=True
     )
