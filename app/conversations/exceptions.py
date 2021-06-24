@@ -53,8 +53,8 @@ class GroupCreatedAtTheSameTime(base_exceptions.BaseAPIException):
 
 
 class TopicAlreadySuggested(base_exceptions.BaseAPIException):
-    """Exception raised when a user tries to create group at the same
-        time as his scheduled groups.
+    """Exception raised when a user suggests a topic which is already
+        suggested.
 
     """
 

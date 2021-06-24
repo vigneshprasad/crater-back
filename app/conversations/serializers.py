@@ -27,8 +27,7 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        # Raise an exception if the user already has a group
-        # at the same time.
+        # Raise an exception if the topic is already suggested.
         if models.SuggestedTopic.objects.filter(name=validated_data["topic"]):
             raise exceptions.TopicAlreadySuggested()
 
