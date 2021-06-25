@@ -92,7 +92,7 @@ class TopicViewSet(
 
         # Serializer data.
         data = {
-            "topic": suggested_topic,
+            "name": suggested_topic,
             "suggested_by": suggested_by
         }
 
