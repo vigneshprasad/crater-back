@@ -97,7 +97,7 @@ class TopicViewSet(
         }
 
         try:
-            serializer = self.get_serializer(data)
+            serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             instance = serializer.save()
         except exceptions.TopicAlreadySuggested as e:

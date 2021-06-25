@@ -81,4 +81,3 @@ def update_user_activity(sender, profile, **kwargs):
     )
 
     return created
-c

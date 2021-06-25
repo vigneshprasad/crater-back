@@ -1,8 +1,9 @@
 from django.contrib.admin import register, ModelAdmin
-from .models import TrackLog, IdentifyLog, UserSource
+
+from wn_analytics import models
 
 
-@register(TrackLog)
+@register(models.TrackLog)
 class TrackLogAdmin(ModelAdmin):
     list_display = (
         "user",
@@ -12,7 +13,7 @@ class TrackLogAdmin(ModelAdmin):
     readonly_fields = ["user", "event"]
 
 
-@register(IdentifyLog)
+@register(models.IdentifyLog)
 class IdentifyLogAdmin(ModelAdmin):
     list_display = (
         "user",
@@ -21,7 +22,7 @@ class IdentifyLogAdmin(ModelAdmin):
     readonly_fields = ["user"]
 
 
-@register(UserSource)
+@register(models.UserSource)
 class UserSourceAdmin(ModelAdmin):
     list_display = (
         "user",
