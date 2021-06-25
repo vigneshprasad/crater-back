@@ -21,10 +21,10 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SuggestedTopic
-        fields = (
-            "name",
-            "suggested_by"
-        )
+        fields = ("name", "suggested_by")
+        extra_kwargs = {
+            "suggested_by": {"required": False}
+        }
 
     def create(self, validated_data):
         # Raise an exception if the topic is already suggested.
