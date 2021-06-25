@@ -53,3 +53,6 @@ class UserDevice(base_models.BaseModel):
 
     class Meta:
         ordering = ("-last_used", )
+
+    def __str__(self):
+        return "{} - {}:{}".format(self.user.email, self.device.name, self.device.model)
