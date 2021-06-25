@@ -93,7 +93,7 @@ class TopicViewSet(
         # Serializer data.
         data = {
             "name": suggested_topic,
-            "suggested_by": suggested_by
+            "suggested_by": suggested_by.pk
         }
 
         try:

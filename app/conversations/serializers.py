@@ -28,7 +28,7 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Raise an exception if the topic is already suggested.
-        if models.SuggestedTopic.objects.filter(name=validated_data["topic"]):
+        if models.SuggestedTopic.objects.filter(name=validated_data["name"]):
             raise exceptions.TopicAlreadySuggested()
 
         return super().create(validated_data)
