@@ -24,9 +24,9 @@ from tags.serializers import TagSerializer
 from utils import messages
 from utils.fields import Base64FileField
 from utils.instagram_service import instagram_service
-from . import models
-from . import choices
-from . import services
+from users import models
+from users import choices
+from users import services
 from .validators import password_validate_symbols
 from .signals import objectives_added, email_verified
 from .services import get_social_account_info
@@ -540,44 +540,44 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Profile
         fields = (
-            'pk',
-            'uuid',
-            'name',
-            'role',
-            'professional_service_provider',
-            'tag_line',
-            'photo',
-            'photo_url',
-            'cover',
-            'cover_file',
-            'introduction',
-            'linkedin_url',
-            'focus',
-            'additional_information',
-            'instagram',
-            'instagram_id',
-            'instagram_username',
-            'is_instagram_set',
-            'twitter',
-            'work_city',
-            'work_city_name',
-            'tags',
-            'tag_list',
-            'public_profile',
-            'public_introduction',
-            'cover_thumbnail',
-            'cover_transcoder',
-            'is_cover_video',
-            'education_level',
-            'years_of_experience',
-            'company_type',
-            'sector',
-            'generated_introduction',
-            'number_of_employees',
-            'project_type',
-            'stage_of_company',
-            'aspiration',
-            'profile_intro_updated',
+            "pk",
+            "uuid",
+            "name",
+            "role",
+            "professional_service_provider",
+            "tag_line",
+            "photo",
+            "photo_url",
+            "cover",
+            "cover_file",
+            "introduction",
+            "linkedin_url",
+            "focus",
+            "additional_information",
+            "instagram",
+            "instagram_id",
+            "instagram_username",
+            "is_instagram_set",
+            "twitter",
+            "work_city",
+            "work_city_name",
+            "tags",
+            "tag_list",
+            "public_profile",
+            "public_introduction",
+            "cover_thumbnail",
+            "cover_transcoder",
+            "is_cover_video",
+            "education_level",
+            "years_of_experience",
+            "company_type",
+            "sector",
+            "generated_introduction",
+            "number_of_employees",
+            "project_type",
+            "stage_of_company",
+            "aspiration",
+            "profile_intro_updated",
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
@@ -932,22 +932,22 @@ class ProfileExtraInfoMetaSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProfileExtraInfoMeta
         fields = (
-            'tag',
-            'question',
-            'meta',
+            "tag",
+            "question",
+            "meta",
         )
 
     @staticmethod
     def get_meta(meta):
         return {
-            'education_level': services.get_education_level_field_info(),
-            'years_of_experience': services.get_years_of_experience_field_info(),
-            'company_type': services.get_company_type_field_info(),
-            'sector': services.get_sector_field_info(),
-            'name': services.get_name_field_info(),
-            'number_of_employees': services.get_number_of_employees_field_info(),
-            'project_type': services.get_project_type_field_info(),
-            'stage_of_company': services.get_stage_of_company_field_info(),
-            'aspiration': services.get_aspiration_field_info(),
-            'company_name': services.get_company_name_field_info(),
+            "education_level": services.get_education_level_field_info(),
+            "years_of_experience": services.get_years_of_experience_field_info(),
+            "company_type": services.get_company_type_field_info(),
+            "sector": services.get_sector_field_info(),
+            "name": services.get_name_field_info(),
+            "number_of_employees": services.get_number_of_employees_field_info(),
+            "project_type": services.get_project_type_field_info(),
+            "stage_of_company": services.get_stage_of_company_field_info(),
+            "aspiration": services.get_aspiration_field_info(),
+            "company_name": services.get_company_name_field_info(),
         }

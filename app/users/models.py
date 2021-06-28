@@ -497,26 +497,12 @@ class Profile(models.Model):
     )
 
     STAGE_OF_COMPANY_CHOICES = (
+        (choices.STAGE_OF_COMPANY_IDEA_STAGE_ENUM, choices.STAGE_OF_COMPANY_IDEA_STAGE),
         (choices.STAGE_OF_COMPANY_SEED_ENUM, choices.STAGE_OF_COMPANY_SEED),
         (choices.STAGE_OF_COMPANY_SERIES_A_ENUM, choices.STAGE_OF_COMPANY_SERIES_A),
         (choices.STAGE_OF_COMPANY_SERIES_B_ENUM, choices.STAGE_OF_COMPANY_SERIES_B),
         (choices.STAGE_OF_COMPANY_SERIES_C_ENUM, choices.STAGE_OF_COMPANY_SERIES_C),
         (choices.STAGE_OF_COMPANY_SERIES_D_PLUS_ENUM, choices.STAGE_OF_COMPANY_SERIES_D_PLUS),
-    )
-
-    ASPIRATION_CHOICES = (
-        (choices.ASPIRATION_FOUNDER_ENUM, choices.ASPIRATION_FOUNDER),
-        (choices.ASPIRATION_FINANCIAL_EXPERT_ENUM, choices.ASPIRATION_FINANCIAL_EXPERT),
-        (choices.ASPIRATION_LAWYER_ENUM, choices.ASPIRATION_LAWYER),
-        (choices.ASPIRATION_SME_OWNER_ENUM, choices.ASPIRATION_SME_OWNER),
-        (choices.ASPIRATION_MARKETING_ENUM, choices.ASPIRATION_MARKETING),
-        (choices.ASPIRATION_DESIGNER_ENUM, choices.ASPIRATION_DESIGNER),
-        (choices.ASPIRATION_BUISNESS_ADVISOR_ENUM, choices.ASPIRATION_BUISNESS_ADVISOR),
-        (choices.ASPIRATION_ENGINEER_ENUM, choices.ASPIRATION_ENGINEER),
-        (choices.ASPIRATION_PM_ENUM, choices.ASPIRATION_PM),
-        (choices.ASPIRATION_BD_ENUM, choices.ASPIRATION_BD),
-        (choices.ASPIRATION_INVESTOR_ENUM, choices.ASPIRATION_INVESTOR),
-        (choices.ASPIRATION_HR_ENUM, choices.ASPIRATION_HR)
     )
 
     user = models.OneToOneField(
@@ -679,10 +665,10 @@ class Profile(models.Model):
         blank=True,
         choices=STAGE_OF_COMPANY_CHOICES
     )
-    aspiration = models.PositiveIntegerField(
+    aspiration = models.ForeignKey(
+        'tags.Tag',
         null=True,
         blank=True,
-        choices=ASPIRATION_CHOICES
     )
     profile_intro_updated = models.BooleanField(
         default=False,

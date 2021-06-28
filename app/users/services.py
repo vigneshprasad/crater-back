@@ -1,5 +1,6 @@
 from users import models
 from users import choices
+from tags import models as tag_models
 
 
 def get_admin_user():
@@ -42,8 +43,8 @@ def get_education_level_field_info():
             "name": item[1],
         })
     return {
-        'label': 'Education level',
-        'type': 'drop-down',
+        'label': choices.PROFILE_EDUCATION_LEVEL_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -57,8 +58,8 @@ def get_company_type_field_info():
             "name": item[1],
         })
     return {
-        'label': 'Company type',
-        'type': 'drop-down',
+        'label': choices.PROFILE_COMPANY_TYPE_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -72,8 +73,8 @@ def get_years_of_experience_field_info():
             "name": item[1],
         })
     return {
-        'label': 'Years of experience',
-        'type': 'drop-down',
+        'label': choices.PROFILE_YEARS_OF_EXP_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -87,8 +88,8 @@ def get_sector_field_info():
             "name": item[1],
         })
     return {
-        'label': 'Sector',
-        'type': 'drop-down',
+        'label': choices.PROFILE_SECTOR_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -96,8 +97,8 @@ def get_sector_field_info():
 
 def get_company_name_field_info():
     return {
-        'label': 'Company name',
-        'type': 'text-field',
+        'label': choices.PROFILE_COMPANY_NAME_LABEL,
+        'type': choices.PROFILE_FIELD_TEXT_TYPE,
         'options': None,
         'blank': False,
     }
@@ -105,8 +106,8 @@ def get_company_name_field_info():
 
 def get_name_field_info():
     return {
-        'label': 'Name',
-        'type': 'text-field',
+        'label': choices.PROFILE_NAME_LABEL,
+        'type': choices.PROFILE_FIELD_TEXT_TYPE,
         'options': None,
         'blank': False,
     }
@@ -120,8 +121,8 @@ def get_number_of_employees_field_info():
             "name": item[1],
         })
     return {
-        'label': 'Number of employees',
-        'type': 'drop-down',
+        'label': choices.PROFILE_NUMBER_OF_EMPLOYEES_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -135,8 +136,8 @@ def get_project_type_field_info():
             "name": item[1],
         })
     return {
-        'label': 'Project Type',
-        'type': 'drop-down',
+        'label': choices.PROFILE_PROJECT_TYPE_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -150,23 +151,24 @@ def get_stage_of_company_field_info():
             "name": item[1],
         })
     return {
-        'label': 'Stage of company',
-        'type': 'drop-down',
+        'label': choices.PROFILE_STAGE_OF_COMPANY_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
 
 
 def get_aspiration_field_info():
+    tags = tag_models.Tag.objects.filter(is_active=True)
     options = []
-    for item in models.Profile.ASPIRATION_CHOICES:
+    for tag in tags:
         options.append({
-            "value": item[0],
-            "name": item[1],
+            "value": tag.id,
+            "name": tag.name,
         })
     return {
-        'label': 'Aspiration',
-        'type': 'drop-down',
+        'label': choices.PROFILE_ASPIRATION_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
