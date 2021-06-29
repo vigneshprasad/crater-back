@@ -578,6 +578,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             "stage_of_company",
             "aspiration",
             "profile_intro_updated",
+            "company_type_advised",
+            "companies_invested",
+            "other_tag",
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
@@ -950,4 +953,7 @@ class ProfileExtraInfoMetaSerializer(serializers.ModelSerializer):
             "stage_of_company": services.get_stage_of_company_field_info(),
             "aspiration": services.get_aspiration_field_info(),
             "company_name": services.get_company_name_field_info(),
+            "company_type_advised": services.get_company_type_advised_field_info(),
+            "companies_invested": services.get_companies_invested_field_info(),
+            "other_tag": services.get_other_tag_field_info(),
         }

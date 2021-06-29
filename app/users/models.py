@@ -505,6 +505,14 @@ class Profile(models.Model):
         (choices.STAGE_OF_COMPANY_SERIES_D_PLUS_ENUM, choices.STAGE_OF_COMPANY_SERIES_D_PLUS),
     )
 
+    COMPANIES_INVESTED_CHOICES = (
+        (choices.COMPANY_INVESTED_NONE_ENUM, choices.COMPANY_INVESTED_NONE),
+        (choices.COMPANY_INVESTED_1_TO_5_ENUM, choices.COMPANY_INVESTED_1_TO_5),
+        (choices.COMPANY_INVESTED_5_TO_10_ENUM, choices.COMPANY_INVESTED_5_TO_10),
+        (choices.COMPANY_INVESTED_10_TO_20_ENUM, choices.COMPANY_INVESTED_10_TO_20),
+        (choices.COMPANY_INVESTED_20_PLUS_ENUM, choices.COMPANY_INVESTED_20_PLUS),
+    )
+
     user = models.OneToOneField(
         'users.User',
         related_name='profile',
@@ -645,6 +653,11 @@ class Profile(models.Model):
         blank=True,
         choices=COMPANY_TYPE_CHOICES
     )
+    company_type_advised = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=COMPANY_TYPE_CHOICES
+    )
     sector = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -667,11 +680,23 @@ class Profile(models.Model):
     )
     aspiration = models.ForeignKey(
         'tags.Tag',
+        on_delete=models.CASCADE,
+        related_name="aspiration_tag",
         null=True,
         blank=True,
     )
     profile_intro_updated = models.BooleanField(
         default=False,
+    )
+    companies_invested = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=COMPANIES_INVESTED_CHOICES
+    )
+    other_tag = models.TextField(
+        blank=True,
+        null=True,
+        max_length=255,
     )
 
     class Meta:

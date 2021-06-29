@@ -65,6 +65,21 @@ def get_company_type_field_info():
     }
 
 
+def get_company_type_advised_field_info():
+    options = []
+    for item in models.Profile.COMPANY_TYPE_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': choices.PROFILE_COMPANY_TYPE_ADVISED_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'options': options,
+        'blank': False,
+    }
+
+
 def get_years_of_experience_field_info():
     options = []
     for item in models.Profile.YEARS_OF_EXPERIENCE_CHOICES:
@@ -97,10 +112,19 @@ def get_sector_field_info():
 
 def get_company_name_field_info():
     return {
-        'label': choices.PROFILE_COMPANY_NAME_LABEL,
-        'type': choices.PROFILE_FIELD_TEXT_TYPE,
-        'options': None,
-        'blank': False,
+        "label": choices.PROFILE_COMPANY_NAME_LABEL,
+        "type": choices.PROFILE_FIELD_TEXT_TYPE,
+        "options": None,
+        "blank": False,
+    }
+
+
+def get_other_tag_field_info():
+    return {
+        "label": choices.PROFILE_OTHER_TAG_LABEL,
+        "type": choices.PROFILE_FIELD_TEXT_TYPE,
+        "options": None,
+        "blank": False,
     }
 
 
@@ -109,6 +133,21 @@ def get_name_field_info():
         'label': choices.PROFILE_NAME_LABEL,
         'type': choices.PROFILE_FIELD_TEXT_TYPE,
         'options': None,
+        'blank': False,
+    }
+
+
+def get_companies_invested_field_info():
+    options = []
+    for item in models.Profile.COMPANIES_INVESTED_CHOICES:
+        options.append({
+            "value": item[0],
+            "name": item[1],
+        })
+    return {
+        'label': choices.PROFILE_COMPANIES_INVESTED_LABEL,
+        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'options': options,
         'blank': False,
     }
 
