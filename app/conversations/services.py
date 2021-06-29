@@ -122,7 +122,7 @@ def get_groups_for_user(user, queryset=None):
     now_time = timezone.now()
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False)
+        queryset = models.Group.objects.filter(closed=False, is_approved=True)
 
     return queryset.filter(
         start__gte=(now_time - datetime.timedelta(days=2)),
@@ -145,7 +145,7 @@ def filter_groups_by_score(user, queryset=None):
     user_score = user.score
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False)
+        queryset = models.Group.objects.filter(closed=False, is_approved=True)
 
     return queryset.filter(
         score__lte=(user_score + 5)

@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     "filefield_cache",
     "django_user_agents",
     "colorfield",
+    "django_admin_row_actions",
 
     "base",
     "users",

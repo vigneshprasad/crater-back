@@ -12,7 +12,8 @@
     {% if user.name %}
         <a href="{% url 'admin:users_admin_change' user.pk %}">{% trans 'Hello' %}, {{ user.name }}</a>
     {% endif %}
-    <a href="{% url 'schema-swagger-ui' %}">{% trans 'Swagger' %}</a>
+    <a href="{% url 'schema-swagger-ui' %}" target="_blank">{% trans 'Swagger' %}</a>
+    <a href="{% url 'schema-redoc-ui' %}" target="_blank">{% trans 'Redoc' %}</a>
     {% if user.has_usable_password %}
         <a href="{% url 'admin:password_change' %}">
             {% trans 'Change password' %}

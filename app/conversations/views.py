@@ -30,7 +30,7 @@ class TopicViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        parent_id = self.request.query_params.get('parent', None)
+        parent_id = self.request.query_params.get("parent", None)
         if not parent_id:
             return self.queryset.filter(parent__isnull=True)
         return self.queryset.filter(parent__id__contains=parent_id)
@@ -85,28 +85,66 @@ class TopicViewSet(
         serializer_class=serializers.SuggestedTopicSerializer
     )
     def suggest(self, request, *args, **kwargs):
-        """Allows a user to suggest a topic."""
+        """Allows a user to suggest a topic.
+
+        Returns:
+            Topic object with the provided name.
+
+        Note:
+            If the topic is already present, return 200
+            else return 201 created response.
+
+            If the topic is already present the resulting meeting
+            will be pre approved.
+
+        """
         request_data = request.data
+
+        # If topic isn"t provided. Raise a bad request.
         suggested_topic = request_data.get("topic")
-        suggested_by = request.user
-
-        # Serializer data.
-        data = {
-            "name": suggested_topic,
-            "suggested_by": suggested_by.pk
-        }
-
-        try:
-            serializer = self.get_serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            instance = serializer.save()
-        except exceptions.TopicAlreadySuggested as e:
+        if not suggested_topic:
             return self.generate_bad_request(
-                {"error": e.__str__()}
+                {"error": "No Topic provided."}
             )
 
+        suggested_by = request.user
+
+        # Serializer data. Creating suggested topic for the topic.
+        # Note: Change the topic to title format.
+        data = {
+            "topic": suggested_topic.title(),
+            "suggested_by": suggested_by.pk,
+            "is_approved": True
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+
+        # Getting or creating topic with the suggested topic.
+        created = False
+        try:
+            topic = models.Topic.objects.get(name__icontains=instance.name)
+        except models.Topic.DoesNotExist:
+            topic = models.Topic.objects.create(
+                name=instance.name,
+                is_active=False,
+                is_approved=False,
+                is_suggested=True
+            )
+            created = True
+
+        # Creating topic serialized data for response.
+        topic_serialized_data = serializers.TopicSerializer(instance=topic)
+
+        if not created:
+            return Response(
+                topic_serialized_data,
+                status=status.HTTP_200_OK
+            )
+
+        # Only if the topic is created send 201 created response.
         return Response(
-            serializer.data,
+            topic_serialized_data,
             status=status.HTTP_201_CREATED
         )
 
@@ -126,7 +164,7 @@ class GroupsViewSet(
         """Create queryset based on the params."""
         q = models.Group.objects.filter(closed=False)
         # Get the user's score.
-        topic_ids = self.request.data.get('topics', None)
+        topic_ids = self.request.data.get("topics", None)
         if not topic_ids:
             return q
 
@@ -327,7 +365,7 @@ class GroupCalendarViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
     def _make_date_dict(self, queryset):
-        dates_list = list(set(queryset.values_list('start__date', flat=True)))
+        dates_list = list(set(queryset.values_list("start__date", flat=True)))
         dates_list.sort()
         data = []
         for date in dates_list:
@@ -335,18 +373,18 @@ class GroupCalendarViewSet(
                 start__year=date.year,
                 start__month=date.month,
                 start__day=date.day,
-            ).order_by('start')
+            ).order_by("start")
 
             data.append({
-              'date': str(date),
-              'conversations': self.get_serializer(items, many=True).data
+              "date": str(date),
+              "conversations": self.get_serializer(items, many=True).data
             })
         return data
 
     def get_queryset(self):
 
-        start = self.request.query_params.get('start', None)
-        end = self.request.query_params.get('end', None)
+        start = self.request.query_params.get("start", None)
+        end = self.request.query_params.get("end", None)
 
         start_datetime = datetime.datetime.strptime(start, constants.DEFAULT_APP_DATETIME_FORMAT) \
             if start else datetime.datetime.now()
@@ -355,7 +393,7 @@ class GroupCalendarViewSet(
         return self.queryset.filter(
             start__date__gte=start_datetime.date(),
             end__date__lte=end_datetime.date(),
-        ).order_by('start')
+        ).order_by("start")
 
     def list(self, request, *args, **kwargs):
         user = request.user
@@ -372,4 +410,3 @@ class GroupCalendarViewSet(
         groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
         response = self._make_date_dict(groups)
         return Response(response)
-
