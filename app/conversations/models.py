@@ -12,6 +12,24 @@ from conversations import constants
 from resources.meetings import models as meeting_models
 
 
+class SuggestedTopic(base_model.BaseModel):
+    name = models.CharField(max_length=255)
+    suggested_by = models.ForeignKey(
+        get_user_model(),
+        related_name="suggested_topics",
+        on_delete=models.CASCADE
+    )
+    is_approved = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("Suggested Topic")
+        verbose_name_plural = _("Suggested Topics")
+
+    def __str__(self):
+        return "{}-{}".format(self.suggested_by, self.name)
+
+
 class Topic(base_model.BaseModel):
     """Topic of discussion for a conversation.
 

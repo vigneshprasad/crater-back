@@ -3,6 +3,13 @@ from django.utils import timezone
 from devices import models
 
 
+def get_user_device(user):
+    """Returns last used device for the user."""
+    return models.UserDevice.objects.filter(
+        user=user
+    ).first()
+
+
 def get_or_create_device(device_name, device_model, device_price):
     """Gets or creates a device entry for provided details.
 

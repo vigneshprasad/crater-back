@@ -4,6 +4,12 @@ from rangefilter import filter
 from conversations import models
 
 
+@admin.register(models.SuggestedTopic)
+class SuggestedTopicAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "suggested_by", "is_approved")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
 @admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "parent", "image", "is_active")

@@ -17,6 +17,23 @@ from resources.curated_articles import serializers as articles_serializer
 from community.mixins import SetCreatorRequestDataMixin
 
 
+class SuggestedTopicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.SuggestedTopic
+        fields = ("name", "suggested_by")
+        extra_kwargs = {
+            "suggested_by": {"required": False}
+        }
+
+    def create(self, validated_data):
+        # Raise an exception if the topic is already suggested.
+        if models.SuggestedTopic.objects.filter(name=validated_data["name"]):
+            raise exceptions.TopicAlreadySuggested()
+
+        return super().create(validated_data)
+
+
 class TopicSerializer(serializers.ModelSerializer):
     root = serializers.SerializerMethodField(read_only=True)
     article_detail = articles_serializer.CuratedArticleSerializer(source="article", read_only=True)
