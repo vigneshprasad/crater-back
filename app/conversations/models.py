@@ -1,3 +1,5 @@
+import datetime
+
 import pytz
 
 from datetime import timedelta
@@ -44,7 +46,7 @@ class Topic(base_model.BaseModel):
     image = models.ImageField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     parent = models.ForeignKey(
-        'conversations.Topic',
+        "conversations.Topic",
         blank=True,
         null=True,
         on_delete=models.CASCADE
@@ -63,6 +65,7 @@ class Topic(base_model.BaseModel):
         blank=True,
         null=True,
     )
+    is_suggested = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["name"]
@@ -103,7 +106,7 @@ class Group(base_model.BaseModel):
         related_name="groups_attended",
         blank=True,
     )
-    topic = models.ForeignKey('conversations.Topic', on_delete=models.CASCADE, related_name="group")
+    topic = models.ForeignKey("conversations.Topic", on_delete=models.CASCADE, related_name="group")
     description = models.TextField(max_length=1024, null=True, blank=True)
     interests = models.ManyToManyField(meeting_models.Interest, verbose_name=_("Interests"))
     start = models.DateTimeField()
@@ -119,6 +122,10 @@ class Group(base_model.BaseModel):
     # Group score.
     calculate_score = models.BooleanField(default=True)
     score = models.FloatField(null=True, blank=True)
+    # Approval status for groups. This controls if notifications go out,
+    # group is visible in all conversations etc.
+    is_approved = models.BooleanField(default=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -133,6 +140,11 @@ class Group(base_model.BaseModel):
         if not self.end:
             self.end = self.start + timedelta(hours=1)
         return super(Group, self).save(force_insert, force_update, using, update_fields)
+
+    def approve(self):
+        self.is_approved = True
+        self.approved_at = datetime.datetime.now()
+        self.save()
 
     @property
     def local_start(self):
@@ -157,7 +169,7 @@ class Group(base_model.BaseModel):
         """
         display_time = self.get_display_time()
         display_date = self.get_display_day()
-        return '{} @ {}'.format(display_date, display_time)
+        return "{} @ {}".format(display_date, display_time)
 
     def get_display_day(self):
         """Give a displayable date for a Group.
@@ -175,7 +187,7 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return '{} - {}'.format(self.get_display_start_time(), self.get_display_end_time())
+        return "{} - {}".format(self.get_display_start_time(), self.get_display_end_time())
 
     def get_display_start_time(self):
         """Give a displayable start time for a Group.

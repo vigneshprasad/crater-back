@@ -1,7 +1,11 @@
+import datetime
+
 from django.contrib import admin
 from rangefilter import filter
+from django_admin_row_actions import AdminRowActionsMixin
 
 from conversations import models
+from conversations import signals
 
 
 @admin.register(models.SuggestedTopic)
@@ -17,7 +21,7 @@ class TopicAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Group)
-class GroupAdmin(admin.ModelAdmin):
+class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "score",
@@ -26,7 +30,12 @@ class GroupAdmin(admin.ModelAdmin):
         "start",
         "end",
         "closed",
-        "calculate_score"
+        "calculate_score",
+        "is_approved"
+    )
+    readonly_fields = (
+        "is_approved",
+        "approved_at"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = ("speakers__email", )
@@ -34,6 +43,27 @@ class GroupAdmin(admin.ModelAdmin):
         ("start", filter.DateRangeFilter),
         "topic"
     )
+
+    def get_row_actions(self, obj):
+        row_actions = [
+            {
+                "divided": True,
+                "label": "Approve",
+                "action": "approve_group",
+                "enabled": obj.is_approved is False,
+            },
+        ]
+        row_actions += super(GroupAdmin, self).get_row_actions(obj)
+        return row_actions
+
+    @staticmethod
+    def approve_group(request, obj):
+        if obj.is_approved:
+            return
+        obj.approve()
+
+        # Sending signal for approval of a group.
+        signals.conversation_approved.send(sender=obj.__class__, group=obj)
 
     @staticmethod
     def group_speakers(obj):

@@ -11,6 +11,7 @@ from communications.notifications import constants
 from communications.notifications import private
 
 
+@receiver(conversation_signals.conversation_approved)
 @receiver(conversation_signals.conversation_created)
 def send_notification_to_eligible_users(sender, group, *args, **kwargs):
     """Sends notifications to eligible user when a group is created.
@@ -24,6 +25,9 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
     # If there is no group host don't send notifications. That group
     # is either backend created, or manual created.
     if not group_host:
+        return
+
+    if not group.is_approved:
         return
 
     group_host_profile = group_host.profile if group_host.has_profile else None

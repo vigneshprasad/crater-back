@@ -18,20 +18,15 @@ from community.mixins import SetCreatorRequestDataMixin
 
 
 class SuggestedTopicSerializer(serializers.ModelSerializer):
+    topic = serializers.CharField(source="name")
 
     class Meta:
         model = models.SuggestedTopic
-        fields = ("name", "suggested_by")
+        fields = ("topic", "suggested_by", "is_approved")
         extra_kwargs = {
-            "suggested_by": {"required": False}
+            "suggested_by": {"required": False},
+            "is_approved": {"required": False}
         }
-
-    def create(self, validated_data):
-        # Raise an exception if the topic is already suggested.
-        if models.SuggestedTopic.objects.filter(name=validated_data["name"]):
-            raise exceptions.TopicAlreadySuggested()
-
-        return super().create(validated_data)
 
 
 class TopicSerializer(serializers.ModelSerializer):
@@ -124,7 +119,11 @@ class GroupSerializer(serializers.ModelSerializer):
             "interests_detail_list",
             "is_past",
             "relevancy",
+            "is_approved"
         )
+        extra_kwargs = {
+            "is_approved": {"required": False}
+        }
 
     @staticmethod
     def get_is_past(group):

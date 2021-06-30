@@ -480,6 +480,39 @@ class Profile(models.Model):
         (choices.SECTOR_TYPE_OTHER_ENUM, choices.SECTOR_TYPE_OTHER)
     )
 
+    NUMBER_OF_EMPLOYEE_CHOICES = (
+        (choices.NUMBER_OF_EMPLOYEE_UPTO_10_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_10),
+        (choices.NUMBER_OF_EMPLOYEE_UPTO_50_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_50),
+        (choices.NUMBER_OF_EMPLOYEE_UPTO_100_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_100),
+        (choices.NUMBER_OF_EMPLOYEE_UPTO_500_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_500),
+        (choices.NUMBER_OF_EMPLOYEE_500_PLUS_ENUM, choices.NUMBER_OF_EMPLOYEE_500_PLUS),
+    )
+
+    PROJECT_TYPE_CHOICES = (
+        (choices.PROJECT_TYPE_MARKETING_ENUM, choices.PROJECT_TYPE_MARKETING),
+        (choices.PROJECT_TYPE_GRAPHIC_DESIGN_ENUM, choices.PROJECT_TYPE_GRAPHIC_DESIGN),
+        (choices.PROJECT_TYPE_VIDEOGRAPHY_ENUM, choices.PROJECT_TYPE_VIDEOGRAPHY),
+        (choices.PROJECT_TYPE_UI_UX_ENUM, choices.PROJECT_TYPE_UI_UX),
+        (choices.PROJECT_TYPE_SOFTWARE_DEV_ENUM, choices.PROJECT_TYPE_SOFTWARE_DEV),
+    )
+
+    STAGE_OF_COMPANY_CHOICES = (
+        (choices.STAGE_OF_COMPANY_IDEA_STAGE_ENUM, choices.STAGE_OF_COMPANY_IDEA_STAGE),
+        (choices.STAGE_OF_COMPANY_SEED_ENUM, choices.STAGE_OF_COMPANY_SEED),
+        (choices.STAGE_OF_COMPANY_SERIES_A_ENUM, choices.STAGE_OF_COMPANY_SERIES_A),
+        (choices.STAGE_OF_COMPANY_SERIES_B_ENUM, choices.STAGE_OF_COMPANY_SERIES_B),
+        (choices.STAGE_OF_COMPANY_SERIES_C_ENUM, choices.STAGE_OF_COMPANY_SERIES_C),
+        (choices.STAGE_OF_COMPANY_SERIES_D_PLUS_ENUM, choices.STAGE_OF_COMPANY_SERIES_D_PLUS),
+    )
+
+    COMPANIES_INVESTED_CHOICES = (
+        (choices.COMPANY_INVESTED_NONE_ENUM, choices.COMPANY_INVESTED_NONE),
+        (choices.COMPANY_INVESTED_1_TO_5_ENUM, choices.COMPANY_INVESTED_1_TO_5),
+        (choices.COMPANY_INVESTED_5_TO_10_ENUM, choices.COMPANY_INVESTED_5_TO_10),
+        (choices.COMPANY_INVESTED_10_TO_20_ENUM, choices.COMPANY_INVESTED_10_TO_20),
+        (choices.COMPANY_INVESTED_20_PLUS_ENUM, choices.COMPANY_INVESTED_20_PLUS),
+    )
+
     user = models.OneToOneField(
         'users.User',
         related_name='profile',
@@ -610,7 +643,17 @@ class Profile(models.Model):
         blank=True,
         choices=YEARS_OF_EXPERIENCE_CHOICES
     )
+    company_name = models.TextField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
     company_type = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=COMPANY_TYPE_CHOICES
+    )
+    company_type_advised = models.PositiveIntegerField(
         null=True,
         blank=True,
         choices=COMPANY_TYPE_CHOICES
@@ -619,6 +662,41 @@ class Profile(models.Model):
         null=True,
         blank=True,
         choices=SECTOR_CHOICES
+    )
+    number_of_employees = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=NUMBER_OF_EMPLOYEE_CHOICES
+    )
+    project_type = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=PROJECT_TYPE_CHOICES
+    )
+    stage_of_company = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=STAGE_OF_COMPANY_CHOICES
+    )
+    aspiration = models.ForeignKey(
+        'tags.Tag',
+        on_delete=models.CASCADE,
+        related_name="aspiration_tag",
+        null=True,
+        blank=True,
+    )
+    profile_intro_updated = models.BooleanField(
+        default=False,
+    )
+    companies_invested = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=COMPANIES_INVESTED_CHOICES
+    )
+    other_tag = models.TextField(
+        blank=True,
+        null=True,
+        max_length=255,
     )
 
     class Meta:
@@ -637,6 +715,15 @@ class Profile(models.Model):
 
     def get_photo_url(self):
         return self.photo.url if self.photo else self.photo_url
+
+
+class ProfileExtraInfoMeta(models.Model):
+    question = models.TextField(max_length=800)
+    tag = models.ForeignKey(
+        "tags.Tag",
+        related_name="questions_meta",
+        on_delete=models.CASCADE,
+    )
 
 
 class Referral(TimeStampedModel):

@@ -11,3 +11,7 @@ new_conversation_registration = Signal(providing_args=[
 conversation_created = Signal(providing_args=[
     "group"
 ])
+
+conversation_approved = Signal(providing_args=[
+    "group"
+])
