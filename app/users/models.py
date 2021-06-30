@@ -720,7 +720,7 @@ class Profile(models.Model):
 class ProfileExtraInfoMeta(models.Model):
     question = models.TextField(max_length=800)
     tag = models.ForeignKey(
-        'tags.Tag',
+        "tags.Tag",
         related_name="questions_meta",
         on_delete=models.CASCADE,
     )
