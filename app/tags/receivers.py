@@ -11,10 +11,8 @@ def create_profile_extra_info_on_post_save(sender, instance, created, *args, **k
     if not created:
         return
 
-    extra_info = user_models.ProfileExtraInfoMeta.objects.create(
+    user_models.ProfileExtraInfoMeta.objects.create(
         tag=instance,
         question=choices.DEFAULT_EXTRA_INFO_STRING,
     )
-
-    extra_info.save()
 
