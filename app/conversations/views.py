@@ -129,12 +129,13 @@ class TopicViewSet(
                 name=instance.name,
                 is_active=False,
                 is_approved=False,
-                is_suggested=True
+                is_suggested=True,
+                creator=suggested_by
             )
             created = True
 
         # Creating topic serialized data for response.
-        topic_serialized_data = serializers.TopicSerializer(instance=topic)
+        topic_serialized_data = serializers.TopicSerializer(instance=topic).data
 
         if not created:
             return Response(
