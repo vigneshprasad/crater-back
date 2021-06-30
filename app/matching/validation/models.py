@@ -4,19 +4,21 @@ from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
 
+from matching.validation import constants
+
 
 class UserValidation(base_models.BaseModel):
 
     VALIDATION_RULES = (
-        ("phone_price_validation", "Phone Price Verification"),
-        ("introduction_validation", "Phone Price Verification"),
-        ("linkedin_url_validation", "Phone Price Verification"),
-        ("education_level_validation", "Phone Price Verification"),
+        (constants.PHONE_PRICE_VALIDATION, constants.PHONE_PRICE_VALIDATION.title()),
+        (constants.INTRODUCTION_VALIDATION, constants.INTRODUCTION_VALIDATION.title()),
+        (constants.LINKEDIN_URL_VALIDATION, constants.LINKEDIN_URL_VALIDATION.title()),
+        (constants.EDUCATION_LEVEL_VALIDATION, constants.EDUCATION_LEVEL_VALIDATION.title()),
     )
 
     VALIDATION_RESULTS = (
-        (1, "Score Too High"),
-        (2, "Score Too Low")
+        (constants.VALIDATION_SCORE_HIGH_ENUM, constants.VALIDATION_SCORE_HIGH),
+        (constants.VALIDATION_SCORE_LOW_ENUM, constants.VALIDATION_SCORE_LOW)
     )
 
     user = models.ForeignKey(
