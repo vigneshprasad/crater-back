@@ -24,7 +24,8 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
         model = models.SuggestedTopic
         fields = ("topic", "suggested_by", "is_approved")
         extra_kwargs = {
-            "suggested_by": {"required": False}
+            "suggested_by": {"required": False},
+            "is_approved": {"required": False}
         }
 
 
@@ -118,7 +119,11 @@ class GroupSerializer(serializers.ModelSerializer):
             "interests_detail_list",
             "is_past",
             "relevancy",
+            "is_approved"
         )
+        extra_kwargs = {
+            "is_approved": {"required": False}
+        }
 
     @staticmethod
     def get_is_past(group):
