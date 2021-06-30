@@ -7,3 +7,4 @@ class TagsConfig(AppConfig):
 
     def ready(self):
         import tags.signals
+        import tags.receivers

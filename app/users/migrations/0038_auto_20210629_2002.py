@@ -39,8 +39,8 @@ TAG_TO_EXTRA_INFO_MAP = {
     "Business Advisor": "{name} is a Business Advisor, working in a {company_type}. {name} primarily advises {"
                         "company_type_advised} in the {sector} sector. {name} current has {years_of_experience} years "
                         "of work experience & has completed an {education_level} degree.",
-    "Freelancer": "{name} is a freelancer, working in the {sector} sector. Vivan works on {project_type} projects, "
-                  "primarily with {company_type}. Previously Vivan has completed a {education_level} degree.",
+    "Freelancer": "{name} is a freelancer, working in the {sector} sector. {name} works on {project_type} projects, "
+                  "primarily with {company_type}. Previously {name} has completed a {education_level} degree.",
     "Startup Investor": "{name} is an investor, working with {company_name}. The company has a portfolio of {"
                         "companies_invested} companies & invests primarily at {stage_of_company} stage, "
                         "in the {sector} sector. {name} has {years_of_experience} years of work experience & has "
@@ -51,12 +51,11 @@ TAG_TO_EXTRA_INFO_MAP = {
 
 DEFAULT_EXTRA_INFO_STRING = "{name} is a {other_tag}, working with {company_name}. Company name operates in the {" \
                             "sector} sector.{name} has {years_of_experience} years of work experience & has completed " \
-                            "a {education_level} degree. "
+                            "a {education_level} degree."
 
 
 def create_initial_extra_info_for_tags(apps, schema_editor):
     profile_extra_info = apps.get_model('users', 'ProfileExtraInfoMeta')
-
     tag_model = apps.get_model('tags', 'Tag')
     tags = tag_model.objects.all()
     all_profile_extra_list = []
