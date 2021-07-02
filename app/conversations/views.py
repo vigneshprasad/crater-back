@@ -31,9 +31,10 @@ class TopicViewSet(
 
     def get_queryset(self):
         parent_id = self.request.query_params.get("parent", None)
+        queryset = self.queryset.filter(type=constants.GROUP_TYPE_GENERIC)
         if not parent_id:
-            return self.queryset.filter(parent__isnull=True)
-        return self.queryset.filter(parent__id__contains=parent_id)
+            return queryset.filter(parent__isnull=True)
+        return queryset.filter(parent__id__contains=parent_id)
 
     @staticmethod
     def generate_bad_request(data):
@@ -67,6 +68,15 @@ class TopicViewSet(
         all_topics = models.Topic.objects.filter(id__in=topic_ids)
         for topic in all_topics:
             response.append({"topic": serializers.TopicSerializer(topic).data})
+        return Response(response)
+
+    @action(
+        methods=["get"],
+        detail=False
+    )
+    def ama(self, request, *args, **kwargs):
+        queryset = self.get_queryset().filter(type=constants.GROUP_TYPE_AMA)
+        response = self.get_serializer(queryset, many=True).data
         return Response(response)
 
     @action(
@@ -114,7 +124,8 @@ class TopicViewSet(
         data = {
             "topic": suggested_topic.title(),
             "suggested_by": suggested_by.pk,
-            "is_approved": True
+            "is_approved": True,
+            "type": request_data["type"]
         }
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -130,7 +141,8 @@ class TopicViewSet(
                 is_active=False,
                 is_approved=False,
                 is_suggested=True,
-                creator=suggested_by
+                creator=suggested_by,
+                type=instance.type,
             )
             created = True
 
@@ -245,6 +257,7 @@ class GroupsViewSet(
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             instance = serializer.save()
+
             # Sending conversation created signal.
         except exceptions.GroupCreatedAtTheSameTime as e:
             return Response(e.get_error_body(), status=e.status_code)

@@ -50,3 +50,6 @@ INSTANT_CONVERSATION_TIME_SLOTS = [
     time(18, 00, 00),
     time(20, 00, 00),
 ]
+
+GROUP_TYPE_GENERIC = "Generic Group"
+GROUP_TYPE_AMA = "AMA"

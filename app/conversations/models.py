@@ -15,6 +15,16 @@ from resources.meetings import models as meeting_models
 
 
 class SuggestedTopic(base_model.BaseModel):
+
+    GROUP_TYPE_CHOICES = (
+        (0, constants.GROUP_TYPE_GENERIC),
+        (1, constants.GROUP_TYPE_AMA)
+    )
+
+    type = models.PositiveIntegerField(
+        default=GROUP_TYPE_CHOICES[0][0],
+        choices=GROUP_TYPE_CHOICES,
+    )
     name = models.CharField(max_length=255)
     suggested_by = models.ForeignKey(
         get_user_model(),
@@ -42,6 +52,16 @@ class Topic(base_model.BaseModel):
         to create nesting
 
     """
+
+    GROUP_TYPE_CHOICES = (
+        (0, constants.GROUP_TYPE_GENERIC),
+        (1, constants.GROUP_TYPE_AMA)
+    )
+
+    type = models.PositiveIntegerField(
+        default=GROUP_TYPE_CHOICES[0][0],
+        choices=GROUP_TYPE_CHOICES,
+    )
     name = models.CharField(max_length=255)
     image = models.ImageField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -86,6 +106,16 @@ class Group(base_model.BaseModel):
     GROUP_MEDIUM_CHOICES = (
         (0, constants.GROUP_MEDIUM_AUDIO),
         (1, constants.GROUP_MEDIUM_AUDIO_VIDEO)
+    )
+
+    GROUP_TYPE_CHOICES = (
+        (0, constants.GROUP_TYPE_GENERIC),
+        (1, constants.GROUP_TYPE_AMA)
+    )
+
+    type = models.PositiveIntegerField(
+        default=GROUP_TYPE_CHOICES[0][0],
+        choices=GROUP_TYPE_CHOICES,
     )
 
     host = models.ForeignKey(
