@@ -17,8 +17,8 @@ from resources.meetings import models as meeting_models
 class SuggestedTopic(base_model.BaseModel):
 
     GROUP_TYPE_CHOICES = (
-        (0, constants.GROUP_TYPE_GENERIC),
-        (1, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
     )
 
     type = models.PositiveIntegerField(
@@ -54,8 +54,8 @@ class Topic(base_model.BaseModel):
     """
 
     GROUP_TYPE_CHOICES = (
-        (0, constants.GROUP_TYPE_GENERIC),
-        (1, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
     )
 
     type = models.PositiveIntegerField(
@@ -109,8 +109,8 @@ class Group(base_model.BaseModel):
     )
 
     GROUP_TYPE_CHOICES = (
-        (0, constants.GROUP_TYPE_GENERIC),
-        (1, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
     )
 
     type = models.PositiveIntegerField(

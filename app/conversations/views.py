@@ -31,7 +31,7 @@ class TopicViewSet(
 
     def get_queryset(self):
         parent_id = self.request.query_params.get("parent", None)
-        queryset = self.queryset.filter(type=constants.GROUP_TYPE_GENERIC)
+        queryset = self.queryset.filter(type=constants.GROUP_TYPE_GENERIC_ENUM)
         if not parent_id:
             return queryset.filter(parent__isnull=True)
         return queryset.filter(parent__id__contains=parent_id)
@@ -75,7 +75,7 @@ class TopicViewSet(
         detail=False
     )
     def ama(self, request, *args, **kwargs):
-        queryset = self.get_queryset().filter(type=constants.GROUP_TYPE_AMA)
+        queryset = self.get_queryset().filter(type=constants.GROUP_TYPE_AMA_ENUM)
         response = self.get_serializer(queryset, many=True).data
         return Response(response)
 
