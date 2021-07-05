@@ -75,7 +75,7 @@ class TopicViewSet(
         detail=False
     )
     def ama(self, request, *args, **kwargs):
-        queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_AMA_ENUM, parent=None)
+        queryset = models.Topic.objects.filter(type=constants.GROUP_TYPE_AMA_ENUM, parent=None)
         response = self.get_serializer(queryset, many=True).data
         return Response(response)
 
