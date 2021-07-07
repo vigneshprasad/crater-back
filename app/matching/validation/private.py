@@ -7,10 +7,21 @@ from django.core.validators import URLValidator
 from devices import public as devices_public
 from matching.validation import models
 from matching.validation import constants
+from users import choices as user_constants
 
 
 def validate_user(user):
-    pass
+    """Validates a user's profile based on multiple factors.
+
+    Args: User we are validating.
+
+    """
+    validate_based_on_introduction(user)
+    validate_based_on_education(user)
+    validate_based_on_phone_price(user)
+    validate_based_on_linkedin_url(user)
+
+    return models.UserValidation.objects.filter(user=user)
 
 
 def validate_based_on_phone_price(user):
@@ -44,11 +55,128 @@ def validate_based_on_phone_price(user):
 
 
 def validate_based_on_introduction(user):
-    pass
+    """Validate a user based on his introduction.
+
+    Args:
+        user(User): User we are validating based on his education.
+
+    """
+    validation = None
+    if not user.has_profile:
+        return
+
+    introduction = user.profile.get_introduction()
+    if not introduction:
+        return
+
+    all_words_in_introduction = re.findall(r"\w+|[^\w\s]", introduction, re.UNICODE)
+    introduction_word_length = len(all_words_in_introduction)
+
+    # Blacklisted word validation.
+    for word in all_words_in_introduction:
+        if word.lower() in constants.BLACKLISTED_INTRODUCTION_WORDS:
+            validation = models.UserValidation.objects.update_or_create(
+                user=user,
+                rule=constants.INTRODUCTION_VALIDATION,
+                defaults={
+                    "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                }
+            )
+
+    # Introduction word count validation.
+    if introduction_word_length <= 10:
+        validation = models.UserValidation.objects.update_or_create(
+            user=user,
+            rule=constants.INTRODUCTION_VALIDATION,
+            defaults={
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+            }
+        )
+        pass
+
+    # Email present in introduction validation.
+    email_string_in_introduction = re.findall("\S+@\S+", introduction)
+    if email_string_in_introduction:
+        validation = models.UserValidation.objects.update_or_create(
+            user=user,
+            rule=constants.INTRODUCTION_VALIDATION,
+            defaults={
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+            }
+        )
+        pass
+
+    # Urls in introduction validation.
+    urls = re.findall(constants.REGEX_FOR_URL, introduction)
+    if urls:
+        validation = models.UserValidation.objects.update_or_create(
+            user=user,
+            rule=constants.INTRODUCTION_VALIDATION,
+            defaults={
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+            }
+        )
+        pass
+
+    # Special characters, smiley etc. in introduction validation.
+    special_characters = []
+    for character in introduction:
+        if not character.isalnum() and character not in constants.VALID_SPECIAL_CHARACTERS:
+            special_characters.append(character)
+
+    if special_characters:
+        validation = models.UserValidation.objects.update_or_create(
+            user=user,
+            rule=constants.INTRODUCTION_VALIDATION,
+            defaults={
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+            }
+        )
+        pass
+
+    # Phone number in introduction validation.
+    all_numbers_in_intro = [character for character in all_words_in_introduction if character.isdigit()]
+    if len(all_numbers_in_intro) > 4:
+        validation = models.UserValidation.objects.update_or_create(
+            user=user,
+            rule=constants.INTRODUCTION_VALIDATION,
+            defaults={
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+            }
+        )
+        pass
+
+    return validation
 
 
 def validate_based_on_education(user):
-    pass
+    """Validate a user based on his education level.
+
+    Args:
+        user(User): User we are validating based on his education.
+
+    """
+    if not user.has_profile:
+        return
+
+    validation = None
+
+    profile = user.profile
+
+    if (
+            profile.education_level
+            and profile.education_level == user_constants.EDUCATION_LEVEL_HIGH_SCHOOL
+            and profile.score <= 40
+    ):
+        validation = models.UserValidation.objects.update_or_create(
+            user=user,
+            rule=constants.EDUCATION_LEVEL_VALIDATION,
+            defaults={
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+            }
+        )
+
+    return validation
 
 
 def validate_based_on_linkedin_url(user):

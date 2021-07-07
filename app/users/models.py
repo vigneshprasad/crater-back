@@ -24,33 +24,34 @@ from users.managers import UserManager
 from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from utils.deep_link_service import deep_link_service
-from . import choices
+from users import choices
+# TODO(Nishant) Clean up tasks and move all these tasks to tasks file or don't user models in tasks.
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
 
 
 class User(AbstractUser):
-    """
-    Extends Abstract User model with additional fields.
-    Makes authentication with email and password fields.
+    """Extends Abstract User model with additional fields.
+        Makes authentication with email and password fields.
+
     """
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    username = models.CharField(_('Username'), max_length=150)
-    email = models.EmailField(_('Email'), unique=True, null=True)
-    name = models.CharField(_('Name'), max_length=100)
+    username = models.CharField(_("Username"), max_length=150)
+    email = models.EmailField(_("Email"), unique=True, null=True)
+    name = models.CharField(_("Name"), max_length=100)
     city = models.ForeignKey(
-        'tags.CityProxy',
-        verbose_name=_('City'),
+        "tags.CityProxy",
+        verbose_name=_("City"),
         null=True,
         blank=True,
-        related_name='users',
+        related_name="users",
         on_delete=models.SET_NULL
     )
     objectives = models.ManyToManyField(
-        'tags.Objective',
-        verbose_name=_('Objectives')
+        "tags.Objective",
+        verbose_name=_("Objectives")
     )
     intent = models.CharField(
-        verbose_name=_('Intent'), 
+        verbose_name=_("Intent"),
         max_length=100,
         null=True, 
         blank=True,
@@ -59,13 +60,13 @@ class User(AbstractUser):
     )
     reason = models.CharField(
         max_length=400,
-        verbose_name=_('Reason'),
+        verbose_name=_("Reason"),
         null=True,
         blank=True
     )
     source = models.CharField(
         max_length=400,
-        verbose_name=_('Source'),
+        verbose_name=_("Source"),
         null=True,
         blank=True
     )
@@ -79,98 +80,98 @@ class User(AbstractUser):
     phone_number = PhoneNumberField(
         blank=True,
         null=True,
-        verbose_name=_('Phone number')
+        verbose_name=_("Phone number")
     )
     phone_number_verified = models.BooleanField(
         default=False,
-        verbose_name=_('Phone Number Verified')
+        verbose_name=_("Phone Number Verified")
     )
     new_phone_number = PhoneNumberField(
         blank=True,
         null=True,
-        verbose_name=_('Phone number')
+        verbose_name=_("Phone number")
     )
     sms_code = models.CharField(
         null=True,
         blank=True,
-        verbose_name=_('Sms code'),
+        verbose_name=_("Sms code"),
         max_length=4
     )
     referer = models.ForeignKey(
-        'users.User',
-        verbose_name=_('Referer'),
-        related_name='referrals',
+        "users.User",
+        verbose_name=_("Referer"),
+        related_name="referrals",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
     )
     is_staff = models.BooleanField(
-        _('Admin'),
+        _("Admin"),
         default=False,
-        help_text=_('Admin permissions, can be restricted by superadmin.'),
+        help_text=_("Admin permissions, can be restricted by superadmin."),
     )
     is_active = models.BooleanField(
-        _('active'),
+        _("active"),
         default=True,
         help_text=_(
-            'Banned/Unbanned User.'
+            "Banned/Unbanned User."
         ),
     )
     is_approved = models.BooleanField(
-        _('Approved'),
+        _("Approved"),
         default=False,
         help_text=_(
-            'User Approval.'
+            "User Approval."
         ),
     )
     is_service_approved = models.BooleanField(
-        _('Service Approved'),
+        _("Service Approved"),
         default=False,
         help_text=_(
-            'User Service Approval.'
+            "User Service Approval."
         ),
     )
     rating = models.FloatField(
-        verbose_name=_('Rating'),
+        verbose_name=_("Rating"),
         null=True,
         blank=True
     )
     price_start = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name=_('Price start')
+        verbose_name=_("Price start")
     )
     pan_card = models.ImageField(
         null=True,
         blank=True,
-        verbose_name=_('Pan card'),
-        upload_to='user/pan_card/%Y/%m/%d'
+        verbose_name=_("Pan card"),
+        upload_to="user/pan_card/%Y/%m/%d"
     )
     auth_secret_key = models.CharField(
         max_length=255,
-        verbose_name=_('Secret key'),
+        verbose_name=_("Secret key"),
         null=True,
         blank=True
     )
     score = models.PositiveIntegerField(default=0)
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
 
     class Meta:
-        verbose_name = _('User')
-        verbose_name_plural = _('Users')
-        db_table = 'users'
-        ordering = ('date_joined',)
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
+        db_table = "users"
+        ordering = ("date_joined",)
 
     def set_phone_number_verified(self):
         """Marks a users phone number as verified.
 
         Note:
             For now marking user approved and service approved
-                if the user's phone number is verified.
+                if the user"s phone number is verified.
 
         """
         self.phone_number_verified = True
@@ -190,7 +191,7 @@ class User(AbstractUser):
     ):
         # Update merge vars with Front URL.
         for d in merge_vars.values():
-            d.update({'front_url': settings.FRONT_URL})
+            d.update({"front_url": settings.FRONT_URL})
 
         send_email.delay(
             subject=subject,
@@ -208,13 +209,13 @@ class User(AbstractUser):
         deep_link = deep_link_service.make_firebase_deep_link(password_reset_url)
         data = {
             self.email: {
-                'reset_password_url': deep_link, 
-                'name': self.name,
+                "reset_password_url": deep_link,
+                "name": self.name,
             }
         }
 
-        self.send_email(subject='Password reset', to=[self.email], from_email=choices.PASSWORD_RESET_FROM_EMAIL,
-                        template_name=choices.template_names.get('password_reset'), content={},
+        self.send_email(subject="Password reset", to=[self.email], from_email=choices.PASSWORD_RESET_FROM_EMAIL,
+                        template_name=choices.template_names.get("password_reset"), content={},
                         merge_vars=data)
 
     def get_phone_number(self):
@@ -231,7 +232,7 @@ class User(AbstractUser):
             these conditions are not met, it returns False.
 
         """
-        has_profile_object = bool(hasattr(self, 'profile') and self.profile)
+        has_profile_object = bool(hasattr(self, "profile") and self.profile)
         if not has_profile_object:
             return False
         if not self.profile.pk:
@@ -240,7 +241,7 @@ class User(AbstractUser):
 
     @property
     def has_points(self):
-        return bool(hasattr(self, 'points') and self.points)
+        return bool(hasattr(self, "points") and self.points)
 
     @property
     def profile_completed(self):
@@ -259,14 +260,14 @@ class User(AbstractUser):
 
     @property
     def has_bank_details(self):
-        return bool(hasattr(self, 'bank_details') and self.bank_details)
+        return bool(hasattr(self, "bank_details") and self.bank_details)
 
     @property
     def has_introduction(self):
         status = (
             self.has_profile
             and 
-            hasattr(self.profile, 'introduction') 
+            hasattr(self.profile, "introduction")
             and 
             self.profile.introduction
         )
@@ -288,10 +289,10 @@ class User(AbstractUser):
 
     @property
     def has_services(self):
-        if self.role == 'user':
-            return bool(hasattr(self, 'user_services_info') and self.user_services_info)
-        elif self.role == 'investor':
-            return bool(hasattr(self, 'investor_services_info') and self.investor_services_info)
+        if self.role == "user":
+            return bool(hasattr(self, "user_services_info") and self.user_services_info)
+        elif self.role == "investor":
+            return bool(hasattr(self, "investor_services_info") and self.investor_services_info)
         return None
 
     @property
@@ -307,10 +308,10 @@ class User(AbstractUser):
 
     @property
     def role(self):
-        if self.groups.filter(name='Investor').exists():
-            return 'investor'
-        if self.groups.filter(name='User').exists():
-            return 'user'
+        if self.groups.filter(name="Investor").exists():
+            return "investor"
+        if self.groups.filter(name="User").exists():
+            return "user"
         return None
 
     @staticmethod
@@ -326,8 +327,8 @@ class User(AbstractUser):
             send_unique_push.delay(
                 device.os_id,
                 {
-                    'en': message,
-                    # 'ru': translate('ru', message)
+                    "en": message,
+                    # "ru": translate("ru", message)
                 },
                 data=data
             )
@@ -341,12 +342,12 @@ class User(AbstractUser):
         confirmation.save()
         data = {
             self.email: {
-                'key': confirmation.key,
-                'name': self.name
+                "key": confirmation.key,
+                "name": self.name
             }
         }
-        self.send_email(subject='Verify your email', to=[self.email],
-                        template_name=choices.template_names.get('verify_email'), content={},
+        self.send_email(subject="Verify your email", to=[self.email],
+                        template_name=choices.template_names.get("verify_email"), content={},
                         merge_vars=data)
 
     @property
@@ -354,19 +355,19 @@ class User(AbstractUser):
         return self.emailaddress_set.filter(email=self.email, verified=True).exists()
 
     def generate_sms_code(self, commit=True):
-        code = exrex.getone('[1-9]{4}')
+        code = exrex.getone("[1-9]{4}")
         if settings.DEBUG:
-            code = '1111'
+            code = "1111"
         self.sms_code = code
         if commit:
             self.save()
 
     @property
     def rating_count(self):
-        return self.seller_orders.filter(status='complete', rate__isnull=False).count()
+        return self.seller_orders.filter(status="complete", rate__isnull=False).count()
 
     def recalculate_rating(self):
-        rates = list(self.seller_orders.filter(status='complete', rate__isnull=False).values_list('rate', flat=True))
+        rates = list(self.seller_orders.filter(status="complete", rate__isnull=False).values_list("rate", flat=True))
         rate = 0
         if rates:
             rate = sum(filter(lambda x: x, rates)) / len(rates)
@@ -383,19 +384,19 @@ class User(AbstractUser):
         if self.email:
             return self.email
         else:
-            return '<no-email>'
+            return "<no-email>"
     
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
-        'users.User',
-        verbose_name=_('User'),
+        "users.User",
+        verbose_name=_("User"),
         on_delete=models.CASCADE,
-        related_name='devices',
+        related_name="devices",
         null=True
     )
     os_id = models.CharField(
-        _('One signal id'),
+        _("One signal id"),
         max_length=150
     )
     is_active = models.BooleanField(
@@ -403,11 +404,11 @@ class Device(TimeStampedModel):
     )
 
     class Meta:
-        verbose_name = _('User Device')
-        verbose_name_plural = _('User Devices')
+        verbose_name = _("User Device")
+        verbose_name_plural = _("User Devices")
 
     def __str__(self):
-        return f'{self.user.username} {self.os_id}'
+        return f"{self.user.username} {self.os_id}"
 
 
 class Profile(models.Model):
@@ -514,24 +515,24 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(
-        'users.User',
-        related_name='profile',
+        "users.User",
+        related_name="profile",
         on_delete=models.CASCADE,
-        verbose_name=_('User')
+        verbose_name=_("User")
     )
     name = models.CharField(
         max_length=100,
-        verbose_name=_('Company Name')
+        verbose_name=_("Company Name")
     )
     tag_line = models.CharField(
-        verbose_name=_('Tag line'),
+        verbose_name=_("Tag line"),
         max_length=100,
         blank=True,
         null=True
     )
     photo = models.ImageField(
-        upload_to='profile/photo/%Y/%m/%d',
-        verbose_name=_('Photo'),
+        upload_to="profile/photo/%Y/%m/%d",
+        verbose_name=_("Photo"),
         null=True,
         blank=True,
         validators=[SizeValidator(size=30)]
@@ -539,49 +540,49 @@ class Profile(models.Model):
     photo_url = models.URLField(
         blank=True,
         null=True,
-        verbose_name=_('Photo Url'),
+        verbose_name=_("Photo Url"),
         max_length=1024
     )
     cover = models.ForeignKey(
-        'users.CoverFile',
+        "users.CoverFile",
         null=True,
         blank=True,
-        verbose_name=_('Cover File'),
-        related_name='profiles',
+        verbose_name=_("Cover File"),
+        related_name="profiles",
         on_delete=models.SET_NULL
     )
     introduction = models.CharField(
         max_length=800,
-        verbose_name=_('Introduction'),
+        verbose_name=_("Introduction"),
         blank=True,
         null=True
     )
     focus = models.CharField(
         max_length=800,
-        verbose_name=_('Focus'),
+        verbose_name=_("Focus"),
         blank=True,
         null=True
     )
     additional_information = models.CharField(
         max_length=800,
-        verbose_name=_('Additional Information'),
+        verbose_name=_("Additional Information"),
         blank=True,
         null=True
     )
     linkedin_url = models.CharField(
-        verbose_name=_('Linked In'),
+        verbose_name=_("Linked In"),
         blank=True,
         null=True,
         max_length=800
     )
     instagram = models.CharField(
-        verbose_name=_('Instagram'),
+        verbose_name=_("Instagram"),
         null=True,
         blank=True,
         max_length=800
     )
     instagram_id = models.CharField(
-        verbose_name=_('Instagram Id'),
+        verbose_name=_("Instagram Id"),
         null=True,
         blank=True,
         max_length=32
@@ -590,34 +591,34 @@ class Profile(models.Model):
         blank=True,
         null=True,
         max_length=400,
-        verbose_name=_('Instagram username')
+        verbose_name=_("Instagram username")
     )
     twitter = models.CharField(
-        verbose_name=_('Twitter'),
+        verbose_name=_("Twitter"),
         blank=True,
         null=True,
         max_length=255
     )
     work_city = models.ForeignKey(
-        'tags.WorkCityProxy',
+        "tags.WorkCityProxy",
         null=True,
         blank=True,
-        verbose_name=_('Work city'),
+        verbose_name=_("Work city"),
         on_delete=models.CASCADE
     )
     tags = models.ManyToManyField(
-        'tags.Tag',
-        verbose_name=_('Tags'),
-        related_name='profiles'
+        "tags.Tag",
+        verbose_name=_("Tags"),
+        related_name="profiles"
     )
     # TODO(Nishant): Remove the old tags once new_tag is filled for all users.
     new_tag = models.ManyToManyField(
-        'tags.Tag',
-        verbose_name=_('New Tag')
+        "tags.Tag",
+        verbose_name=_("New Tag")
     )
     public_profile = models.BooleanField(
         default=True,
-        verbose_name=_('Public Profile')
+        verbose_name=_("Public Profile")
     )
     generated_introduction = models.TextField(
         max_length=1024,
@@ -627,11 +628,11 @@ class Profile(models.Model):
     )
     opted_in_for_whatsapp = models.BooleanField(
         default=True,
-        verbose_name=_('Whatsapp Messaging Enabled')
+        verbose_name=_("Whatsapp Messaging Enabled")
     )
     interests = models.ManyToManyField(
-        'tags.Interests',
-        verbose_name=_('Interests')
+        "tags.Interests",
+        verbose_name=_("Interests")
     )
     education_level = models.PositiveIntegerField(
         null=True,
@@ -679,7 +680,7 @@ class Profile(models.Model):
         choices=STAGE_OF_COMPANY_CHOICES
     )
     aspiration = models.ForeignKey(
-        'tags.Tag',
+        "tags.Tag",
         on_delete=models.CASCADE,
         related_name="aspiration_tag",
         null=True,
@@ -700,8 +701,8 @@ class Profile(models.Model):
     )
 
     class Meta:
-        verbose_name = _('Profile')
-        verbose_name_plural = _('Profile')
+        verbose_name = _("Profile")
+        verbose_name_plural = _("Profile")
 
     def __str__(self):
         return self.name
@@ -727,62 +728,60 @@ class ProfileExtraInfoMeta(models.Model):
 
 
 class Referral(TimeStampedModel):
-    """
-    Set referral relations between Users
-    """
+    """Set referral relations between users."""
     user = models.OneToOneField(
-        'users.User',
-        verbose_name=_('Referral'),
+        "users.User",
+        verbose_name=_("Referral"),
         on_delete=models.CASCADE
     )
     amount = models.CharField(
-        _('Total referral subscription amount'),
+        _("Total referral subscription amount"),
         null=True,
         max_length=100,
     )
-    is_paid = models.BooleanField(_('Is paid'), default=False)
-    is_rewarded = models.BooleanField(_('Is rewarded'), default=False)
+    is_paid = models.BooleanField(_("Is paid"), default=False)
+    is_rewarded = models.BooleanField(_("Is rewarded"), default=False)
 
     class Meta:
-        verbose_name = _('Referral')
-        verbose_name_plural = _('Referrals')
-        ordering = ['user__referer__name']
+        verbose_name = _("Referral")
+        verbose_name_plural = _("Referrals")
+        ordering = ["user__referer__name"]
 
 
 class Admin(User):
     proxy = True
 
     class Meta:
-        verbose_name = _('Admin')
-        verbose_name_plural = _('Admins')
+        verbose_name = _("Admin")
+        verbose_name_plural = _("Admins")
 
 
 class CoverFile(TimeStampedModel):
     file = models.FileField(
-        upload_to='profile/cover/%Y/%m/%d/',
-        verbose_name=_('Cover'),
+        upload_to="profile/cover/%Y/%m/%d/",
+        verbose_name=_("Cover"),
         null=True,
         validators=[SizeValidator(size=512)],
     )
     user = models.ForeignKey(
-        'users.User',
+        "users.User",
         on_delete=models.CASCADE,
-        verbose_name=_('User'),
-        related_name='cover_files'
+        verbose_name=_("User"),
+        related_name="cover_files"
     )
     cover_thumbnail = models.URLField(
         null=True,
         blank=True,
-        verbose_name=_('Cover thumbnail')
+        verbose_name=_("Cover thumbnail")
     )
     cover_transcoder = models.URLField(
         null=True,
         blank=True,
-        verbose_name=_('Cover transcoder')
+        verbose_name=_("Cover transcoder")
     )
     transcoder_job_id = models.CharField(
         max_length=255,
-        verbose_name=_('Transcoder job id'),
+        verbose_name=_("Transcoder job id"),
         null=True,
         blank=True
     )
@@ -795,7 +794,7 @@ class CoverFile(TimeStampedModel):
     )
 
     def __str__(self):
-        return self.file.name if self.file else ' - '
+        return self.file.name if self.file else "-"
 
 
 class BaseSource(base_models.BaseModel):
@@ -836,7 +835,7 @@ def profile_post_save(sender, instance, created,  *args, **kwargs):
 
 @receiver(post_save, sender=User)
 def user_post_save(sender, instance, created,  *args, **kwargs):
-    if not (hasattr(instance, 'notification_settings') and instance.notification_settings):
+    if not (hasattr(instance, "notification_settings") and instance.notification_settings):
         UserNotificationsSettings.objects.create(user=instance)
     if created and not instance.subscriptions.filter(is_active=True):
         Subscription.objects.create(

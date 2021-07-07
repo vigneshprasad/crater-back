@@ -19,3 +19,17 @@ VALID_LINKEDIN_LOCATION_URLS = [
     "in.linkedin.com",
     "www.linkedin.cn"
 ]
+
+
+VALID_SPECIAL_CHARACTERS = [",", " ", "-", ":", "'", ".", "(", ")", "{", "}", "@", "&", "!", "#", "%", "#", "+", "/"]
+
+BLACKLISTED_INTRODUCTION_WORDS = [
+    "bhai",
+    "love",
+    "hey",
+    "hi",
+    "hello",
+    "yes"
+]
+
+REGEX_FOR_URL = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
