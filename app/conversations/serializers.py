@@ -22,7 +22,7 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SuggestedTopic
-        fields = ("topic", "suggested_by", "is_approved")
+        fields = ("topic", "suggested_by", "is_approved", "type")
         extra_kwargs = {
             "suggested_by": {"required": False},
             "is_approved": {"required": False}
@@ -119,7 +119,8 @@ class GroupSerializer(serializers.ModelSerializer):
             "interests_detail_list",
             "is_past",
             "relevancy",
-            "is_approved"
+            "is_approved",
+            "type",
         )
         extra_kwargs = {
             "is_approved": {"required": False}
