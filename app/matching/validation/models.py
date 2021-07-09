@@ -25,8 +25,9 @@ class UserValidation(base_models.BaseModel):
         get_user_model(),
         on_delete=models.CASCADE
     )
-    rule = models.CharField(choices=VALIDATION_RULES)
+    rule = models.CharField(max_length=64, choices=VALIDATION_RULES)
     result = models.PositiveIntegerField(choices=VALIDATION_RESULTS)
+    is_validated = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _("User Validation")
