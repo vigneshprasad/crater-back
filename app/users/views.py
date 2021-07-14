@@ -24,7 +24,7 @@ from payment import models as payment_models, serializers as payment_serializers
 from payment.tasks import charge_subscription_payment
 from services import serializers as service_serializers, models as service_models
 from users import permissions
-from  users import services
+from users import services
 from users import utils
 from utils import messages
 from utils.stripe_service import stripe_service
@@ -416,13 +416,13 @@ class NetworkView(mixins.RetrieveModelMixin,
         queryset = self.filter_queryset(self.get_queryset())
 
         results = queryset.filter(user__pk__in=ids)
-        serialized = self.get_serializer(results, many=True)
         page = self.paginate_queryset(results)
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
+        serialized = self.get_serializer(results, many=True)
         return Response(serialized.data)
 
 
