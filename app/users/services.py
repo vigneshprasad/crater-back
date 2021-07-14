@@ -211,3 +211,12 @@ def get_aspiration_field_info():
         'options': options,
         'blank': False,
     }
+
+
+def get_all_user_more_than_3_meetings():
+    ids = []
+    for user in models.User.objects.all():
+        if len(user.meeting_set.all()) > 2:
+            ids.append(user.pk)
+
+    return ids
