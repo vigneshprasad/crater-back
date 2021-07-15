@@ -1,6 +1,10 @@
+from django.db.models import Count
+
 from users import models
 from users import choices
 from tags import models as tag_models
+
+from resources.meetings import models as meeting_models
 
 
 def get_admin_user():
@@ -214,9 +218,6 @@ def get_aspiration_field_info():
 
 
 def get_all_user_more_than_3_meetings():
-    ids = []
-    for user in models.User.objects.all():
-        if len(user.meeting_set.all()) > 2:
-            ids.append(user.pk)
-
-    return ids
+    return meeting_models.Meeting.objects.all().values("participants").annotate(
+        num_meetings=Count('participants')
+    ).filter(num_meetings__gt=2).values_list("participants", flat=True)
