@@ -48,7 +48,7 @@ def validate_based_on_phone_price(user):
 
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
-        validation.is_validated = False
+        validation.is_validated = True
 
     user_device = devices_public.get_device_info_for_user(user)
     # If the user doesn't have device don't run the validation
@@ -104,7 +104,7 @@ def validate_based_on_introduction(user):
 
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
-        validation.is_validated = False
+        validation.is_validated = True
 
     if not user.has_profile:
         return
@@ -119,7 +119,7 @@ def validate_based_on_introduction(user):
     # Blacklisted word validation.
     for word in all_words_in_introduction:
         if word.lower() in constants.BLACKLISTED_INTRODUCTION_WORDS:
-            validation = models.UserValidation.objects.update_or_create(
+            validation, _ = models.UserValidation.objects.update_or_create(
                 user=user,
                 rule=constants.INTRODUCTION_VALIDATION,
                 defaults={
@@ -130,7 +130,7 @@ def validate_based_on_introduction(user):
 
     # Introduction word count validation.
     if introduction_word_length <= 10:
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
@@ -142,7 +142,7 @@ def validate_based_on_introduction(user):
     # Email present in introduction validation.
     email_string_in_introduction = re.findall("\S+@\S+", introduction)
     if email_string_in_introduction:
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
@@ -154,7 +154,7 @@ def validate_based_on_introduction(user):
     # Urls in introduction validation.
     urls = re.findall(constants.REGEX_FOR_URL, introduction)
     if urls:
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
@@ -170,7 +170,7 @@ def validate_based_on_introduction(user):
             special_characters.append(character)
 
     if special_characters:
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
@@ -182,7 +182,7 @@ def validate_based_on_introduction(user):
     # Phone number in introduction validation.
     all_numbers_in_intro = [character for character in all_words_in_introduction if character.isdigit()]
     if len(all_numbers_in_intro) > 4:
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
@@ -207,7 +207,7 @@ def validate_based_on_introduction(user):
             # mentioned in the introduction. Validation for the
             # user fails.
             if re.search(tag.name, introduction, re.IGNORECASE):
-                validation = models.UserValidation.objects.update_or_create(
+                validation, _ = models.UserValidation.objects.update_or_create(
                     user=user,
                     rule=constants.INTRODUCTION_VALIDATION,
                     defaults={
@@ -240,7 +240,7 @@ def validate_based_on_education(user):
 
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
-        validation.is_validated = False
+        validation.is_validated = True
 
     if not user.has_profile:
         return
@@ -252,7 +252,7 @@ def validate_based_on_education(user):
             and profile.education_level == user_constants.EDUCATION_LEVEL_HIGH_SCHOOL
             and profile.score <= 40
     ):
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.EDUCATION_LEVEL_VALIDATION,
             defaults={
@@ -285,7 +285,7 @@ def validate_based_on_linkedin_url(user):
 
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
-        validation.is_validated = False
+        validation.is_validated = True
 
     if not user.has_profile:
         return
@@ -294,7 +294,7 @@ def validate_based_on_linkedin_url(user):
     linkedin_url = profile.linkedin_url
 
     if not linkedin_url:
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.LINKEDIN_URL_VALIDATION,
             defaults={
@@ -307,7 +307,7 @@ def validate_based_on_linkedin_url(user):
         return validation
 
     if not _validate_linkedin_profile_url(linkedin_url):
-        validation = models.UserValidation.objects.update_or_create(
+        validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.LINKEDIN_URL_VALIDATION,
             defaults={
