@@ -14,8 +14,8 @@ def validate_user(user):
     linkedin_validation = private.validate_based_on_linkedin_url(user)
 
     return {
-        constants.PHONE_PRICE_VALIDATION: phone_price_validation.result,
-        constants.EDUCATION_LEVEL_VALIDATION: education_validation.result,
-        constants.INTRODUCTION_VALIDATION: introduction_validation.result,
-        constants.LINKEDIN_URL_VALIDATION: linkedin_validation.result,
+        constants.PHONE_PRICE_VALIDATION: phone_price_validation.result if phone_price_validation else None,
+        constants.EDUCATION_LEVEL_VALIDATION: education_validation.result if education_validation else None,
+        constants.INTRODUCTION_VALIDATION: introduction_validation.result if introduction_validation else None,
+        constants.LINKEDIN_URL_VALIDATION: linkedin_validation.result if linkedin_validation else None,
     }

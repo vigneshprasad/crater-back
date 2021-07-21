@@ -1,4 +1,3 @@
-import copy
 import re
 import urllib.parse
 
@@ -49,11 +48,12 @@ def validate_based_on_phone_price(user):
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
         validation.is_validated = True
+        validation.save()
 
     user_device = devices_public.get_device_info_for_user(user)
     # If the user doesn't have device don't run the validation
     if not user_device:
-        return False
+        return
 
     user_device_price = user_device.get("device_price")
     user_score = user.score
@@ -65,24 +65,20 @@ def validate_based_on_phone_price(user):
             user=user,
             rule=constants.PHONE_PRICE_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
 
     if user_score <= 40 and user_device_price <= 40000:
         validation = models.UserValidation.objects.update_or_create(
             user=user,
             rule=constants.PHONE_PRICE_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_LOW_ENUM
+                "result": constants.VALIDATION_SCORE_LOW_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
-
-    # If the validation failed by the rules written, is_validated will be
-    # False at this point.
-    validation.save()
 
     return validation
 
@@ -105,6 +101,7 @@ def validate_based_on_introduction(user):
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
         validation.is_validated = True
+        validation.save()
 
     if not user.has_profile:
         return
@@ -123,10 +120,10 @@ def validate_based_on_introduction(user):
                 user=user,
                 rule=constants.INTRODUCTION_VALIDATION,
                 defaults={
-                    "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                    "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                    "is_validated": False
                 }
             )
-            validation.is_validated = False
 
     # Introduction word count validation.
     if introduction_word_length <= 10:
@@ -134,10 +131,10 @@ def validate_based_on_introduction(user):
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
 
     # Email present in introduction validation.
     email_string_in_introduction = re.findall("\S+@\S+", introduction)
@@ -146,10 +143,10 @@ def validate_based_on_introduction(user):
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
 
     # Urls in introduction validation.
     urls = re.findall(constants.REGEX_FOR_URL, introduction)
@@ -158,10 +155,10 @@ def validate_based_on_introduction(user):
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
 
     # Special characters, smiley etc. in introduction validation.
     special_characters = []
@@ -174,10 +171,10 @@ def validate_based_on_introduction(user):
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
 
     # Phone number in introduction validation.
     all_numbers_in_intro = [character for character in all_words_in_introduction if character.isdigit()]
@@ -186,10 +183,10 @@ def validate_based_on_introduction(user):
             user=user,
             rule=constants.INTRODUCTION_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
 
     # Tag Validation.
     user_tag = user.profile.new_tag.first()
@@ -211,14 +208,10 @@ def validate_based_on_introduction(user):
                     user=user,
                     rule=constants.INTRODUCTION_VALIDATION,
                     defaults={
-                        "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                        "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                        "is_validated": False
                     }
                 )
-                validation.is_validated = False
-
-    # If the validation failed by the rules written, is_validated will be
-    # False at this point.
-    validation.save()
 
     return validation
 
@@ -241,6 +234,7 @@ def validate_based_on_education(user):
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
         validation.is_validated = True
+        validation.save()
 
     if not user.has_profile:
         return
@@ -256,14 +250,10 @@ def validate_based_on_education(user):
             user=user,
             rule=constants.EDUCATION_LEVEL_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
-
-    # If the validation failed by the rules written, is_validated will be
-    # False at this point.
-    validation.save()
 
     return validation
 
@@ -286,6 +276,7 @@ def validate_based_on_linkedin_url(user):
         # Marking the validation object as is_validated True so that if the
         # validation doesn't fail for the user. Validation is passed.
         validation.is_validated = True
+        validation.save()
 
     if not user.has_profile:
         return
@@ -298,12 +289,10 @@ def validate_based_on_linkedin_url(user):
             user=user,
             rule=constants.LINKEDIN_URL_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
-        validation.save()
-
         return validation
 
     if not _validate_linkedin_profile_url(linkedin_url):
@@ -311,14 +300,10 @@ def validate_based_on_linkedin_url(user):
             user=user,
             rule=constants.LINKEDIN_URL_VALIDATION,
             defaults={
-                "result": constants.VALIDATION_SCORE_HIGH_ENUM
+                "result": constants.VALIDATION_SCORE_HIGH_ENUM,
+                "is_validated": False
             }
         )
-        validation.is_validated = False
-
-    # If the validation failed by the rules written, is_validated will be
-    # False at this point.
-    validation.save()
 
     return validation
 

@@ -21,7 +21,7 @@ VALID_LINKEDIN_LOCATION_URLS = [
 ]
 
 
-VALID_SPECIAL_CHARACTERS = [",", " ", "-", ":", "'", ".", "(", ")", "{", "}", "@", "&", "!", "#", "%", "#", "+", "/"]
+VALID_SPECIAL_CHARACTERS = [",", " ", "-", ":", "'", ".", "(", ")", "{", "}", "@", "&", "!", "#", "%", "#", "+", "/", "|"]
 
 BLACKLISTED_INTRODUCTION_WORDS = [
     "bhai",
