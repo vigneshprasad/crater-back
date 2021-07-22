@@ -1,9 +1,6 @@
 import re
 import urllib.parse
 
-from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
-
 from devices import public as devices_public
 from matching.validation import models
 from matching.validation import constants
@@ -244,7 +241,7 @@ def validate_based_on_education(user):
     if (
             profile.education_level
             and profile.education_level == user_constants.EDUCATION_LEVEL_HIGH_SCHOOL
-            and profile.score <= 40
+            and user.score >= 40
     ):
         validation, _ = models.UserValidation.objects.update_or_create(
             user=user,
@@ -315,14 +312,6 @@ def _validate_linkedin_profile_url(url):
         url(str): Url for linkedin public profile.
 
     """
-
-    # Check if the provided value is a valid url.
-    try:
-        validate = URLValidator()
-        validate(url)
-    except ValidationError:
-        return False
-
     try:
         parser = urllib.parse.urlparse(url)
     except AttributeError:
@@ -335,7 +324,8 @@ def _validate_linkedin_profile_url(url):
     if url_netloc and url_netloc.lower() in constants.VALID_LINKEDIN_LOCATION_URLS:
         return True
 
-    if url_path.lower() in constants.VALID_LINKEDIN_LOCATION_URLS:
-        return True
+    for valid_linkedin_url in constants.VALID_LINKEDIN_LOCATION_URLS:
+        if valid_linkedin_url in url_path:
+            return True
 
     return False
