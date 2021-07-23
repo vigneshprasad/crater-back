@@ -23,7 +23,7 @@ def get_or_create_device(device_name, device_model, device_price):
             device for the details.
 
     """
-    if not (device_name or device_model):
+    if not (device_name and device_model):
         return None
 
     try:

@@ -53,9 +53,11 @@ class SegmentWebhookViewSet(viewsets.GenericViewSet):
         device_model = device_data.get("model")
         device_type = device_data.get("type")
 
-        if not (device_manufacturer or device_model) and device_type == constants.DEVICE_TYPE_IOS:
-            device_manufacturer = constants.DEFAULT_IOS_DEVICE_MANUFACTURER
-            device_model = constants.DEFAULT_IOS_DEVICE_MODEL
+        if device_type == constants.DEVICE_TYPE_IOS:
+            if not device_manufacturer:
+                device_manufacturer = constants.DEFAULT_IOS_DEVICE_MANUFACTURER
+            if not device_model:
+                device_model = constants.DEFAULT_IOS_DEVICE_MODEL
 
         # Create user device for the user.
         device_signals.new_user_device_detected.send(
