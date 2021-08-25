@@ -68,3 +68,17 @@ meeting_marked_cancelled = Signal(providing_args=[
 reschedule_request_created = Signal(providing_args=[
     "reschedule_request"
 ])
+
+
+meeting_request_created = Signal(providing_args=[
+    "meeting_request"
+])
+
+meeting_request_approved = Signal(providing_args=[
+    "meeting_request",
+    "time_slot"
+])
+
+meeting_request_declined = Signal(providing_args=[
+    "meeting_request",
+])

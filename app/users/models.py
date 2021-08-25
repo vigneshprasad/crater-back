@@ -25,6 +25,7 @@ from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from utils.deep_link_service import deep_link_service
 from users import choices
+
 # TODO(Nishant) Clean up tasks and move all these tasks to tasks file or don't user models in tasks.
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
 
@@ -38,6 +39,8 @@ class User(AbstractUser):
     username = models.CharField(_("Username"), max_length=150)
     email = models.EmailField(_("Email"), unique=True, null=True)
     name = models.CharField(_("Name"), max_length=100)
+
+    # TODO(Nishant): If not being used we can remove this.
     city = models.ForeignKey(
         "tags.CityProxy",
         verbose_name=_("City"),
@@ -46,6 +49,8 @@ class User(AbstractUser):
         related_name="users",
         on_delete=models.SET_NULL
     )
+
+    # TODO(Nishant): No being used remove.
     objectives = models.ManyToManyField(
         "tags.Objective",
         verbose_name=_("Objectives")
@@ -698,6 +703,9 @@ class Profile(models.Model):
         blank=True,
         null=True,
         max_length=255,
+    )
+    allow_meeting_request = models.BooleanField(
+        default=False
     )
 
     class Meta:

@@ -1,22 +1,30 @@
 import datetime
 import pytz
 
+from django.conf import settings
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from freelance.settings import TIME_ZONE
 
-from users import permissions
-from resources.meetings import models, choices, serializers, services
-from resources.meetings import receivers
+from users import models as user_models
+from users import paginators as user_paginators
+from users import permissions as user_permissions
+from users import serializers as user_serializers
+from resources.meetings import models
+from resources.meetings import choices
+from resources.meetings import serializers
+from resources.meetings import services
 from resources.meetings import signals
+from resources.meetings import receivers
 
 
-class MeetingConfigViewSet(mixins.ListModelMixin,
-                           viewsets.GenericViewSet):
+class MeetingConfigViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = serializers.MeetingConfigSerializer
     queryset = models.Config.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         instance = services.get_latest_active_meeting_config()
@@ -29,17 +37,19 @@ class MeetingConfigViewSet(mixins.ListModelMixin,
         return Response(serializer.data)
 
 
-class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
-                                   mixins.RetrieveModelMixin,
-                                   mixins.CreateModelMixin,
-                                   mixins.UpdateModelMixin,
-                                   viewsets.GenericViewSet):
+class UserMeetingPreferenceViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = serializers.UserMeetingPreferenceSerializer
     queryset = models.MeetingPreference.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
     @action(
-        methods=['GET'],
+        methods=["GET"],
         detail=False,
     )
     def past(self, request):
@@ -48,7 +58,7 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
         if not instance:
             return Response(None, status=status.HTTP_204_NO_CONTENT)
         config = services.get_latest_active_meeting_config()
-        slot_start_times = list(instance.time_slots.all().values_list('start_time', flat=True).distinct())
+        slot_start_times = list(instance.time_slots.all().values_list("start_time", flat=True).distinct())
         instance.time_slots.set(config.available_time_slots.all().filter(start_time__in=slot_start_times))
         serialized = self.get_serializer(instance)
         return Response(serialized.data)
@@ -69,29 +79,29 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
 
     def _add_objectives_to_request(self):
         request = self.request
-        objective = request.data.get('objective')
+        objective = request.data.get("objective")
         if not objective:
             return request
         for choice in choices.OBJECTIVE_CHOICES:
             if choice[0] == objective:
                 try:
                     objective_model = models.Objective.objects.get(name=choice[1], is_active=True)
-                    request.data['objectives'] = [objective_model.pk]
+                    request.data["objectives"] = [objective_model.pk]
                 except models.Objective.DoesNotExist:
                     pass
         return request
 
     def update(self, request, *args, **kwargs):
         request = self._add_objectives_to_request()
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
         response_serializer = serializers.UserMeetingPreferenceSerializer(instance)
 
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
+        if getattr(instance, "_prefetched_objects_cache", None):
+            # If "prefetch_related" has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
@@ -112,20 +122,22 @@ class UserMeetingPreferenceViewSet(mixins.ListModelMixin,
         return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_serializer_class(self):
-        if self.action == 'create' or self.action == 'update':
+        if self.action == "create" or self.action == "update":
             return serializers.PostUserMeetingPreferenceSerializer
         else:
             return serializers.UserMeetingPreferenceSerializer
 
 
-class MeetingViewSet(mixins.ListModelMixin,
-                     mixins.RetrieveModelMixin,
-                     mixins.CreateModelMixin,
-                     mixins.UpdateModelMixin,
-                     viewsets.GenericViewSet):
+class MeetingViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = serializers.MeetingSerializer
     queryset = models.Meeting.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
     def get_queryset(self):
         return self.request.user.meeting_set.all()
@@ -144,7 +156,7 @@ class MeetingViewSet(mixins.ListModelMixin,
 
     def _create_data_by_date(self, queryset):
         data = []
-        date_list = list(queryset.values_list('start__date', flat=True).distinct())
+        date_list = list(queryset.values_list("start__date", flat=True).distinct())
         date_list.reverse()
 
         for date in date_list:
@@ -153,29 +165,29 @@ class MeetingViewSet(mixins.ListModelMixin,
             )
             serialized = self.get_serializer(objects, many=True)
             data.append({
-                'date': date.isoformat(),
-                'meetings': serialized.data,
+                "date": date.isoformat(),
+                "meetings": serialized.data,
             })
         return data
 
     @action(
-        methods=['GET'],
+        methods=["GET"],
         detail=False,
     )
     def upcoming(self, request):
         queryset = self._get_meeting_queryset(is_past=False)
-        date_list = list(queryset.values_list('start__date', flat=True).distinct())
+        date_list = list(queryset.values_list("start__date", flat=True).distinct())
         date_list.reverse()
         data = self._create_data_by_date(queryset=queryset)
         return Response(data)
 
     @action(
-        methods=['GET'],
+        methods=["GET"],
         detail=False,
     )
     def past(self, request):
         queryset = self._get_meeting_queryset(is_past=True)
-        date_list = list(queryset.values_list('start__date', flat=True).distinct())
+        date_list = list(queryset.values_list("start__date", flat=True).distinct())
         date_list.reverse()
         data = self._create_data_by_date(queryset=queryset)
         return Response(data)
@@ -184,19 +196,19 @@ class MeetingViewSet(mixins.ListModelMixin,
 class MeetingObjectivesViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.MeetingObjectiveSerializer
     queryset = models.Objective.objects.filter(is_active=True)
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
 
 class MeetingInterestsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.MeetingInterestSerializer
     queryset = models.Interest.objects.filter(is_active=True)
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
 
 class MeetingConfigV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.MeetingConfigV2Serializer
     queryset = models.Config.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         instance = services.get_latest_active_meeting_config()
@@ -213,14 +225,14 @@ class MeetingRSVPViewSet(
 ):
     serializer_class = serializers.MeetingRSVPSerializer
     queryset = models.MeetingRSVP.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
     @staticmethod
     def generate_bad_request(data):
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False,
     )
     def confirmed(self, request, *args, **kwargs):
@@ -256,7 +268,7 @@ class MeetingRSVPViewSet(
         return Response(data=serialized.data)
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False,
     )
     def cancelled(self, request, *args, **kwargs):
@@ -292,7 +304,7 @@ class MeetingRSVPViewSet(
         return Response(data=serialized.data)
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False,
         serializer_class=serializers.PostRescheduleRequestSerializer
     )
@@ -317,14 +329,14 @@ class RescheduleRequestViewSet(
 ):
     serializer_class = serializers.RescheduleRequestSerializer
     queryset = models.RescheduleRequest.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
     @staticmethod
     def generate_bad_request(data):
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-        methods=['GET'],
+        methods=["GET"],
         detail=False
     )
     def availability_slots(self, request, *args, **kwargs):
@@ -345,7 +357,7 @@ class RescheduleRequestViewSet(
         return Response(data)
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False
     )
     def accepted(self, request, *args, **kwargs):
@@ -364,7 +376,7 @@ class RescheduleRequestViewSet(
             )
 
         # TODO(Nishant): Clean up this timezone stuff.
-        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
+        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(settings.TIME_ZONE))
         selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
 
         if not reschedule_request_id and selected_time_slot:
@@ -407,13 +419,13 @@ class RescheduleRequestViewSet(
         return Response({"success": True})
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False
     )
     def declined(self, request, *args, **kwargs):
         reschedule_request_id = request.data.get("id")
         approver = request.user
-        
+
         if not reschedule_request_id:
             return self.generate_bad_request(
                 {"error": "Invalid request body. Missing id or time slots."}
@@ -441,17 +453,151 @@ class RescheduleRequestViewSet(
 
     def retrieve(self, request, *args, **kwargs):
 
-        meeting_id = kwargs.get('pk')
+        meeting_id = kwargs.get("pk")
         if not meeting_id:
-            return self.generate_bad_request({'error': 'Bad request'})
+            return self.generate_bad_request({"error": "Bad request"})
         try:
             reschedule_obj = models.RescheduleRequest.objects.get(
                 old_meeting_id=meeting_id,
                 approver=request.user,
             )
         except models.RescheduleRequest.DoesNotExist:
-            return self.generate_bad_request({'error': 'Incorrect Meeting id'})
+            return self.generate_bad_request({"error": "Incorrect Meeting id"})
         except models.RescheduleRequest.MultipleObjectsReturned:
-            return self.generate_bad_request({'error': 'Incorrect Meeting id'})
+            return self.generate_bad_request({"error": "Incorrect Meeting id"})
         serializer = self.get_serializer(reschedule_obj)
         return Response(serializer.data)
+
+
+class MeetingRequestViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.MeetingRequestSerializer
+    queryset = models.MeetingRequest.objects.all()
+    permission_classes = [user_permissions.IsAuthenticated]
+    filterset_fields = ["requested_by", "requested_to"]
+
+    @staticmethod
+    def generate_bad_request(data):
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        queryset=user_models.Profile.objects.filter(allow_meeting_request=True),
+        serializer_class=user_serializers.ProfileSerializer,
+        pagination_class=user_paginators.Pagination,
+        filterset_fields=["tags"]
+    )
+    def users(self, request, *args, **kwargs):
+        """Returns serialized list of users the requesting user
+            can send meeting request to.
+
+        """
+        user = request.user
+        queryset = self.filter_queryset(self.get_queryset())
+        results = queryset.filter(user__score__lte=user.score).order_by("-user__score")
+        page = self.paginate_queryset(results)
+
+        if not page:
+            serialized = self.get_serializer(results, many=True)
+            return Response(serialized.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def slots(self, request, *args, **kwargs):
+        """Returns available slots for setting up a meeting request."""
+        now_datetime = datetime.datetime.now()
+        start_date = now_datetime.date()
+        num_days = 7
+        date_list = [start_date + datetime.timedelta(days=day) for day in range(num_days)]
+        weekday_timeslot_map = choices.MEETING_REQUEST_SLOTS
+        data = []
+
+        for date in date_list:
+            time_slots = []
+            for slot in weekday_timeslot_map:
+                timeslot = datetime.datetime.combine(date, slot)
+                if timeslot <= now_datetime:
+                    continue
+                time_slots.append(timeslot.isoformat())
+
+            if not len(time_slots):
+                continue
+            data.append(time_slots)
+
+        return Response(data)
+
+    @action(
+        methods=["POST"],
+        detail=False
+    )
+    def accepted(self, request, *args, **kwargs):
+        request_data = request.data
+        meeting_request_id = request_data.get("meeting_request")
+        selected_time_slot_str = request_data.get("time_slot")
+
+        try:
+            meeting_request = self.get_queryset().get(id=meeting_request_id)
+        except models.MeetingRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Meeting request does not exist."}
+            )
+
+        # Convert incoming selected time slot to timezone aware UTC datetime.
+        selected_time_slot = datetime.datetime.fromisoformat(selected_time_slot_str)
+        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(settings.TIME_ZONE))
+        selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
+
+        data = {
+            "selected_time_slot": selected_time_slot,
+            "status": choices.MEETING_REQUEST_CONFIRMED
+        }
+        serializer = self.get_serializer(meeting_request, data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        # Fire a signal notifying meeting request is approved.
+        signals.meeting_request_approved.send(
+            sender=meeting_request.__class__,
+            meeting_request=meeting_request
+        )
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["POST"],
+        detail=False
+    )
+    def declined(self, request, *args, **kwargs):
+        meeting_request_id = request.data.get("meeting_request")
+        try:
+            meeting_request = self.get_queryset().get(id=meeting_request_id)
+        except models.MeetingRequest.DoesNotExist:
+            return self.generate_bad_request(
+                {"error": "Meeting request does not exist."}
+            )
+
+        data = {
+            "status": choices.MEETING_REQUEST_DECLINED
+        }
+        serializer = self.get_serializer(meeting_request, data, partial=True)
+        serializer.is_valid(raise_exceptions=True)
+        self.perform_update(serializer)
+
+        # Send a signal notifying meeting request is declined.
+        signals.meeting_request_declined.send(
+            sender=meeting_request.__class__,
+            meeting_request=meeting_request,
+        )
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

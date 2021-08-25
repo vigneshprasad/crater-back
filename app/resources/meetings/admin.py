@@ -119,3 +119,16 @@ class RescheduleRequests(ModelAdmin):
         "new_meeting"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
+@register(models.MeetingRequest)
+class MeetingRequests(ModelAdmin):
+    list_display = (
+        "id",
+        "requested_by",
+        "requested_to",
+        "time_slots",
+        "selected_time_slot",
+        "status"
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

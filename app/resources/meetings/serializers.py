@@ -4,9 +4,10 @@ from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+from resources.meetings import choices
 from resources.meetings import models
 from resources.meetings import services
-from resources.meetings import choices
+from resources.meetings import signals
 
 from community.mixins import SetCreatorRequestDataMixin
 
@@ -343,3 +344,61 @@ class PostRescheduleRequestSerializer(serializers.ModelSerializer):
             validated_data["expires_at"] = None
 
         return super(PostRescheduleRequestSerializer, self).create(validated_data=validated_data)
+
+
+class MeetingRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.MeetingRequest
+        fields = (
+            "id",
+            "requested_by",
+            "requested_to",
+            "time_slots",
+            "selected_time_slot",
+            "status",
+            "expires_at"
+        )
+        extra_kwargs = {
+            "status": {
+                "required": False
+            },
+            "selected_time_slot": {
+                "required": False
+            },
+            "expires_at": {
+                "required": False
+            }
+        }
+
+    def validate_selected_time_slot(self, selected_time_slot):
+        """Validate selected time slot by the user.
+
+        Note:
+            The selected_time_slot should be part of time_slots
+                allotted by the requester.
+
+        """
+        print(self.instance.time_slots)
+        time_slots = self.instance.time_slots
+        if selected_time_slot not in time_slots:
+            return serializers.ValidationError("Selected time slot is not valid.")
+
+        return selected_time_slot
+
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+
+        # Send signal on creation of meeting request.
+        signals.meeting_request_created.send(
+            sender=instance.__class__,
+            meeting_request=instance
+        )
+        return instance
+
+    def update(self, instance, validated_data):
+        # If the instance status is already accepted or declined don't update again.
+        if instance.status != choices.MEETING_REQUEST_PENDING_APPROVAL:
+            return serializers.ValidationError("You have already responded to the request.")
+
+        return super().update(instance, validated_data)

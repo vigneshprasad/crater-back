@@ -214,3 +214,18 @@ def send_reschedule_request_declined_message(sender, reschedule_request, *args, 
             {"data": constants.MEETING_RESCHEDULE_REQUEST_DECLINED_PROMPT_MESSAGE},
         ]
     )
+
+
+@receiver(meeting_signals.meeting_request_created)
+def send_meeting_request_created_message(sender, meeting_request, *args, **kwargs):
+    pass
+
+
+@receiver(meeting_signals.meeting_request_approved)
+def send_meeting_request_approved_message(sender, meeting_request, *args, **kwargs):
+    pass
+
+
+@receiver(meeting_signals.meeting_request_declined)
+def send_meeting_request_declined_message(sender, meeting_request, *args, **kwargs):
+    pass

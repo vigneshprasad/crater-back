@@ -229,28 +229,43 @@ def get_latest_active_meeting_config():
         Queryset of MeetingConfig object.
     """
     active_meeting_configs = get_active_meeting_configs()
+
     if not active_meeting_configs:
         return None
+
     return active_meeting_configs.last()
 
 
 def get_current_week_meeting_config():
-    """
-    Get latest active meeting configs.
+    """Get the current week active config. Return the config
+        for a date D, which is between start and end dates
+        of a config.
 
-    Return:
-        Queryset of MeetingConfig object.
+    Returns:
+        Config object for the current week.
 
     """
     now = datetime.datetime.now().date()
-    start = now - datetime.timedelta(days=now.weekday())
-    end = start + datetime.timedelta(days=6)
+    active_meeting_configs = get_active_meeting_configs()
+
+    if not active_meeting_configs:
+        return None
+
+    return active_meeting_configs.filter(
+        week_start_date__lte=now,
+        week_end_date__gte=now,
+    ).last()
+
+
+def get_meeting_config_based_on_date(date):
+    """Returns active config based on provided date."""
     active_meeting_configs = get_active_meeting_configs()
     if not active_meeting_configs:
         return None
+
     return active_meeting_configs.filter(
-        week_start_date__gte=start,
-        week_end_date__lte=end,
+        week_start_date__lte=date,
+        week_end_date__gte=date,
     ).last()
 
 

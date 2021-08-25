@@ -26,6 +26,7 @@ router.register("meetings/interests", meeting_views.MeetingInterestsViewSet)
 router.register("meetings/preferences", meeting_views.UserMeetingPreferenceViewSet)
 router.register("meetings/rsvp", meeting_views.MeetingRSVPViewSet)
 router.register("meetings/reschedule", meeting_views.RescheduleRequestViewSet)
+router.register("meetings/request", meeting_views.MeetingRequestViewSet)
 
 public_router = DefaultRouter()
 

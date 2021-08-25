@@ -26,10 +26,9 @@ class Interest(base_model.BaseModel):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        # TODO(Nishant): Rename it to Meeting Interest
-        verbose_name = _('Meeting Interest')
-        verbose_name_plural = _('Meeting Interests')
-        ordering = ['-created_at']
+        verbose_name = _("Meeting Interest")
+        verbose_name_plural = _("Meeting Interests")
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.name
@@ -58,10 +57,9 @@ class Objective(base_model.BaseModel):
         return "{} - {}".format(self.name, self.type or "")
 
     class Meta:
-        # TODO(Nishant): Rename it to Meeting Objective
-        verbose_name = _('Meeting Objective')
-        verbose_name_plural = _('Meeting Objectives')
-        ordering = ['-created_at']
+        verbose_name = _("Meeting Objective")
+        verbose_name_plural = _("Meeting Objectives")
+        ordering = ["-created_at"]
 
 
 class TimeSlot(base_model.BaseModel):
@@ -87,12 +85,12 @@ class TimeSlot(base_model.BaseModel):
     )
 
     class Meta:
-        verbose_name = _('Time Slot')
-        verbose_name_plural = _('Time Slots')
+        verbose_name = _("Time Slot")
+        verbose_name_plural = _("Time Slots")
 
     def clean(self):
         if self.start_time >= self.end_time:
-            raise exceptions.ValidationError({'end': _('Start time should be lesser than End time.')})
+            raise exceptions.ValidationError({"end": _("Start time should be lesser than End time.")})
 
     def get_display(self):
         """
@@ -109,17 +107,17 @@ class TimeSlot(base_model.BaseModel):
         display_time = self.get_display_time()
         display_date = self.get_display_day()
 
-        return '{} - {}'.format(display_date, display_time)
+        return "{} - {}".format(display_date, display_time)
 
     def get_display_day(self):
-        return '{}, {} {}'.format(
-            self.date.strftime('%A'),
+        return "{}, {} {}".format(
+            self.date.strftime("%A"),
             str(self.date.day),
-            self.date.strftime('%B')
+            self.date.strftime("%B")
         )
 
     def get_display_time(self, join="to"):
-        return '{} {} {}'.format(self.get_display_start_time(), join, self.get_display_end_time())
+        return "{} {} {}".format(self.get_display_start_time(), join, self.get_display_end_time())
 
     def get_display_start_time(self):
         start_time = datetime.datetime.strptime(str(self.start_time), "%H:%M:%S")
@@ -139,27 +137,27 @@ class Config(base_model.BaseModel):
 
     Note:
         This consists of all details for a meeting
-        user's can opt in for at a given time.
+        user"s can opt in for at a given time.
 
     """
     # Title is not being used right now. But can be used in
     # any way in the future.
-    title = models.CharField(_('Title'), max_length=255)
+    title = models.CharField(_("Title"), max_length=255)
     # Week the meeting is for.
-    week_start_date = models.DateField(_('Week Start Date'), null=True, blank=False)
-    week_end_date = models.DateField(_('Week End Date'), null=True, blank=False)
+    week_start_date = models.DateField(_("Week Start Date"), null=True, blank=False)
+    week_end_date = models.DateField(_("Week End Date"), null=True, blank=False)
     # Registration details for the meeting. Only during this time period can a
     # user register for the meeting.
-    registration_start_date = models.DateField(_('Registration Start Date'), null=True, blank=False)
-    registration_end_date = models.DateField(_('Registration End Date'), null=True, blank=False)
-    is_registration_open = models.BooleanField(_('Registration Open'), default=True)
-    is_active = models.BooleanField(_('Active Meeting'), default=True)
+    registration_start_date = models.DateField(_("Registration Start Date"), null=True, blank=False)
+    registration_end_date = models.DateField(_("Registration End Date"), null=True, blank=False)
+    is_registration_open = models.BooleanField(_("Registration Open"), default=True)
+    is_active = models.BooleanField(_("Active Meeting"), default=True)
     # Only used for display purposes. The actual time slots being
     # assigned to a meeting are different.
     available_time_slots = models.ManyToManyField(
         TimeSlot,
-        verbose_name=_('Available Slots'),
-        related_name='meeting_configs',
+        verbose_name=_("Available Slots"),
+        related_name="meeting_configs",
     )
     type = models.CharField(
         max_length=64,
@@ -168,37 +166,37 @@ class Config(base_model.BaseModel):
     )
 
     def __str__(self):
-        return '{} - {} to {}'.format(
+        return "{} - {} to {}".format(
             self.pk,
             self.get_display_week_start_date(),
             self.get_display_week_end_date()
         )
 
     def get_display_week_start_date(self):
-        return '{}, {} {}, {}'.format(
-            self.week_start_date.strftime('%A'),
+        return "{}, {} {}, {}".format(
+            self.week_start_date.strftime("%A"),
             str(self.week_start_date.day),
-            self.week_end_date.strftime('%B'),
+            self.week_end_date.strftime("%B"),
             self.week_start_date.year
         )
 
     def get_display_week_end_date(self):
-        return '{}, {} {}, {}'.format(
-            self.week_end_date.strftime('%A'),
+        return "{}, {} {}, {}".format(
+            self.week_end_date.strftime("%A"),
             str(self.week_end_date.day),
-            self.week_end_date.strftime('%B'),
+            self.week_end_date.strftime("%B"),
             self.week_end_date.year
         )
 
     def clean(self):
         if not self.week_start_date:
-            raise exceptions.ValidationError('Week start date is required.')
+            raise exceptions.ValidationError("Week start date is required.")
 
         if not self.week_end_date:
-            raise exceptions.ValidationError('Week end date is required.')
+            raise exceptions.ValidationError("Week end date is required.")
 
         if self.week_start_date >= self.week_end_date:
-            raise exceptions.ValidationError('Week start should be lesser than week end.')
+            raise exceptions.ValidationError("Week start should be lesser than week end.")
 
     def close_meeting(self):
         self.is_registration_open = False
@@ -217,77 +215,77 @@ class MeetingPreference(base_model.BaseModel):
 
     """
     user = models.ForeignKey(
-        'users.User',
-        verbose_name=_('User'),
+        "users.User",
+        verbose_name=_("User"),
         on_delete=models.CASCADE,
-        related_name='meeting_preferences'
+        related_name="meeting_preferences"
     )
     # Should denote the latest meeting_config the user
     # has opted in for.
     # TODO(Abhishek): Rename to config after users on old app upgrade to new version
     meeting = models.ForeignKey(
         Config,
-        verbose_name=_('Meeting Config'),
+        verbose_name=_("Meeting Config"),
         on_delete=models.CASCADE,
-        related_name='user_preferences'
+        related_name="user_preferences"
     )
     number_of_meetings_per_month = models.PositiveIntegerField(default=2)
     number_of_meetings = models.PositiveIntegerField(default=1)
     objectives = models.ManyToManyField(
         Objective,
-        verbose_name=_('Meeting Objective'),
+        verbose_name=_("Meeting Objective"),
         blank=True
     )
     interests = models.ManyToManyField(
         Interest,
-        verbose_name=_('Meeting Interests'),
+        verbose_name=_("Meeting Interests"),
     )
     time_slots = models.ManyToManyField(
         TimeSlot,
-        verbose_name=_('Time Slots'),
+        verbose_name=_("Time Slots"),
     )
     topic = models.ForeignKey(
-        'conversations.Topic',
+        "conversations.Topic",
         on_delete=models.CASCADE,
-        related_name='user_preferences',
+        related_name="user_preferences",
         null=True,
         blank=True,
     )
 
     class Meta:
-        verbose_name = _('Meeting Preference')
-        verbose_name_plural = _('Meeting Preferences')
-        ordering = ['-created_at']
+        verbose_name = _("Meeting Preference")
+        verbose_name_plural = _("Meeting Preferences")
+        ordering = ["-created_at"]
 
 
 class Meeting(base_model.BaseModel):
     config = models.ForeignKey(
         Config,
-        verbose_name=_('Meeting Config'),
+        verbose_name=_("Meeting Config"),
         on_delete=models.CASCADE,
-        related_name='meetings'
+        related_name="meetings"
     )
     participants = models.ManyToManyField(
-        'users.User',
-        verbose_name=_('Participants'),
+        "users.User",
+        verbose_name=_("Participants"),
     )
     link = models.URLField(null=True, blank=True)
     start = models.DateTimeField(
-        verbose_name=_('Meeting Start Time'),
+        verbose_name=_("Meeting Start Time"),
         null=True,
         blank=True
     )
     end = models.DateTimeField(
-        verbose_name=_('Meeting End Time'),
+        verbose_name=_("Meeting End Time"),
         null=True,
         blank=True
     )
     is_canceled = models.BooleanField(
         default=False,
-        verbose_name=_('Canceled')
+        verbose_name=_("Canceled")
     )
     status = models.CharField(
-        verbose_name=_('Meeting Status'),
+        verbose_name=_("Meeting Status"),
         choices=choices.MEETING_STATUS_CHOICES,
         default=choices.MEETING_STATUS_PENDING,
         max_length=32,
@@ -320,7 +318,7 @@ class Meeting(base_model.BaseModel):
         """
         display_time = self.get_display_time()
         display_date = self.get_display_day()
-        return '{} @ {}'.format(display_date, display_time)
+        return "{} @ {}".format(display_date, display_time)
 
     def get_display_day(self):
         """Give a displayable date for a Meeting.
@@ -338,7 +336,7 @@ class Meeting(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return '{} - {}'.format(self.get_display_start_time(), self.get_display_end_time())
+        return "{} - {}".format(self.get_display_start_time(), self.get_display_end_time())
 
     def get_display_start_time(self):
         """Give a displayable start time for a Meeting.
@@ -365,15 +363,15 @@ class MeetingRSVP(base_model.BaseModel):
 
     """
     meeting = models.ForeignKey(
-        'meetings.Meeting',
-        verbose_name=_('Meeting'),
-        related_name='rsvps',
+        "meetings.Meeting",
+        verbose_name=_("Meeting"),
+        related_name="rsvps",
         on_delete=models.CASCADE,
     )
     participant = models.ForeignKey(
         get_user_model(),
-        verbose_name=_('Meeting Participant'),
-        related_name='meeting_rsvps',
+        verbose_name=_("Meeting Participant"),
+        related_name="meeting_rsvps",
         on_delete=models.CASCADE,
     )
     status = models.CharField(
@@ -392,28 +390,28 @@ class MeetingRSVP(base_model.BaseModel):
 class RescheduleRequest(base_model.BaseModel):
     old_meeting = models.ForeignKey(
         Meeting,
-        verbose_name=_('Old Meeting'),
-        related_name='reschedule_requests',
+        verbose_name=_("Old Meeting"),
+        related_name="reschedule_requests",
         on_delete=models.CASCADE,
     )
     new_meeting = models.ForeignKey(
         Meeting,
         null=True,
         blank=True,
-        verbose_name=_('New Meeting'),
-        related_name='rescheduled_from',
+        verbose_name=_("New Meeting"),
+        related_name="rescheduled_from",
         on_delete=models.CASCADE
     )
     requested_by = models.ForeignKey(
         get_user_model(),
-        verbose_name=_('Request By'),
-        related_name='reschedule_requests',
+        verbose_name=_("Request By"),
+        related_name="reschedule_requests",
         on_delete=models.CASCADE
     )
     approver = models.ForeignKey(
         get_user_model(),
-        verbose_name=_('Approver'),
-        related_name='reschedule_approvals',
+        verbose_name=_("Approver"),
+        related_name="reschedule_approvals",
         on_delete=models.CASCADE
     )
     time_slots = ArrayField(
@@ -431,6 +429,47 @@ class RescheduleRequest(base_model.BaseModel):
     )
 
     class Meta:
-        verbose_name = _('Reschedule Request')
-        verbose_name_plural = _('Reschedule Requests')
-        unique_together = ['old_meeting', 'requested_by']
+        verbose_name = _("Reschedule Request")
+        verbose_name_plural = _("Reschedule Requests")
+        unique_together = ["old_meeting", "requested_by"]
+
+
+class MeetingRequest(base_model.BaseModel):
+
+    MEETING_REQUEST_STATUSES = (
+        (choices.MEETING_REQUEST_PENDING_APPROVAL, choices.MEETING_REQUEST_PENDING_APPROVAL.title()),
+        (choices.MEETING_REQUEST_CONFIRMED, choices.MEETING_REQUEST_CONFIRMED.title()),
+        (choices.MEETING_REQUEST_DECLINED, choices.MEETING_REQUEST_DECLINED.title()),
+    )
+
+    requested_by = models.ForeignKey(
+        get_user_model(),
+        related_name="meetings_requested",
+        on_delete=models.CASCADE
+    )
+    requested_to = models.ForeignKey(
+        get_user_model(),
+        related_name="meeting_requests",
+        on_delete=models.CASCADE
+    )
+    time_slots = ArrayField(
+        models.DateTimeField(null=True, blank=True),
+        size=3
+    )
+    # The time slot selected by the requested_to user, if any.
+    selected_time_slot = models.DateTimeField(null=True, blank=True)
+
+    # Request status and expiry details.
+    status = models.CharField(
+        max_length=32,
+        default=choices.MEETING_REQUEST_PENDING_APPROVAL,
+        choices=MEETING_REQUEST_STATUSES
+    )
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = _("Meeting Request")
+        verbose_name_plural = _("Meeting Requests")

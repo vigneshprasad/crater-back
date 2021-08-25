@@ -472,3 +472,27 @@ def _send_meeting_cancellation_email(meeting):
             merge_vars=data,
             reply_to=reply_to,
         )
+
+
+@receiver(signals.meeting_request_approved)
+def create_meeting_on_meeting_request_approval(sender, meeting_request, *args, **kwargs):
+    """Create meeting when a meeting request is accepted.
+
+    Args:
+        sender(MeetingRequest class): Class object of the meeting request.
+        meeting_request(MeetingRequest): Actual object approved.
+
+    """
+    start = meeting_request.selected_time_slot
+    end = start + datetime.timedelta(minutes=30)
+    # Get meeting config based on the start date.
+    meeting_config = services.get_meeting_config_based_on_date(start.date())
+    participants = [meeting_request.requested_by, meeting_request.requested_to]
+
+    # Create meeting.
+    services.create_meeting(
+        meeting_config,
+        participants,
+        start,
+        end
+    )
