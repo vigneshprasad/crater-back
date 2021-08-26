@@ -56,7 +56,7 @@ class UserMeetingPreferenceViewSet(
         user = request.user
         instance = models.MeetingPreference.objects.filter(user=user).last()
         if not instance:
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         config = services.get_latest_active_meeting_config()
         slot_start_times = list(instance.time_slots.all().values_list("start_time", flat=True).distinct())
         instance.time_slots.set(config.available_time_slots.all().filter(start_time__in=slot_start_times))
@@ -69,26 +69,35 @@ class UserMeetingPreferenceViewSet(
             is_active=True,
             is_registration_open=True
         ).last()
+
         if not active_meeting:
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
         instance = active_meeting.user_preferences.filter(user=user).last()
         if not instance:
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
         serialized = self.get_serializer(instance)
         return Response(serialized.data)
 
     def _add_objectives_to_request(self):
         request = self.request
         objective = request.data.get("objective")
+
         if not objective:
             return request
+
         for choice in choices.OBJECTIVE_CHOICES:
-            if choice[0] == objective:
-                try:
-                    objective_model = models.Objective.objects.get(name=choice[1], is_active=True)
-                    request.data["objectives"] = [objective_model.pk]
-                except models.Objective.DoesNotExist:
-                    pass
+            if choice[0] != objective:
+                continue
+            try:
+                # TODO(Nishant): Check if we have to create a list of all objectives
+                # or only one objective.
+                objective_model = models.Objective.objects.get(name=choice[1], is_active=True)
+                request.data["objectives"] = [objective_model.pk]
+            except models.Objective.DoesNotExist:
+                continue
+
         return request
 
     def update(self, request, *args, **kwargs):
@@ -213,7 +222,8 @@ class MeetingConfigV2ViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     def list(self, request, *args, **kwargs):
         instance = services.get_latest_active_meeting_config()
         if not instance:
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
         serialized = self.get_serializer(instance)
         return Response(serialized.data)
 
