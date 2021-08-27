@@ -581,6 +581,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "company_type_advised",
             "companies_invested",
             "other_tag",
+            "allow_meeting_request"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
