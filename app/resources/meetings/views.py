@@ -1,5 +1,6 @@
 import datetime
 import pytz
+from django.db.models import Q
 
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
@@ -488,6 +489,23 @@ class MeetingRequestViewSet(
     permission_classes = [user_permissions.IsAuthenticated]
     filterset_fields = ["requested_by", "requested_to"]
 
+    def _create_data_by_date(self, queryset):
+        """Returns meeting requests per date for a given queryset."""
+        response = []
+        dates = list(queryset.values_list("created_at__date", flat=True).distinct())
+        # Reverse date list from start to end.
+        dates.reverse()
+
+        for date in dates:
+            meeting_requests = queryset.filter(created_at__date=date)
+            serialized = self.get_serializer(meeting_requests, many=True)
+            response.append({
+                "date": date.isoformat(),
+                "meeting_requests": serialized.data,
+            })
+
+        return response
+
     @staticmethod
     def generate_bad_request(data):
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -615,3 +633,23 @@ class MeetingRequestViewSet(
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def my(self, request, *args, **kwargs):
+        """Returns users meeting request, both to and by."""
+        user = request.user
+
+        # Get meetings request for user, both requested to and requested by.
+        meeting_requests = self.get_queryset()
+        user_meeting_requests = meeting_requests.filter(
+            Q(requested_by=user) | Q(requested_to=user)
+        )
+        response_data = self._create_data_by_date(queryset=user_meeting_requests)
+
+        return Response(
+            response_data,
+            status=status.HTTP_200_OK
+        )
