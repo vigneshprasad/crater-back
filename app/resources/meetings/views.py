@@ -1,7 +1,6 @@
 import datetime
 import pytz
 
-from django.conf import settings
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -376,6 +375,7 @@ class RescheduleRequestViewSet(
         reschedule_request_id = request_data.get("reschedule_request")
 
         try:
+            # TODO(Nishant): Replace this with datetime.datetime.fromisoformat()
             selected_time_slot = datetime.datetime.strptime(
                 request_data["time_slot"],
                 "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -384,10 +384,7 @@ class RescheduleRequestViewSet(
             return self.generate_bad_request(
                 {"error": "Invalid datetime format."}
             )
-
-        # TODO(Nishant): Clean up this timezone stuff.
-        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(settings.TIME_ZONE))
-        selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
+        selected_time_slot = selected_time_slot.replace(tzinfo=pytz.UTC)
 
         if not reschedule_request_id and selected_time_slot:
             return self.generate_bad_request(
@@ -563,10 +560,17 @@ class MeetingRequestViewSet(
                 {"error": "Meeting request does not exist."}
             )
 
-        # Convert incoming selected time slot to timezone aware UTC datetime.
-        selected_time_slot = datetime.datetime.fromisoformat(selected_time_slot_str)
-        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(settings.TIME_ZONE))
-        selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
+        try:
+            # TODO(Nishant): Replace this with datetime.datetime.fromisoformat()
+            selected_time_slot = datetime.datetime.strptime(
+                selected_time_slot_str,
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+        except ValueError:
+            return self.generate_bad_request(
+                {"error": "Invalid datetime format."}
+            )
+        selected_time_slot = selected_time_slot.replace(tzinfo=pytz.UTC)
 
         data = {
             "selected_time_slot": selected_time_slot,

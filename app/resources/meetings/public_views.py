@@ -7,7 +7,6 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import mixins, viewsets, status
-from freelance.settings import TIME_ZONE
 
 from users import permissions
 from resources.meetings import models
@@ -38,14 +37,14 @@ class MeetingPreferencePublicViewSet(
     serializer_class = serializers.PublicMeetingPreferenceSerializer
     queryset = models.MeetingPreference.objects.all()
     permission_classes = [permissions.AllowAny]
-    filterset_fields = ['meeting', 'user']
+    filterset_fields = ["meeting", "user"]
 
     @staticmethod
     def generate_bad_request(data):
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-        methods=['get'],
+        methods=["get"],
         serializer_class=serializers.PublicMeetingPreferenceSerializer,
         permission_classes=[permissions.AllowAny],
         detail=False
@@ -55,7 +54,7 @@ class MeetingPreferencePublicViewSet(
 
         Note:
             The user may have registered for a meeting multiple times,
-            get the user's latest preference.
+            get the user"s latest preference.
 
         """
 
@@ -74,7 +73,7 @@ class MeetingPreferencePublicViewSet(
         return response
 
     @action(
-        methods=['post'],
+        methods=["post"],
         serializer_class=serializers.PublicMeetingPreferenceSerializer,
         permission_classes=[permissions.AllowAny],
         detail=False
@@ -89,10 +88,10 @@ class MeetingPreferencePublicViewSet(
                 user.
 
         """
-        data = request.data.get('user')
+        data = request.data.get("user")
         if not data:
             return self.generate_bad_request(
-                {'error': 'Query data missing'}
+                {"error": "Query data missing"}
             )
 
         try:
@@ -168,7 +167,6 @@ class MeetingPreferencePublicViewSet(
             )
 
 
-
 class MeetingPublicViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -179,7 +177,7 @@ class MeetingPublicViewSet(
     serializer_class = serializers.PublicMeetingSerializer
     queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
-    filterset_fields = ['config']
+    filterset_fields = ["config"]
 
     def create(self, request, *args, **kwargs):
         data = json.loads(request.body)
@@ -233,7 +231,7 @@ class MeetingPublicViewSet(
             response_dict = dict(data)
             participants_emails = get_user_model().objects.filter(
                     uuid__in=response_dict["participants"]
-                ).values_list('email', flat=True)
+                ).values_list("email", flat=True)
             start = datetime.datetime.strptime(response_dict["start"], settings.DEFAULT_DATETIME_FORMAT)
             end = datetime.datetime.strptime(response_dict["end"], settings.DEFAULT_DATETIME_FORMAT)
             data = {
@@ -251,30 +249,30 @@ class MeetingPublicViewSet(
         return Response(final_response)
 
     def retrieve(self, request, *args, **kwargs):
-        request_user_id = kwargs['pk']
+        request_user_id = kwargs["pk"]
         response = super(MeetingPublicViewSet, self).list(request, *args, **kwargs)
         final_response = []
 
         for data in response.data:
             response_dict = dict(data)
-            start = response_dict.get('start')
+            start = response_dict.get("start")
             if not start:
                 continue
             start_datetime = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-            end = response_dict.get('end')
+            end = response_dict.get("end")
             if not end:
                 end = start + datetime.timedelta(minutes=30)
             end_datetime = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-            meeting_link = response_dict.get('link')
+            meeting_link = response_dict.get("link")
             user = None
-            participants = response_dict.get('participants')
+            participants = response_dict.get("participants")
 
             for participant in participants:
-                if str(participant.get('pk')) == request_user_id:
+                if str(participant.get("pk")) == request_user_id:
                     continue
-                user = get_user_model().objects.get(pk=participant.get('pk'))
+                user = get_user_model().objects.get(pk=participant.get("pk"))
 
             if not user:
                 continue
@@ -325,12 +323,12 @@ class RescheduleRequestPublicViewSet(
             user, reschedule = services.get_reschedule_from_url(data)
             if reschedule.approver.pk != user.pk:
                 return self.generate_bad_request({
-                    'error': 'You do not have permission to reschedule. Please contact WorkNetwork if you think this is a mistake.'
+                    "error": "You do not have permission to reschedule. Please contact WorkNetwork if you think this is a mistake."
                 })
 
             if reschedule.status != choices.RESCHEDULE_REQUEST_PENDING_APPROVAL:
                 return self.generate_bad_request({
-                    'error': 'You have already responded to this reschedule request.'
+                    "error": "You have already responded to this reschedule request."
                 })
 
             return Response(data=self.get_serializer(reschedule).data)
@@ -349,25 +347,22 @@ class RescheduleRequestPublicViewSet(
             )
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False
     )
     def confirmed(self, request, *args, **kwargs):
         reschedule_request_id = request.data.get("id")
         try:
+            # TODO(Nishant): Replace this with datetime.datetime.fromisoformat()
             selected_time_slot = datetime.datetime.strptime(
                 request.data["time_slot"], 
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
-            
         except ValueError:
             return self.generate_bad_request(
                 {"error": "Invalid datetime format."}
             )
-
-        # TODO(Nishant): Clean up this timezone stuff.
-        selected_time_slot = selected_time_slot.astimezone(pytz.timezone(TIME_ZONE))
-        selected_time_slot = selected_time_slot.astimezone(pytz.UTC)
+        selected_time_slot = selected_time_slot.replace(tzinfo=pytz.UTC)
 
         if not reschedule_request_id and selected_time_slot:
             return self.generate_bad_request(
@@ -408,7 +403,7 @@ class RescheduleRequestPublicViewSet(
         return Response({"success": True})
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False
     )
     def declined(self, request, *args, **kwargs):
@@ -451,7 +446,7 @@ class MeetingRSVPPublicViewSet(
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
-        methods=['POST'],
+        methods=["POST"],
         detail=False,
     )
     def attending(self, request):
@@ -463,21 +458,21 @@ class MeetingRSVPPublicViewSet(
                 as attending for the meeting.
 
         """
-        data = request.data.get('meeting')
+        data = request.data.get("meeting")
         if not data:
             return self.generate_bad_request(
-                {'error': 'Query data missing'}
+                {"error": "Query data missing"}
             )
 
         try:
             user, meeting = services.get_user_meeting_from_url(data)
             if meeting.status == choices.MEETING_STATUS_CANCELLED:
                 return self.generate_bad_request({
-                    'error': 'This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake.'
+                    "error": "This meeting has been cancelled. Please contact WorkNetwork if you think this is a mistake."
                 })
             if meeting.status == choices.MEETING_STATUS_RESCHEDULED:
                 return self.generate_bad_request({
-                    'error': 'This meeting has been rescheduled or a reschedule request is pending. Please contact WorkNetwork if you think this is a mistake.'
+                    "error": "This meeting has been rescheduled or a reschedule request is pending. Please contact WorkNetwork if you think this is a mistake."
                 })
             rsvp = models.MeetingRSVP.objects.get(
                 meeting=meeting,
@@ -485,7 +480,7 @@ class MeetingRSVPPublicViewSet(
             )
             if rsvp.status == choices.MEETING_RSVP_STATUS_CHOICES[0][0]:
                 return self.generate_bad_request({
-                    'error': 'You have already RSVPed for this meeting.'
+                    "error": "You have already RSVPed for this meeting."
                 })
             rsvp.status = choices.MEETING_RSVP_STATUS_CHOICES[0][0]
             rsvp.save()
