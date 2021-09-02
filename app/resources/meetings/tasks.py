@@ -595,3 +595,27 @@ def _send_meeting_cancellation_email(meeting):
             merge_vars=data,
             reply_to=reply_to,
         )
+
+
+@periodic_task(run_every=crontab(minute="*/15"))
+def send_whatsapp_meeting_reminders(meeting_requests=None):
+    """Expires meeting requests at expiry time of the request.
+
+    Args:
+        meeting_requests(Meeting Request queryset): Queryset of meeting requests
+            that we want to expire.
+
+    """
+    now_time = datetime.datetime.now()
+
+    start_datetime = (now_time - datetime.timedelta(minutes=15))
+    end_datetime = now_time
+
+    expiring_meeting_requests = models.MeetingRequest.objects.filter(
+        expires_at__lte=end_datetime,
+        expires_at__gte=start_datetime,
+        status=choices.MEETING_REQUEST_PENDING_APPROVAL
+    ) if not meeting_requests else meeting_requests
+
+    for meeting_request in expiring_meeting_requests:
+        meeting_request.expire()

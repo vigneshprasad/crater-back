@@ -465,7 +465,13 @@ class MeetingRequest(base_model.BaseModel):
         default=choices.MEETING_REQUEST_PENDING_APPROVAL,
         choices=MEETING_REQUEST_STATUSES
     )
+    # Till what time is the request is valid.
     expires_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    is_expired = models.BooleanField(default=False)
+    expired_at = models.DateTimeField(
         null=True,
         blank=True
     )
@@ -473,3 +479,8 @@ class MeetingRequest(base_model.BaseModel):
     class Meta:
         verbose_name = _("Meeting Request")
         verbose_name_plural = _("Meeting Requests")
+
+    def expire(self):
+        self.is_expired = True
+        self.expired_at = datetime.datetime.now()
+        self.save()

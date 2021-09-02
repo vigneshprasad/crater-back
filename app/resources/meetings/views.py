@@ -485,9 +485,9 @@ class MeetingRequestViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.MeetingRequestSerializer
-    queryset = models.MeetingRequest.objects.all()
+    queryset = models.MeetingRequest.objects.filter(is_expired=False)
     permission_classes = [user_permissions.IsAuthenticated]
-    filterset_fields = ["requested_by", "requested_to"]
+    filterset_fields = ["requested_by", "requested_to", "status"]
 
     def _create_data_by_date(self, queryset):
         """Returns meeting requests per date for a given queryset."""
@@ -636,7 +636,8 @@ class MeetingRequestViewSet(
 
     @action(
         methods=["GET"],
-        detail=False
+        detail=False,
+        filterset_fields=["status"]
     )
     def my(self, request, *args, **kwargs):
         """Returns users meeting request, both to and by."""

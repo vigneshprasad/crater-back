@@ -21,7 +21,7 @@ class TimeSlotSerializer(serializers.ModelSerializer):
             "end",
             "start",
         )
-        
+
 
 class ConfigPublicSerializer(serializers.ModelSerializer):
 
@@ -395,14 +395,22 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
                 allotted by the requester.
 
         """
-        print(self.instance.time_slots)
         time_slots = self.instance.time_slots
         if selected_time_slot not in time_slots:
             return serializers.ValidationError("Selected time slot is not valid.")
 
+        # Don't let user select past time slots.
+        if selected_time_slot < datetime.datetime.now():
+            return serializers.ValidationError("Selected time slot is in the past.")
+
         return selected_time_slot
 
     def create(self, validated_data):
+
+        # Expire meeting request 1 day before the max time slot.
+        expires_at = max(validated_data["time_slots"]) - datetime.timedelta(days=1)
+        validated_data["expires_at"] = expires_at
+
         instance = super().create(validated_data)
 
         # Send signal on creation of meeting request.
@@ -413,6 +421,7 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
+
         # If the instance status is already accepted or declined don"t update again.
         if instance.status != choices.MEETING_REQUEST_PENDING_APPROVAL:
             return serializers.ValidationError("You have already responded to the request.")
