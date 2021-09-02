@@ -17,9 +17,9 @@ class TimeSlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.TimeSlot
         fields = (
-            'pk',
-            'end',
-            'start',
+            "pk",
+            "end",
+            "start",
         )
         
 
@@ -28,12 +28,12 @@ class ConfigPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Config
         fields = (
-            'pk',
-            'title',
-            'week_start_date',
-            'week_end_date',
-            'is_registration_open',
-            'is_active'
+            "pk",
+            "title",
+            "week_start_date",
+            "week_end_date",
+            "is_registration_open",
+            "is_active"
         )
 
 
@@ -46,16 +46,16 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Config
         fields = (
-            'pk',
-            'title',
-            'week_start_date',
-            'week_end_date',
-            'is_registration_open',
-            'is_active',
-            'available_time_slots',
-            'objectives',
-            'interests',
-            'user_preferences'
+            "pk",
+            "title",
+            "week_start_date",
+            "week_end_date",
+            "is_registration_open",
+            "is_active",
+            "available_time_slots",
+            "objectives",
+            "interests",
+            "user_preferences"
         )
 
     @staticmethod
@@ -71,16 +71,16 @@ class MeetingConfigSerializer(serializers.ModelSerializer):
         return services.get_interest_list()
 
     def get_user_preferences(self, meeting):
-        user = self.context['request'].user
+        user = self.context["request"].user
         latest_user_preference = meeting.user_preferences.filter(user=user).last()
         if not latest_user_preference:
             return {}
         user_preference = {
-            'pk': latest_user_preference.pk,
-            'number_of_meetings': latest_user_preference.number_of_meetings,
-            'objective': latest_user_preference.objectives.values_list('pk', flat=True),
-            'interests': latest_user_preference.interests.values_list('pk', flat=True),
-            'time_slots': latest_user_preference.time_slots.values_list('pk', flat=True)
+            "pk": latest_user_preference.pk,
+            "number_of_meetings": latest_user_preference.number_of_meetings,
+            "objective": latest_user_preference.objectives.values_list("pk", flat=True),
+            "interests": latest_user_preference.interests.values_list("pk", flat=True),
+            "time_slots": latest_user_preference.time_slots.values_list("pk", flat=True)
         }
         return user_preference
 
@@ -90,10 +90,10 @@ class MeetingObjectiveSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Objective
         fields = (
-            'pk',
-            'name',
-            'icon',
-            'type',
+            "pk",
+            "name",
+            "icon",
+            "type",
         )
 
 
@@ -102,9 +102,9 @@ class MeetingInterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Interest
         fields = (
-            'pk',
-            'name',
-            'icon',
+            "pk",
+            "name",
+            "icon",
         )
 
 
@@ -112,14 +112,14 @@ class PostUserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializer
     class Meta:
         model = models.MeetingPreference
         fields = (
-            'pk',
-            'user',
-            'meeting',
-            'number_of_meetings',
-            'number_of_meetings_per_month',
-            'objectives',
-            'interests',
-            'time_slots'
+            "pk",
+            "user",
+            "meeting",
+            "number_of_meetings",
+            "number_of_meetings_per_month",
+            "objectives",
+            "interests",
+            "time_slots"
         )
 
 
@@ -130,14 +130,14 @@ class UserMeetingPreferenceSerializer(SetCreatorRequestDataMixin, serializers.Mo
     class Meta:
         model = models.MeetingPreference
         fields = (
-            'pk',
-            'user',
-            'meeting',
-            'number_of_meetings',
-            'number_of_meetings_per_month',
-            'objectives',
-            'interests',
-            'time_slots'
+            "pk",
+            "user",
+            "meeting",
+            "number_of_meetings",
+            "number_of_meetings_per_month",
+            "objectives",
+            "interests",
+            "time_slots"
         )
 
 
@@ -151,14 +151,14 @@ class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.MeetingPreference
         fields = (
-            'pk',
-            'user',
-            'meeting',
-            'looking_for',
-            'looking_to',
-            'user_email',
-            'interests_display',
-            'time_slots_display'
+            "pk",
+            "user",
+            "meeting",
+            "looking_for",
+            "looking_to",
+            "user_email",
+            "interests_display",
+            "time_slots_display"
         )
 
     @staticmethod
@@ -171,8 +171,8 @@ class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
             type=choices.OBJECTIVE_TYPES[0][0]
         )
         if not looking_for_objectives:
-            return ''
-        return ','.join([objective.name for objective in looking_for_objectives])
+            return ""
+        return ",".join([objective.name for objective in looking_for_objectives])
 
     @staticmethod
     def get_looking_to(meeting_preference):
@@ -180,18 +180,18 @@ class PublicMeetingPreferenceSerializer(serializers.ModelSerializer):
             type=choices.OBJECTIVE_TYPES[1][0]
         )
         if not looking_to_objectives:
-            return ''
-        return ','.join([objective.name for objective in looking_to_objectives])
+            return ""
+        return ",".join([objective.name for objective in looking_to_objectives])
 
     @staticmethod
     def get_interests_display(meeting_preference):
         interests = meeting_preference.interests.all()
-        return ','.join([interest.name for interest in interests])
+        return ",".join([interest.name for interest in interests])
 
     @staticmethod
     def get_time_slots_display(meeting_preference):
         time_slots = meeting_preference.time_slots.all()
-        return ','.join([time_slot.get_display() for time_slot in time_slots])
+        return ",".join([time_slot.get_display() for time_slot in time_slots])
 
 
 class MeetingUserSerializer(serializers.ModelSerializer):
@@ -201,21 +201,21 @@ class MeetingUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = (
-            'pk',
-            'photo',
-            'name',
-            'introduction',
+            "pk",
+            "photo",
+            "name",
+            "introduction",
         )
 
     @staticmethod
     def get_photo(user):
-        if not hasattr(user, 'profile'):
+        if not hasattr(user, "profile"):
             return None
         return user.profile.photo.url if user.profile.photo else user.profile.photo_url
 
     @staticmethod
     def get_introduction(user):
-        if not hasattr(user, 'profile'):
+        if not hasattr(user, "profile"):
             return None
         return user.profile.get_introduction()
 
@@ -225,10 +225,10 @@ class MeetingRSVPSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.MeetingRSVP
         fields = (
-            'pk',
-            'meeting',
-            'participant',
-            'status',
+            "pk",
+            "meeting",
+            "participant",
+            "status",
         )
 
 
@@ -240,19 +240,19 @@ class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Meeting
         fields = [
-            'pk',
-            'config',
-            'participants',
-            'link',
-            'start',
-            'end',
-            'is_past',
-            'status',
-            'participant_detail',
+            "pk",
+            "config",
+            "participants",
+            "link",
+            "start",
+            "end",
+            "is_past",
+            "status",
+            "participant_detail",
         ]
 
     def get_participant_detail(self, meeting):
-        request = self.context.get('request')
+        request = self.context.get("request")
         user = request.user
         if not user:
             return None
@@ -276,13 +276,13 @@ class PublicMeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Meeting
         fields = [
-            'pk',
-            'config',
-            'participants',
-            'link',
-            'start',
-            'end',
-            'status',
+            "pk",
+            "config",
+            "participants",
+            "link",
+            "start",
+            "end",
+            "status",
         ]
 
 
@@ -292,13 +292,13 @@ class MeetingConfigV2Serializer(serializers.ModelSerializer):
     class Meta:
         model = models.Config
         fields = (
-            'pk',
-            'title',
-            'week_start_date',
-            'week_end_date',
-            'is_registration_open',
-            'is_active',
-            'available_time_slots',
+            "pk",
+            "title",
+            "week_start_date",
+            "week_end_date",
+            "is_registration_open",
+            "is_active",
+            "available_time_slots",
         )
 
     @staticmethod
@@ -310,7 +310,7 @@ class RescheduleRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.RescheduleRequest
-        fields = '__all__'
+        fields = "__all__"
 
 
 class PostRescheduleRequestSerializer(serializers.ModelSerializer):
@@ -318,10 +318,10 @@ class PostRescheduleRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.RescheduleRequest
         fields = (
-            'id',
-            'old_meeting',
-            'requested_by',
-            'time_slots'
+            "id",
+            "old_meeting",
+            "requested_by",
+            "time_slots"
         )
 
     def create(self, validated_data):
@@ -348,6 +348,8 @@ class PostRescheduleRequestSerializer(serializers.ModelSerializer):
 
 class MeetingRequestSerializer(serializers.ModelSerializer):
 
+    participant_detail = serializers.SerializerMethodField()
+
     class Meta:
         model = models.MeetingRequest
         fields = (
@@ -357,7 +359,8 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
             "time_slots",
             "selected_time_slot",
             "status",
-            "expires_at"
+            "expires_at",
+            "participant_detail"
         )
         extra_kwargs = {
             "status": {
@@ -370,6 +373,19 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
                 "required": False
             }
         }
+
+    def get_participant_detail(self, meeting_request):
+        request = self.context.get("request")
+        user = request.user
+        if not user:
+            return None
+
+        if meeting_request.requested_by == user:
+            return MeetingUserSerializer(meeting_request.requested_to).data
+        elif meeting_request.requested_to == user:
+            return MeetingUserSerializer(meeting_request.requested_by).data
+
+        return None
 
     def validate_selected_time_slot(self, selected_time_slot):
         """Validate selected time slot by the user.
@@ -397,7 +413,7 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        # If the instance status is already accepted or declined don't update again.
+        # If the instance status is already accepted or declined don"t update again.
         if instance.status != choices.MEETING_REQUEST_PENDING_APPROVAL:
             return serializers.ValidationError("You have already responded to the request.")
 
