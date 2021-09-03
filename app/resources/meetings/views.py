@@ -643,10 +643,12 @@ class MeetingRequestViewSet(
     )
     def my(self, request, *args, **kwargs):
         """Returns users meeting request, both to and by."""
+
         user = request.user
+        # Get the filtered queryset.
+        meeting_requests = self.filter_queryset(self.get_queryset())
 
         # Get meetings request for user, both requested to and requested by.
-        meeting_requests = self.get_queryset()
         user_meeting_requests = meeting_requests.filter(
             Q(requested_by=user) | Q(requested_to=user)
         )

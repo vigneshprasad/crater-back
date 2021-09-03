@@ -496,3 +496,8 @@ def create_meeting_on_meeting_request_approval(sender, meeting_request, *args, *
         start,
         end
     )
+
+
+@receiver(signals.meeting_request_created)
+def send_email_for_meeting_request_creation(sender, meeting_request, *args, **kwargs):
+    pass
