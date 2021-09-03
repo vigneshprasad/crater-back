@@ -27,6 +27,10 @@ def create_calendar_event_for_meeting(meeting):
     )
     # Creating model entries for each user.
     for user in users:
+        # If there is no event ID, don't create the row.
+        if not event_id:
+            continue
+
         models.GoogleCalendarEvent.objects.create(
             user=user,
             meeting_id=meeting.id,

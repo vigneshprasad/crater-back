@@ -348,7 +348,10 @@ class PostRescheduleRequestSerializer(serializers.ModelSerializer):
 
 class MeetingRequestSerializer(serializers.ModelSerializer):
 
-    participant_detail = serializers.SerializerMethodField(required=False)
+    participant_detail = serializers.SerializerMethodField(
+        required=False,
+        read_only=True
+    )
 
     class Meta:
         model = models.MeetingRequest
@@ -397,11 +400,11 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
         """
         time_slots = self.instance.time_slots
         if selected_time_slot not in time_slots:
-            return serializers.ValidationError("Selected time slot is not valid.")
+            raise serializers.ValidationError("Selected time slot is not valid.")
 
         # Don't let user select past time slots.
         if selected_time_slot < timezone.now():
-            return serializers.ValidationError("Selected time slot is in the past.")
+            raise serializers.ValidationError("Selected time slot is in the past.")
 
         return selected_time_slot
 
@@ -424,6 +427,6 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
 
         # If the instance status is already accepted or declined don"t update again.
         if instance.status != choices.MEETING_REQUEST_PENDING_APPROVAL:
-            return serializers.ValidationError("You have already responded to the request.")
+            raise serializers.ValidationError("You have already responded to the request.")
 
         return super().update(instance, validated_data)

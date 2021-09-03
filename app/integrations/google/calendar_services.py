@@ -83,7 +83,7 @@ class GoogleCalendarService:
 
         """
         if not self.service:
-            return None
+            return None, None
 
         request_id = str(uuid.uuid4())
 
@@ -92,7 +92,7 @@ class GoogleCalendarService:
             user1 = users[0]
             user2 = users[1]
         except KeyError:
-            return
+            return None, None
 
         summary = "{} <> {}| Professional Networking | WorkNetwork".format(
             user1.get_display_first_name(),
