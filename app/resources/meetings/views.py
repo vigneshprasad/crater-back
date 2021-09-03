@@ -492,12 +492,14 @@ class MeetingRequestViewSet(
     def _create_data_by_date(self, queryset):
         """Returns meeting requests per date for a given queryset."""
         response = []
-        dates = list(queryset.values_list("created_at__date", flat=True).distinct())
+        dates = list(queryset.values_list("expires_at__date", flat=True).distinct())
         # Reverse date list from start to end.
         dates.reverse()
 
         for date in dates:
-            meeting_requests = queryset.filter(created_at__date=date)
+            if not date:
+                continue
+            meeting_requests = queryset.filter(expires_at__date=date)
             serialized = self.get_serializer(meeting_requests, many=True)
             response.append({
                 "date": date.isoformat(),

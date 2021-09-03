@@ -400,7 +400,7 @@ class MeetingRequestSerializer(serializers.ModelSerializer):
             return serializers.ValidationError("Selected time slot is not valid.")
 
         # Don't let user select past time slots.
-        if selected_time_slot < datetime.datetime.now():
+        if selected_time_slot < timezone.now():
             return serializers.ValidationError("Selected time slot is in the past.")
 
         return selected_time_slot
