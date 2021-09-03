@@ -348,7 +348,7 @@ class PostRescheduleRequestSerializer(serializers.ModelSerializer):
 
 class MeetingRequestSerializer(serializers.ModelSerializer):
 
-    participant_detail = serializers.SerializerMethodField()
+    participant_detail = serializers.SerializerMethodField(required=False)
 
     class Meta:
         model = models.MeetingRequest

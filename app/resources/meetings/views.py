@@ -625,7 +625,7 @@ class MeetingRequestViewSet(
             "status": choices.MEETING_REQUEST_DECLINED
         }
         serializer = self.get_serializer(meeting_request, data, partial=True)
-        serializer.is_valid(raise_exceptions=True)
+        serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         # Send a signal notifying meeting request is declined.
