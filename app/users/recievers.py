@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 
 from notifications import signals as notification_signals
-from users import choices
+from users import constants
 from users import services
 from users import signals
 from users import models

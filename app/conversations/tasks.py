@@ -9,7 +9,7 @@ from conversations import models
 from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import public as freshchat_public
 from resources.meetings import services as meeting_services
-from users import choices as user_constants
+from users import constants as user_constants
 from users import models as user_models
 
 

@@ -1,4 +1,4 @@
-from users import choices as user_constants
+from users import constants as user_constants
 
 EDUCATION_LEVEL_SCORES = {
     user_constants.EDUCATION_LEVEL_HIGH_SCHOOL_ENUM: 30,

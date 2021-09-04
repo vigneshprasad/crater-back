@@ -1,7 +1,7 @@
 import csv
 
 
-from users import choices
+from users import constants
 from users import models
 from tags import models as tag_models
 from users.scripts.fix_new_tag_for_users import TAGS_TO_NEW_TAGS_MATCH
@@ -43,9 +43,9 @@ def run(dry_run=True):
         print("Tag: {}".format(new_tag))
 
         if not dry_run:
-            experience_enum = choices.EXPERIENCE_STR_TO_ENUM.get(experience)
-            company_type_enum = choices.COMPANY_TYPE_STR_ENUM.get(company_type)
-            education_level_enum = choices.EDUCATION_LEVEL_STR_TO_ENUM.get(education_level)
+            experience_enum = constants.EXPERIENCE_STR_TO_ENUM.get(experience)
+            company_type_enum = constants.COMPANY_TYPE_STR_ENUM.get(company_type)
+            education_level_enum = constants.EDUCATION_LEVEL_STR_TO_ENUM.get(education_level)
 
             profile.years_of_experience = experience_enum
             profile.company_type = company_type_enum
