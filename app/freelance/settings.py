@@ -125,7 +125,8 @@ INSTALLED_APPS = [
     "matching.validation",
     "conversations",
     "communications.notifications",
-    "devices"
+    "devices",
+    "crater.creator"
 ]
 
 SITE_ID = 1
