@@ -129,7 +129,6 @@ INSTALLED_APPS = [
     "crater.auth"
 ]
 
-
 SITE_ID = 1
 
 DEBUG_TOOLBAR_CONFIG = {
