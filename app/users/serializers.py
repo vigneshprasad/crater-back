@@ -645,9 +645,13 @@ class ProfileSerializer(serializers.ModelSerializer):
             connection request with the profile user.
 
         """
-        user = self.context["request"].user
+        request = self.context.get("request")
+        if not request:
+            return profile.allow_meeting_request
+
+        user = request.user
         if not user:
-            return False
+            return profile.allow_meeting_request
 
         # If the request user and profile user are the same,
         # return False
