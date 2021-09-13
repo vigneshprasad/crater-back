@@ -7,6 +7,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+
+from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import services
@@ -238,3 +240,80 @@ class OptinSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     @staticmethod
     def get_week_start(preference):
         return preference.meeting.week_start_date
+
+
+class GroupWebinarSerializer(serializers.ModelSerializer):
+    topic_detail = TopicSerializer(source="topic", read_only=True)
+    host_detail = GroupUserSerializer(source="host", read_only=True)
+
+    topic = serializers.CharField(required=True, write_only=True)
+    image = serializers.FileField(required=False, write_only=True)
+    live_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Group
+        fields = (
+            "id",
+            "host",
+            "topic",
+            "image",
+            "description",
+            "start",
+            "privacy",
+            "medium",
+            "closed",
+            "closed_at",
+            "topic_detail",
+            "host_detail",
+            "type",
+            "is_live",
+            "live_count"
+        )
+
+        extra_kwargs = {
+            "host": {"read_only": True},
+            "privacy": {"read_only": True},
+            "medium": {"read_only": True},
+            "closed": {"read_only": True},
+            "closed_at": {"read_only": True},
+            "type": {"read_only": True},
+            "is_live": {"read_only": True}
+        }
+
+    @staticmethod
+    def get_live_count(group):
+        return group.dyte_webinar.first().meeting_participants.filter(is_online=True).count()
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = request.user
+
+        # Raise an exception if the user already has a group
+        # at the same time.
+        start = validated_data["start"]
+        if services.get_groups_for_user_and_start(user, start):
+            raise exceptions.GroupCreatedAtTheSameTime()
+
+        if validated_data.get("image", None) is not None:
+            validated_data.pop("image")
+
+        topic = services.get_or_create_topic(
+            name=validated_data.get("topic"),
+            image=validated_data.get("image"),
+            description=validated_data.get("description"),
+            creator=user
+        )
+
+        additional_data = {
+            "host": user,
+            "topic": topic,
+            "speakers": [user],
+            "privacy": 0,
+            "medium": 1,
+            "type": constants.GROUP_TYPE_WEBINAR_ENUM,
+            "calculate_score": False
+        }
+
+        validated_data.update(additional_data)
+
+        return super().create(validated_data)

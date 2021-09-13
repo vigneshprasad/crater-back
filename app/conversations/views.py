@@ -16,7 +16,7 @@ from conversations import services
 from conversations import exceptions
 from conversations import signals
 from conversations import constants
-
+from integrations.dyte import public as dyte_public
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
 
@@ -408,8 +408,8 @@ class GroupCalendarViewSet(
             ).order_by("start")
 
             data.append({
-              "date": str(date),
-              "conversations": self.get_serializer(items, many=True).data
+                "date": str(date),
+                "conversations": self.get_serializer(items, many=True).data
             })
         return data
 
@@ -442,3 +442,29 @@ class GroupCalendarViewSet(
         groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
         response = self._make_date_dict(groups)
         return Response(response)
+
+
+class GroupWebinarViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.GroupWebinarSerializer
+    queryset = models.Group.objects.filter(closed=False, type=constants.GROUP_TYPE_WEBINAR_ENUM)
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(
+        methods=["GET"],
+        detail=False,
+    )
+    def my(self, request):
+        user = request.user
+        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
+        serialized = self.get_serializer(groups, many=True)
+        return Response(serialized.data)
+
+    def perform_create(self, serializer):
+        group = serializer.save()
+
+        # Create webinar on Dyte
+        dyte_public.create_webinar(group)

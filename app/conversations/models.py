@@ -55,11 +55,12 @@ class Topic(base_model.BaseModel):
 
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
-        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR)
     )
 
     type = models.PositiveIntegerField(
-        default=GROUP_TYPE_CHOICES[0][0],
+        default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     name = models.CharField(max_length=255)
@@ -110,7 +111,8 @@ class Group(base_model.BaseModel):
 
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
-        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR)
     )
 
     type = models.PositiveIntegerField(
@@ -157,6 +159,8 @@ class Group(base_model.BaseModel):
     is_approved = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
 
+    is_live = models.BooleanField(default=False)
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = _("Group")
@@ -165,10 +169,16 @@ class Group(base_model.BaseModel):
     def __str__(self):
         return "{}-{}-{}".format(self.pk, self.topic, self.host)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        if not self.end:
+    def save(
+            self,
+            force_insert=False,
+            force_update=False,
+            using=None,
+            update_fields=None
+    ):
+        if not self.end and not self.type == constants.GROUP_TYPE_WEBINAR_ENUM:
             self.end = self.start + timedelta(hours=1)
+
         return super(Group, self).save(force_insert, force_update, using, update_fields)
 
     def approve(self):

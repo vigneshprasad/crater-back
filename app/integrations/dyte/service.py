@@ -10,6 +10,7 @@ class DyteService:
 
     DYTE_API_ENDPOINTS = {
         "create_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meeting",
+        "add_participant": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/participant",
         "get_all_meetings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings",
         "get_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{dyte_meeting_id}",
         "join_meeting": constants.DYTE_JOIN_MEETING_BASE_URL + "/meeting/join/{room_name}"
@@ -58,7 +59,9 @@ class DyteService:
         participants = meeting.participants.all()
 
         data = {
-            "title": "1:1 Professional Networking | " + " & ".join([user.get_display_first_name() for user in participants]),
+            "title": "1:1 Professional Networking | " + " & ".join(
+                [user.get_display_first_name() for user in participants]
+            ),
             "presetName": preset_name,
             "authorization": {
                 "waitingRoom": False,
@@ -124,6 +127,103 @@ class DyteService:
         room_name = meeting_data["roomName"]
 
         return self._create_meeting_url_for_room_name(room_name=room_name)
+
+    def create_webinar(self, group, preset_name=constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME):
+        """Create a webinar on Dyte with given group object and add host
+
+        Args:
+            group(Group): Group object from the server.
+            preset_name(str): Name of the preset being used by Dyte. Can be setup
+                on their Developer dashboard.
+
+        """
+        create_meeting_endpoint = self.DYTE_API_ENDPOINTS["create_meeting"].format(org_id=self.org_id)
+
+        data = {
+            "title": group.topic.name,
+            "presetName": preset_name,
+            "authorization": {
+                "waitingRoom": False,
+                "closed": False
+            }
+        }
+        response = requests.request(
+            "POST",
+            create_meeting_endpoint,
+            headers=self._get_authorization_headers(),
+            json=data
+        )
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            logging.error("Dyte webinar creation failed")
+            return None
+
+        meeting_data = response_json["data"]["meeting"]
+        room_name = meeting_data["roomName"]
+        dyte_meeting_id = meeting_data["id"]
+
+        # Creating the dyte meeting object for a webinar.
+        dyte_meeting = models.DyteMeeting.objects.create(
+            group=group,
+            dyte_meeting_id=dyte_meeting_id,
+            room_name=room_name
+        )
+
+        # Add host to webinar
+        self.add_participant_to_meeting(
+            dyte_meeting=dyte_meeting,
+            preset_name=constants.DEFAULT_WEBINAR_HOST_PRESET_NAME,
+            user=group.host
+        )
+
+    def add_participant_to_meeting(
+            self,
+            dyte_meeting,
+            user,
+            preset_name=constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME
+    ):
+        """Add a host / participant to Dyte meeting with appropriate preset name
+
+        Args:
+            dyte_meeting(DyteMeeting): DyteMeeting object from server.
+            user(User): User object from server.
+            preset_name(str): Name of the preset being used by Dyte. Can be setup
+                on their Developer dashboard.
+
+        """
+        add_participant_endpoint = self.DYTE_API_ENDPOINTS["add_participant"].format(
+            org_id=self.org_id,
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
+
+        data = {
+            "clientSpecificId": str(user.uuid),
+            "presetName": preset_name,
+            "userDetails": {
+                "name": user.name
+            }
+        }
+        response = requests.request(
+            "POST",
+            add_participant_endpoint,
+            headers=self._get_authorization_headers(),
+            json=data
+        )
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            logging.error("Dyte add participant failed")
+            return None
+
+        participant_data = response_json["data"]["authResponse"]
+        auth_token = participant_data["authToken"]
+
+        models.DyteMeetingParticipant.objects.create(
+            dyte_meeting=dyte_meeting,
+            participant=user,
+            auth_token=auth_token
+        )
 
     def get_all_meetings_data(self):
         """Returns all meetings created by organisation."""

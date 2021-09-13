@@ -6,6 +6,7 @@ from django.utils import timezone
 from conversations import exceptions
 from conversations import models
 from conversations import signals
+from integrations.dyte import models as dyte_models
 
 
 def get_root_topic(topic):
@@ -221,3 +222,35 @@ def add_speaker_to_attendee_for_request(speaker, group_request):
     group_request.save()
 
     return group_request
+
+
+def get_or_create_topic(name, image, description, creator):
+    topic, _ = models.Topic.objects.get_or_create(
+        name=name,
+        description=description,
+        creator=creator,
+        defaults={
+            "image": image
+        }
+    )
+
+    return topic
+
+
+def get_dyte_meeting_participant(meeting_id, user_uuid):
+    """Return DyteMeetingParticipant instance of given
+    meeting and user
+
+    Args:
+        meeting_id(string): Dyte meeting uuid
+        user_uuid(string): User uuid
+    """
+    try:
+        dyte_participant = dyte_models.DyteMeetingParticipant.objects.get(
+            dyte_meeting__dyte_meeting_id=meeting_id,
+            participant__uuid=user_uuid
+        )
+    except dyte_models.DyteMeetingParticipant.DoesNotExist:
+        return None
+
+    return dyte_participant

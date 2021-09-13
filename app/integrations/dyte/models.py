@@ -11,5 +11,26 @@ class DyteMeeting(base_model.BaseModel):
         blank=True,
         on_delete=models.CASCADE
     )
+    group = models.ForeignKey(
+        "conversations.Group",
+        related_name="dyte_webinar",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
     dyte_meeting_id = models.CharField(max_length=128)
     room_name = models.CharField(max_length=128)
+
+
+class DyteMeetingParticipant(base_model.BaseModel):
+    dyte_meeting = models.ForeignKey(
+        "dyte.DyteMeeting",
+        related_name="meeting_participants",
+        on_delete=models.CASCADE
+    )
+    participant = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE
+    )
+    auth_token = models.TextField()
+    is_online = models.BooleanField(default=False)
