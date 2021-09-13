@@ -36,9 +36,12 @@ class User(AbstractUser):
 
     """
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+
+    # TODO(Nishant): Add unique True for username and change the USERNAME_FIELD.
     username = models.CharField(_("Username"), max_length=150)
-    email = models.EmailField(_("Email"), unique=True, null=True)
-    name = models.CharField(_("Name"), max_length=100)
+
+    email = models.EmailField(_("Email"), unique=True, null=True, blank=True)
+    name = models.CharField(_("Name"), max_length=100, null=True, blank=True)
 
     # TODO(Nishant): If not being used we can remove this.
     city = models.ForeignKey(
@@ -170,6 +173,9 @@ class User(AbstractUser):
         verbose_name_plural = _("Users")
         db_table = "users"
         ordering = ("date_joined",)
+
+    def __str__(self):
+        return "{}-{}".format(self.username, self.name)
 
     def set_phone_number_verified(self):
         """Marks a users phone number as verified.
@@ -385,12 +391,6 @@ class User(AbstractUser):
         if commit:
             self.save()
 
-    def __str__(self):
-        if self.email:
-            return self.email
-        else:
-            return "<no-email>"
-    
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
