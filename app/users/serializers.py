@@ -556,6 +556,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     is_cover_video = serializers.SerializerMethodField()
     cover_thumbnail = serializers.SerializerMethodField()
 
+    can_connect = serializers.SerializerMethodField(read_only=True)
+
     instagram_id = ""
     instagram_token = None
 
@@ -603,7 +605,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "company_type_advised",
             "companies_invested",
             "other_tag",
-            "allow_meeting_request"
+            "allow_meeting_request",
+            "can_connect"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
@@ -658,6 +661,37 @@ class ProfileSerializer(serializers.ModelSerializer):
                 return profile.cover.cover_thumbnail
             if not cls.get_is_cover_video(profile):
                 return profile.cover.file.url
+
+    def get_can_connect(self, profile):
+        """Returns boolean if the request user can request a
+            connection request with the profile user.
+
+        """
+        request = self.context.get("request")
+        if not request:
+            return profile.allow_meeting_request
+
+        user = request.user
+        if not user:
+            return profile.allow_meeting_request
+
+        # If the request user and profile user are the same,
+        # return False
+        if user == profile.user:
+            return False
+
+        # If the user has not allowed meeting request
+        # don't show connect button.
+        if not profile.allow_meeting_request:
+            return False
+
+        # If the requesting user's score is less than
+        # the current profile user's score, don't allow
+        # connection request.
+        if user.score < profile.user.score:
+            return False
+
+        return True
 
     def update(self, instance, validated_data):
         """

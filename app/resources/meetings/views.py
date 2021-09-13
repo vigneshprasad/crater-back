@@ -526,7 +526,7 @@ class MeetingRequestViewSet(
 
         """
         user = request.user
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset()).exclude(user=user)
         results = queryset.filter(user__score__lte=user.score).order_by("-user__score")
         page = self.paginate_queryset(results)
 
