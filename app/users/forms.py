@@ -42,7 +42,7 @@ class AdminCreationForm(GroupMixin, UserCreationForm):
 
 
 class UserForm(GroupMixin, UserChangeForm):
-    groups = GroupModelChoiceField(queryset=Group.objects.filter(name__in=['User', 'Investor']))
+    groups = GroupModelChoiceField(queryset=Group.objects.all())
     city = forms.ModelChoiceField(
         queryset=tags_models.CityProxy.objects.all(),
         required=False
@@ -54,8 +54,8 @@ class UserForm(GroupMixin, UserChangeForm):
 
     class Meta:
         model = get_user_model()
-        fields = '__all__'
-        field_classes = {'username': UsernameField}
+        fields = "__all__"
+        field_classes = {"username": UsernameField}
 
 
 class FreelanceAdminAuthenticationForm(AdminAuthenticationForm):

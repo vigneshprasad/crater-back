@@ -2,7 +2,7 @@ from allauth.account.models import EmailAddress
 from django.contrib.auth import models as auth_models
 
 from . import models
-from . import choices
+from . import constants
 
 from wn_analytics import models as wn_analytics_models
 
@@ -54,7 +54,7 @@ class SetIntentMixin:
         if self.user.intent:
             return
 
-        intent = self.serializer.validated_data.get('intent', choices.INTENT_NETWORK)
+        intent = self.serializer.validated_data.get('intent', constants.INTENT_NETWORK)
         self.user.intent = intent
         self.user.save()
 
@@ -88,10 +88,10 @@ class SetLinkedInMixin:
 
     def set_linkedin(self):
         if self.user.has_profile:
-            self.user.profile.linkedin_url = choices.DEFAULT_LINKED_IN_URL
+            self.user.profile.linkedin_url = constants.DEFAULT_LINKED_IN_URL
             self.user.profile.save()
         else:
             models.Profile.objects.create(
                 user=self.user,
-                linkedin_url=choices.DEFAULT_LINKED_IN_URL,
+                linkedin_url=constants.DEFAULT_LINKED_IN_URL,
             )

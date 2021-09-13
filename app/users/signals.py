@@ -1,6 +1,10 @@
 from django.dispatch import Signal
 
 
+user_created = Signal(providing_args=[
+    "user",
+])
+
 user_updated = Signal(providing_args=[
     "user",
 ])

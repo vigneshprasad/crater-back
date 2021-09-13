@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from locations.models import City
 from base import models as base_models
-from users import choices as user_choices
+from users import constants as user_choices
 from tags import choices
 
 

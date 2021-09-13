@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 
-from users import choices
+from users import constants
 
 
 class BankDetails(TimeStampedModel):
@@ -192,7 +192,7 @@ class Subscription(TimeStampedModel):
         self.user.send_email(
             'One month subscription warning',
             to=[self.user.email],
-            template_name=choices.template_names.get('one_month_subs_warning'),
+            template_name=constants.template_names.get('one_month_subs_warning'),
             content={},
             merge_vars=data
         )
@@ -206,7 +206,7 @@ class Subscription(TimeStampedModel):
         self.user.send_email(
             'Two weeks subscription warning',
             to=[self.user.email],
-            template_name=choices.template_names.get('two_weeks_subs_warning'),
+            template_name=constants.template_names.get('two_weeks_subs_warning'),
             content={},
             merge_vars=data
         )

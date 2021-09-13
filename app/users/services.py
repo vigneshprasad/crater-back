@@ -1,14 +1,14 @@
 from django.db.models import Count
 
 from users import models
-from users import choices
+from users import constants
 from tags import models as tag_models
 
 from resources.meetings import models as meeting_models
 
 
 def get_admin_user():
-    return models.User.objects.get(email=choices.ADMIN_USER_EMAIL)
+    return models.User.objects.get(email=constants.ADMIN_USER_EMAIL)
 
 
 def get_users_for_ids(user_ids):
@@ -47,8 +47,8 @@ def get_education_level_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_EDUCATION_LEVEL_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_EDUCATION_LEVEL_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -62,8 +62,8 @@ def get_company_type_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_COMPANY_TYPE_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_COMPANY_TYPE_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -77,8 +77,8 @@ def get_company_type_advised_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_COMPANY_TYPE_ADVISED_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_COMPANY_TYPE_ADVISED_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -92,8 +92,8 @@ def get_years_of_experience_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_YEARS_OF_EXP_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_YEARS_OF_EXP_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -107,8 +107,8 @@ def get_sector_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_SECTOR_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_SECTOR_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -116,8 +116,8 @@ def get_sector_field_info():
 
 def get_company_name_field_info():
     return {
-        "label": choices.PROFILE_COMPANY_NAME_LABEL,
-        "type": choices.PROFILE_FIELD_TEXT_TYPE,
+        "label": constants.PROFILE_COMPANY_NAME_LABEL,
+        "type": constants.PROFILE_FIELD_TEXT_TYPE,
         "options": None,
         "blank": False,
     }
@@ -125,8 +125,8 @@ def get_company_name_field_info():
 
 def get_other_tag_field_info():
     return {
-        "label": choices.PROFILE_OTHER_TAG_LABEL,
-        "type": choices.PROFILE_FIELD_TEXT_TYPE,
+        "label": constants.PROFILE_OTHER_TAG_LABEL,
+        "type": constants.PROFILE_FIELD_TEXT_TYPE,
         "options": None,
         "blank": False,
     }
@@ -134,8 +134,8 @@ def get_other_tag_field_info():
 
 def get_name_field_info():
     return {
-        'label': choices.PROFILE_NAME_LABEL,
-        'type': choices.PROFILE_FIELD_TEXT_TYPE,
+        'label': constants.PROFILE_NAME_LABEL,
+        'type': constants.PROFILE_FIELD_TEXT_TYPE,
         'options': None,
         'blank': False,
     }
@@ -149,8 +149,8 @@ def get_companies_invested_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_COMPANIES_INVESTED_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_COMPANIES_INVESTED_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -164,8 +164,8 @@ def get_number_of_employees_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_NUMBER_OF_EMPLOYEES_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_NUMBER_OF_EMPLOYEES_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -179,8 +179,8 @@ def get_project_type_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_PROJECT_TYPE_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_PROJECT_TYPE_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -194,8 +194,8 @@ def get_stage_of_company_field_info():
             "name": item[1],
         })
     return {
-        'label': choices.PROFILE_STAGE_OF_COMPANY_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_STAGE_OF_COMPANY_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }
@@ -210,8 +210,8 @@ def get_aspiration_field_info():
             "name": tag.name,
         })
     return {
-        'label': choices.PROFILE_ASPIRATION_LABEL,
-        'type': choices.PROFILE_FIELD_DROPDOWN_TYPE,
+        'label': constants.PROFILE_ASPIRATION_LABEL,
+        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
         'options': options,
         'blank': False,
     }

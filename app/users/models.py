@@ -24,7 +24,7 @@ from users.managers import UserManager
 from utils.user_secret_key import create_new_secret_key
 from utils.validators import SizeValidator
 from utils.deep_link_service import deep_link_service
-from users import choices
+from users import constants
 
 # TODO(Nishant) Clean up tasks and move all these tasks to tasks file or don't user models in tasks.
 from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
@@ -36,9 +36,12 @@ class User(AbstractUser):
 
     """
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+
+    # TODO(Nishant): Add unique True for username and change the USERNAME_FIELD.
     username = models.CharField(_("Username"), max_length=150)
-    email = models.EmailField(_("Email"), unique=True, null=True)
-    name = models.CharField(_("Name"), max_length=100)
+
+    email = models.EmailField(_("Email"), unique=True, null=True, blank=True)
+    name = models.CharField(_("Name"), max_length=100, null=True, blank=True)
 
     # TODO(Nishant): If not being used we can remove this.
     city = models.ForeignKey(
@@ -60,8 +63,8 @@ class User(AbstractUser):
         max_length=100,
         null=True, 
         blank=True,
-        choices=choices.INTENT_CHOICES,
-        default=choices.INTENT_NETWORK
+        choices=constants.INTENT_CHOICES,
+        default=constants.INTENT_NETWORK
     )
     reason = models.CharField(
         max_length=400,
@@ -171,6 +174,9 @@ class User(AbstractUser):
         db_table = "users"
         ordering = ("date_joined",)
 
+    def __str__(self):
+        return "{}-{}".format(self.username, self.name)
+
     def set_phone_number_verified(self):
         """Marks a users phone number as verified.
 
@@ -219,8 +225,8 @@ class User(AbstractUser):
             }
         }
 
-        self.send_email(subject="Password reset", to=[self.email], from_email=choices.PASSWORD_RESET_FROM_EMAIL,
-                        template_name=choices.template_names.get("password_reset"), content={},
+        self.send_email(subject="Password reset", to=[self.email], from_email=constants.PASSWORD_RESET_FROM_EMAIL,
+                        template_name=constants.template_names.get("password_reset"), content={},
                         merge_vars=data)
 
     def get_phone_number(self):
@@ -323,8 +329,8 @@ class User(AbstractUser):
     def _send_sms(phone_number, message):
         send_twilio_message.delay(str(phone_number), message)
 
-    def send_sms(self, message):
-        self._send_sms(str(self.phone_number), message)
+    def send_sms(self, message, phone_number=None):
+        self._send_sms(str(self.phone_number if not phone_number else phone_number), message)
 
     def send_push(self, data, message):
         devices = self.devices.filter(is_active=True)
@@ -352,7 +358,7 @@ class User(AbstractUser):
             }
         }
         self.send_email(subject="Verify your email", to=[self.email],
-                        template_name=choices.template_names.get("verify_email"), content={},
+                        template_name=constants.template_names.get("verify_email"), content={},
                         merge_vars=data)
 
     @property
@@ -385,12 +391,6 @@ class User(AbstractUser):
         if commit:
             self.save()
 
-    def __str__(self):
-        if self.email:
-            return self.email
-        else:
-            return "<no-email>"
-    
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
@@ -419,104 +419,104 @@ class Device(TimeStampedModel):
 class Profile(models.Model):
 
     EDUCATION_LEVEL_CHOICES = (
-        (choices.EDUCATION_LEVEL_HIGH_SCHOOL_ENUM, choices.EDUCATION_LEVEL_HIGH_SCHOOL),
-        (choices.EDUCATION_LEVEL_UNDERGRADUATE_ENUM, choices.EDUCATION_LEVEL_UNDERGRADUATE),
-        (choices.EDUCATION_LEVEL_MASTERS_ENUM, choices.EDUCATION_LEVEL_MASTERS),
-        (choices.EDUCATION_LEVEL_MBA_ENUM, choices.EDUCATION_LEVEL_MBA),
-        (choices.EDUCATION_LEVEL_PHD_ENUM, choices.EDUCATION_LEVEL_PHD)
+        (constants.EDUCATION_LEVEL_HIGH_SCHOOL_ENUM, constants.EDUCATION_LEVEL_HIGH_SCHOOL),
+        (constants.EDUCATION_LEVEL_UNDERGRADUATE_ENUM, constants.EDUCATION_LEVEL_UNDERGRADUATE),
+        (constants.EDUCATION_LEVEL_MASTERS_ENUM, constants.EDUCATION_LEVEL_MASTERS),
+        (constants.EDUCATION_LEVEL_MBA_ENUM, constants.EDUCATION_LEVEL_MBA),
+        (constants.EDUCATION_LEVEL_PHD_ENUM, constants.EDUCATION_LEVEL_PHD)
     )
 
     YEARS_OF_EXPERIENCE_CHOICES = (
-        (choices.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM, choices.EXPERIENCE_ONE_TO_TWO_YEARS),
-        (choices.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM, choices.EXPERIENCE_THREE_TO_FIVE_YEARS),
-        (choices.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM, choices.EXPERIENCE_SIX_TO_TEN_YEARS),
-        (choices.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM, choices.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS),
-        (choices.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM, choices.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS),
-        (choices.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM, choices.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS),
-        (choices.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM, choices.EXPERIENCE_THIRTY_PLUS_YEARS)
+        (constants.EXPERIENCE_ONE_TO_TWO_YEARS_ENUM, constants.EXPERIENCE_ONE_TO_TWO_YEARS),
+        (constants.EXPERIENCE_THREE_TO_FIVE_YEARS_ENUM, constants.EXPERIENCE_THREE_TO_FIVE_YEARS),
+        (constants.EXPERIENCE_SIX_TO_TEN_YEARS_ENUM, constants.EXPERIENCE_SIX_TO_TEN_YEARS),
+        (constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS_ENUM, constants.EXPERIENCE_ELEVEN_TO_FIFTEEN_YEARS),
+        (constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS_ENUM, constants.EXPERIENCE_SIXTEEN_TO_TWENTY_YEARS),
+        (constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS_ENUM, constants.EXPERIENCE_TWENTY_ONE_TO_THIRTY_YEARS),
+        (constants.EXPERIENCE_THIRTY_PLUS_YEARS_ENUM, constants.EXPERIENCE_THIRTY_PLUS_YEARS)
     )
 
     COMPANY_TYPE_CHOICES = (
-        (choices.COMPANY_TYPE_NOT_EMPLOYED_ENUM, choices.COMPANY_TYPE_NOT_EMPLOYED),
-        (choices.COMPANY_TYPES_START_UP_ENUM, choices.COMPANY_TYPES_START_UP),
-        (choices.COMPANY_TYPE_MNC_ENUM, choices.COMPANY_TYPE_MNC),
-        (choices.COMPANY_TYPE_SME_ENUM, choices.COMPANY_TYPE_SME),
-        (choices.COMPANY_TYPE_CONSULTANCY_ENUM, choices.COMPANY_TYPE_CONSULTANCY),
-        (choices.COMPANY_TYPE_FUND_ENUM, choices.COMPANY_TYPE_FUND),
-        (choices.COMPANY_TYPE_FREELANCE_ENUM, choices.COMPANY_TYPE_FREELANCE),
+        (constants.COMPANY_TYPE_NOT_EMPLOYED_ENUM, constants.COMPANY_TYPE_NOT_EMPLOYED),
+        (constants.COMPANY_TYPES_START_UP_ENUM, constants.COMPANY_TYPES_START_UP),
+        (constants.COMPANY_TYPE_MNC_ENUM, constants.COMPANY_TYPE_MNC),
+        (constants.COMPANY_TYPE_SME_ENUM, constants.COMPANY_TYPE_SME),
+        (constants.COMPANY_TYPE_CONSULTANCY_ENUM, constants.COMPANY_TYPE_CONSULTANCY),
+        (constants.COMPANY_TYPE_FUND_ENUM, constants.COMPANY_TYPE_FUND),
+        (constants.COMPANY_TYPE_FREELANCE_ENUM, constants.COMPANY_TYPE_FREELANCE),
     )
 
     SECTOR_CHOICES = (
-        (choices.SECTOR_TYPE_ADVISORY_CONSULTANCY_ENUM, choices.SECTOR_TYPE_ADVISORY_CONSULTANCY),
-        (choices.SECTOR_TYPE_AGRICULTURE_ENUM, choices.SECTOR_TYPE_AGRICULTURE),
-        (choices.SECTOR_TYPE_AI_ML_BLOCKCHAIN_ENUM, choices.SECTOR_TYPE_AI_ML_BLOCKCHAIN),
-        (choices.SECTOR_TYPE_AIRLINE_AVIATION_ENUM, choices.SECTOR_TYPE_AIRLINE_AVIATION),
-        (choices.SECTOR_TYPE_APPAREL_FASHION_ENUM, choices.SECTOR_TYPE_APPAREL_FASHION),
-        (choices.SECTOR_TYPE_AUTOMOTIVE_TRANSPORTATION_ENUM, choices.SECTOR_TYPE_AUTOMOTIVE_TRANSPORTATION),
-        (choices.SECTOR_TYPE_CIVIC_SOCIAL_ENUM, choices.SECTOR_TYPE_CIVIC_SOCIAL),
-        (choices.SECTOR_TYPE_CONSUMER_SERVICES_ENUM, choices.SECTOR_TYPE_CONSUMER_SERVICES),
-        (choices.SECTOR_TYPE_COSMETICS_ENUM, choices.SECTOR_TYPE_COSMETICS),
-        (choices.SECTOR_TYPE_DESIGN_MEDIA_ENUM, choices.SECTOR_TYPE_DESIGN_MEDIA),
-        (choices.SECTOR_TYPE_ECOMMERCE_ENUM, choices.SECTOR_TYPE_ECOMMERCE),
-        (choices.SECTOR_TYPE_EDUCATION_ENUM, choices.SECTOR_TYPE_EDUCATION),
-        (choices.SECTOR_TYPE_ENTERTAINMENT_ENUM, choices.SECTOR_TYPE_ENTERTAINMENT),
-        (choices.SECTOR_TYPE_OFFLINE_ENUM, choices.SECTOR_TYPE_OFFLINE),
-        (choices.SECTOR_TYPE_FINANCE_ENUM, choices.SECTOR_TYPE_FINANCE),
-        (choices.SECTOR_TYPE_FOOD_BEVERAGE_ENUM, choices.SECTOR_TYPE_FOOD_BEVERAGE),
-        (choices.SECTOR_TYPE_GAMING_ENUM, choices.SECTOR_TYPE_GAMING),
-        (choices.SECTOR_TYPE_HEALTH_WELLNESS_ENUM, choices.SECTOR_TYPE_HEALTH_WELLNESS),
-        (choices.SECTOR_TYPE_HOSPITALITY_ENUM, choices.SECTOR_TYPE_HOSPITALITY),
-        (choices.SECTOR_TYPE_IT_ENUM, choices.SECTOR_TYPE_IT),
-        (choices.SECTOR_TYPE_INVESTMENT_CAPITAL_ENUM, choices.SECTOR_TYPE_INVESTMENT_CAPITAL),
-        (choices.SECTOR_TYPE_LEGAL_ENUM, choices.SECTOR_TYPE_LEGAL),
-        (choices.SECTOR_TYPE_LEISURE_TRAVEL_TOURISM_ENUM, choices.SECTOR_TYPE_LEISURE_TRAVEL_TOURISM),
-        (choices.SECTOR_TYPE_LUXURY_CONSUMER_GOODS_ENUM, choices.SECTOR_TYPE_LUXURY_CONSUMER_GOODS),
-        (choices.SECTOR_TYPE_MARKETING_ADVERTING_ENUM, choices.SECTOR_TYPE_MARKETING_ADVERTING),
-        (choices.SECTOR_TYPE_PACKAGING_DISTRIBUTION_ENUM, choices.SECTOR_TYPE_PACKAGING_DISTRIBUTION),
-        (choices.SECTOR_TYPE_PHARMA_ENUM, choices.SECTOR_TYPE_PHARMA),
-        (choices.SECTOR_TYPE_PHILANTHROPY_ENUM, choices.SECTOR_TYPE_PHILANTHROPY),
-        (choices.SECTOR_TYPE_REAL_ESTATE_ENUM, choices.SECTOR_TYPE_REAL_ESTATE),
-        (choices.SECTOR_TYPE_RENEWABLE_ENVIRONMENT_ENUM, choices.SECTOR_TYPE_RENEWABLE_ENVIRONMENT),
-        (choices.SECTOR_TYPE_SPORTS_ENUM, choices.SECTOR_TYPE_SPORTS),
-        (choices.SECTOR_TYPE_STAFFING_AND_RECRUITING_ENUM, choices.SECTOR_TYPE_STAFFING_AND_RECRUITING),
-        (choices.SECTOR_TYPE_COMMUNITY_SOCIAL_ENUM, choices.SECTOR_TYPE_COMMUNITY_SOCIAL),
-        (choices.SECTOR_TYPE_TECHNOLOGY_INTERNET_SOFTWARE_ENUM, choices.SECTOR_TYPE_TECHNOLOGY_INTERNET_SOFTWARE),
-        (choices.SECTOR_TYPE_CIVIL_MECHANICAL_ELECTRICAL_ENUM, choices.SECTOR_TYPE_CIVIL_MECHANICAL_ELECTRICAL),
-        (choices.SECTOR_TYPE_LOGISTICS_ENUM, choices.SECTOR_TYPE_LOGISTICS),
-        (choices.SECTOR_TYPE_OTHER_ENUM, choices.SECTOR_TYPE_OTHER)
+        (constants.SECTOR_TYPE_ADVISORY_CONSULTANCY_ENUM, constants.SECTOR_TYPE_ADVISORY_CONSULTANCY),
+        (constants.SECTOR_TYPE_AGRICULTURE_ENUM, constants.SECTOR_TYPE_AGRICULTURE),
+        (constants.SECTOR_TYPE_AI_ML_BLOCKCHAIN_ENUM, constants.SECTOR_TYPE_AI_ML_BLOCKCHAIN),
+        (constants.SECTOR_TYPE_AIRLINE_AVIATION_ENUM, constants.SECTOR_TYPE_AIRLINE_AVIATION),
+        (constants.SECTOR_TYPE_APPAREL_FASHION_ENUM, constants.SECTOR_TYPE_APPAREL_FASHION),
+        (constants.SECTOR_TYPE_AUTOMOTIVE_TRANSPORTATION_ENUM, constants.SECTOR_TYPE_AUTOMOTIVE_TRANSPORTATION),
+        (constants.SECTOR_TYPE_CIVIC_SOCIAL_ENUM, constants.SECTOR_TYPE_CIVIC_SOCIAL),
+        (constants.SECTOR_TYPE_CONSUMER_SERVICES_ENUM, constants.SECTOR_TYPE_CONSUMER_SERVICES),
+        (constants.SECTOR_TYPE_COSMETICS_ENUM, constants.SECTOR_TYPE_COSMETICS),
+        (constants.SECTOR_TYPE_DESIGN_MEDIA_ENUM, constants.SECTOR_TYPE_DESIGN_MEDIA),
+        (constants.SECTOR_TYPE_ECOMMERCE_ENUM, constants.SECTOR_TYPE_ECOMMERCE),
+        (constants.SECTOR_TYPE_EDUCATION_ENUM, constants.SECTOR_TYPE_EDUCATION),
+        (constants.SECTOR_TYPE_ENTERTAINMENT_ENUM, constants.SECTOR_TYPE_ENTERTAINMENT),
+        (constants.SECTOR_TYPE_OFFLINE_ENUM, constants.SECTOR_TYPE_OFFLINE),
+        (constants.SECTOR_TYPE_FINANCE_ENUM, constants.SECTOR_TYPE_FINANCE),
+        (constants.SECTOR_TYPE_FOOD_BEVERAGE_ENUM, constants.SECTOR_TYPE_FOOD_BEVERAGE),
+        (constants.SECTOR_TYPE_GAMING_ENUM, constants.SECTOR_TYPE_GAMING),
+        (constants.SECTOR_TYPE_HEALTH_WELLNESS_ENUM, constants.SECTOR_TYPE_HEALTH_WELLNESS),
+        (constants.SECTOR_TYPE_HOSPITALITY_ENUM, constants.SECTOR_TYPE_HOSPITALITY),
+        (constants.SECTOR_TYPE_IT_ENUM, constants.SECTOR_TYPE_IT),
+        (constants.SECTOR_TYPE_INVESTMENT_CAPITAL_ENUM, constants.SECTOR_TYPE_INVESTMENT_CAPITAL),
+        (constants.SECTOR_TYPE_LEGAL_ENUM, constants.SECTOR_TYPE_LEGAL),
+        (constants.SECTOR_TYPE_LEISURE_TRAVEL_TOURISM_ENUM, constants.SECTOR_TYPE_LEISURE_TRAVEL_TOURISM),
+        (constants.SECTOR_TYPE_LUXURY_CONSUMER_GOODS_ENUM, constants.SECTOR_TYPE_LUXURY_CONSUMER_GOODS),
+        (constants.SECTOR_TYPE_MARKETING_ADVERTING_ENUM, constants.SECTOR_TYPE_MARKETING_ADVERTING),
+        (constants.SECTOR_TYPE_PACKAGING_DISTRIBUTION_ENUM, constants.SECTOR_TYPE_PACKAGING_DISTRIBUTION),
+        (constants.SECTOR_TYPE_PHARMA_ENUM, constants.SECTOR_TYPE_PHARMA),
+        (constants.SECTOR_TYPE_PHILANTHROPY_ENUM, constants.SECTOR_TYPE_PHILANTHROPY),
+        (constants.SECTOR_TYPE_REAL_ESTATE_ENUM, constants.SECTOR_TYPE_REAL_ESTATE),
+        (constants.SECTOR_TYPE_RENEWABLE_ENVIRONMENT_ENUM, constants.SECTOR_TYPE_RENEWABLE_ENVIRONMENT),
+        (constants.SECTOR_TYPE_SPORTS_ENUM, constants.SECTOR_TYPE_SPORTS),
+        (constants.SECTOR_TYPE_STAFFING_AND_RECRUITING_ENUM, constants.SECTOR_TYPE_STAFFING_AND_RECRUITING),
+        (constants.SECTOR_TYPE_COMMUNITY_SOCIAL_ENUM, constants.SECTOR_TYPE_COMMUNITY_SOCIAL),
+        (constants.SECTOR_TYPE_TECHNOLOGY_INTERNET_SOFTWARE_ENUM, constants.SECTOR_TYPE_TECHNOLOGY_INTERNET_SOFTWARE),
+        (constants.SECTOR_TYPE_CIVIL_MECHANICAL_ELECTRICAL_ENUM, constants.SECTOR_TYPE_CIVIL_MECHANICAL_ELECTRICAL),
+        (constants.SECTOR_TYPE_LOGISTICS_ENUM, constants.SECTOR_TYPE_LOGISTICS),
+        (constants.SECTOR_TYPE_OTHER_ENUM, constants.SECTOR_TYPE_OTHER)
     )
 
     NUMBER_OF_EMPLOYEE_CHOICES = (
-        (choices.NUMBER_OF_EMPLOYEE_UPTO_10_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_10),
-        (choices.NUMBER_OF_EMPLOYEE_UPTO_50_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_50),
-        (choices.NUMBER_OF_EMPLOYEE_UPTO_100_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_100),
-        (choices.NUMBER_OF_EMPLOYEE_UPTO_500_ENUM, choices.NUMBER_OF_EMPLOYEE_UPTO_500),
-        (choices.NUMBER_OF_EMPLOYEE_500_PLUS_ENUM, choices.NUMBER_OF_EMPLOYEE_500_PLUS),
+        (constants.NUMBER_OF_EMPLOYEE_UPTO_10_ENUM, constants.NUMBER_OF_EMPLOYEE_UPTO_10),
+        (constants.NUMBER_OF_EMPLOYEE_UPTO_50_ENUM, constants.NUMBER_OF_EMPLOYEE_UPTO_50),
+        (constants.NUMBER_OF_EMPLOYEE_UPTO_100_ENUM, constants.NUMBER_OF_EMPLOYEE_UPTO_100),
+        (constants.NUMBER_OF_EMPLOYEE_UPTO_500_ENUM, constants.NUMBER_OF_EMPLOYEE_UPTO_500),
+        (constants.NUMBER_OF_EMPLOYEE_500_PLUS_ENUM, constants.NUMBER_OF_EMPLOYEE_500_PLUS),
     )
 
     PROJECT_TYPE_CHOICES = (
-        (choices.PROJECT_TYPE_MARKETING_ENUM, choices.PROJECT_TYPE_MARKETING),
-        (choices.PROJECT_TYPE_GRAPHIC_DESIGN_ENUM, choices.PROJECT_TYPE_GRAPHIC_DESIGN),
-        (choices.PROJECT_TYPE_VIDEOGRAPHY_ENUM, choices.PROJECT_TYPE_VIDEOGRAPHY),
-        (choices.PROJECT_TYPE_UI_UX_ENUM, choices.PROJECT_TYPE_UI_UX),
-        (choices.PROJECT_TYPE_SOFTWARE_DEV_ENUM, choices.PROJECT_TYPE_SOFTWARE_DEV),
+        (constants.PROJECT_TYPE_MARKETING_ENUM, constants.PROJECT_TYPE_MARKETING),
+        (constants.PROJECT_TYPE_GRAPHIC_DESIGN_ENUM, constants.PROJECT_TYPE_GRAPHIC_DESIGN),
+        (constants.PROJECT_TYPE_VIDEOGRAPHY_ENUM, constants.PROJECT_TYPE_VIDEOGRAPHY),
+        (constants.PROJECT_TYPE_UI_UX_ENUM, constants.PROJECT_TYPE_UI_UX),
+        (constants.PROJECT_TYPE_SOFTWARE_DEV_ENUM, constants.PROJECT_TYPE_SOFTWARE_DEV),
     )
 
     STAGE_OF_COMPANY_CHOICES = (
-        (choices.STAGE_OF_COMPANY_IDEA_STAGE_ENUM, choices.STAGE_OF_COMPANY_IDEA_STAGE),
-        (choices.STAGE_OF_COMPANY_SEED_ENUM, choices.STAGE_OF_COMPANY_SEED),
-        (choices.STAGE_OF_COMPANY_SERIES_A_ENUM, choices.STAGE_OF_COMPANY_SERIES_A),
-        (choices.STAGE_OF_COMPANY_SERIES_B_ENUM, choices.STAGE_OF_COMPANY_SERIES_B),
-        (choices.STAGE_OF_COMPANY_SERIES_C_ENUM, choices.STAGE_OF_COMPANY_SERIES_C),
-        (choices.STAGE_OF_COMPANY_SERIES_D_PLUS_ENUM, choices.STAGE_OF_COMPANY_SERIES_D_PLUS),
+        (constants.STAGE_OF_COMPANY_IDEA_STAGE_ENUM, constants.STAGE_OF_COMPANY_IDEA_STAGE),
+        (constants.STAGE_OF_COMPANY_SEED_ENUM, constants.STAGE_OF_COMPANY_SEED),
+        (constants.STAGE_OF_COMPANY_SERIES_A_ENUM, constants.STAGE_OF_COMPANY_SERIES_A),
+        (constants.STAGE_OF_COMPANY_SERIES_B_ENUM, constants.STAGE_OF_COMPANY_SERIES_B),
+        (constants.STAGE_OF_COMPANY_SERIES_C_ENUM, constants.STAGE_OF_COMPANY_SERIES_C),
+        (constants.STAGE_OF_COMPANY_SERIES_D_PLUS_ENUM, constants.STAGE_OF_COMPANY_SERIES_D_PLUS),
     )
 
     COMPANIES_INVESTED_CHOICES = (
-        (choices.COMPANY_INVESTED_NONE_ENUM, choices.COMPANY_INVESTED_NONE),
-        (choices.COMPANY_INVESTED_1_TO_5_ENUM, choices.COMPANY_INVESTED_1_TO_5),
-        (choices.COMPANY_INVESTED_5_TO_10_ENUM, choices.COMPANY_INVESTED_5_TO_10),
-        (choices.COMPANY_INVESTED_10_TO_20_ENUM, choices.COMPANY_INVESTED_10_TO_20),
-        (choices.COMPANY_INVESTED_20_PLUS_ENUM, choices.COMPANY_INVESTED_20_PLUS),
+        (constants.COMPANY_INVESTED_NONE_ENUM, constants.COMPANY_INVESTED_NONE),
+        (constants.COMPANY_INVESTED_1_TO_5_ENUM, constants.COMPANY_INVESTED_1_TO_5),
+        (constants.COMPANY_INVESTED_5_TO_10_ENUM, constants.COMPANY_INVESTED_5_TO_10),
+        (constants.COMPANY_INVESTED_10_TO_20_ENUM, constants.COMPANY_INVESTED_10_TO_20),
+        (constants.COMPANY_INVESTED_20_PLUS_ENUM, constants.COMPANY_INVESTED_20_PLUS),
     )
 
     user = models.OneToOneField(
@@ -527,7 +527,9 @@ class Profile(models.Model):
     )
     name = models.CharField(
         max_length=100,
-        verbose_name=_("Company Name")
+        verbose_name=_("Company Name"),
+        null=True,
+        blank=True
     )
     tag_line = models.CharField(
         verbose_name=_("Tag line"),
@@ -713,7 +715,10 @@ class Profile(models.Model):
         verbose_name_plural = _("Profile")
 
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        else:
+            return "<no-name>"
 
     @property
     def is_instagram_set(self):

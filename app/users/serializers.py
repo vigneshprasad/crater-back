@@ -1,13 +1,13 @@
 import logging
-
 import cryptography
+
 from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
-from allauth.account.models import EmailConfirmation, EmailConfirmationHMAC
+from allauth.account.models import EmailConfirmation
+from allauth.account.models import EmailConfirmationHMAC
 from allauth.account.utils import setup_user_email
 from allauth.socialaccount.helpers import complete_social_login
-from allauth.utils import (email_address_exists)
-from cryptography.fernet import Fernet
+from allauth.utils import email_address_exists
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import models as auth_models
@@ -17,22 +17,21 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from requests.exceptions import HTTPError
 from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
-from rest_framework import serializers, exceptions
+from rest_framework import exceptions
+from rest_framework import serializers
 
-from tags.models import CityProxy, Objective
-from tags.serializers import TagSerializer
+from tags import models as tag_models
+from tags import serializers as tag_serializers
 from utils import messages
-from utils.fields import Base64FileField
+from utils import fields
 from utils.instagram_service import instagram_service
 from users import models
-from users import choices
+from users import constants
+from users import validators
+from users import signals
 from users import services
-from .validators import password_validate_symbols
-from .signals import objectives_added, email_verified
-from .services import get_social_account_info
 from wn_analytics import models as wn_analytics_models
 
-UserModel = get_user_model()
 
 logger = logging.getLogger("django.request")
 logger.setLevel(logging.ERROR)
@@ -104,8 +103,8 @@ class LoginSerializer(rest_auth_serializers.LoginSerializer):
             # Authentication without using allauth
             if email:
                 try:
-                    username = UserModel.objects.get(email__iexact=email).get_username()
-                except UserModel.DoesNotExist:
+                    username = get_user_model().objects.get(email__iexact=email).get_username()
+                except get_user_model().DoesNotExist:
                     pass
 
             if username:
@@ -153,7 +152,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         },
         min_length=8,
         max_length=128,
-        validators=[password_validate_symbols]
+        validators=[validators.password_validate_symbols]
     )
     email = serializers.EmailField(
         required=True,
@@ -165,8 +164,8 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         max_length=100
     )
     intent = serializers.ChoiceField(
-        choices=choices.INTENT_CHOICES,
-        default=choices.INTENT_NETWORK
+        choices=constants.INTENT_CHOICES,
+        default=constants.INTENT_NETWORK
     )
     utm_campaign = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     utm_source = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -237,6 +236,8 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
             )
         self.add_to_group(user)
         self.check_device(user)
+        # Adding each user to worknetwork group.
+        self.add_to_worknetwork_group(user)
         setup_user_email(request, user, [])
         user.send_verify_email()
         return user
@@ -255,14 +256,14 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
     def _get_referer(self):
         try:
             code = self.validated_data.get("referer")
-            fernet = Fernet(settings.FERNET_KEY)
+            fernet = cryptography.fernet.Fernet(settings.FERNET_KEY)
             uuid = fernet.decrypt(code.encode("ascii")).decode("ascii")
             return get_user_model().objects.get(uuid=uuid)
         except (cryptography.fernet.InvalidToken, AttributeError):
             return None
 
     def _get_intent(self):
-        return self.validated_data.get("intent", choices.INTENT_NETWORK)
+        return self.validated_data.get("intent", constants.INTENT_NETWORK)
 
     def check_device(self, user):
         os_id = self.validated_data.get("os_id", "")
@@ -272,20 +273,34 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
                 device.is_active = True
                 device.save()
 
+    @staticmethod
+    def add_to_worknetwork_group(user):
+        """Add users to worknetwork group."""
+        worknetwork_group, _ = auth_models.Group.objects.get_or_create(
+            name=constants.WORKNETWORK_GROUP
+        )
+        user.groups.add(worknetwork_group)
+
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
-    city = serializers.PrimaryKeyRelatedField(queryset=CityProxy.objects.all(), required=False)
-    pan_card_base64 = Base64FileField(required=False, write_only=True, allow_null=True)
+    city = serializers.PrimaryKeyRelatedField(queryset=tag_models.CityProxy.objects.all(), required=False)
+    pan_card_base64 = fields.Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
     photo = serializers.SerializerMethodField()
     objectives_items = serializers.SerializerMethodField()
     unread_notifications = serializers.SerializerMethodField()
     social_account = serializers.SerializerMethodField()
     linkedin_url = serializers.URLField(source="profile.linkedin_url", read_only=True, default=None)
-    tag_list = TagSerializer(source="profile.tags", many=True, read_only=True, allow_null=True, required=False)
+    tag_list = tag_serializers.TagSerializer(
+        source="profile.tags",
+        many=True,
+        read_only=True,
+        allow_null=True,
+        required=False
+    )
 
     class Meta:
-        model = UserModel
+        model = get_user_model()
         fields = (
             "pk",
             "photo",
@@ -364,7 +379,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
     @staticmethod
     def get_social_account(obj):
         social_account = obj.socialaccount_set.first()
-        return get_social_account_info(social_account)
+        return services.get_social_account_info(social_account)
 
     def update(self, instance, validated_data):
         old_email = instance.email
@@ -376,7 +391,8 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             objectives=[]
             for objective in validated_data["objectives"]:
                 objectives.append(objective.name)
-            objectives_added.send(
+
+            signals.objectives_added.send(
                 sender=self.__class__,
                 user=instance,
                 objectives=objectives
@@ -396,7 +412,7 @@ class PasswordChangeSerializer(rest_auth_serializers.PasswordChangeSerializer):
         },
         min_length=8,
         max_length=128,
-        validators=[password_validate_symbols]
+        validators=[validators.password_validate_symbols]
     )
     new_password1 = None
     new_password2 = None
@@ -434,9 +450,9 @@ class PasswordResetSerializer(rest_auth_serializers.PasswordResetSerializer):
     def save(self):
         email = self.validated_data.get("email")
         try:
-            user = UserModel.objects.get(email=email)
+            user = get_user_model().objects.get(email=email)
             user.send_reset_password_email()
-        except UserModel.DoesNotExist:
+        except get_user_model().DoesNotExist:
             pass
 
 
@@ -447,7 +463,7 @@ class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmS
             "blank": _("Please enter the password"),
             "min_length": _("Password should have 8 or more symbols")
         },
-        validators=[password_validate_symbols],
+        validators=[validators.password_validate_symbols],
         min_length=8,
         max_length=128
     )
@@ -522,12 +538,18 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_blank=True, 
         required=False
     )
-    photo = Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
+    photo = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
     photo_url = serializers.URLField(allow_null=True, required=False, allow_blank=True)
     cover = serializers.PrimaryKeyRelatedField(
         queryset=models.CoverFile.objects.all(), allow_null=True, required=False
     )
-    tag_list = TagSerializer(source="new_tag", many=True, read_only=True, allow_null=True, required=False)
+    tag_list = tag_serializers.TagSerializer(
+        source="new_tag",
+        many=True,
+        read_only=True,
+        allow_null=True,
+        required=False
+    )
     work_city_name = serializers.CharField(source="work_city.name", read_only=True, allow_null=True, required=False)
     cover_transcoder = serializers.CharField(source="cover.cover_transcoder", read_only=True, allow_null=True)
     cover_file = serializers.FileField(source="cover.file", read_only=True, allow_null=True)
@@ -702,7 +724,7 @@ class LogoutSerializer(serializers.Serializer):
 class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
     os_id = serializers.CharField(required=False, allow_blank=False)
     intent = serializers.ChoiceField(
-        choices=choices.INTENT_CHOICES,
+        choices=constants.INTENT_CHOICES,
         required=False, 
         allow_null=True
     )
@@ -729,7 +751,7 @@ class SocialLoginSerializer(register_serializers.SocialLoginSerializer):
 
     @staticmethod
     def validate_email(email):
-        if UserModel.objects.filter(email=email):
+        if get_user_model().objects.filter(email=email):
             raise serializers.ValidationError(
                 _("This email is registered")
             )
@@ -863,7 +885,7 @@ class NewPhoneNumberSerializer(serializers.ModelSerializer):
     phone_number = PhoneNumberField(required=False, allow_blank=False, allow_null=False)
 
     class Meta:
-        model = UserModel
+        model = get_user_model()
 
         fields = [
             "phone_number"
@@ -874,7 +896,7 @@ class CheckCodeSerializer(serializers.ModelSerializer):
     sms_code = serializers.CharField(max_length=4, min_length=4)
 
     class Meta:
-        model = UserModel
+        model = get_user_model()
         fields = [
             "sms_code",
         ]
@@ -900,7 +922,7 @@ class VerifyEmailSerializer(register_serializers.VerifyEmailSerializer):
                 raise serializers.ValidationError(
                     messages.WRONG_VALIDATE_KEY
                 )
-        email_verified.send(
+        signals.email_verified.send(
             sender=self.__class__,
             email_address=emailconfirmation.email_address
         )
@@ -908,7 +930,7 @@ class VerifyEmailSerializer(register_serializers.VerifyEmailSerializer):
 
 
 class CoverFileSerializer(serializers.ModelSerializer):
-    file_base64 = Base64FileField(
+    file_base64 = fields.Base64FileField(
         file_formats=[".jpg", ".png", ".tiff", ".bmp",  ".mov", ".mpeg", ".avi", ".mp4", ".3gp", ".mwv", ".flv"],
         allow_null=True,
         required=False,

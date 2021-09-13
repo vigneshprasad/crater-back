@@ -28,7 +28,7 @@ from users import services
 from users import utils
 from utils import messages
 from utils.stripe_service import stripe_service
-from . import serializers, models, choices
+from . import serializers, models, constants
 from .forms import AdminSetPasswordForm
 from .models import Profile
 from .paginators import Pagination
@@ -452,7 +452,7 @@ class RefererEmailView(APIView):
             send_email.delay(
                 subject=_("Signup invitation"),
                 to=[email],
-                template_name=choices.template_names.get("invite_friend"),
+                template_name=constants.template_names.get("invite_friend"),
                 content={},
                 merge_vars=data)
             referred_friend.send(
