@@ -126,6 +126,7 @@ INSTALLED_APPS = [
     "conversations",
     "communications.notifications",
     "devices",
+    "crater.auth",
     "crater.creator"
 ]
 

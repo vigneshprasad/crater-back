@@ -8,7 +8,7 @@ from django.core.validators import URLValidator
 from django.contrib.auth.models import Group
 
 from users import models
-from users import choices
+from users import constants
 from tags import models as tags_models
 
 from wn_analytics import models as wn_analytics_models
@@ -172,10 +172,10 @@ def create_user_and_profile(
     profile.linkedin_url = linkedin_url
     profile.public_introduction = introduction
 
-    profile.years_of_experience = choices.EXPERIENCE_STR_TO_ENUM.get(years_of_experience)
-    profile.company_type = choices.COMPANY_TYPE_STR_ENUM.get(company_type)
-    profile.education_level = choices.EDUCATION_LEVEL_STR_TO_ENUM.get(education_level)
-    profile.sector = choices.SECTOR_TYPE_STR_TO_ENUM.get(sector)
+    profile.years_of_experience = constants.EXPERIENCE_STR_TO_ENUM.get(years_of_experience)
+    profile.company_type = constants.COMPANY_TYPE_STR_ENUM.get(company_type)
+    profile.education_level = constants.EDUCATION_LEVEL_STR_TO_ENUM.get(education_level)
+    profile.sector = constants.SECTOR_TYPE_STR_TO_ENUM.get(sector)
 
     profile.save()
 

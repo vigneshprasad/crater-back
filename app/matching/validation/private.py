@@ -5,7 +5,7 @@ from devices import public as devices_public
 from matching.validation import models
 from matching.validation import constants
 from tags import services as tag_services
-from users import choices as user_constants
+from users import constants as user_constants
 
 
 def get_validation_for_user_and_rule(user, rule):

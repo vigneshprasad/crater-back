@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from resources.events.models import RSVPD, Event
 from resources.events.services import get_datetime_now
-from users import choices
+from users import constants
 from users.tasks import send_email
 
 
@@ -46,7 +46,7 @@ def send_rsvpd_email(sender, instance, **kwargs):
     send_email.delay(
         subject=_('Event invitation'),
         to=[email],
-        template_name=choices.template_names.get('participate_event'),
+        template_name=constants.template_names.get('participate_event'),
         content={},
         merge_vars=data
     )

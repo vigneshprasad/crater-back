@@ -4,7 +4,7 @@ from django.conf import settings
 from django.dispatch import receiver
 
 from users import signals as user_signals
-from users import choices as user_constants
+from users import constants as user_constants
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat import services
