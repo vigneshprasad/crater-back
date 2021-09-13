@@ -348,6 +348,7 @@ class OptinViewSet(
 
 class RequestViewSet(
     mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
     serializer_class = serializers.RequestSerializer
@@ -362,12 +363,29 @@ class RequestViewSet(
         headers = self.get_success_headers(serializer.data)
 
         try:
-            result = services.add_speaker_to_group_for_request(user, group_request)
+            if group_request.participant_type == constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM:
+                result = services.add_speaker_to_attendee_for_request(user, group_request)
+            else:
+                result = services.add_speaker_to_group_for_request(user, group_request)
+
             serializer = self.get_serializer(result)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
         except (exceptions.GroupMaxSpeakersException, exceptions.GroupJoinedAtTheSameTime) as e:
             return Response(e.get_error_body(), status=e.status_code)
+
+    def retrieve(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        user = request.user
+        try:
+            group_request = self.get_queryset().get(
+                requester=user,
+                group_id=pk,
+            )
+            serialized = self.get_serializer(group_request)
+            return Response(status=status.HTTP_200_OK, data=serialized.data)
+        except models.Request.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class GroupCalendarViewSet(

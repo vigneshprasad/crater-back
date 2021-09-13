@@ -89,6 +89,7 @@ class GroupSerializer(serializers.ModelSerializer):
     topic_detail = TopicSerializer(source="topic", read_only=True)
     interests_detail_list = meeting_serializers.MeetingInterestSerializer(source="interests", read_only=True, many=True)
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
+    attendees_detail_list = GroupUserSerializer(source="attendees", read_only=True, many=True)
     host_detail = GroupUserSerializer(source="host", read_only=True)
     is_speaker = serializers.SerializerMethodField(read_only=True)
     is_past = serializers.SerializerMethodField()
@@ -102,7 +103,6 @@ class GroupSerializer(serializers.ModelSerializer):
             "host",
             "speakers",
             "is_speaker",
-            "attendees",
             "topic",
             "description",
             "interests",
@@ -121,6 +121,8 @@ class GroupSerializer(serializers.ModelSerializer):
             "relevancy",
             "is_approved",
             "type",
+            "attendees",
+            "attendees_detail_list",
         )
         extra_kwargs = {
             "is_approved": {"required": False}
@@ -195,7 +197,8 @@ class RequestSerializer(serializers.ModelSerializer):
             "group",
             "status",
             "is_recommended",
-            "group_detail"
+            "group_detail",
+            "participant_type"
         )
 
     def to_internal_value(self, data):

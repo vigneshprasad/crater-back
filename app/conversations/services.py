@@ -203,3 +203,21 @@ def get_groups_for_user_and_start(user, start):
         Q(host=user) | Q(speakers=user),
         start=start
     ) or None
+
+
+def add_speaker_to_attendee_for_request(speaker, group_request):
+    """Add speaker to group as an attendee and raise exception if conditions not met
+
+    Args:
+        speaker(User): speaker to be added to group
+        group_request(Request): request to the group to which user to be added
+
+    Returns:
+        group_request(Request): group request
+    """
+
+    group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
+    group_request.group.attendees.add(speaker)
+    group_request.save()
+
+    return group_request

@@ -283,16 +283,27 @@ class Invite(base_model.BaseModel):
 class Request(base_model.BaseModel):
 
     REQUEST_STATUS_CHOICES = (
-        (0, constants.REQUEST_STATUS_PENDING),
-        (1, constants.REQUEST_STATUS_ACCEPTED),
-        (2, constants.REQUEST_STATUS_DECLINED)
+        (constants.REQUEST_STATUS_PENDING_ENUM, constants.REQUEST_STATUS_PENDING),
+        (constants.REQUEST_STATUS_ACCEPTED_ENUM, constants.REQUEST_STATUS_ACCEPTED),
+        (constants.REQUEST_STATUS_DECLINED_ENUM, constants.REQUEST_STATUS_DECLINED)
+    )
+
+    REQUEST_PARTICIPANT_TYPE = (
+        (constants.REQUEST_PARTICIPANT_SPEAKER_ENUM, constants.REQUEST_PARTICIPANT_SPEAKER),
+        (constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM, constants.REQUEST_PARTICIPANT_ATTENDEE)
     )
 
     requester = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="group_requests")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="requests")
-    status = models.IntegerField(choices=REQUEST_STATUS_CHOICES, default=REQUEST_STATUS_CHOICES[0][0])
+    status = models.IntegerField(choices=REQUEST_STATUS_CHOICES, default=constants.REQUEST_STATUS_PENDING_ENUM)
+
     # Will be True for users recommended by WorkNetwork.
+    # TODO(Nishant): Remove this later once it is deprecated.
     is_recommended = models.BooleanField(default=False)
+    participant_type = models.PositiveIntegerField(
+        choices=REQUEST_PARTICIPANT_TYPE,
+        default=constants.REQUEST_PARTICIPANT_SPEAKER_ENUM
+    )
 
     class Meta:
         verbose_name = _("Request")
