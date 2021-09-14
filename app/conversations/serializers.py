@@ -253,6 +253,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     topic = serializers.CharField(required=True, write_only=True)
     image = serializers.FileField(required=False, write_only=True)
     live_count = serializers.SerializerMethodField(read_only=True)
+    rsvp = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -271,7 +272,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "host_detail",
             "type",
             "is_live",
-            "live_count"
+            "live_count",
+            "rsvp"
         )
 
         extra_kwargs = {
@@ -289,6 +291,23 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         return group.dyte_webinar.first().meeting_participants.filter(
             is_online=True
         ).count()
+
+    def get_rsvp(self, group):
+        request = self.context.get("request")
+        user = request.user
+
+        if user.is_anonymous:
+            return None
+        elif group.host.uuid == user.uuid:
+            return None
+
+        if not services.get_dyte_meeting_participant(
+                meeting_id=group.dyte_webinar.first().dyte_meeting_id,
+                user_uuid=user.uuid
+        ):
+            return False
+
+        return True
 
     def create(self, validated_data):
         request = self.context.get("request")
