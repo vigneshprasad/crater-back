@@ -487,6 +487,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         source="user.user_services_info.professional_service_provider", required=False, read_only=True
     )
     name = serializers.CharField(
+        source="user.name",
         required=False,
         error_messages={
             "max_length": _("Invalid name"),
