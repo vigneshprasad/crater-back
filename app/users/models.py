@@ -188,7 +188,6 @@ class User(AbstractUser):
         self.phone_number_verified = True
         self.is_approved = True
         self.is_service_approved = True
-
         self.save()
 
     @staticmethod
