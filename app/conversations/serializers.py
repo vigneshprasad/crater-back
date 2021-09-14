@@ -20,6 +20,7 @@ from community.mixins import SetCreatorRequestDataMixin
 
 
 class SuggestedTopicSerializer(serializers.ModelSerializer):
+
     topic = serializers.CharField(source="name")
 
     class Meta:
@@ -32,6 +33,7 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
 
 class TopicSerializer(serializers.ModelSerializer):
+
     root = serializers.SerializerMethodField(read_only=True)
     article_detail = articles_serializer.CuratedArticleSerializer(source="article", read_only=True)
 
@@ -61,6 +63,7 @@ class TopicSerializer(serializers.ModelSerializer):
 
 
 class GroupUserSerializer(serializers.ModelSerializer):
+
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
 
@@ -88,6 +91,7 @@ class GroupUserSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+
     topic_detail = TopicSerializer(source="topic", read_only=True)
     interests_detail_list = meeting_serializers.MeetingInterestSerializer(source="interests", read_only=True, many=True)
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
@@ -243,6 +247,7 @@ class OptinSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
 
 class GroupWebinarSerializer(serializers.ModelSerializer):
+
     topic_detail = TopicSerializer(source="topic", read_only=True)
     host_detail = GroupUserSerializer(source="host", read_only=True)
 
@@ -282,7 +287,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_live_count(group):
-        return group.dyte_webinar.first().meeting_participants.filter(is_online=True).count()
+        return group.dyte_webinar.first().meeting_participants.filter(
+            is_online=True
+        ).count()
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -304,7 +311,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             creator=user
         )
 
-        additional_data = {
+        # Create webinar once topic is created.
+        webinar_data = {
             "host": user,
             "topic": topic,
             "speakers": [user],
@@ -313,7 +321,6 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "type": constants.GROUP_TYPE_WEBINAR_ENUM,
             "calculate_score": False
         }
-
-        validated_data.update(additional_data)
+        validated_data.update(webinar_data)
 
         return super().create(validated_data)
