@@ -12,7 +12,6 @@ from crater.auth import exceptions
 from crater.auth import models
 from crater.auth import serializers
 from users import constants as user_constants
-from users import models as user_models
 from users import public as user_public
 from users import permissions as user_permissions
 from users import serializers as user_serializers
@@ -99,11 +98,6 @@ class PhoneNumberRegisterView(
         serializer.is_valid(raise_exception=True)
 
         user, created = user_public.get_or_create_user(phone_number=username)
-        if created:
-            user_models.Profile.objects.create(
-                user=user
-            )
-
         serializer.save(user=user)
 
         # Create a JWT token for the user for upcoming requests.
