@@ -38,7 +38,7 @@ def send_sms(phone_number, message):
     Args:
         phone_number(str): Phone number we are sending the
             message to.
-        message(str): Message we are seding in the text.
+        message(str): Message we are sending in the text.
 
     """
     tasks.send_twilio_message.delay(str(phone_number), message)
