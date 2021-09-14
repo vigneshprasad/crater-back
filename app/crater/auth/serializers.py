@@ -2,8 +2,7 @@ from rest_framework import serializers
 
 from crater.auth import models
 from crater.auth import private
-
-from freelance import settings
+from crater.auth import constants
 
 
 class PhoneOtpSerializer(serializers.ModelSerializer):
@@ -46,12 +45,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         phone_number = validated_data.get("phone_number")
-
-        if settings.DEBUG:
-            validated_data["otp"] = "1111"
-        else:
-            validated_data["otp"] = private.generate_otp()
-
+        validated_data["otp"] = "1111" if constants.DEBUG else private.generate_otp()
         # When a new OTP is created mark the old ones as expired.
         models.PhoneOtp.objects.filter(phone_number=phone_number).update(is_expired=True)
 
