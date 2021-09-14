@@ -18,6 +18,9 @@ def get_or_create_user(phone_number):
         }
     )
 
+    # Mark the user's phone number as verified.
+    user.set_phone_number_verified()
+
     if created:
         # Send a signal on user creation.
         signals.user_created.send(
