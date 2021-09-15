@@ -466,6 +466,5 @@ class GroupWebinarViewSet(
 
     def perform_create(self, serializer):
         group = serializer.save()
-
         # Create webinar on Dyte
         dyte_public.create_webinar(group)

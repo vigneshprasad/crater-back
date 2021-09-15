@@ -225,7 +225,15 @@ def add_speaker_to_attendee_for_request(speaker, group_request):
 
 
 def get_or_create_topic(name, image, description, creator):
-    """Get on """
+    """Return a topic for the provided args.
+
+    Args:
+        name(str): Name of the topic.
+        image(file): Image associated with the topic.
+        description(str): Description of the topic
+        creator(Creator): Creator who created the topic.
+
+    """
     topic, _ = models.Topic.objects.get_or_create(
         name=name,
         description=description,
@@ -238,11 +246,12 @@ def get_or_create_topic(name, image, description, creator):
 
 def get_dyte_meeting_participant(meeting_id, user_uuid):
     """Return DyteMeetingParticipant instance of given
-    meeting and user
+        meeting and user
 
     Args:
         meeting_id(string): Dyte meeting uuid
         user_uuid(string): User uuid
+
     """
     try:
         dyte_participant = dyte_models.DyteMeetingParticipant.objects.get(

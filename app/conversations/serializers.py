@@ -290,7 +290,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     def get_live_count(group):
         return group.dyte_webinar.first().meeting_participants.filter(
             is_online=True
-        ).count()
+        ).count() or 0
 
     def get_rsvp(self, group):
         request = self.context.get("request")
