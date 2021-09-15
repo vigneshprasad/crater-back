@@ -334,8 +334,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "host": user,
             "topic": topic,
             "speakers": [user],
-            "privacy": 0,
-            "medium": 1,
+            "privacy": constants.GROUP_PRIVACY_PUBLIC_ENUM,
+            "medium": constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM,
             "type": constants.GROUP_TYPE_WEBINAR_ENUM,
             "calculate_score": False
         }

@@ -100,13 +100,13 @@ class Topic(base_model.BaseModel):
 class Group(base_model.BaseModel):
 
     GROUP_PRIVACY_CHOICES = (
-        (0, constants.GROUP_PRIVACY_PUBLIC),
-        (1, constants.GROUP_PRIVACY_PRIVATE)
+        (constants.GROUP_PRIVACY_PUBLIC_ENUM, constants.GROUP_PRIVACY_PUBLIC),
+        (constants.GROUP_PRIVACY_PRIVATE_ENUM, constants.GROUP_PRIVACY_PRIVATE)
     )
 
     GROUP_MEDIUM_CHOICES = (
-        (0, constants.GROUP_MEDIUM_AUDIO),
-        (1, constants.GROUP_MEDIUM_AUDIO_VIDEO)
+        (constants.GROUP_MEDIUM_AUDIO_ENUM, constants.GROUP_MEDIUM_AUDIO),
+        (constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM, constants.GROUP_MEDIUM_AUDIO_VIDEO)
     )
 
     GROUP_TYPE_CHOICES = (
@@ -116,7 +116,7 @@ class Group(base_model.BaseModel):
     )
 
     type = models.PositiveIntegerField(
-        default=GROUP_TYPE_CHOICES[0][0],
+        default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
 
@@ -144,8 +144,8 @@ class Group(base_model.BaseModel):
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
     max_speakers = models.PositiveIntegerField(default=constants.DEFAULT_MAX_SPEAKERS)
-    privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=GROUP_PRIVACY_CHOICES[0][0])
-    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=GROUP_MEDIUM_CHOICES[0][0])
+    privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
+    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
     is_full = models.BooleanField(default=False)
     # Group closed status and datetime of closure.
     # TODO(Nishant): Can change this into statuses as well.
@@ -251,14 +251,14 @@ class Group(base_model.BaseModel):
 class Invite(base_model.BaseModel):
 
     INVITE_STATUS_CHOICES = (
-        (0, constants.INVITE_STATUS_PENDING),
-        (1, constants.INVITE_STATUS_ACCEPTED),
-        (2, constants.INVITE_STATUS_DECLINED)
+        (constants.INVITE_STATUS_PENDING_ENUM, constants.INVITE_STATUS_PENDING),
+        (constants.INVITE_STATUS_ACCEPTED_ENUM, constants.INVITE_STATUS_ACCEPTED),
+        (constants.INVITE_STATUS_DECLINED_ENUM, constants.INVITE_STATUS_DECLINED)
     )
 
     INVITE_TYPE_CHOICES = (
-        (0, constants.INVITE_TYPE_SPEAKER),
-        (1, constants.INVITE_TYPE_ATTENDEE)
+        (constants.INVITE_TYPE_SPEAKER, constants.INVITE_TYPE_SPEAKER),
+        (constants.INVITE_TYPE_ATTENDEE_ENUM, constants.INVITE_TYPE_ATTENDEE)
     )
 
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="invites")
@@ -271,8 +271,8 @@ class Invite(base_model.BaseModel):
         blank=True
     )
     invitee_email = models.EmailField(max_length=128, null=True, blank=True)
-    status = models.IntegerField(choices=INVITE_STATUS_CHOICES, default=INVITE_STATUS_CHOICES[0][0])
-    type = models.IntegerField(choices=INVITE_TYPE_CHOICES, default=INVITE_TYPE_CHOICES[0][0])
+    status = models.IntegerField(choices=INVITE_STATUS_CHOICES, default=constants.INVITE_STATUS_PENDING_ENUM)
+    type = models.IntegerField(choices=INVITE_TYPE_CHOICES, default=constants.INVITE_TYPE_SPEAKER_ENUM)
 
     class Meta:
         verbose_name = _("Invite")

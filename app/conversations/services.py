@@ -225,13 +225,12 @@ def add_speaker_to_attendee_for_request(speaker, group_request):
 
 
 def get_or_create_topic(name, image, description, creator):
+    """Get on """
     topic, _ = models.Topic.objects.get_or_create(
         name=name,
         description=description,
         creator=creator,
-        defaults={
-            "image": image
-        }
+        defaults={"image": image}
     )
 
     return topic
