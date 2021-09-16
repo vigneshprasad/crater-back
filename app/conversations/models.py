@@ -121,6 +121,7 @@ class Group(base_model.BaseModel):
         choices=GROUP_TYPE_CHOICES,
     )
 
+    # The user who has setup the group.
     host = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -128,39 +129,53 @@ class Group(base_model.BaseModel):
         null=True,
         blank=True
     )
+    # Who all can speak on the call.
     speakers = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Speakers"),
         related_name="groups_speaker"
     )
+    # Attendees are users who can join the call but are not the
+    # speakers on it i.e just listen/chat.
     attendees = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Attendees"),
         related_name="groups_attended",
         blank=True,
     )
+
     topic = models.ForeignKey("conversations.Topic", on_delete=models.CASCADE, related_name="group")
+    # Description is populated from Topic.
     description = models.TextField(max_length=1024, null=True, blank=True)
+
     interests = models.ManyToManyField(meeting_models.Interest, verbose_name=_("Interests"))
+
+    # Duration or start of the Group.
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
+
     max_speakers = models.PositiveIntegerField(default=constants.DEFAULT_MAX_SPEAKERS)
+    max_attendees = models.PositiveIntegerField(null=True, blank=True)
+
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
     medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
+
     is_full = models.BooleanField(default=False)
+    is_live = models.BooleanField(default=False)
+
     # Group closed status and datetime of closure.
     # TODO(Nishant): Can change this into statuses as well.
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
+
     # Group score.
     calculate_score = models.BooleanField(default=True)
     score = models.FloatField(null=True, blank=True)
+
     # Approval status for groups. This controls if notifications go out,
     # group is visible in all conversations etc.
     is_approved = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
-
-    is_live = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

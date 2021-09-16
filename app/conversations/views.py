@@ -445,6 +445,7 @@ class GroupCalendarViewSet(
 
 
 class GroupWebinarViewSet(
+    mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     viewsets.GenericViewSet

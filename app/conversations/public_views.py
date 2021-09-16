@@ -14,6 +14,7 @@ from users import permissions
 
 
 class GroupWebinarPublicViewSet(
+    mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
@@ -35,7 +36,8 @@ class GroupWebinarPublicViewSet(
             )
         else:
             queryset = self.get_queryset().filter(
-                start__gte=now,
+                is_live=False,
+                start__gte=now
             )
         return queryset
 
