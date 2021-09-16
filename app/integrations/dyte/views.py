@@ -1,10 +1,7 @@
-import logging
-
 from rest_framework import status
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.decorators import action
 from integrations.dyte import models
 from integrations.dyte import serializers
 
@@ -17,10 +14,10 @@ class DyteParticipantViewSet(
 ):
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.DyteMeetingParticipant.objects.all()
-    serializer_class = serializers.DytePartcipantSerializer
+    serializer_class = serializers.DyteParticipantSerializer
 
     def retrieve(self, request, *args, **kwargs):
-        pk = kwargs.get('pk')
+        pk = kwargs.get("pk")
         user = request.user
 
         try:

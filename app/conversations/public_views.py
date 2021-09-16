@@ -14,7 +14,6 @@ from users import permissions
 
 
 class GroupWebinarPublicViewSet(
-    mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
@@ -24,9 +23,9 @@ class GroupWebinarPublicViewSet(
     permission_classes = [permissions.AllowAny]
 
     def _get_group_queryset(self, is_live):
-        """
-        Return live webinars if `is_live` is set to True
-        else return upcoming webinars
+        """Return live webinars if `is_live` is set to True
+            else return upcoming webinars
+
         """
 
         now = datetime.datetime.now()
@@ -63,10 +62,8 @@ class GroupWebinarPublicViewSet(
     )
     def upcoming(self, request):
         queryset = self._get_group_queryset(is_live=False)
-        date_list = list(queryset.values_list("start__date", flat=True).distinct())
-        date_list.reverse()
-        data = self._create_data_by_date(queryset=queryset)
-        return Response(data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["GET"],
@@ -74,19 +71,15 @@ class GroupWebinarPublicViewSet(
     )
     def live(self, request):
         queryset = self._get_group_queryset(is_live=True)
-        date_list = list(queryset.values_list("start__date", flat=True).distinct())
-        date_list.reverse()
-        data = self._create_data_by_date(queryset=queryset)
-        return Response(data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["POST"],
         detail=False,
     )
     def is_live(self, request):
-        """
-        Webhook request to set `is_live` field for webinar group
-        """
+        """Webhook request to set `is_live` field for webinar group"""
         data = request.data
         # TODO(Sanjeev): Verify webhook using signature
 
@@ -98,13 +91,15 @@ class GroupWebinarPublicViewSet(
             user_uuid=participant_details.get("clientSpecificId")
         )
 
-        if participant is not None:
-            group = participant.dyte_meeting.group
-            if str(group.host.uuid) == participant_details.get("clientSpecificId"):
-                group.is_live = True
-                group.save()
+        if not participant:
+            return Response(status=status.HTTP_200_OK)
 
-        return Response("OK", status.HTTP_200_OK)
+        group = participant.dyte_meeting.group
+        if str(group.host.uuid) == participant_details.get("clientSpecificId"):
+            group.is_live = True
+            group.save()
+
+        return Response(status=status.HTTP_200_OK)
 
     @action(
         methods=["POST"],
@@ -121,14 +116,15 @@ class GroupWebinarPublicViewSet(
             meeting_id=meeting_details.get("id"),
             user_uuid=participant_details.get("clientSpecificId")
         )
+        if not participant:
+            return Response(status=status.HTTP_200_OK)
 
-        if participant is not None:
-            group = participant.dyte_meeting.group
-            if str(group.host.uuid) != participant_details.get("clientSpecificId"):
-                participant.is_online = True
-                participant.save()
+        group = participant.dyte_meeting.group
+        if str(group.host.uuid) != participant_details.get("clientSpecificId"):
+            participant.is_online = True
+            participant.save()
 
-        return Response("OK", status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
     @action(
         methods=["POST"],
@@ -146,10 +142,12 @@ class GroupWebinarPublicViewSet(
             user_uuid=participant_details.get("clientSpecificId")
         )
 
-        if participant is not None:
-            group = participant.dyte_meeting.group
-            if str(group.host.uuid) != participant_details.get("clientSpecificId"):
-                participant.is_online = False
-                participant.save()
+        if not participant:
+            return Response(status=status.HTTP_200_OK)
 
-        return Response("OK", status.HTTP_200_OK)
+        group = participant.dyte_meeting.group
+        if str(group.host.uuid) != participant_details.get("clientSpecificId"):
+            participant.is_online = False
+            participant.save()
+
+        return Response(status=status.HTTP_200_OK)

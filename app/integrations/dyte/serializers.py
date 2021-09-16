@@ -13,7 +13,7 @@ class DyteMeetingSerializer(ModelSerializer):
         )
 
 
-class DytePartcipantSerializer(ModelSerializer):
+class DyteParticipantSerializer(ModelSerializer):
 
     dyte_meeting_detail = DyteMeetingSerializer(source="dyte_meeting")
 
