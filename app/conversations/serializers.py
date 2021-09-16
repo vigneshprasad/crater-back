@@ -6,6 +6,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
+
+from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import services
@@ -17,6 +19,7 @@ from community.mixins import SetCreatorRequestDataMixin
 
 
 class SuggestedTopicSerializer(serializers.ModelSerializer):
+
     topic = serializers.CharField(source="name")
 
     class Meta:
@@ -29,6 +32,7 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
 
 class TopicSerializer(serializers.ModelSerializer):
+
     root = serializers.SerializerMethodField(read_only=True)
     article_detail = articles_serializer.CuratedArticleSerializer(source="article", read_only=True)
 
@@ -58,6 +62,7 @@ class TopicSerializer(serializers.ModelSerializer):
 
 
 class GroupUserSerializer(serializers.ModelSerializer):
+
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
 
@@ -85,9 +90,11 @@ class GroupUserSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+
     topic_detail = TopicSerializer(source="topic", read_only=True)
     interests_detail_list = meeting_serializers.MeetingInterestSerializer(source="interests", read_only=True, many=True)
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
+    attendees_detail_list = GroupUserSerializer(source="attendees", read_only=True, many=True)
     host_detail = GroupUserSerializer(source="host", read_only=True)
     is_speaker = serializers.SerializerMethodField(read_only=True)
     is_past = serializers.SerializerMethodField()
@@ -101,7 +108,6 @@ class GroupSerializer(serializers.ModelSerializer):
             "host",
             "speakers",
             "is_speaker",
-            "attendees",
             "topic",
             "description",
             "interests",
@@ -120,6 +126,8 @@ class GroupSerializer(serializers.ModelSerializer):
             "relevancy",
             "is_approved",
             "type",
+            "attendees",
+            "attendees_detail_list",
         )
         extra_kwargs = {
             "is_approved": {"required": False}
@@ -194,7 +202,8 @@ class RequestSerializer(serializers.ModelSerializer):
             "group",
             "status",
             "is_recommended",
-            "group_detail"
+            "group_detail",
+            "participant_type"
         )
 
     def to_internal_value(self, data):
@@ -234,3 +243,106 @@ class OptinSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
     @staticmethod
     def get_week_start(preference):
         return preference.meeting.week_start_date
+
+
+class GroupWebinarSerializer(serializers.ModelSerializer):
+
+    topic_detail = TopicSerializer(source="topic", read_only=True)
+    host_detail = GroupUserSerializer(source="host", read_only=True)
+
+    topic = serializers.CharField(required=True, write_only=True)
+    image = serializers.FileField(required=False, write_only=True)
+    live_count = serializers.SerializerMethodField(read_only=True)
+    rsvp = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Group
+        fields = (
+            "id",
+            "host",
+            "topic",
+            "image",
+            "description",
+            "start",
+            "privacy",
+            "medium",
+            "closed",
+            "closed_at",
+            "topic_detail",
+            "host_detail",
+            "type",
+            "is_live",
+            "live_count",
+            "rsvp"
+        )
+
+        extra_kwargs = {
+            "host": {"read_only": True},
+            "privacy": {"read_only": True},
+            "medium": {"read_only": True},
+            "closed": {"read_only": True},
+            "closed_at": {"read_only": True},
+            "type": {"read_only": True},
+            "is_live": {"read_only": True}
+        }
+
+    @staticmethod
+    def get_live_count(group):
+        """Return live count or return 0."""
+        if group.dyte_webinar.first():
+            return 0
+
+        return group.dyte_webinar.first().meeting_participants.filter(
+            is_online=True
+        ).count() or 0
+
+    def get_rsvp(self, group):
+        request = self.context.get("request")
+        user = request.user
+
+        if user.is_anonymous:
+            return None
+        elif group.host.uuid == user.uuid:
+            return None
+
+        if not services.get_dyte_meeting_participant(
+                meeting_id=group.dyte_webinar.first().dyte_meeting_id,
+                user_uuid=user.uuid
+        ):
+            return False
+
+        return True
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = request.user
+
+        # Raise an exception if the user already has a group
+        # at the same time.
+        start = validated_data["start"]
+        if services.get_groups_for_user_and_start(user, start):
+            raise exceptions.GroupCreatedAtTheSameTime()
+
+        if validated_data.get("image", None) is not None:
+            validated_data.pop("image")
+
+        topic = services.get_or_create_topic(
+            name=validated_data.get("topic"),
+            image=validated_data.get("image"),
+            description=validated_data.get("description"),
+            creator=user
+        )
+
+        # Create webinar once topic is created.
+        webinar_data = {
+            "host": user,
+            "topic": topic,
+            "speakers": [user],
+            "privacy": constants.GROUP_PRIVACY_PUBLIC_ENUM,
+            "medium": constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM,
+            "type": constants.GROUP_TYPE_WEBINAR_ENUM,
+            "calculate_score": False
+        }
+        validated_data.update(webinar_data)
+
+        return super().create(validated_data)

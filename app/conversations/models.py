@@ -18,11 +18,12 @@ class SuggestedTopic(base_model.BaseModel):
 
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
-        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR_ENUM),
     )
 
     type = models.PositiveIntegerField(
-        default=GROUP_TYPE_CHOICES[0][0],
+        default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     name = models.CharField(max_length=255)
@@ -55,11 +56,12 @@ class Topic(base_model.BaseModel):
 
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
-        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR)
     )
 
     type = models.PositiveIntegerField(
-        default=GROUP_TYPE_CHOICES[0][0],
+        default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     name = models.CharField(max_length=255)
@@ -93,31 +95,33 @@ class Topic(base_model.BaseModel):
         verbose_name_plural = _("Topics")
 
     def __str__(self):
-        return "{}-{}".format(self.pk, self.name)
+        return "{}".format(self.name)
 
 
 class Group(base_model.BaseModel):
 
     GROUP_PRIVACY_CHOICES = (
-        (0, constants.GROUP_PRIVACY_PUBLIC),
-        (1, constants.GROUP_PRIVACY_PRIVATE)
+        (constants.GROUP_PRIVACY_PUBLIC_ENUM, constants.GROUP_PRIVACY_PUBLIC),
+        (constants.GROUP_PRIVACY_PRIVATE_ENUM, constants.GROUP_PRIVACY_PRIVATE)
     )
 
     GROUP_MEDIUM_CHOICES = (
-        (0, constants.GROUP_MEDIUM_AUDIO),
-        (1, constants.GROUP_MEDIUM_AUDIO_VIDEO)
+        (constants.GROUP_MEDIUM_AUDIO_ENUM, constants.GROUP_MEDIUM_AUDIO),
+        (constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM, constants.GROUP_MEDIUM_AUDIO_VIDEO)
     )
 
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
-        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR)
     )
 
     type = models.PositiveIntegerField(
-        default=GROUP_TYPE_CHOICES[0][0],
+        default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
 
+    # The user who has setup the group.
     host = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -125,33 +129,49 @@ class Group(base_model.BaseModel):
         null=True,
         blank=True
     )
+    # Who all can speak on the call.
     speakers = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Speakers"),
         related_name="groups_speaker"
     )
+    # Attendees are users who can join the call but are not the
+    # speakers on it i.e just listen/chat.
     attendees = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Attendees"),
         related_name="groups_attended",
         blank=True,
     )
+
     topic = models.ForeignKey("conversations.Topic", on_delete=models.CASCADE, related_name="group")
+    # Description is populated from Topic.
     description = models.TextField(max_length=1024, null=True, blank=True)
+
     interests = models.ManyToManyField(meeting_models.Interest, verbose_name=_("Interests"))
+
+    # Duration or start of the Group.
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
+
     max_speakers = models.PositiveIntegerField(default=constants.DEFAULT_MAX_SPEAKERS)
-    privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=GROUP_PRIVACY_CHOICES[0][0])
-    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=GROUP_MEDIUM_CHOICES[0][0])
+    max_attendees = models.PositiveIntegerField(null=True, blank=True)
+
+    privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
+    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
+
     is_full = models.BooleanField(default=False)
+    is_live = models.BooleanField(default=False)
+
     # Group closed status and datetime of closure.
     # TODO(Nishant): Can change this into statuses as well.
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
+
     # Group score.
     calculate_score = models.BooleanField(default=True)
     score = models.FloatField(null=True, blank=True)
+
     # Approval status for groups. This controls if notifications go out,
     # group is visible in all conversations etc.
     is_approved = models.BooleanField(default=True)
@@ -163,12 +183,18 @@ class Group(base_model.BaseModel):
         verbose_name_plural = _("Groups")
 
     def __str__(self):
-        return "{}-{}-{}".format(self.pk, self.topic, self.host)
+        return "{} - {} - {} - {}".format(self.pk, self.topic, self.host, self.type)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        if not self.end:
+    def save(
+            self,
+            force_insert=False,
+            force_update=False,
+            using=None,
+            update_fields=None
+    ):
+        if not self.end and not self.type == constants.GROUP_TYPE_WEBINAR_ENUM:
             self.end = self.start + timedelta(hours=1)
+
         return super(Group, self).save(force_insert, force_update, using, update_fields)
 
     def approve(self):
@@ -184,7 +210,7 @@ class Group(base_model.BaseModel):
     @property
     def local_end(self):
         """Return start in the local timezone."""
-        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE))
+        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE)) if self.end else None
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""
@@ -217,7 +243,13 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return "{} - {}".format(self.get_display_start_time(), self.get_display_end_time())
+        display_end_time = self.get_display_end_time()
+        display_start_time = self.get_display_start_time()
+
+        if not display_end_time:
+            return "{}".format(display_start_time)
+
+        return "{} - {}".format(display_start_time, display_end_time)
 
     def get_display_start_time(self):
         """Give a displayable start time for a Group.
@@ -235,20 +267,20 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return self.local_end.strftime("%I:%M %p")
+        return self.local_end.strftime("%I:%M %p") if self.local_end else None
 
 
 class Invite(base_model.BaseModel):
 
     INVITE_STATUS_CHOICES = (
-        (0, constants.INVITE_STATUS_PENDING),
-        (1, constants.INVITE_STATUS_ACCEPTED),
-        (2, constants.INVITE_STATUS_DECLINED)
+        (constants.INVITE_STATUS_PENDING_ENUM, constants.INVITE_STATUS_PENDING),
+        (constants.INVITE_STATUS_ACCEPTED_ENUM, constants.INVITE_STATUS_ACCEPTED),
+        (constants.INVITE_STATUS_DECLINED_ENUM, constants.INVITE_STATUS_DECLINED)
     )
 
     INVITE_TYPE_CHOICES = (
-        (0, constants.INVITE_TYPE_SPEAKER),
-        (1, constants.INVITE_TYPE_ATTENDEE)
+        (constants.INVITE_TYPE_SPEAKER, constants.INVITE_TYPE_SPEAKER),
+        (constants.INVITE_TYPE_ATTENDEE_ENUM, constants.INVITE_TYPE_ATTENDEE)
     )
 
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="invites")
@@ -261,8 +293,8 @@ class Invite(base_model.BaseModel):
         blank=True
     )
     invitee_email = models.EmailField(max_length=128, null=True, blank=True)
-    status = models.IntegerField(choices=INVITE_STATUS_CHOICES, default=INVITE_STATUS_CHOICES[0][0])
-    type = models.IntegerField(choices=INVITE_TYPE_CHOICES, default=INVITE_TYPE_CHOICES[0][0])
+    status = models.IntegerField(choices=INVITE_STATUS_CHOICES, default=constants.INVITE_STATUS_PENDING_ENUM)
+    type = models.IntegerField(choices=INVITE_TYPE_CHOICES, default=constants.INVITE_TYPE_SPEAKER_ENUM)
 
     class Meta:
         verbose_name = _("Invite")
@@ -283,16 +315,27 @@ class Invite(base_model.BaseModel):
 class Request(base_model.BaseModel):
 
     REQUEST_STATUS_CHOICES = (
-        (0, constants.REQUEST_STATUS_PENDING),
-        (1, constants.REQUEST_STATUS_ACCEPTED),
-        (2, constants.REQUEST_STATUS_DECLINED)
+        (constants.REQUEST_STATUS_PENDING_ENUM, constants.REQUEST_STATUS_PENDING),
+        (constants.REQUEST_STATUS_ACCEPTED_ENUM, constants.REQUEST_STATUS_ACCEPTED),
+        (constants.REQUEST_STATUS_DECLINED_ENUM, constants.REQUEST_STATUS_DECLINED)
+    )
+
+    REQUEST_PARTICIPANT_TYPE = (
+        (constants.REQUEST_PARTICIPANT_SPEAKER_ENUM, constants.REQUEST_PARTICIPANT_SPEAKER),
+        (constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM, constants.REQUEST_PARTICIPANT_ATTENDEE)
     )
 
     requester = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="group_requests")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="requests")
-    status = models.IntegerField(choices=REQUEST_STATUS_CHOICES, default=REQUEST_STATUS_CHOICES[0][0])
+    status = models.IntegerField(choices=REQUEST_STATUS_CHOICES, default=constants.REQUEST_STATUS_PENDING_ENUM)
+
     # Will be True for users recommended by WorkNetwork.
+    # TODO(Nishant): Remove this later once it is deprecated.
     is_recommended = models.BooleanField(default=False)
+    participant_type = models.PositiveIntegerField(
+        choices=REQUEST_PARTICIPANT_TYPE,
+        default=constants.REQUEST_PARTICIPANT_SPEAKER_ENUM
+    )
 
     class Meta:
         verbose_name = _("Request")

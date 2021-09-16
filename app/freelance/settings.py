@@ -44,6 +44,7 @@ FERNET_KEY = b"TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8="
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -134,7 +135,8 @@ INSTALLED_APPS = [
     "conversations",
     "communications.notifications",
     "devices",
-    "crater.auth"
+    "crater.auth",
+    "crater.creator"
 ]
 
 SITE_ID = 1

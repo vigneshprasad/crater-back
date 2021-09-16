@@ -9,3 +9,6 @@ DYTE_ORG_ID = settings.DYTE_ORD_ID
 DYTE_APP_ID = settings.DYTE_APP_ID
 
 DEFAULT_PRESET_NAME = "participant"
+
+DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME = "default_webinar_participant_preset"
+DEFAULT_WEBINAR_HOST_PRESET_NAME = "default_webinar_host_preset"

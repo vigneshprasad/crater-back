@@ -15,3 +15,7 @@ conversation_created = Signal(providing_args=[
 conversation_approved = Signal(providing_args=[
     "group"
 ])
+
+webinar_created = Signal(providing_args=[
+    "group"
+])

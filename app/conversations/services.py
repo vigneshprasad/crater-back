@@ -6,6 +6,7 @@ from django.utils import timezone
 from conversations import exceptions
 from conversations import models
 from conversations import signals
+from integrations.dyte import models as dyte_models
 
 
 def get_root_topic(topic):
@@ -203,3 +204,61 @@ def get_groups_for_user_and_start(user, start):
         Q(host=user) | Q(speakers=user),
         start=start
     ) or None
+
+
+def add_speaker_to_attendee_for_request(speaker, group_request):
+    """Add speaker to group as an attendee and raise exception if conditions not met
+
+    Args:
+        speaker(User): speaker to be added to group
+        group_request(Request): request to the group to which user to be added
+
+    Returns:
+        group_request(Request): group request
+    """
+
+    group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
+    group_request.group.attendees.add(speaker)
+    group_request.save()
+
+    return group_request
+
+
+def get_or_create_topic(name, image, description, creator):
+    """Return a topic for the provided args.
+
+    Args:
+        name(str): Name of the topic.
+        image(file): Image associated with the topic.
+        description(str): Description of the topic
+        creator(Creator): Creator who created the topic.
+
+    """
+    topic, _ = models.Topic.objects.get_or_create(
+        name=name,
+        description=description,
+        creator=creator,
+        defaults={"image": image}
+    )
+
+    return topic
+
+
+def get_dyte_meeting_participant(meeting_id, user_uuid):
+    """Return DyteMeetingParticipant instance of given
+        meeting and user
+
+    Args:
+        meeting_id(string): Dyte meeting uuid
+        user_uuid(string): User uuid
+
+    """
+    try:
+        dyte_participant = dyte_models.DyteMeetingParticipant.objects.get(
+            dyte_meeting__dyte_meeting_id=meeting_id,
+            participant__uuid=user_uuid
+        )
+    except dyte_models.DyteMeetingParticipant.DoesNotExist:
+        return None
+
+    return dyte_participant
