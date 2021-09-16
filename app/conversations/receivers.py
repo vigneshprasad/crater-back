@@ -3,9 +3,24 @@ from django.dispatch import receiver
 
 from conversations import constants
 from conversations import models
+from conversations import signals
 from matching import private as matching_private
 from resources.meetings import signals as meeting_signals
 from resources.curated_articles import signals as article_signals
+
+
+@receiver(post_save, sender=models.Group)
+def send_webinar_creation_signal(sender, instance, *args, **kwargs):
+    """Send webinar creation signal on Group post save
+
+    Note:
+        Don't send the signal if the group is being updated.
+
+    """
+    if not (instance.type == constants.GROUP_TYPE_WEBINAR_ENUM and kwargs.get("created")):
+        return
+
+    signals.webinar_created.send(sender=instance.__class__, group=instance)
 
 
 @receiver(m2m_changed, sender=models.Group.speakers.through)

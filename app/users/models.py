@@ -175,7 +175,7 @@ class User(AbstractUser):
         ordering = ("date_joined",)
 
     def __str__(self):
-        return "{}-{}".format(self.username, self.name)
+        return "{} ({})".format(self.name, self.username)
 
     def set_phone_number_verified(self):
         """Marks a users phone number as verified.

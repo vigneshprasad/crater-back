@@ -24,7 +24,6 @@ class TopicAdmin(admin.ModelAdmin):
 class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     list_display = (
         "id",
-        "score",
         "topic",
         "type",
         "group_speakers",
@@ -32,6 +31,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "start",
         "end",
         "calculate_score",
+        "score",
         "is_approved"
     )
     readonly_fields = (
@@ -70,13 +70,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     def group_speakers(obj):
         if not obj.speakers.all():
             return ""
-        return ", ".join((speaker.username or "") for speaker in obj.speakers.all())
+        return ", ".join((speaker.__str__() or "") for speaker in obj.speakers.all())
 
     @staticmethod
     def group_attendees(obj):
         if not obj.attendees.all():
             return ""
-        return ", ".join((attendee.username or "") for attendee in obj.attendees.all())
+        return ", ".join((attendee.__str__() or "") for attendee in obj.attendees.all())
 
     @staticmethod
     def group_interests(obj):

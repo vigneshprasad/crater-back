@@ -8,4 +8,4 @@ class DyteConfig(AppConfig):
     verbose_name = _("Dyte")
 
     def ready(self):
-        pass
+        import integrations.dyte.receivers

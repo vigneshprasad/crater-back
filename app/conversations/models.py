@@ -95,7 +95,7 @@ class Topic(base_model.BaseModel):
         verbose_name_plural = _("Topics")
 
     def __str__(self):
-        return "{}-{}".format(self.pk, self.name)
+        return "{}".format(self.name)
 
 
 class Group(base_model.BaseModel):
@@ -183,7 +183,7 @@ class Group(base_model.BaseModel):
         verbose_name_plural = _("Groups")
 
     def __str__(self):
-        return "{}-{}-{}".format(self.pk, self.topic, self.host)
+        return "{} - {} - {} - {}".format(self.pk, self.topic, self.host, self.type)
 
     def save(
             self,
