@@ -50,7 +50,8 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"^https://localhost[:0-9]*",
     r"https://[a-zA-Z-]+.1worknetwork.com*",
     r"https://[a-zA-Z-]+.worknetwork.in*",
-    r"https://worknetwork.in*"
+    r"https://worknetwork.in*",
+    r"https://penitence-pre-prod.vercel.app/*"
     # r"^http://*",
 ]
 

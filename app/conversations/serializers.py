@@ -288,6 +288,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_live_count(group):
+        """Return live count or return 0."""
         return group.dyte_webinar.first().meeting_participants.filter(
             is_online=True
         ).count() or 0

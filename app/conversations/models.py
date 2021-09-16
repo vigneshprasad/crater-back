@@ -18,11 +18,12 @@ class SuggestedTopic(base_model.BaseModel):
 
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
-        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR_ENUM),
     )
 
     type = models.PositiveIntegerField(
-        default=GROUP_TYPE_CHOICES[0][0],
+        default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     name = models.CharField(max_length=255)
@@ -194,7 +195,7 @@ class Group(base_model.BaseModel):
     @property
     def local_end(self):
         """Return start in the local timezone."""
-        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE))
+        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE)) if self.end else None
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""
@@ -227,7 +228,13 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return "{} - {}".format(self.get_display_start_time(), self.get_display_end_time())
+        display_end_time = self.get_display_end_time()
+        display_start_time = self.get_display_start_time()
+
+        if not display_end_time:
+            return "{}".format(display_start_time)
+
+        return "{} - {}".format(display_start_time, display_end_time)
 
     def get_display_start_time(self):
         """Give a displayable start time for a Group.
@@ -245,7 +252,7 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return self.local_end.strftime("%I:%M %p")
+        return self.local_end.strftime("%I:%M %p") if self.local_end else None
 
 
 class Invite(base_model.BaseModel):

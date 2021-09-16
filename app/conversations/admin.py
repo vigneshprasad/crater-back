@@ -26,10 +26,11 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "id",
         "score",
         "topic",
+        "type",
         "group_speakers",
+        "group_attendees",
         "start",
         "end",
-        "closed",
         "calculate_score",
         "is_approved"
     )
@@ -69,7 +70,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     def group_speakers(obj):
         if not obj.speakers.all():
             return ""
-        return ", ".join((speaker.email or "") for speaker in obj.speakers.all())
+        return ", ".join((speaker.username or "") for speaker in obj.speakers.all())
+
+    @staticmethod
+    def group_attendees(obj):
+        if not obj.attendees.all():
+            return ""
+        return ", ".join((attendee.username or "") for attendee in obj.attendees.all())
 
     @staticmethod
     def group_interests(obj):
