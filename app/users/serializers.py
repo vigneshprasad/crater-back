@@ -661,7 +661,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     @classmethod
     def get_cover_thumbnail(cls, profile):
         if not profile.cover:
-            return False
+            return None
 
         if profile.cover.cover_thumbnail:
             return profile.cover.cover_thumbnail

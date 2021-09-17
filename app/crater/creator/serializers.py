@@ -23,7 +23,6 @@ class CreatorSerializer(serializers.ModelSerializer):
             "follower_count",
             "type",
             "default_community",
-            "user_properties",
             "profile_detail"
         )
         extra_kwargs = {
