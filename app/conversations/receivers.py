@@ -115,9 +115,12 @@ def create_topic_for_article(sender, article, *args, **kwargs):
 
 
 @receiver(m2m_changed, sender=models.Group.attendees.through)
-def change_group_occupancy_status(sender, instance, *args, **kwargs):
+def add_attendees_to_dyte_webinar(sender, instance, *args, **kwargs):
     """Update group is_full as a user is removed or added to the group."""
     if kwargs.get("action") not in ["post_add"]:
+        return False
+
+    if not instance.type == constants.GROUP_TYPE_WEBINAR_ENUM:
         return False
 
     pk_set = kwargs.get("pk_set")
