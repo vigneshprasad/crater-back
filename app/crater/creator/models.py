@@ -34,6 +34,9 @@ class Creator(base_models.BaseModel):
     class Meta:
         ordering = ["follower_count"]
 
+    def __str__(self):
+        return "{}".format(self.user.__str__())
+
 
 class Community(base_models.BaseModel):
     """Communities created by a creator.
@@ -53,6 +56,9 @@ class Community(base_models.BaseModel):
     # For every creator one community is created by default.
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "{}".format(self.name)
 
 
 class CommunityMember(base_models.BaseModel):

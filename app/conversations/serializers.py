@@ -145,7 +145,11 @@ class GroupSerializer(serializers.ModelSerializer):
 
         """
 
-        user = self.context.get("request").user
+        request = self.context.get("request")
+        if not request:
+            return 0
+
+        user = request.user
         # If group score or user score is not there return zero.
         if not (user and (group.score and user.score)):
             return 0

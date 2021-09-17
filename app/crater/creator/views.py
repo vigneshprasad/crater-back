@@ -155,8 +155,8 @@ class CommunityMemberViewSet(
     serializer_class = serializers.CommunityMemberSerializer
     pagination_class = paginators.CommunityMemberPagination
     # All followers of the creator.
-    queryset = models.Community.objects.filter(is_active=True)
-    filterset_fields = ["creator"]
+    queryset = models.CommunityMember.objects.filter(is_active=True)
+    filterset_fields = ["community"]
 
     @action(
         methods=["get"],

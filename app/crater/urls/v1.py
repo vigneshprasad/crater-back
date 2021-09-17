@@ -15,8 +15,8 @@ router.register("auth", auth_views.PhoneNumberRegisterView, base_name="crater-au
 
 # Creator app endpoints.
 router.register("creator", creator_views.CreatorViewSet, base_name="crater-creator")
-router.register("community", creator_views.CommunityViewSet, base_name="crater-communities")
 router.register("community/members", creator_views.CommunityMemberViewSet, base_name="crater-community-members")
+router.register("community", creator_views.CommunityViewSet, base_name="crater-communities")
 router.register("followers", creator_views.FollowerViewSet, base_name="crater-followers")
 
 urlpatterns = [

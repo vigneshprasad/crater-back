@@ -3,6 +3,7 @@ import datetime
 from django.db.models import Q
 from django.utils import timezone
 
+from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import signals
@@ -215,9 +216,10 @@ def add_speaker_to_attendee_for_request(speaker, group_request):
 
     Returns:
         group_request(Request): group request
+
     """
 
-    group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
+    group_request.status = constants.REQUEST_STATUS_ACCEPTED_ENUM
     group_request.group.attendees.add(speaker)
     group_request.save()
 

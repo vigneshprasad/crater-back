@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from crater.creator import models
-from users import models as user_models
 from utils.fields import Base64FileField
 
 
@@ -43,6 +42,7 @@ class UserPropertiesSerializer(serializers.ModelSerializer):
 
 class CreatorSerializer(serializers.ModelSerializer):
 
+    user_properties = serializers.SerializerMethodField(read_only=True)
     about = serializers.SerializerMethodField(read_only=True)
     photo = Base64FileField(
         source="user.profile.photo",
@@ -70,7 +70,8 @@ class CreatorSerializer(serializers.ModelSerializer):
             "photo",
             "photo_url",
             "cover_file",
-            "default_community"
+            "default_community",
+            "user_properties"
         )
         extra_kwargs = {
             "number_of_subscribers": {
@@ -123,6 +124,10 @@ class CreatorSerializer(serializers.ModelSerializer):
             return None
 
         return CommunitySerializer(community).data
+
+    @staticmethod
+    def get_user_properties(obj):
+        return UserPropertiesSerializer(obj.user).data
 
 
 class FollowerSerializer(serializers.ModelSerializer):
