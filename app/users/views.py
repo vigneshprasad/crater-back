@@ -55,16 +55,31 @@ class ProfileViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
+        """Create or update profile for a user."""
+        user = request.user
         created_flag = True
-        if hasattr(request.user, "profile") and request.user.profile:
+
+        if user.has_profile:
             serializer = self.get_serializer(data=request.data, instance=request.user.profile, partial=True)
             created_flag = False
         else:
             serializer = self.get_serializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data["user"] = request.user
+
+        # TODO(Nishant): Fix and create and update endpoint as well.
+        # Because of the user addition to validated data, anything with
+        # source user.{} can't be updated through profile.
+
+        # Update data for user.
+        name = serializer.validated_data.get("user").get("name")
+        user.name = name
+        user.save()
+
+        # Perform create.
+        serializer.validated_data["user"] = user
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+
         response = Response(serializers.ProfileSerializer(request.user.profile).data)
         if created_flag:
             basic_profile_created.send(
@@ -73,6 +88,7 @@ class ProfileViewSet(
                 request=request,
                 response=response
             )
+
         return response
 
     def get_object(self):
