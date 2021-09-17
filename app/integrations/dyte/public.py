@@ -30,3 +30,15 @@ def add_participant_to_meeting(dyte_meeting, user):
 
     """
     return dyte_service.add_participant_to_meeting(dyte_meeting, user)
+
+
+def get_dyte_webinar_for_group(group):
+    """Returns dyte meeting for a group.
+
+    Args:
+        group(Group): Group for which we are getting
+            the dyte meeting.
+
+    """
+    return group.dyte_webinar.first()
+

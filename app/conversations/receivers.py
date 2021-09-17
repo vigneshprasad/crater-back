@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from conversations import constants
 from conversations import models
 from conversations import signals
+from integrations.dyte import public as dyte_public
 from matching import private as matching_private
 from resources.meetings import signals as meeting_signals
 from resources.curated_articles import signals as article_signals
@@ -18,7 +19,10 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
         Don't send the signal if the group is being updated.
 
     """
-    if not (instance.type == constants.GROUP_TYPE_WEBINAR_ENUM and kwargs.get("created")):
+    if not (instance.type == constants.GROUP_TYPE_WEBINAR_ENUM):
+        return
+
+    if dyte_public.get_dyte_webinar_for_group(instance):
         return
 
     signals.webinar_created.send(sender=instance.__class__, group=instance)
