@@ -59,18 +59,20 @@ class GroupWebinarPublicViewSet(
     @action(
         methods=["GET"],
         detail=False,
+        filterset_fields=["host"],
     )
     def upcoming(self, request):
-        queryset = self._get_group_queryset(is_live=False)
+        queryset = self.filter_queryset(self._get_group_queryset(is_live=False))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["GET"],
         detail=False,
+        filterset_fields=["host"],
     )
     def live(self, request):
-        queryset = self._get_group_queryset(is_live=True)
+        queryset = self.filter_queryset(self._get_group_queryset(is_live=True))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
