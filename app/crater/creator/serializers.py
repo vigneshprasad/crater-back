@@ -5,20 +5,9 @@ from crater.creator import models
 from users import serializers as user_serializers
 
 
-class UserPropertiesSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = get_user_model()
-        fields = (
-            "pk",
-            "name"
-        )
-
-
 class CreatorSerializer(serializers.ModelSerializer):
 
-    user_properties = UserPropertiesSerializer(source="user", read_only=True)
-    profile_properties = user_serializers.ProfileSerializer(source="user.profile", read_only=True)
+    profile_detail = user_serializers.ProfileSerializer(source="user.profile", read_only=True)
 
     # Return serializer default community for a creator.
     default_community = serializers.SerializerMethodField(read_only=True)
@@ -35,7 +24,7 @@ class CreatorSerializer(serializers.ModelSerializer):
             "type",
             "default_community",
             "user_properties",
-            "profile_properties"
+            "profile_detail"
         )
         extra_kwargs = {
             "number_of_subscribers": {
@@ -68,7 +57,7 @@ class CreatorSerializer(serializers.ModelSerializer):
 
 class FollowerSerializer(serializers.ModelSerializer):
 
-    user_properties = UserPropertiesSerializer(source="user", read_only=True)
+    profile_detail = user_serializers.ProfileSerializer(source="user.profile", read_only=True)
 
     class Meta:
 
@@ -80,7 +69,7 @@ class FollowerSerializer(serializers.ModelSerializer):
             "unfollowed",
             "followed_at",
             "unfollowed_at",
-            "user_properties"
+            "profile_detail"
         )
         extra_kwargs = {
             "unfollowed": {
@@ -111,7 +100,7 @@ class CommunitySerializer(serializers.ModelSerializer):
 
 class CommunityMemberSerializer(serializers.ModelSerializer):
 
-    user_properties = UserPropertiesSerializer(source="user", read_only=True)
+    profile_detail = user_serializers.ProfileSerializer(source="user.profile", read_only=True)
 
     class Meta:
 
@@ -121,7 +110,7 @@ class CommunityMemberSerializer(serializers.ModelSerializer):
             "community",
             "joined_at",
             "user",
-            "user_properties"
+            "profile_detail"
         )
         extra_kwargs = {
             "joined_at": {
