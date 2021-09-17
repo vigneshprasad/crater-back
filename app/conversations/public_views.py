@@ -21,6 +21,7 @@ class GroupWebinarPublicViewSet(
     serializer_class = serializers.GroupWebinarSerializer
     queryset = models.Group.objects.filter(closed=False, type=constants.GROUP_TYPE_WEBINAR_ENUM)
     permission_classes = [permissions.AllowAny]
+    filterset_fields = []
 
     def _get_group_queryset(self, is_live):
         """Return live webinars if `is_live` is set to True
@@ -40,37 +41,35 @@ class GroupWebinarPublicViewSet(
             )
         return queryset
 
-    def _create_data_by_date(self, queryset):
-        data = []
-        date_list = list(queryset.values_list("start__date", flat=True).distinct())
-        date_list.reverse()
-
-        for date in date_list:
-            objects = queryset.filter(
-                start__date=date,
-            )
-            serialized = self.get_serializer(objects, many=True)
-            data.append({
-                "date": date.isoformat(),
-                "groups": serialized.data,
-            })
-        return data
-
     @action(
         methods=["GET"],
         detail=False,
+        filterset_fields=["host"],
     )
     def upcoming(self, request):
-        queryset = self._get_group_queryset(is_live=False)
+        queryset = self.filter_queryset(self._get_group_queryset(is_live=False))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["GET"],
         detail=False,
+        filterset_fields=["host"],
     )
     def live(self, request):
-        queryset = self._get_group_queryset(is_live=True)
+        queryset = self.filter_queryset(self._get_group_queryset(is_live=True))
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        filterset_fields=["host"],
+    )
+    def all(self, request):
+        queryset_live = self._get_group_queryset(is_live=True)
+        queryset_upcoming = self._get_group_queryset(is_live=False)
+        queryset = self.filter_queryset(queryset_live | queryset_upcoming)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
