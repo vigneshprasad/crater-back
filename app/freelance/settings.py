@@ -9,11 +9,13 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
+
 import datetime
 import os
 import sentry_sdk
 
 import django.core.mail.backends.smtp
+from corsheaders.defaults import default_headers
 
 from django.utils.translation import ugettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -38,11 +40,16 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 FERNET_KEY = b"TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8="
+
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = True
 
 
 ALLOWED_HOSTS = ["*"]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "sentry-trace",
+]
 
 CORS_ORIGIN_REGEX_WHITELIST = [
     r"^http://localhost[:0-9]*",
