@@ -127,11 +127,7 @@ def add_attendees_to_dyte_webinar(sender, instance, *args, **kwargs):
     if not instance.type == constants.GROUP_TYPE_WEBINAR_ENUM:
         return False
 
-    pk_set = kwargs.get("pk_set")
-    if not pk_set:
-        return False
-
-    attendees = get_user_model().objects.filter(pk__in=pk_set)
+    attendees = instance.attendees.all()
     signals.attendees_added_to_group.send(
         sender=instance.__class__,
         group=instance,

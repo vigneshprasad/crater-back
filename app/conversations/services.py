@@ -224,7 +224,7 @@ def add_attendee_to_group_for_request(attendee, group_request):
     group_request.save()
 
     # Send a signal once user is added to the group.
-    signals.attendee_added_to_group(
+    signals.attendee_added_to_group.send(
         sender=group_request.group.__class__,
         group=group_request.group,
         user=attendee
