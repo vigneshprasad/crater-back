@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
@@ -111,3 +112,21 @@ def create_topic_for_article(sender, article, *args, **kwargs):
     )
 
     return topic
+
+
+@receiver(m2m_changed, sender=models.Group.attendees.through)
+def change_group_occupancy_status(sender, instance, *args, **kwargs):
+    """Update group is_full as a user is removed or added to the group."""
+    if kwargs.get("action") not in ["post_add"]:
+        return False
+
+    pk_set = kwargs.get("pk_set")
+    if not pk_set:
+        return False
+
+    attendees = get_user_model().objects.filter(pk__in=pk_set)
+    signals.attendees_added_to_group.send(
+        sender=instance.__class__,
+        group=instance,
+        users=attendees
+    )

@@ -33,7 +33,8 @@ class DyteMeetingParticipant(base_model.BaseModel):
     )
     participant = models.ForeignKey(
         "users.User",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="dyte_participant"
     )
     auth_token = models.TextField()
     is_online = models.BooleanField(default=False)

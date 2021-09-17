@@ -53,8 +53,8 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             "fields": (("is_active", "groups"), ("is_approved", "is_service_approved"),),
         }),
         ("User Data", {
-            "fields": (("name", "email"), ("city", "phone_number"), ("referer", "phone_number_verified"), ("rating", "intent"),
-                       "objectives", "source", "new_source", "score"),
+            "fields": (("name", "email"), ("username", "phone_number"), ("referer", "phone_number_verified"), ("rating", "intent"),
+                       "objectives", "source", "new_source", "score", "city"),
         }),
     )
     autocomplete_fields = ["city"]

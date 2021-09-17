@@ -364,7 +364,7 @@ class RequestViewSet(
 
         try:
             if group_request.participant_type == constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM:
-                result = services.add_speaker_to_attendee_for_request(user, group_request)
+                result = services.add_attendee_to_group_for_request(user, group_request)
             else:
                 result = services.add_speaker_to_group_for_request(user, group_request)
 

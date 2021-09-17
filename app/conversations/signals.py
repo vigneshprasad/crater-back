@@ -19,3 +19,20 @@ conversation_approved = Signal(providing_args=[
 webinar_created = Signal(providing_args=[
     "group"
 ])
+
+attendee_added_to_group = Signal(providing_args=[
+    "group",
+    "user"
+])
+
+# This is used when multiple attendees are added at the same
+# time.
+attendees_added_to_group = Signal(providing_args=[
+    "group",
+    "users"
+])
+
+speaker_added_to_group = Signal(providing_args=[
+    "group",
+    "user"
+])
