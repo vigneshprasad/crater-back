@@ -54,6 +54,25 @@ class ProfileViewSet(
     queryset = models.Profile.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
+    @staticmethod
+    def _update_data_for_user(user, user_data):
+        """Update name for a user send in profile post.
+
+        Args:
+            user(User): Request user, who's profile is being updated.
+            user_data(dict): User data being updated, through profile post.
+
+        """
+        if not user_data:
+            return
+
+        name = user_data.get("name")
+        if not name:
+            return
+
+        user.name = name
+        user.save()
+
     def create(self, request, *args, **kwargs):
         """Create or update profile for a user."""
         user = request.user
@@ -72,9 +91,8 @@ class ProfileViewSet(
         # source user.{} can't be updated through profile.
 
         # Update data for user.
-        name = serializer.validated_data.get("user").get("name")
-        user.name = name
-        user.save()
+        user_data = serializer.validated_data.get("user")
+        self._update_data_for_user(user, user_data)
 
         # Perform create.
         serializer.validated_data["user"] = user
