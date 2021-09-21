@@ -1,5 +1,10 @@
 import json
+import time
 
+from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+from jwt import InvalidAlgorithmError
+from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework.renderers import JSONRenderer
 
 from consumers.chat.services import create_message, get_paginated_support_messages, get_inbox_messages, \
@@ -7,6 +12,11 @@ from consumers.chat.services import create_message, get_paginated_support_messag
     unstar_user, get_paginated_user_messages, get_read_user_messages_ids_by_user, is_starred, \
     get_latest_message, get_user_data, create_last_seen
 from consumers.connect import ChatAuthConsumer
+
+from conversations.models import Group
+from users.models import User
+from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
+from rest_framework_jwt.utils import jwt_decode_handler
 
 
 class ChatConsumer(ChatAuthConsumer):
@@ -172,7 +182,7 @@ class ChatConsumer(ChatAuthConsumer):
         :param event: message event data
         """
 
-        if (self.receiver_id == event['receiver_id'] and self.user_id == event['sender_id'])\
+        if (self.receiver_id == event['receiver_id'] and self.user_id == event['sender_id']) \
                 or (self.receiver_id == event['sender_id'] and self.user_id == event['receiver_id']):
             await self.send(text_data=json.dumps({
                 'type': 'user_message',
@@ -396,3 +406,61 @@ class ChatConsumer(ChatAuthConsumer):
             'messages': json.loads(JSONRenderer().render(latest_messages).decode('utf8')),
             'count': count
         }))
+
+
+class LiveCountConsumer(WebsocketConsumer):
+    user_id = None
+    group_id = None
+
+    def connect(self):
+        self.group_id = self.scope['url_route']['kwargs'].get('group_id')
+        token = self.scope['url_route']['kwargs']['token']
+
+        try:
+            self.is_valid_user(token)
+            self.channel_layer.group_add(
+                self.user_id,
+                self.channel_name
+            )
+            self.accept()
+
+            if not self.validate_group_id():
+                self.send_no_permissions()
+
+            self.send(
+                text_data=json.dumps({
+                    "type": "live_count",
+                    "count": "10K"
+                })
+            )
+
+        except (ValidationError, AuthenticationFailed, InvalidAlgorithmError, User.DoesNotExist) as v:
+            self.channel_layer.group_add('anonymous', 'anonymous')
+            self.send_no_permissions()
+
+    def is_valid_user(self, token):
+        payload = jwt_decode_handler(token)
+        self.user_id = User.objects.get(uuid=payload.get('user_id')).uuid
+
+    def send_no_permissions(self, *args, **kwargs):
+        """
+        Emit no permission event
+        """
+        self.send(text_data=json.dumps({
+            'type': 'access_denied',
+            'message': {'status_code': 401},
+            'user': 'anonymous'
+        }))
+        self.close()
+
+    def disconnect(self, close_code):
+        try:
+            self.channel_layer.group_discard(
+                self.user_id,
+                self.channel_name
+            )
+        except TypeError as ex:
+            print('TypeError', ex)
+
+    def validate_group_id(self):
+        return Group.objects.filter(id=self.group_id).exists()
