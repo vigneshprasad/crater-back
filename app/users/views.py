@@ -562,7 +562,7 @@ class UserDetailsView(DefaultUserDetailsView):
         return Response(
             {
                 "token": jwt_encode(user),
-                "user_details": response.data
+                "user": response.data
             },
             status=status.HTTP_200_OK
         )
