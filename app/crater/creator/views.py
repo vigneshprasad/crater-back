@@ -21,7 +21,7 @@ class CreatorViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    permission_classes = [user_permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
     queryset = models.Creator.objects.filter(is_active=True).order_by("order")

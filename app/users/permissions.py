@@ -8,6 +8,8 @@ from django.conf import settings
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
 
+SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
+
 
 class IsAuthenticated(permissions.BasePermission):
     """Allows access only to authenticated users."""
@@ -22,6 +24,20 @@ class IsAuthenticated(permissions.BasePermission):
 class AllowAny(permissions.BasePermission):
     """Allows access to all user's, authenticated or otherwise."""
     def has_permission(self, request, view):
+        return True
+
+
+class IsAuthenticatedOrReadOnly(permissions.BasePermission):
+    """The request is authenticated as a user, or is a read-only request."""
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+
+        if not bool(request.user and request.user.is_authenticated):
+            raise AuthenticationFailed
+        # if not request.user.email_verified:
+        #     raise AuthenticationFailed
         return True
 
 
