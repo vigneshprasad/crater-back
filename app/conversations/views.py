@@ -452,7 +452,7 @@ class GroupWebinarViewSet(
 ):
     serializer_class = serializers.GroupWebinarSerializer
     queryset = models.Group.objects.filter(closed=False, type=constants.GROUP_TYPE_WEBINAR_ENUM)
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ["host"]
 
     @action(
