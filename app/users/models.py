@@ -163,7 +163,8 @@ class User(AbstractUser):
     )
     score = models.PositiveIntegerField(default=0)
 
-    USERNAME_FIELD = "username"
+    # TODO(Nishant): Change this to username once we can make it unique.
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
