@@ -283,6 +283,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
 
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
+
     city = serializers.PrimaryKeyRelatedField(queryset=tag_models.CityProxy.objects.all(), required=False)
     pan_card_base64 = fields.Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
@@ -345,6 +346,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             "active_subscription_membership",
             "pan_card_size",
             "is_approved",
+            "objectives"
         )
 
     def validate(self, attrs):

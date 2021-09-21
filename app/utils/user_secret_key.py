@@ -7,7 +7,7 @@ from rest_framework_jwt.utils import jwt_payload_handler as payload_handler
 def create_new_secret_key():
     new_uuid_part1 = uuid.uuid4()
     new_uuid_part2 = uuid.uuid4()
-    return f'{new_uuid_part1}_{str(new_uuid_part2)}'
+    return f"{new_uuid_part1}_{str(new_uuid_part2)}"
 
 
 def get_user_secret_key(user):

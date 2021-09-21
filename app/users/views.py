@@ -10,7 +10,9 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_auth.registration.views import VerifyEmailView as DefaultVerifyEmailView
+from rest_auth.utils import jwt_encode
 from rest_auth.views import PasswordResetConfirmView as DefaultPasswordResetConfirmView
+from rest_auth.views import UserDetailsView as DefaultUserDetailsView
 from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import filters
 from rest_framework import mixins, viewsets, status
@@ -549,6 +551,20 @@ class CoverFileViewSet(
     def perform_create(self, serializer):
         serializer.validated_data["user"] = self.request.user
         serializer.save()
+
+
+class UserDetailsView(DefaultUserDetailsView):
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        user = request.user
+        return Response(
+            {
+                "token": jwt_encode(user),
+                "user_details": response.data
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class PasswordResetConfirmAPIView(DefaultPasswordResetConfirmView):

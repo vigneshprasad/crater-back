@@ -163,7 +163,7 @@ class User(AbstractUser):
     )
     score = models.PositiveIntegerField(default=0)
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
 
     objects = UserManager()

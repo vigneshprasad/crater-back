@@ -24,7 +24,7 @@ class CreatorViewSet(
     permission_classes = [user_permissions.IsAuthenticated]
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
-    queryset = models.Creator.objects.filter(is_active=True)
+    queryset = models.Creator.objects.filter(is_active=True).order_by("order")
 
     # We can get both certified and non certified creators
     # with the same list call with different filterset fields.

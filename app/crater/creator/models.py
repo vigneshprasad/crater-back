@@ -19,15 +19,15 @@ class Creator(base_models.BaseModel):
 
     # Number of subscribers (off the platform)
     number_of_subscribers = models.PositiveIntegerField(null=True, blank=True)
-
     # Once a creator reaches a certain mark, we can mark them
     # certified.
     certified = models.BooleanField(default=False)
-
     type = models.PositiveIntegerField(
         null=True,
         blank=True
     )
+    # Temporary key for showcasing creators.
+    order = models.PositiveIntegerField(null=True, blank=True)
     follower_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 

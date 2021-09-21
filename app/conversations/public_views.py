@@ -44,21 +44,41 @@ class GroupWebinarPublicViewSet(
     @action(
         methods=["GET"],
         detail=False,
-        filterset_fields=["host"],
+        filterset_fields=["host"]
     )
     def upcoming(self, request):
-        queryset = self.filter_queryset(self._get_group_queryset(is_live=False))
+        """Return webinars which are in the future.
+
+        Note:
+            Return groups queryset sorted by start of
+            the groups.
+
+        """
+        queryset = self.filter_queryset(self._get_group_queryset(
+            is_live=False
+        )).sort_by("-start")
         serializer = self.get_serializer(queryset, many=True)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["GET"],
         detail=False,
-        filterset_fields=["host"],
+        filterset_fields=["host"]
     )
     def live(self, request):
-        queryset = self.filter_queryset(self._get_group_queryset(is_live=True))
+        """Return webinars which are in live right now.
+
+        Note:
+            Return groups queryset sorted by start of
+            the groups.
+
+        """
+        queryset = self.filter_queryset(self._get_group_queryset(
+            is_live=True
+        )).sort_by("-start")
         serializer = self.get_serializer(queryset, many=True)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
