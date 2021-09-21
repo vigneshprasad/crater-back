@@ -56,7 +56,7 @@ class GroupWebinarPublicViewSet(
         """
         queryset = self.filter_queryset(self._get_group_queryset(
             is_live=False
-        )).sort_by("-start")
+        )).order_by("-start")
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -76,7 +76,7 @@ class GroupWebinarPublicViewSet(
         """
         queryset = self.filter_queryset(self._get_group_queryset(
             is_live=True
-        )).sort_by("-start")
+        )).order_by("-start")
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
