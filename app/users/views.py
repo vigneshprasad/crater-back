@@ -558,6 +558,7 @@ class UserDetailsView(DefaultUserDetailsView):
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)
         user = request.user
+        # Send the new JWT token on user update.
         return Response(
             {
                 "token": jwt_encode(user),
