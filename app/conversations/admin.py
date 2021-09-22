@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib import admin
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
@@ -17,6 +15,12 @@ class SuggestedTopicAdmin(admin.ModelAdmin):
 @admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "parent", "image", "is_active")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
+@admin.register(models.Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "is_active")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 

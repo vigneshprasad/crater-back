@@ -98,6 +98,20 @@ class Topic(base_model.BaseModel):
         return "{}".format(self.name)
 
 
+class Category(base_model.BaseModel):
+
+    name = models.CharField(max_length=64)
+    photo = models.ImageField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
+
+    def __str__(self):
+        return self.name
+
+
 class Group(base_model.BaseModel):
 
     GROUP_PRIVACY_CHOICES = (
@@ -122,7 +136,7 @@ class Group(base_model.BaseModel):
     )
     # TODO(Nishant): Have to get options for this.
     categories = models.ManyToManyField(
-        "tags.Tag",
+        Category,
         verbose_name=_("Categories"),
         blank=True
     )
