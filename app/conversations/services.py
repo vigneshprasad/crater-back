@@ -4,6 +4,7 @@ import numpy as np
 from django.db.models import Q
 from django.utils import timezone
 
+from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import signals
@@ -207,20 +208,28 @@ def get_groups_for_user_and_start(user, start):
     ) or None
 
 
-def add_speaker_to_attendee_for_request(speaker, group_request):
+def add_attendee_to_group_for_request(attendee, group_request):
     """Add speaker to group as an attendee and raise exception if conditions not met
 
     Args:
-        speaker(User): speaker to be added to group
-        group_request(Request): request to the group to which user to be added
+        attendee(User): Attendee to be added to group
+        group_request(Request): Request to the group to which user to be added
 
     Returns:
-        group_request(Request): group request
+        group_request(Request): Group request
+
     """
 
-    group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
-    group_request.group.attendees.add(speaker)
+    group_request.status = constants.REQUEST_STATUS_ACCEPTED_ENUM
+    group_request.group.attendees.add(attendee)
     group_request.save()
+
+    # Send a signal once user is added to the group.
+    signals.attendee_added_to_group.send(
+        sender=group_request.group.__class__,
+        group=group_request.group,
+        user=attendee
+    )
 
     return group_request
 

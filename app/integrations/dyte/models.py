@@ -21,6 +21,9 @@ class DyteMeeting(base_model.BaseModel):
     dyte_meeting_id = models.CharField(max_length=128)
     room_name = models.CharField(max_length=128)
 
+    def __str__(self):
+        return "{} - {}".format(self.room_name, (self.meeting or self.group))
+
 
 class DyteMeetingParticipant(base_model.BaseModel):
     dyte_meeting = models.ForeignKey(
@@ -30,7 +33,8 @@ class DyteMeetingParticipant(base_model.BaseModel):
     )
     participant = models.ForeignKey(
         "users.User",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="dyte_participant"
     )
     auth_token = models.TextField()
     is_online = models.BooleanField(default=False)

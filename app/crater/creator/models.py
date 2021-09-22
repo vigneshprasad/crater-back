@@ -19,20 +19,23 @@ class Creator(base_models.BaseModel):
 
     # Number of subscribers (off the platform)
     number_of_subscribers = models.PositiveIntegerField(null=True, blank=True)
-
     # Once a creator reaches a certain mark, we can mark them
     # certified.
     certified = models.BooleanField(default=False)
-
     type = models.PositiveIntegerField(
         null=True,
         blank=True
     )
+    # Temporary key for showcasing creators.
+    order = models.PositiveIntegerField(null=True, blank=True)
     follower_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["follower_count"]
+
+    def __str__(self):
+        return "{}".format(self.user.__str__())
 
 
 class Community(base_models.BaseModel):
@@ -53,6 +56,9 @@ class Community(base_models.BaseModel):
     # For every creator one community is created by default.
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "{}".format(self.name)
 
 
 class CommunityMember(base_models.BaseModel):

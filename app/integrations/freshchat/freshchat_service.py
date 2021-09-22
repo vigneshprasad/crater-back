@@ -62,7 +62,7 @@ class FreshChatWhatsappService:
             user(User): User object being created on Freshchat.
 
         """
-        if not user.profile:
+        if not user.has_profile:
             return False
 
         if not user.get_phone_number():

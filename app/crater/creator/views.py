@@ -21,10 +21,10 @@ class CreatorViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    permission_classes = [user_permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
-    queryset = models.Creator.objects.filter(is_active=True)
+    queryset = models.Creator.objects.filter(is_active=True).order_by("-order")
 
     # We can get both certified and non certified creators
     # with the same list call with different filterset fields.
@@ -34,6 +34,7 @@ class CreatorViewSet(
         methods=["get"],
         serializer_class=serializers.CreatorSerializer,
         pagination_class=paginators.CreatorPagination,
+        permission_classes=user_permissions.IsAuthenticated,
         detail=False
     )
     def my(self, request, *args, **kwargs):
@@ -155,8 +156,8 @@ class CommunityMemberViewSet(
     serializer_class = serializers.CommunityMemberSerializer
     pagination_class = paginators.CommunityMemberPagination
     # All followers of the creator.
-    queryset = models.Community.objects.filter(is_active=True)
-    filterset_fields = ["creator"]
+    queryset = models.CommunityMember.objects.filter(is_active=True)
+    filterset_fields = ["community"]
 
     @action(
         methods=["get"],

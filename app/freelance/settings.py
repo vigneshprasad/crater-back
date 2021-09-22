@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
+
 import datetime
 import os
 
@@ -16,6 +17,7 @@ import redis
 import sentry_sdk
 
 import django.core.mail.backends.smtp
+from corsheaders.defaults import default_headers
 
 from django.utils.translation import ugettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -40,10 +42,16 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 FERNET_KEY = b"TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8="
+
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = ["*"]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "sentry-trace",
+]
 
 CORS_ORIGIN_REGEX_WHITELIST = [
     r"^http://localhost[:0-9]*",
@@ -52,7 +60,10 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"^https://localhost[:0-9]*",
     r"https://[a-zA-Z-]+.1worknetwork.com*",
     r"https://[a-zA-Z-]+.worknetwork.in*",
-    r"https://worknetwork.in*"
+    r"https://worknetwork.in*",
+    r"https://penitence-pre-prod.vercel.app/*",
+    r"https://penitence.vercel.app/*",
+    r"https://crater.club/*"
     # r"^http://*",
 ]
 
@@ -457,3 +468,5 @@ DYTE_APP_ID = os.getenv("DYTE_APP_ID", "649454884b7925512fae")
 
 DYTE_PROD_BASE_URL = "https://api.cluster.dyte.in"
 DYTE_JOIN_MEETING_BASE_URL = "https://worknetwork.dyte.in"
+
+SAFE_METHODS = ("GET", "HEAD", "OPTIONS")

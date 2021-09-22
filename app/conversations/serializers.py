@@ -145,7 +145,11 @@ class GroupSerializer(serializers.ModelSerializer):
 
         """
 
-        user = self.context.get("request").user
+        request = self.context.get("request")
+        if not request:
+            return 0
+
+        user = request.user
         # If group score or user score is not there return zero.
         if not (user and (group.score and user.score)):
             return 0
@@ -255,6 +259,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
 
+    # TODO(Nishant): Figure out how to show is past.
+    is_past = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = models.Group
         fields = (
@@ -273,7 +280,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "type",
             "is_live",
             "live_count",
-            "rsvp"
+            "rsvp",
+            "is_past",
+            "is_featured"
         )
 
         extra_kwargs = {
@@ -287,7 +296,20 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         }
 
     @staticmethod
+    def get_is_past(group):
+        """Return True if the meeting was in the past."""
+        if group.is_live:
+            return False
+
+        now = timezone.now() - datetime.timedelta(hours=6)
+        return now >= group.start
+
+    @staticmethod
     def get_live_count(group):
+        """Return live count or return 0."""
+        if not group.dyte_webinar.first():
+            return 0
+
         return group.dyte_webinar.first().meeting_participants.filter(
             is_online=True
         ).count() or 0

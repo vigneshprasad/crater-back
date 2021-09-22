@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib import admin
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
@@ -20,18 +18,27 @@ class TopicAdmin(admin.ModelAdmin):
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
+@admin.register(models.Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "is_active")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
 @admin.register(models.Group)
 class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     list_display = (
         "id",
-        "score",
         "topic",
+        "type",
         "group_speakers",
+        "group_attendees",
         "start",
         "end",
-        "closed",
         "calculate_score",
-        "is_approved"
+        "score",
+        "is_approved",
+        "is_featured",
+        "is_live"
     )
     readonly_fields = (
         "is_approved",
@@ -69,7 +76,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     def group_speakers(obj):
         if not obj.speakers.all():
             return ""
-        return ", ".join((speaker.email or "") for speaker in obj.speakers.all())
+        return ", ".join((speaker.__str__() or "") for speaker in obj.speakers.all())
+
+    @staticmethod
+    def group_attendees(obj):
+        if not obj.attendees.all():
+            return ""
+        return ", ".join((attendee.__str__() or "") for attendee in obj.attendees.all())
 
     @staticmethod
     def group_interests(obj):

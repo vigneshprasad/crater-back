@@ -18,11 +18,12 @@ class SuggestedTopic(base_model.BaseModel):
 
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
-        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA)
+        (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR_ENUM),
     )
 
     type = models.PositiveIntegerField(
-        default=GROUP_TYPE_CHOICES[0][0],
+        default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     name = models.CharField(max_length=255)
@@ -94,7 +95,21 @@ class Topic(base_model.BaseModel):
         verbose_name_plural = _("Topics")
 
     def __str__(self):
-        return "{}-{}".format(self.pk, self.name)
+        return "{}".format(self.name)
+
+
+class Category(base_model.BaseModel):
+
+    name = models.CharField(max_length=64)
+    photo = models.ImageField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = _("Category")
+        verbose_name_plural = _("Categories")
+
+    def __str__(self):
+        return self.name
 
 
 class Group(base_model.BaseModel):
@@ -119,7 +134,14 @@ class Group(base_model.BaseModel):
         default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
+    # TODO(Nishant): Have to get options for this.
+    categories = models.ManyToManyField(
+        Category,
+        verbose_name=_("Categories"),
+        blank=True
+    )
 
+    # The user who has setup the group.
     host = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -127,39 +149,58 @@ class Group(base_model.BaseModel):
         null=True,
         blank=True
     )
+    # Who all can speak on the call.
     speakers = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Speakers"),
         related_name="groups_speaker"
     )
+    # Attendees are users who can join the call but are not the
+    # speakers on it i.e just listen/chat.
     attendees = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Attendees"),
         related_name="groups_attended",
         blank=True,
     )
+
     topic = models.ForeignKey("conversations.Topic", on_delete=models.CASCADE, related_name="group")
+    # Description is populated from Topic.
     description = models.TextField(max_length=1024, null=True, blank=True)
-    interests = models.ManyToManyField(meeting_models.Interest, verbose_name=_("Interests"))
+
+    interests = models.ManyToManyField(
+        meeting_models.Interest,
+        verbose_name=_("Interests"),
+        blank=True
+    )
+
+    # Duration or start of the Group.
     start = models.DateTimeField()
     end = models.DateTimeField(null=True, blank=True)
+
     max_speakers = models.PositiveIntegerField(default=constants.DEFAULT_MAX_SPEAKERS)
+    max_attendees = models.PositiveIntegerField(null=True, blank=True)
+
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
     medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
+
+    is_featured = models.BooleanField(default=False)
     is_full = models.BooleanField(default=False)
+    is_live = models.BooleanField(default=False)
+
     # Group closed status and datetime of closure.
     # TODO(Nishant): Can change this into statuses as well.
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
+
     # Group score.
-    calculate_score = models.BooleanField(default=True)
+    calculate_score = models.BooleanField(default=False)
     score = models.FloatField(null=True, blank=True)
+
     # Approval status for groups. This controls if notifications go out,
     # group is visible in all conversations etc.
     is_approved = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
-
-    is_live = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]
@@ -167,7 +208,7 @@ class Group(base_model.BaseModel):
         verbose_name_plural = _("Groups")
 
     def __str__(self):
-        return "{}-{}-{}".format(self.pk, self.topic, self.host)
+        return "{} - {} - {} - {}".format(self.pk, self.topic, self.host, self.type)
 
     def save(
             self,
@@ -194,7 +235,7 @@ class Group(base_model.BaseModel):
     @property
     def local_end(self):
         """Return start in the local timezone."""
-        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE))
+        return self.end.astimezone(pytz.timezone(settings.TIME_ZONE)) if self.end else None
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""
@@ -227,7 +268,13 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return "{} - {}".format(self.get_display_start_time(), self.get_display_end_time())
+        display_end_time = self.get_display_end_time()
+        display_start_time = self.get_display_start_time()
+
+        if not display_end_time:
+            return "{}".format(display_start_time)
+
+        return "{} - {}".format(display_start_time, display_end_time)
 
     def get_display_start_time(self):
         """Give a displayable start time for a Group.
@@ -245,7 +292,7 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return self.local_end.strftime("%I:%M %p")
+        return self.local_end.strftime("%I:%M %p") if self.local_end else None
 
 
 class Invite(base_model.BaseModel):

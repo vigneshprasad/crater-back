@@ -163,6 +163,7 @@ class User(AbstractUser):
     )
     score = models.PositiveIntegerField(default=0)
 
+    # TODO(Nishant): Change this to username once we can make it unique.
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -175,7 +176,7 @@ class User(AbstractUser):
         ordering = ("date_joined",)
 
     def __str__(self):
-        return "{}-{}".format(self.username, self.name)
+        return "{} ({})".format(self.name, self.username)
 
     def set_phone_number_verified(self):
         """Marks a users phone number as verified.
@@ -580,6 +581,13 @@ class Profile(models.Model):
         blank=True,
         null=True,
         max_length=800
+    )
+
+    # This is the url people want to showcase on their profile.
+    primary_url = models.URLField(
+        verbose_name=_("Showcase URL"),
+        null=True,
+        blank=True
     )
     instagram = models.CharField(
         verbose_name=_("Instagram"),

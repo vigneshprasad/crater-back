@@ -283,6 +283,7 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
 
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
+
     city = serializers.PrimaryKeyRelatedField(queryset=tag_models.CityProxy.objects.all(), required=False)
     pan_card_base64 = fields.Base64FileField(required=False, write_only=True, allow_null=True)
     pan_card_size = serializers.SerializerMethodField()
@@ -345,6 +346,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             "active_subscription_membership",
             "pan_card_size",
             "is_approved",
+            "objectives"
         )
 
     def validate(self, attrs):
@@ -648,20 +650,25 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_is_cover_video(obj):
-        if obj.cover:
-            cover_file = obj.cover.file
-            ext = cover_file.url.split(".")[-1]
-            if ext in ["mov", "mpeg", "avi", "mp4", "3gp", "mwv", "flv"]:
-                return True
-        return False
+        if not obj.cover:
+            return False
+
+        cover_file = obj.cover.file
+        ext = cover_file.url.split(".")[-1]
+        if ext not in ["mov", "mpeg", "avi", "mp4", "3gp", "mwv", "flv"]:
+            return False
+
+        return True
 
     @classmethod
     def get_cover_thumbnail(cls, profile):
-        if profile.cover:
-            if profile.cover.cover_thumbnail:
-                return profile.cover.cover_thumbnail
-            if not cls.get_is_cover_video(profile):
-                return profile.cover.file.url
+        if not profile.cover:
+            return None
+
+        if profile.cover.cover_thumbnail:
+            return profile.cover.cover_thumbnail
+        if not cls.get_is_cover_video(profile):
+            return profile.cover.file.url
 
     def get_can_connect(self, profile):
         """Returns boolean if the request user can request a
@@ -673,7 +680,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             return profile.allow_meeting_request
 
         user = request.user
-        if not user:
+
+        if not user or user.is_anonymous:
             return profile.allow_meeting_request
 
         # If the request user and profile user are the same,
@@ -695,25 +703,26 @@ class ProfileSerializer(serializers.ModelSerializer):
         return True
 
     def update(self, instance, validated_data):
-        """
-            Adding user group to investor if investor tag is selected
-        """
+
+        # Adding user group to investor if investor tag is selected.
         user_tags = validated_data.get("tags") if validated_data.get("tags") else []
         if len(user_tags) > 0:
             instance.new_tag.clear()
             instance.new_tag.add(user_tags[0])
         super().update(instance, validated_data)
+
         return instance
 
     def create(self, validated_data):
-        """
-            Adding user group to investor if investor tag is selected
-        """
+
+        # Adding user group to investor if investor tag is selected.
         user_tags = validated_data.get("tags") if validated_data.get("tags") else []
         profile = super().create(validated_data)
+
         if len(user_tags) > 0:
             profile.new_tag.clear()
             profile.new_tag.add(user_tags[0])
+
         profile.save()
         return profile
 

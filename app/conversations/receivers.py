@@ -3,9 +3,28 @@ from django.dispatch import receiver
 
 from conversations import constants
 from conversations import models
+from conversations import signals
+from integrations.dyte import public as dyte_public
 from matching import private as matching_private
 from resources.meetings import signals as meeting_signals
 from resources.curated_articles import signals as article_signals
+
+
+@receiver(post_save, sender=models.Group)
+def send_webinar_creation_signal(sender, instance, *args, **kwargs):
+    """Send webinar creation signal on Group post save
+
+    Note:
+        Don't send the signal if the group is being updated.
+
+    """
+    if not (instance.type == constants.GROUP_TYPE_WEBINAR_ENUM):
+        return
+
+    if dyte_public.get_dyte_webinar_for_group(instance):
+        return
+
+    signals.webinar_created.send(sender=instance.__class__, group=instance)
 
 
 @receiver(m2m_changed, sender=models.Group.speakers.through)
@@ -96,3 +115,20 @@ def create_topic_for_article(sender, article, *args, **kwargs):
     )
 
     return topic
+
+
+@receiver(m2m_changed, sender=models.Group.attendees.through)
+def add_attendees_to_dyte_webinar(sender, instance, *args, **kwargs):
+    """Update group is_full as a user is removed or added to the group."""
+    if kwargs.get("action") not in ["post_add"]:
+        return False
+
+    if not instance.type == constants.GROUP_TYPE_WEBINAR_ENUM:
+        return False
+
+    attendees = instance.attendees.all()
+    signals.attendees_added_to_group.send(
+        sender=instance.__class__,
+        group=instance,
+        users=attendees
+    )

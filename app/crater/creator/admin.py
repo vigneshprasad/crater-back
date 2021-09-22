@@ -21,6 +21,7 @@ class CreatorAdmin(admin.ModelAdmin):
 class CommunityAdmin(admin.ModelAdmin):
     list_display = (
         "id",
+        "name",
         "creator",
         "is_default",
         "is_active"

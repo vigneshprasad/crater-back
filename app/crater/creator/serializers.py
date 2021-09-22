@@ -1,57 +1,12 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from crater.creator import models
-from users import models as user_models
-from utils.fields import Base64FileField
-
-
-class UserPropertiesSerializer(serializers.ModelSerializer):
-
-    photo = serializers.SerializerMethodField()
-    introduction = serializers.SerializerMethodField()
-
-    class Meta:
-        model = get_user_model()
-        fields = (
-            "pk",
-            "photo",
-            "name",
-            "introduction",
-        )
-
-    @staticmethod
-    def get_photo(user):
-        # If the user has no profile. Return None here.
-        if not hasattr(user, "profile"):
-            return None
-
-        return (
-            user.profile.photo.url
-            if user.profile.photo
-            else user.profile.photo_url
-        )
-
-    @staticmethod
-    def get_introduction(user):
-        # If the user has no profile. Return None here.
-        if not hasattr(user, "profile"):
-            return None
-
-        return user.profile.get_introduction()
+from users import serializers as user_serializers
 
 
 class CreatorSerializer(serializers.ModelSerializer):
 
-    about = serializers.SerializerMethodField(read_only=True)
-    photo = Base64FileField(
-        source="user.profile.photo",
-        file_formats=[".jpg", ".png", ".tiff", ".bmp"],
-        allow_null=True,
-        required=False
-    )
-    photo_url = serializers.URLField(source="user.profile.photo_url", read_only=True)
-    cover_file = serializers.FileField(source="user.profile.cover.file", read_only=True)
+    profile_detail = user_serializers.ProfileSerializer(source="user.profile", read_only=True)
 
     # Return serializer default community for a creator.
     default_community = serializers.SerializerMethodField(read_only=True)
@@ -66,11 +21,9 @@ class CreatorSerializer(serializers.ModelSerializer):
             "certified",
             "follower_count",
             "type",
-            "about",
-            "photo",
-            "photo_url",
-            "cover_file",
-            "default_community"
+            "order",
+            "default_community",
+            "profile_detail"
         )
         extra_kwargs = {
             "number_of_subscribers": {
@@ -88,30 +41,6 @@ class CreatorSerializer(serializers.ModelSerializer):
         }
 
     @staticmethod
-    def get_about(obj):
-        if not obj.user.has_profile:
-            return None
-        return obj.user.profile.get_introduction()
-
-    @staticmethod
-    def get_photo(obj):
-        if not obj.user.has_profile:
-            return None
-        return obj.user.profile.photo
-
-    @staticmethod
-    def get_photo_url(obj):
-        if not obj.user.has_profile:
-            return None
-        return obj.user.profile.photo_url
-
-    @staticmethod
-    def get_cover_photo(obj):
-        if not obj.user.has_profile:
-            return None
-        return obj.user.profile.cover
-
-    @staticmethod
     def get_default_community(obj):
         community = models.Community.objects.filter(
             creator=obj,
@@ -127,7 +56,7 @@ class CreatorSerializer(serializers.ModelSerializer):
 
 class FollowerSerializer(serializers.ModelSerializer):
 
-    user_properties = serializers.SerializerMethodField()
+    profile_detail = user_serializers.ProfileSerializer(source="user.profile", read_only=True)
 
     class Meta:
 
@@ -139,7 +68,7 @@ class FollowerSerializer(serializers.ModelSerializer):
             "unfollowed",
             "followed_at",
             "unfollowed_at",
-            "user_properties"
+            "profile_detail"
         )
         extra_kwargs = {
             "unfollowed": {
@@ -152,14 +81,6 @@ class FollowerSerializer(serializers.ModelSerializer):
                 "required": False
             }
         }
-
-    @staticmethod
-    def get_user_properties(follower):
-        """Returns user properties like name, photo etc.
-            for display.
-
-        """
-        return UserPropertiesSerializer(follower.user).data
 
 
 class CommunitySerializer(serializers.ModelSerializer):
@@ -178,7 +99,7 @@ class CommunitySerializer(serializers.ModelSerializer):
 
 class CommunityMemberSerializer(serializers.ModelSerializer):
 
-    user_properties = serializers.SerializerMethodField()
+    profile_detail = user_serializers.ProfileSerializer(source="user.profile", read_only=True)
 
     class Meta:
 
@@ -188,18 +109,10 @@ class CommunityMemberSerializer(serializers.ModelSerializer):
             "community",
             "joined_at",
             "user",
-            "user_properties"
+            "profile_detail"
         )
         extra_kwargs = {
             "joined_at": {
                 "required": False
             }
         }
-
-    @staticmethod
-    def get_user_properties(follower):
-        """Returns user properties like name, photo etc.
-            for display.
-
-        """
-        return UserPropertiesSerializer(follower.user).data

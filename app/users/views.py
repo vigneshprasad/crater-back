@@ -10,7 +10,9 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_auth.registration.views import VerifyEmailView as DefaultVerifyEmailView
+from rest_auth.utils import jwt_encode
 from rest_auth.views import PasswordResetConfirmView as DefaultPasswordResetConfirmView
+from rest_auth.views import UserDetailsView as DefaultUserDetailsView
 from rest_auth.views import LogoutView as RestLogoutView
 from rest_framework import filters
 from rest_framework import mixins, viewsets, status
@@ -54,17 +56,50 @@ class ProfileViewSet(
     queryset = models.Profile.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
+    @staticmethod
+    def _update_data_for_user(user, user_data):
+        """Update name for a user send in profile post.
+
+        Args:
+            user(User): Request user, who's profile is being updated.
+            user_data(dict): User data being updated, through profile post.
+
+        """
+        if not user_data:
+            return
+
+        name = user_data.get("name")
+        if not name:
+            return
+
+        user.name = name
+        user.save()
+
     def create(self, request, *args, **kwargs):
+        """Create or update profile for a user."""
+        user = request.user
         created_flag = True
-        if hasattr(request.user, "profile") and request.user.profile:
+
+        if user.has_profile:
             serializer = self.get_serializer(data=request.data, instance=request.user.profile, partial=True)
             created_flag = False
         else:
             serializer = self.get_serializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data["user"] = request.user
+
+        # TODO(Nishant): Fix and create and update endpoint as well.
+        # Because of the user addition to validated data, anything with
+        # source user.{} can't be updated through profile.
+
+        # Update data for user.
+        user_data = serializer.validated_data.get("user")
+        self._update_data_for_user(user, user_data)
+
+        # Perform create.
+        serializer.validated_data["user"] = user
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
+
         response = Response(serializers.ProfileSerializer(request.user.profile).data)
         if created_flag:
             basic_profile_created.send(
@@ -73,6 +108,7 @@ class ProfileViewSet(
                 request=request,
                 response=response
             )
+
         return response
 
     def get_object(self):
@@ -515,6 +551,21 @@ class CoverFileViewSet(
     def perform_create(self, serializer):
         serializer.validated_data["user"] = self.request.user
         serializer.save()
+
+
+class UserDetailsView(DefaultUserDetailsView):
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        user = request.user
+        # Send the new JWT token on user update.
+        return Response(
+            {
+                "token": jwt_encode(user),
+                "user": response.data
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class PasswordResetConfirmAPIView(DefaultPasswordResetConfirmView):
