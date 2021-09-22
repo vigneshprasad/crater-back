@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 import datetime
 import os
+
+import redis
 import sentry_sdk
 
 import django.core.mail.backends.smtp
@@ -174,6 +176,8 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+REDIS = redis.Redis(host="redis", port=6379)
 
 MATERIAL_ADMIN_SITE = {
     "HEADER":  _("Administration"),
