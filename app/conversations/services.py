@@ -275,6 +275,7 @@ def get_dyte_meeting_participant(meeting_id, user_uuid):
 
 
 def participant_count(limit, current, sec):
+    limit = limit / 100
     sec = sec + 10
     final = current
     random = np.random.rand()
