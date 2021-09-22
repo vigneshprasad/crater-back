@@ -17,15 +17,17 @@ class DyteParticipantViewSet(
     serializer_class = serializers.DyteParticipantSerializer
 
     def retrieve(self, request, *args, **kwargs):
+
         pk = kwargs.get("pk")
         user = request.user
 
         try:
-            dyte_meeting = self.get_queryset().get(
+            dyte_meeting_participant = self.get_queryset().get(
                 participant=user,
                 dyte_meeting__group_id=pk,
             )
-            serialized = self.get_serializer(dyte_meeting)
-            return Response(serialized.data, status=status.HTTP_200_OK)
         except models.DyteMeetingParticipant.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serialized = self.get_serializer(dyte_meeting_participant)
+        return Response(serialized.data, status=status.HTTP_200_OK)

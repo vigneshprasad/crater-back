@@ -26,10 +26,9 @@ class GroupWebinarPublicViewSet(
 
     def _get_upcoming_webinars(self):
         """Return upcoming webinars."""
-        now = datetime.datetime.now()
         return self.get_queryset().filter(
                 is_live=False,
-                start__gte=now
+                start__gte=datetime.datetime.now()
             )
 
     def _get_live_webinars(self):
@@ -39,9 +38,19 @@ class GroupWebinarPublicViewSet(
         )
 
     def _get_featured_webinars(self):
-        """Return featured webinars."""
+        """Return featured webinars.
+
+        Note:
+            Only featured webinars in the future will
+                show up. Also if a featured webinar is
+                live don't show in this list.
+
+        """
+        min_start = datetime.datetime.now() - datetime.timedelta(hours=1)
         return self.get_queryset().filter(
-            is_featured=True
+            is_featured=True,
+            is_live=False,
+            start__gte=min_start
         )
 
     @action(
