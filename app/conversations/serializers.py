@@ -31,6 +31,13 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
         }
 
 
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Category
+        fields = ("name", "photo", "pk")
+
+
 class TopicSerializer(serializers.ModelSerializer):
 
     root = serializers.SerializerMethodField(read_only=True)
@@ -258,6 +265,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     image = serializers.FileField(required=False, write_only=True)
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
+    categories_detail_list = CategorySerializer(source="categories", many=True)
 
     # TODO(Nishant): Figure out how to show is past.
     is_past = serializers.SerializerMethodField(read_only=True)
@@ -282,7 +290,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "live_count",
             "rsvp",
             "is_past",
-            "is_featured"
+            "is_featured",
+            "categories",
+            "categories_detail_list"
         )
 
         extra_kwargs = {
