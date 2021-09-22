@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 
 from celery.schedules import crontab
@@ -6,11 +7,15 @@ from celery.task import periodic_task
 
 from conversations import constants
 from conversations import models
+from conversations import services
 from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import public as freshchat_public
 from resources.meetings import services as meeting_services
 from users import constants as user_constants
 from users import models as user_models
+from crater.creator import models as crater_models
+
+from freelance.settings import REDIS
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -47,7 +52,7 @@ def send_conversation_confirmation_email_for_user(user, group):
         last_user = matched_list.pop()
         matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
         matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
-    
+
     topic = group.topic.name
 
     date = group.start.strftime("%a, %d %b %Y")
@@ -119,7 +124,7 @@ def send_whatsapp_conversation_reminders(meetings=None):
     )
 
     logging.info("Sending reminders for groups between {} - {}. Groups count: {}".format(
-            start_datetime, end_datetime, groups.count()
+        start_datetime, end_datetime, groups.count()
     ))
 
     exclude_list = []
@@ -248,3 +253,48 @@ def create_user_introductions_for_eligible_users(profiles=None):
 
         profile.generated_introduction = introduction_string
         profile.save()
+
+
+@periodic_task(run_every=datetime.timedelta(minutes=1))
+def cache_live_webinars():
+    cached_live_webinars = REDIS.get("live_webinars")
+
+    if cached_live_webinars is None:
+        live_webinars = models.Group.objects.filter(is_live=True)
+
+        if live_webinars:
+            data = []
+            host_ids = live_webinars.values_list('host__uuid', flat=True)
+            creators = crater_models.Creator.objects.filter(user__uuid__in=host_ids)
+
+            for webinar in live_webinars:
+                for creator in creators:
+                    if webinar.host.uuid == creator.user.uuid:
+                        data.append({
+                            "webinar_id": webinar.id,
+                            "follower_count": creator.follower_count
+                        })
+
+            REDIS.set("live_webinars", json.dumps({"webinars": data}))
+
+
+@periodic_task(run_every=datetime.timedelta(seconds=10))
+def cache_participant_count():
+    current = sec = 0
+
+    cached_live_webinars = REDIS.get("live_webinars")
+
+    if cached_live_webinars is not None:
+        live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
+
+        for data in live_webinars:
+            # Check cache
+            cached_value = REDIS.get(f"{data.get('webinar_id')}")
+
+            if cached_value is not None:
+                obj = json.loads(cached_value.decode('ascii'))
+                current = obj.get("current")
+                sec = obj.get("sec")
+
+            current, sec = services.participant_count(data.get('follower_count'), current, sec)
+            REDIS.set(f"{data.get('webinar_id')}", json.dumps({"current": current, "sec": sec}))
