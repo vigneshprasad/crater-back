@@ -680,7 +680,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             return profile.allow_meeting_request
 
         user = request.user
-        if not user:
+
+        if not user or user.is_anonymous:
             return profile.allow_meeting_request
 
         # If the request user and profile user are the same,

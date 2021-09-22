@@ -22,6 +22,7 @@ class CreatorSerializer(serializers.ModelSerializer):
             "certified",
             "follower_count",
             "type",
+            "order",
             "default_community",
             "profile_detail"
         )
