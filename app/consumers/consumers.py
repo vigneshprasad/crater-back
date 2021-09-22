@@ -1,8 +1,7 @@
 import json
 import time
 
-from channels.db import database_sync_to_async
-from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer
 from jwt import InvalidAlgorithmError
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework.renderers import JSONRenderer
@@ -15,8 +14,9 @@ from consumers.connect import ChatAuthConsumer
 
 from conversations.models import Group
 from users.models import User
-from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
 from rest_framework_jwt.utils import jwt_decode_handler
+
+from freelance.settings import REDIS
 
 
 class ChatConsumer(ChatAuthConsumer):
@@ -427,12 +427,22 @@ class LiveCountConsumer(WebsocketConsumer):
             if not self.validate_group_id():
                 self.send_no_permissions()
 
-            self.send(
-                text_data=json.dumps({
-                    "type": "live_count",
-                    "count": "10K"
-                })
-            )
+            while True:
+                # Check cache
+                cached_value = REDIS.get(f"{self.group_id}")
+
+                if cached_value is not None:
+                    obj = json.loads(cached_value.decode('ascii'))
+                    current = obj.get("current")
+
+                    self.send(
+                        text_data=json.dumps({
+                            "type": "live_count",
+                            "count": current
+                        })
+                    )
+
+                    time.sleep(10)
 
         except (ValidationError, AuthenticationFailed, InvalidAlgorithmError, User.DoesNotExist) as v:
             self.channel_layer.group_add('anonymous', 'anonymous')
