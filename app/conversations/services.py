@@ -1,5 +1,6 @@
 import datetime
 
+import numpy as np
 from django.db.models import Q
 from django.utils import timezone
 
@@ -262,3 +263,18 @@ def get_dyte_meeting_participant(meeting_id, user_uuid):
         return None
 
     return dyte_participant
+
+
+def participant_count(limit, current, sec):
+    sec = sec + 10
+    final = current
+    random = np.random.rand()
+    prob = max(0.5, (1 - (sec / limit)))
+    neg_prob = min(0.5, (sec * 1.5 / limit))
+    if random <= prob:
+        final = final + np.random.randint(1, 8)
+    if random <= neg_prob:
+        final = final - np.random.randint(1, 5)
+    if final > limit:
+        return current, sec
+    return final, sec
