@@ -8,16 +8,14 @@ from django.conf import settings
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
 
-SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
-
 
 class IsAuthenticated(permissions.BasePermission):
     """Allows access only to authenticated users."""
+
     def has_permission(self, request, view):
         if not bool(request.user and request.user.is_authenticated):
             raise AuthenticationFailed
-        # if not request.user.email_verified:
-        #     raise AuthenticationFailed
+
         return True
 
 
@@ -31,23 +29,22 @@ class IsAuthenticatedOrReadOnly(permissions.BasePermission):
     """The request is authenticated as a user, or is a read-only request."""
 
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
+        if request.method in settings.SAFE_METHODS:
             return True
 
         if not bool(request.user and request.user.is_authenticated):
             raise AuthenticationFailed
-        # if not request.user.email_verified:
-        #     raise AuthenticationFailed
+
         return True
 
 
 class HasActiveSubscription(permissions.BasePermission):
     """Allows access only to authenticated users."""
+
     def has_permission(self, request, view):
         if not bool(request.user and request.user.has_active_subscription):
             raise exceptions.PermissionDenied
-        # if not request.user.email_verified:
-        #     raise AuthenticationFailed
+
         return True
 
 

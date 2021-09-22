@@ -259,6 +259,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
 
+    # TODO(Nishant): Figure out how to show is past.
+    is_past = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = models.Group
         fields = (
@@ -277,7 +280,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "type",
             "is_live",
             "live_count",
-            "rsvp"
+            "rsvp",
+            "is_past",
+            "is_featured"
         )
 
         extra_kwargs = {
@@ -289,6 +294,15 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "type": {"read_only": True},
             "is_live": {"read_only": True}
         }
+
+    @staticmethod
+    def get_is_past(group):
+        """Return True if the meeting was in the past."""
+        if group.is_live:
+            return False
+
+        now = timezone.now() - datetime.timedelta(hours=6)
+        return now >= group.start
 
     @staticmethod
     def get_live_count(group):

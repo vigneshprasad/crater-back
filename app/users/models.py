@@ -582,6 +582,13 @@ class Profile(models.Model):
         null=True,
         max_length=800
     )
+
+    # This is the url people want to showcase on their profile.
+    primary_url = models.URLField(
+        verbose_name=_("Showcase URL"),
+        null=True,
+        blank=True
+    )
     instagram = models.CharField(
         verbose_name=_("Instagram"),
         null=True,

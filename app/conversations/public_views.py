@@ -6,6 +6,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+from conversations import paginators
 from conversations import serializers
 from conversations import models
 from conversations import constants
@@ -23,23 +24,53 @@ class GroupWebinarPublicViewSet(
     permission_classes = [permissions.AllowAny]
     filterset_fields = []
 
-    def _get_group_queryset(self, is_live):
-        """Return live webinars if `is_live` is set to True
-            else return upcoming webinars
-
-        """
-
+    def _get_upcoming_webinars(self):
+        """Return upcoming webinars."""
         now = datetime.datetime.now()
-        if is_live:
-            queryset = self.get_queryset().filter(
-                is_live=True,
-            )
-        else:
-            queryset = self.get_queryset().filter(
+        return self.get_queryset().filter(
                 is_live=False,
                 start__gte=now
             )
-        return queryset
+
+    def _get_live_webinars(self):
+        """Return live webinars."""
+        return self.get_queryset().filter(
+            is_live=True
+        )
+
+    def _get_featured_webinars(self):
+        """Return featured webinars."""
+        return self.get_queryset().filter(
+            is_featured=True
+        )
+
+    @action(
+        methods=["GET"],
+        pagination_class=paginators.FeaturedWebinarPagination,
+        detail=False,
+        filterset_fields=["host"]
+    )
+    def featured(self, request):
+        """Return list of webinars that has to featured for Crater club.
+
+        Note:
+            Returns list of live and featured webinars.
+
+        """
+        live_groups = self.filter_queryset(self._get_live_webinars())
+        featured_groups = self.filter_queryset(self._get_featured_webinars())
+
+        live_and_featured_groups = self.filter_queryset(
+            live_groups | featured_groups
+        ).order_by("-is_live", "start")
+        page = self.paginate_queryset(live_and_featured_groups)
+
+        if not page:
+            serializer = self.get_serializer(live_and_featured_groups, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         methods=["GET"],
@@ -54,9 +85,7 @@ class GroupWebinarPublicViewSet(
             the groups.
 
         """
-        queryset = self.filter_queryset(self._get_group_queryset(
-            is_live=False
-        )).order_by("-start")
+        queryset = self.filter_queryset(self._get_upcoming_webinars()).order_by("start")
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -74,9 +103,7 @@ class GroupWebinarPublicViewSet(
             the groups.
 
         """
-        queryset = self.filter_queryset(self._get_group_queryset(
-            is_live=True
-        )).order_by("-start")
+        queryset = self.filter_queryset(self._get_live_webinars()).order_by("start")
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -87,8 +114,11 @@ class GroupWebinarPublicViewSet(
         filterset_fields=["host"],
     )
     def all(self, request):
-        queryset_live = self._get_group_queryset(is_live=True)
-        queryset_upcoming = self._get_group_queryset(is_live=False)
+        """Return all webinars live and upcoming."""
+
+        queryset_live = self._get_live_webinars()
+        queryset_upcoming = self._get_upcoming_webinars()
+
         queryset = self.filter_queryset(queryset_live | queryset_upcoming)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -99,6 +129,7 @@ class GroupWebinarPublicViewSet(
     )
     def is_live(self, request):
         """Webhook request to set `is_live` field for webinar group"""
+
         data = request.data
         # TODO(Sanjeev): Verify webhook using signature
 
@@ -125,6 +156,7 @@ class GroupWebinarPublicViewSet(
         detail=False,
     )
     def participant_joined(self, request):
+
         data = request.data
         # TODO(Sanjeev): Verify webhook using signature
 
@@ -150,6 +182,7 @@ class GroupWebinarPublicViewSet(
         detail=False,
     )
     def participant_left(self, request):
+
         data = request.data
         # TODO(Sanjeev): Verify webhook using signature
 

@@ -120,6 +120,12 @@ class Group(base_model.BaseModel):
         default=constants.GROUP_TYPE_GENERIC_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
+    # TODO(Nishant): Have to get options for this.
+    categories = models.ManyToManyField(
+        "tags.Tag",
+        verbose_name=_("Categories"),
+        blank=True
+    )
 
     # The user who has setup the group.
     host = models.ForeignKey(
@@ -148,7 +154,11 @@ class Group(base_model.BaseModel):
     # Description is populated from Topic.
     description = models.TextField(max_length=1024, null=True, blank=True)
 
-    interests = models.ManyToManyField(meeting_models.Interest, verbose_name=_("Interests"))
+    interests = models.ManyToManyField(
+        meeting_models.Interest,
+        verbose_name=_("Interests"),
+        blank=True
+    )
 
     # Duration or start of the Group.
     start = models.DateTimeField()
@@ -160,6 +170,7 @@ class Group(base_model.BaseModel):
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
     medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
 
+    is_featured = models.BooleanField(default=False)
     is_full = models.BooleanField(default=False)
     is_live = models.BooleanField(default=False)
 
@@ -169,7 +180,7 @@ class Group(base_model.BaseModel):
     closed_at = models.DateTimeField(null=True, blank=True)
 
     # Group score.
-    calculate_score = models.BooleanField(default=True)
+    calculate_score = models.BooleanField(default=False)
     score = models.FloatField(null=True, blank=True)
 
     # Approval status for groups. This controls if notifications go out,

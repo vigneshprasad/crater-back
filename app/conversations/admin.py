@@ -32,7 +32,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "end",
         "calculate_score",
         "score",
-        "is_approved"
+        "is_approved",
+        "is_featured",
+        "is_live"
     )
     readonly_fields = (
         "is_approved",

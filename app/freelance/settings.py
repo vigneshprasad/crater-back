@@ -464,3 +464,5 @@ DYTE_APP_ID = os.getenv("DYTE_APP_ID", "649454884b7925512fae")
 
 DYTE_PROD_BASE_URL = "https://api.cluster.dyte.in"
 DYTE_JOIN_MEETING_BASE_URL = "https://worknetwork.dyte.in"
+
+SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
