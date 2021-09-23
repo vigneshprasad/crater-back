@@ -138,7 +138,7 @@ class Category(base_model.BaseModel):
             return None
 
         return format_html(
-            '<span style="color: {};">{}</span>',
+            "<span style='color: {};'>{}</span>",
             self.color,
             "COLOR EXAMPLE"
         )

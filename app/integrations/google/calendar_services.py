@@ -101,7 +101,7 @@ class GoogleCalendarService:
 
         description = description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS
 
-        if not start_datetime and end_datetime:
+        if not (start_datetime and end_datetime):
             return None, meeting_link
 
         request_body = {
