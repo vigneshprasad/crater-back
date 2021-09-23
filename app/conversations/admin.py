@@ -20,7 +20,7 @@ class TopicAdmin(admin.ModelAdmin):
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "is_active")
+    list_display = ("id", "name", "is_active", "color", "color_example")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 

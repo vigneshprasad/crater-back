@@ -558,8 +558,9 @@ class Profile(models.Model):
         related_name="profiles",
         on_delete=models.SET_NULL
     )
-    introduction = models.CharField(
-        max_length=800,
+
+    # TODO(Nishant): Make it text field and push.
+    introduction = models.TextField(
         verbose_name=_("Introduction"),
         blank=True,
         null=True

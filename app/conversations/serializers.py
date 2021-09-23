@@ -6,7 +6,6 @@ from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-
 from conversations import constants
 from conversations import exceptions
 from conversations import models
@@ -34,8 +33,15 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
+        ref_name = "group_category"
         model = models.Category
-        fields = ("name", "photo", "pk")
+        fields = (
+            "pk",
+            "name",
+            "color",
+            "photo",
+            "order"
+        )
 
 
 class TopicSerializer(serializers.ModelSerializer):
@@ -99,6 +105,7 @@ class GroupUserSerializer(serializers.ModelSerializer):
 class GroupSerializer(serializers.ModelSerializer):
 
     topic_detail = TopicSerializer(source="topic", read_only=True)
+    categories_detail_list = CategorySerializer(source="categories", many=True, read_only=True)
     interests_detail_list = meeting_serializers.MeetingInterestSerializer(source="interests", read_only=True, many=True)
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
     attendees_detail_list = GroupUserSerializer(source="attendees", read_only=True, many=True)
@@ -135,6 +142,7 @@ class GroupSerializer(serializers.ModelSerializer):
             "type",
             "attendees",
             "attendees_detail_list",
+            "categories_detail_list"
         )
         extra_kwargs = {
             "is_approved": {"required": False}
@@ -265,6 +273,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     image = serializers.FileField(required=False, write_only=True)
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
+
     categories_detail_list = CategorySerializer(source="categories", many=True)
 
     # TODO(Nishant): Figure out how to show is past.

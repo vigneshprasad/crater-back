@@ -7,6 +7,7 @@ from datetime import timedelta
 from django.db import models
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
@@ -101,15 +102,46 @@ class Topic(base_model.BaseModel):
 class Category(base_model.BaseModel):
 
     name = models.CharField(max_length=64)
-    photo = models.ImageField(null=True, blank=True)
+    # Denotes a specific color for a category.
+    color = models.CharField(
+        max_length=16,
+        null=True,
+        blank=True,
+        help_text=_("Enter color code for the color here.")
+    )
+    photo = models.ImageField(
+        upload_to="groups/category/%Y/%m/%d/",
+        verbose_name=_("Category Photo"),
+        null=True,
+        blank=True
+    )
+    order = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True
+    )
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        ordering = ["order"]
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
 
     def __str__(self):
         return self.name
+
+    def color_example(self):
+        """Return an html which display the color added
+            to the category.
+
+        """
+        if not self.color:
+            return None
+
+        return format_html(
+            '<span style="color: {};">{}</span>',
+            self.color,
+            "COLOR EXAMPLE"
+        )
 
 
 class Group(base_model.BaseModel):

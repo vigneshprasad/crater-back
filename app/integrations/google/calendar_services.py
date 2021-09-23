@@ -83,7 +83,7 @@ class GoogleCalendarService:
 
         """
         if not self.service:
-            return None, None
+            return None, meeting_link
 
         request_id = str(uuid.uuid4())
 
@@ -92,7 +92,7 @@ class GoogleCalendarService:
             user1 = users[0]
             user2 = users[1]
         except KeyError:
-            return None, None
+            return None, meeting_link
 
         summary = "{} <> {}| Professional Networking | WorkNetwork".format(
             user1.get_display_first_name(),
@@ -100,6 +100,9 @@ class GoogleCalendarService:
         ) if not summary else summary
 
         description = description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS
+
+        if not start_datetime and end_datetime:
+            return None, meeting_link
 
         request_body = {
             "summary": summary,

@@ -453,7 +453,7 @@ class GroupWebinarViewSet(
     serializer_class = serializers.GroupWebinarSerializer
     queryset = models.Group.objects.filter(closed=False, type=constants.GROUP_TYPE_WEBINAR_ENUM)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ["host"]
+    filterset_fields = ["host", "categories"]
 
     @action(
         methods=["GET"],
@@ -469,3 +469,13 @@ class GroupWebinarViewSet(
         group = serializer.save()
         # Create webinar on Dyte
         dyte_public.create_webinar(group)
+
+
+class CategoryViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.CategorySerializer
+    queryset = models.Category.objects.filter(is_active=True)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]

@@ -22,7 +22,7 @@ class GroupWebinarPublicViewSet(
     serializer_class = serializers.GroupWebinarSerializer
     queryset = models.Group.objects.filter(closed=False, type=constants.GROUP_TYPE_WEBINAR_ENUM)
     permission_classes = [permissions.AllowAny]
-    filterset_fields = []
+    filterset_fields = ["categories"]
 
     def _get_upcoming_webinars(self):
         """Return upcoming webinars."""

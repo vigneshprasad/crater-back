@@ -426,7 +426,7 @@ class NetworkView(
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     filterset_fields = ["tags"]
     search_fields = ["name"]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
