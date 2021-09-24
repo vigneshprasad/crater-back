@@ -74,10 +74,6 @@ class GroupWebinarPublicViewSet(
         ).order_by("-is_live", "start")
         page = self.paginate_queryset(live_and_featured_groups)
 
-        if not page:
-            serializer = self.get_serializer(live_and_featured_groups, many=True)
-            return Response(serializer.data)
-
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 

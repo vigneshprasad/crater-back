@@ -427,23 +427,6 @@ class LiveCountConsumer(WebsocketConsumer):
             if not self.validate_group_id():
                 self.send_no_permissions()
 
-            while True:
-                # Check cache
-                cached_value = REDIS.get(f"{self.group_id}")
-
-                if cached_value is not None:
-                    obj = json.loads(cached_value.decode('ascii'))
-                    current = obj.get("current")
-
-                    self.send(
-                        text_data=json.dumps({
-                            "type": "live_count",
-                            "count": current
-                        })
-                    )
-
-                    time.sleep(10)
-
         except (ValidationError, AuthenticationFailed, InvalidAlgorithmError, User.DoesNotExist) as v:
             self.channel_layer.group_add('anonymous', 'anonymous')
             self.send_no_permissions()
@@ -474,3 +457,20 @@ class LiveCountConsumer(WebsocketConsumer):
 
     def validate_group_id(self):
         return Group.objects.filter(id=self.group_id).exists()
+
+    def receive(self, text_data=None, bytes_data=None):
+        data = json.loads(text_data)
+        if data.get("event") == "live_count":
+            # Check cache
+            cached_value = REDIS.get(f"{self.group_id}")
+
+            if cached_value is not None:
+                obj = json.loads(cached_value.decode('ascii'))
+                current = obj.get("current")
+
+                self.send(
+                    text_data=json.dumps({
+                        "type": "live_count",
+                        "count": current
+                    })
+                )

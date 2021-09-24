@@ -287,4 +287,6 @@ def participant_count(limit, current, sec):
         final = final - np.random.randint(1, 5)
     if final > limit:
         return current, sec
+    if final < 0:
+        return current, sec
     return final, sec
