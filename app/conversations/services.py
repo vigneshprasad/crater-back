@@ -275,16 +275,31 @@ def get_dyte_meeting_participant(meeting_id, user_uuid):
 
 
 def participant_count(limit, current, sec):
-    limit = limit / 100
-    sec = sec + 10
+    """Calculates participant count based on the
+        current count and seconds into the session.
+
+    Args:
+        limit(int): Max count for participants.
+        current(int): Current participant count.
+        sec(int): Number of seconds into the session.
+
+    """
+    if not limit:
+        return 0, 0
+
+    limit /= 100
+    sec += 10
+
+    # Make the final count and current count same.
     final = current
+
+    # Calculate probability for participant going up or down.
     random = np.random.rand()
     prob = max(0.5, (1 - (sec / limit)))
     neg_prob = min(0.5, (sec * 1.5 / limit))
-    if random <= prob:
-        final = final + np.random.randint(1, 8)
-    if random <= neg_prob:
-        final = final - np.random.randint(1, 5)
-    if final > limit:
-        return current, sec
-    return final, sec
+
+    # Update the final count of participants based on the probability.
+    final += np.random.randint(1, 8) if random <= prob else final
+    final -= np.random.randint(1, 5) if random <= neg_prob else final
+
+    return (current, sec) if final > limit else (final, sec)

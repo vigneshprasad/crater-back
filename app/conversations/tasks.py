@@ -4,6 +4,7 @@ import logging
 
 from celery.schedules import crontab
 from celery.task import periodic_task
+from django.conf import settings
 
 from conversations import constants
 from conversations import models
@@ -14,8 +15,6 @@ from resources.meetings import services as meeting_services
 from users import constants as user_constants
 from users import models as user_models
 from crater.creator import models as crater_models
-
-from freelance.settings import REDIS
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -50,7 +49,7 @@ def send_conversation_confirmation_email_for_user(user, group):
         matched_users_thread = matched_list.pop().get_display_first_name()
     else:
         last_user = matched_list.pop()
-        matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
+        matched_users_thread = ", ".join([matched_user.get_display_first_name() for matched_user in matched_list])
         matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
 
     topic = group.topic.name
@@ -104,7 +103,7 @@ def send_conversation_confirmation_email_for_user(user, group):
         )
 
 
-@periodic_task(run_every=crontab(minute='*/10'))
+@periodic_task(run_every=crontab(minute="*/10"))
 def send_whatsapp_conversation_reminders(meetings=None):
     """Sends whatsapp reminders for people 30 minutes before their meetings.
 
@@ -140,7 +139,7 @@ def send_whatsapp_conversation_reminders(meetings=None):
             exclude_list.append(speaker)
 
 
-@periodic_task(run_every=crontab(minute='*/15'))
+@periodic_task(run_every=crontab(minute="*/15"))
 def send_group_feedback_emails(groups=None):
     """Send feedback mails for conversations after 90 minutes of the
         meeting.
@@ -172,7 +171,7 @@ def send_group_feedback_emails(groups=None):
             if speaker in exclude_list:
                 continue
 
-            subject = 'How was your group meeting?'
+            subject = "How was your group meeting?"
 
             to_emails = [speaker.email]
             from_email = constants.MEETING_COMMUNICATION_FROM_EMAIL
@@ -188,7 +187,7 @@ def send_group_feedback_emails(groups=None):
                     content={},
                     from_email=from_email,
                     merge_vars={
-                        to: {'email': to}
+                        to: {"email": to}
                     }
                 )
 
@@ -257,44 +256,67 @@ def create_user_introductions_for_eligible_users(profiles=None):
 
 @periodic_task(run_every=datetime.timedelta(minutes=1))
 def cache_live_webinars():
-    cached_live_webinars = REDIS.get("live_webinars")
+    """This caches the live webinars every minute to
+        a Redis cache.
 
+    """
+    cached_live_webinars = settings.REDIS.get("live_webinars")
+
+    # TODO(Nishant): Fix this function after consulting with Sanjeev.
     if cached_live_webinars is None:
         live_webinars = models.Group.objects.filter(is_live=True)
 
         if live_webinars:
             data = []
-            host_ids = live_webinars.values_list('host__uuid', flat=True)
+            host_ids = live_webinars.values_list("host__uuid", flat=True)
             creators = crater_models.Creator.objects.filter(user__uuid__in=host_ids)
 
             for webinar in live_webinars:
                 for creator in creators:
-                    if webinar.host.uuid == creator.user.uuid:
-                        data.append({
-                            "webinar_id": webinar.id,
-                            "follower_count": creator.follower_count
-                        })
+                    if webinar.host.uuid != creator.user.uuid:
+                        continue
+                    data.append({
+                        "webinar_id": webinar.id,
+                        "follower_count": creator.follower_count
+                    })
 
-            REDIS.set("live_webinars", json.dumps({"webinars": data}))
+            # Add live webinar data to Redis cache.
+            settings.REDIS.set("live_webinars", json.dumps({"webinars": data}))
 
 
 @periodic_task(run_every=datetime.timedelta(seconds=10))
 def cache_participant_count():
+    """Calculate current participant count for live webinars.
+
+    Note:
+        The function creates it every 10 seconds and updates
+            participant count for each webinar.
+
+    """
     current = sec = 0
+    cached_live_webinars = settings.REDIS.get("live_webinars")
 
-    cached_live_webinars = REDIS.get("live_webinars")
+    if not cached_live_webinars:
+        return
 
-    if cached_live_webinars is not None:
-        live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
+    live_webinars = json.loads(cached_live_webinars.decode("ascii")).get("webinars")
 
-        for data in live_webinars:
-            # Check cache
-            cached_value = REDIS.get(f"{data.get('webinar_id')}")
+    for data in live_webinars:
+        # Check cache for the webinar id and get the cached values.
+        cached_value = settings.REDIS.get(f"{data.get('webinar_id')}")
 
-            if cached_value is not None:
-                obj = json.loads(cached_value.decode('ascii'))
-                current = obj.get("current")
-                sec = obj.get("sec")
+        if cached_value is not None:
+            obj = json.loads(cached_value.decode("ascii"))
+            current = obj.get("current")
+            sec = obj.get("sec")
 
-            current, sec = services.participant_count(data.get('follower_count'), current, sec)
-            REDIS.set(f"{data.get('webinar_id')}", json.dumps({"current": current, "sec": sec}))
+        current, sec = services.participant_count(
+            data.get("follower_count"),
+            current,
+            sec
+        )
+        # Set the updated current count and sec to redis cache.
+        settings.REDIS.set(
+            f"{data.get('webinar_id')}",
+            json.dumps({"current": current, "sec": sec})
+        )

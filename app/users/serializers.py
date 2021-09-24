@@ -564,6 +564,17 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     can_connect = serializers.SerializerMethodField(read_only=True)
 
+    # TODO(Nishant): Move to this later completely.
+    years_of_experience_detail = serializers.SerializerMethodField(source="get_years_of_experience_detail", read_only=True)
+    education_level_detail = serializers.SerializerMethodField(source="get_education_level_detail", read_only=True)
+    company_type_detail = serializers.SerializerMethodField(source="get_company_type_detail", read_only=True)
+    company_type_advised_detail = serializers.SerializerMethodField(source="get_company_type_advised_detail", read_only=True)
+    sector_detail = serializers.SerializerMethodField(source="get_sector_detail", read_only=True)
+    number_of_employees_detail = serializers.SerializerMethodField(source="get_number_of_employees_detail", read_only=True)
+    project_type_detail = serializers.SerializerMethodField(source="get_project_type_detail", read_only=True)
+    stage_of_company_detail = serializers.SerializerMethodField(source="get_stage_of_company_detail", read_only=True)
+    companies_invested_detail = serializers.SerializerMethodField(source="get_companies_invested_detail", read_only=True)
+
     instagram_id = ""
     instagram_token = None
 
@@ -612,7 +623,16 @@ class ProfileSerializer(serializers.ModelSerializer):
             "companies_invested",
             "other_tag",
             "allow_meeting_request",
-            "can_connect"
+            "can_connect",
+            "years_of_experience_detail",
+            "education_level_detail",
+            "company_type_detail",
+            "company_type_advised_detail",
+            "sector_detail",
+            "number_of_employees_detail",
+            "project_type_detail",
+            "stage_of_company_detail",
+            "companies_invested_detail"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
@@ -626,6 +646,69 @@ class ProfileSerializer(serializers.ModelSerializer):
             "is_instagram_set",
             "is_cover_video"
         )
+
+    @staticmethod
+    def get_years_of_experience_detail(obj):
+        return {
+            "key": obj.years_of_experience,
+            "value": obj.get_years_of_experience_display()
+        }
+
+    @staticmethod
+    def get_education_level_detail(obj):
+        return {
+            "key": obj.education_level,
+            "value": obj.get_education_level_display()
+        }
+
+    @staticmethod
+    def get_company_type_detail(obj):
+        return {
+            "key": obj.company_type,
+            "value": obj.get_company_type_display()
+        }
+
+    @staticmethod
+    def get_company_type_advised_detail(obj):
+        return {
+            "key": obj.company_type_advised,
+            "value": obj.get_company_type_advised_display()
+        }
+
+    @staticmethod
+    def get_sector_detail(obj):
+        return {
+            "key": obj.sector,
+            "value": obj.get_sector_display()
+        }
+
+    @staticmethod
+    def get_number_of_employees_detail(obj):
+        return {
+            "key": obj.number_of_employees,
+            "value": obj.get_number_of_employees_display()
+        }
+
+    @staticmethod
+    def get_project_type_detail(obj):
+        return {
+            "key": obj.project_type,
+            "value": obj.get_project_type_display()
+        }
+
+    @staticmethod
+    def get_stage_of_company_detail(obj):
+        return {
+            "key": obj.stage_of_company,
+            "value": obj.get_stage_of_company_display()
+        }
+
+    @staticmethod
+    def get_companies_invested_detail(obj):
+        return {
+            "key": obj.companies_invested,
+            "value": obj.get_companies_invested_display()
+        }
 
     def validate_cover(self, cover):
         user = self.context["request"].user

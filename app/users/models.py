@@ -723,10 +723,7 @@ class Profile(models.Model):
         verbose_name_plural = _("Profile")
 
     def __str__(self):
-        if self.name:
-            return self.name
-        else:
-            return "<no-name>"
+        return self.user.name if self.user.name else self.user.username
 
     @property
     def is_instagram_set(self):
