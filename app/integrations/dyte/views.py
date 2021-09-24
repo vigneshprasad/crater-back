@@ -37,7 +37,8 @@ class DyteParticipantViewSet(
         if group.host.pk == user.pk:
             result = public.add_participant_to_meeting(dyte_meeting, user, constants.DEFAULT_WEBINAR_HOST_PRESET_NAME)
         else:
-            result = public.add_participant_to_meeting(dyte_meeting.dyte_meeting, user)
+            result = public.add_participant_to_meeting(dyte_meeting, user)
+
         serialized = self.get_serializer(result)
         return Response(serialized.data, status=status.HTTP_200_OK)
 
