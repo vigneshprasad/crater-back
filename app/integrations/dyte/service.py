@@ -219,11 +219,14 @@ class DyteService:
         participant_data = response_json["data"]["authResponse"]
         auth_token = participant_data["authToken"]
 
-        models.DyteMeetingParticipant.objects.create(
+        dyte_participant, _ = models.DyteMeetingParticipant.objects.update_or_create(
             dyte_meeting=dyte_meeting,
             participant=user,
-            auth_token=auth_token
+            defaults={
+                "auth_token": auth_token
+            }
         )
+        return dyte_participant
 
     def get_all_meetings_data(self):
         """Returns all meetings created by organisation."""

@@ -301,5 +301,7 @@ def participant_count(limit, current, sec):
     # Update the final count of participants based on the probability.
     final += np.random.randint(1, 8) if random <= prob else final
     final -= np.random.randint(1, 5) if random <= neg_prob else final
+    # Calculate new final participant count and current seconds.
+    final, sec = (current, sec) if (final < 0 or final > limit) else (final, sec)
 
-    return (current, sec) if final > limit else (final, sec)
+    return final, sec

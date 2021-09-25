@@ -1,5 +1,5 @@
 from integrations.dyte.service import dyte_service
-
+from integrations.dyte import constants
 
 def create_meeting_link(meeting):
     """Create meeting on Dyte for Meeting object.
@@ -21,7 +21,11 @@ def create_webinar(group):
     return dyte_service.create_webinar(group)
 
 
-def add_participant_to_meeting(dyte_meeting, user):
+def add_participant_to_meeting(
+        dyte_meeting,
+        user,
+        preset_name=constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME
+):
     """Add a participant to dyte_meeting
 
     Args:
@@ -29,7 +33,7 @@ def add_participant_to_meeting(dyte_meeting, user):
         user(User): User object
 
     """
-    return dyte_service.add_participant_to_meeting(dyte_meeting, user)
+    return dyte_service.add_participant_to_meeting(dyte_meeting, user, preset_name)
 
 
 def get_dyte_webinar_for_group(group):
