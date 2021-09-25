@@ -424,7 +424,7 @@ class NetworkView(
     pagination_class = Pagination
     queryset = models.Profile.objects.select_related("user").all().order_by("name")
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    filterset_fields = ["tags"]
+    filterset_fields = ["new_tag"]
     search_fields = ["name"]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
