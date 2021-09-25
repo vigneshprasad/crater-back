@@ -25,8 +25,10 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
     if not (instance.type == constants.GROUP_TYPE_WEBINAR_ENUM):
         return
 
-    if instance.is_live and datetime.datetime.now().replace(tzinfo=utc) \
-            >= (instance.start.replace(tzinfo=utc) - datetime.timedelta(minutes=30)):
+    #TODO(Sanjeev): Put time check after testing
+    # if instance.is_live and datetime.datetime.now().replace(tzinfo=utc) \
+    #         >= (instance.start.replace(tzinfo=utc) - datetime.timedelta(minutes=30)):
+    if instance.is_live:
         services.cache_live_webinar(group=instance)
 
     if not instance.is_live:

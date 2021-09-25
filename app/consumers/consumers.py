@@ -419,10 +419,10 @@ class LiveCountConsumer(WebsocketConsumer):
 
         try:
             self.is_valid_user(token)
-            async_to_sync(self.channel_layer.group_add(
+            async_to_sync(self.channel_layer.group_add)(
                 self.user_id,
                 self.channel_name
-            ))
+            )
             self.accept()
 
             if not self.validate_group_id():
@@ -434,7 +434,7 @@ class LiveCountConsumer(WebsocketConsumer):
 
     def is_valid_user(self, token):
         payload = jwt_decode_handler(token)
-        self.user_id = User.objects.get(uuid=payload.get('user_id')).uuid
+        self.user_id = str(User.objects.get(uuid=payload.get('user_id')).uuid)
 
     def send_no_permissions(self, *args, **kwargs):
         """
@@ -449,10 +449,10 @@ class LiveCountConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         try:
-            async_to_sync(self.channel_layer.group_discard(
+            async_to_sync(self.channel_layer.group_discard)(
                 self.user_id,
                 self.channel_name
-            ))
+            )
         except TypeError as ex:
             print('TypeError', ex)
 
