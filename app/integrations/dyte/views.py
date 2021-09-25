@@ -1,9 +1,13 @@
 from rest_framework import status
 from rest_framework import mixins
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from integrations.dyte import models
 from integrations.dyte import serializers
+from integrations.dyte import public
+from integrations.dyte import constants
+from conversations import models as conversation_models
 
 from users import permissions
 
@@ -15,6 +19,28 @@ class DyteParticipantViewSet(
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.DyteMeetingParticipant.objects.all()
     serializer_class = serializers.DyteParticipantSerializer
+
+    @action(methods=["POST"], detail=True)
+    def connect(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        user = request.user
+
+        try:
+            group = conversation_models.Group.objects.get(pk=pk)
+        except conversation_models.Group.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        dyte_meeting = group.dyte_webinar.first()
+        if not dyte_meeting:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if group.host.pk == user.pk:
+            result = public.add_participant_to_meeting(dyte_meeting, user, constants.DEFAULT_WEBINAR_HOST_PRESET_NAME)
+        else:
+            result = public.add_participant_to_meeting(dyte_meeting, user)
+
+        serialized = self.get_serializer(result)
+        return Response(serialized.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
 
