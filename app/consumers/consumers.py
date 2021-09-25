@@ -1,6 +1,7 @@
 import json
 import time
 
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from jwt import InvalidAlgorithmError
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
@@ -418,17 +419,17 @@ class LiveCountConsumer(WebsocketConsumer):
 
         try:
             self.is_valid_user(token)
-            self.channel_layer.group_add(
+            async_to_sync(self.channel_layer.group_add(
                 self.user_id,
                 self.channel_name
-            )
+            ))
             self.accept()
 
             if not self.validate_group_id():
                 self.send_no_permissions()
 
         except (ValidationError, AuthenticationFailed, InvalidAlgorithmError, User.DoesNotExist) as v:
-            self.channel_layer.group_add('anonymous', 'anonymous')
+            async_to_sync(self.channel_layer.group_add('anonymous', 'anonymous'))
             self.send_no_permissions()
 
     def is_valid_user(self, token):
@@ -448,10 +449,10 @@ class LiveCountConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         try:
-            self.channel_layer.group_discard(
+            async_to_sync(self.channel_layer.group_discard(
                 self.user_id,
                 self.channel_name
-            )
+            ))
         except TypeError as ex:
             print('TypeError', ex)
 
