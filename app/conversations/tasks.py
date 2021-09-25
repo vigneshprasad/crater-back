@@ -254,36 +254,6 @@ def create_user_introductions_for_eligible_users(profiles=None):
         profile.save()
 
 
-@periodic_task(run_every=datetime.timedelta(minutes=1))
-def cache_live_webinars():
-    """This caches the live webinars every minute to
-        a Redis cache.
-
-    """
-    cached_live_webinars = settings.REDIS.get("live_webinars")
-
-    # TODO(Nishant): Fix this function after consulting with Sanjeev.
-    if cached_live_webinars is None:
-        live_webinars = models.Group.objects.filter(is_live=True)
-
-        if live_webinars:
-            data = []
-            host_ids = live_webinars.values_list("host__uuid", flat=True)
-            creators = crater_models.Creator.objects.filter(user__uuid__in=host_ids)
-
-            for webinar in live_webinars:
-                for creator in creators:
-                    if webinar.host.uuid != creator.user.uuid:
-                        continue
-                    data.append({
-                        "webinar_id": webinar.id,
-                        "follower_count": creator.follower_count
-                    })
-
-            # Add live webinar data to Redis cache.
-            settings.REDIS.set("live_webinars", json.dumps({"webinars": data}))
-
-
 @periodic_task(run_every=datetime.timedelta(seconds=10))
 def cache_participant_count():
     """Calculate current participant count for live webinars.
@@ -303,7 +273,7 @@ def cache_participant_count():
 
     for data in live_webinars:
         # Check cache for the webinar id and get the cached values.
-        cached_value = settings.REDIS.get(f"{data.get('webinar_id')}")
+        cached_value = settings.REDIS.get(f"{data.get('group_id')}")
 
         if cached_value is not None:
             obj = json.loads(cached_value.decode("ascii"))
@@ -317,6 +287,6 @@ def cache_participant_count():
         )
         # Set the updated current count and sec to redis cache.
         settings.REDIS.set(
-            f"{data.get('webinar_id')}",
+            f"{data.get('group_id')}",
             json.dumps({"current": current, "sec": sec})
         )

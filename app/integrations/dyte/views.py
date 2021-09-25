@@ -52,10 +52,9 @@ class DyteParticipantViewSet(
         else:
             # Add other participants to the dyte meeting.
             result = public.add_participant_to_meeting(
-                dyte_meeting.dyte_meeting,
+                dyte_meeting,
                 user
             )
-
         serialized = self.get_serializer(result)
         return Response(serialized.data, status=status.HTTP_200_OK)
 

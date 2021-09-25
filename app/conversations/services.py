@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import numpy as np
 from django.db.models import Q
@@ -9,6 +10,10 @@ from conversations import exceptions
 from conversations import models
 from conversations import signals
 from integrations.dyte import models as dyte_models
+
+from crater.creator import models as creator_models
+
+from freelance.settings import REDIS
 
 
 def get_root_topic(topic):
@@ -305,3 +310,75 @@ def participant_count(limit, current, sec):
     final, sec = (current, sec) if (final < 0 or final > limit) else (final, sec)
 
     return final, sec
+
+
+def cache_live_webinar(group):
+    """Cache live webinar to redis
+
+    Args:
+        group(Group): Group instance with type webinar
+    """
+    try:
+        # Check if live webinars are cached
+        cached_live_webinars = REDIS.get("live_webinars")
+        if cached_live_webinars is None:
+            creator = creator_models.Creator.objects.get(user=group.host)
+
+            REDIS.set("live_webinars", json.dumps({
+                "webinars": [{
+                    "group_id": group.id,
+                    "follower_count": creator.follower_count
+                }]
+            }))
+        else:
+            live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
+            creator = creator_models.Creator.objects.get(user=group.host)
+            data_to_cache = {
+                "group_id": group.id,
+                "follower_count": creator.follower_count
+            }
+
+            # Cache current live webinar details if not present
+            if data_to_cache not in live_webinars:
+                live_webinars.append(data_to_cache)
+                REDIS.set("live_webinars", json.dumps({"webinars": live_webinars}))
+
+    except creator_models.Creator.DoesNotExist:
+        pass
+
+
+def remove_cached_live_webinar(group):
+    """Remove cached live webinar from redis
+
+    Args:
+        group(Group): Group instance with type webinar
+    """
+    try:
+        # Check if live webinars are cached
+        cached_live_webinars = REDIS.get("live_webinars")
+        if cached_live_webinars is not None:
+            live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
+
+            if live_webinars:
+                creator = creator_models.Creator.objects.get(user=group.host)
+                data_to_cache = {
+                    "group_id": group.id,
+                    "follower_count": creator.follower_count
+                }
+
+                # Remove current live webinar from cache if present
+                if data_to_cache in live_webinars:
+                    live_webinars.remove(data_to_cache)
+                    REDIS.set("live_webinars", json.dumps({"webinars": live_webinars}))
+
+                    cached_webinar_count = REDIS.get(f"{group.id}")
+                    if cached_webinar_count is not None:
+                        REDIS.delete(f"{group.id}")
+
+                    if not live_webinars:
+                        REDIS.delete("live_webinars")
+            else:
+                REDIS.delete("live_webinars")
+
+    except creator_models.Creator.DoesNotExist:
+        pass
