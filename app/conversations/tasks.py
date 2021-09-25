@@ -266,7 +266,7 @@ def cache_participant_count():
 
         for data in live_webinars:
             # Check cache
-            cached_value = REDIS.get(f"{data.get('webinar_id')}")
+            cached_value = REDIS.get(f"{data.get('group_id')}")
 
             if cached_value is not None:
                 obj = json.loads(cached_value.decode('ascii'))
@@ -274,4 +274,4 @@ def cache_participant_count():
                 sec = obj.get("sec")
 
             current, sec = services.participant_count(data.get('follower_count'), current, sec)
-            REDIS.set(f"{data.get('webinar_id')}", json.dumps({"current": current, "sec": sec}))
+            REDIS.set(f"{data.get('group_id')}", json.dumps({"current": current, "sec": sec}))
