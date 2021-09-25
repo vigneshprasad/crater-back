@@ -255,29 +255,6 @@ def create_user_introductions_for_eligible_users(profiles=None):
         profile.save()
 
 
-@periodic_task(run_every=datetime.timedelta(minutes=1))
-def cache_live_webinars():
-    cached_live_webinars = REDIS.get("live_webinars")
-
-    if cached_live_webinars is None:
-        live_webinars = models.Group.objects.filter(is_live=True)
-
-        if live_webinars:
-            data = []
-            host_ids = live_webinars.values_list('host__uuid', flat=True)
-            creators = crater_models.Creator.objects.filter(user__uuid__in=host_ids)
-
-            for webinar in live_webinars:
-                for creator in creators:
-                    if webinar.host.uuid == creator.user.uuid:
-                        data.append({
-                            "webinar_id": webinar.id,
-                            "follower_count": creator.follower_count
-                        })
-
-            REDIS.set("live_webinars", json.dumps({"webinars": data}))
-
-
 @periodic_task(run_every=datetime.timedelta(seconds=10))
 def cache_participant_count():
     current = sec = 0
