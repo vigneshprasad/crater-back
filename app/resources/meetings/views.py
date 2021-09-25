@@ -530,7 +530,7 @@ class MeetingRequestViewSet(
         results = queryset.filter(user__score__lte=user.score).order_by("-user__score")
         page = self.paginate_queryset(results)
 
-        if not page:
+        if page is None:
             serialized = self.get_serializer(results, many=True)
             return Response(serialized.data)
 

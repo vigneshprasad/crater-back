@@ -251,6 +251,9 @@ class Group(base_model.BaseModel):
     ):
         if not self.end and not self.type == constants.GROUP_TYPE_WEBINAR_ENUM:
             self.end = self.start + timedelta(hours=1)
+        else:
+            # Adding end date for webinars as +30 from start.
+            self.end = self.start + timedelta(minutes=30)
 
         return super(Group, self).save(force_insert, force_update, using, update_fields)
 
@@ -268,6 +271,17 @@ class Group(base_model.BaseModel):
     def local_end(self):
         """Return start in the local timezone."""
         return self.end.astimezone(pytz.timezone(settings.TIME_ZONE)) if self.end else None
+
+    def get_all_users(self):
+        """Returns all users that are part of the group."""
+        users = [self.host]
+        speakers_and_attendees = self.speakers.all() | self.attendees.all()
+        for user in speakers_and_attendees:
+            if user in users:
+                continue
+            users.append(user)
+
+        return users
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""

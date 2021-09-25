@@ -65,11 +65,10 @@ def delete_calendar_for_meeting(meeting):
     return True
 
 
-def update_or_create_calendar_event_for_conversation(user, group):
+def update_or_create_calendar_event_for_conversation(group):
     """Updates the google calendar event for a conversation.
 
     Args:
-        user(User): User that was recently added to the group.
         group(Group): Group for which we have to update the event.
 
     """
@@ -79,32 +78,35 @@ def update_or_create_calendar_event_for_conversation(user, group):
 
     if not google_calendar_event:
         # Create the calendar event for the group.
-        create_calendar_event_for_conversations(group)
-        return True
+        return create_calendar_event_for_conversations(group)
 
     # Refreshing the group instance.
     group.refresh_from_db()
+    users = group.get_all_users()
     event_id = google_calendar_event.event_id
 
     try:
         calendar_services.google_calendar_service.update_event_attendees(
             event_id,
-            group.speakers.all()
+            users
         )
         # Creating calendar event entry.
-        models.GoogleCalendarEvent.objects.create(
-            user=user,
-            group_id=group.id,
-            event_id=event_id,
-            starts_at=group.local_start,
-            ends_at=group.local_end
-        )
+        for user in users:
+            models.GoogleCalendarEvent.objects.update_or_create(
+                user=user,
+                group_id=group.id,
+                event_id=event_id,
+                defaults={
+                    "starts_at": group.local_start,
+                    "ends_at": group.local_end
+                }
+            )
     except Exception as e:
         logging.error(
             "Google calendar update failed with status {} for: {}".format(e, group.id)
         )
 
-    return True
+    return event_id
 
 
 def create_calendar_event_for_conversations(group):
@@ -114,8 +116,12 @@ def create_calendar_event_for_conversations(group):
         group(Group): Group object for which we have to
             create the calendar event.
 
+    Note:
+        This function is only eligible for AMA and Group
+            conversation for now.
+
     """
-    users = group.speakers.all()
+    users = group.get_all_users()
     start_datetime = group.local_start
     end_datetime = group.local_end
 
@@ -126,9 +132,9 @@ def create_calendar_event_for_conversations(group):
     description = constants.DEFAULT_DESCRIPTION_FOR_CONVERSATIONS.format(deeplink=deeplink)
 
     event_id, _ = calendar_services.google_calendar_service_without_conference_data.create_event(
-        start_datetime,
-        end_datetime,
-        users,
+        start_datetime=start_datetime,
+        end_datetime=end_datetime,
+        users=users,
         summary=summary,
         description=description
     )
@@ -142,5 +148,103 @@ def create_calendar_event_for_conversations(group):
             starts_at=start_datetime,
             ends_at=end_datetime
         )
+
+    return event_id
+
+
+def create_calendar_event_for_webinar_host(group):
+    """Create calendar event for a live stream an attendee.
+
+    Args:
+        group(Group): Group the user joined into.
+
+    """
+    host = group.host
+
+    # TODO(Nishant): This has to change for each environment.
+    stream_link = "https://crater.club/session/{group_id}".format(
+        group_id=group.id
+    )
+    summary = constants.HOST_SUMMARY_FOR_WEBINARS
+    description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
+        creator_name=host.name.title(),
+        date=group.get_display_day(),
+        time=group.get_display_start_time(),
+        topic=group.topic.name,
+        stream_link=stream_link,
+        phone_number=host.username
+    )
+
+    event_id, meeting_link = calendar_services.google_calendar_service.create_event(
+        start_datetime=group.local_start,
+        end_datetime=group.local_end,
+        users=[group.host],
+        summary=summary,
+        description=description,
+        conference_name=constants.DEFAULT_CONFERENCE_NAME_FOR_WEBINAR,
+        meeting_link=stream_link
+    )
+
+    models.GoogleCalendarEvent.objects.create(
+        user=group.host,
+        group_id=group.id,
+        event_id=event_id,
+        meeting_link=meeting_link,
+        starts_at=group.local_start,
+        ends_at=group.local_end
+    )
+
+    return event_id
+
+
+def create_calendar_event_for_webinar_attendee(user, group):
+    """Create calendar event for a live stream an attendee.
+
+    Args:
+        user(User): Attendee that joined the group.
+        group(Group): Group the user joined into.
+
+    """
+    host = group.host
+
+    # TODO(Nishant): This has to change for each environment.
+    stream_link = "https://crater.club/session/{group_id}".format(
+        group_id=group.id
+    )
+
+    summary = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
+        creator_name=host.name.title(),
+        topic=group.topic.name
+    )
+    description = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
+        creator_name=host.name.title(),
+        date=group.get_display_day(),
+        time=group.get_display_start_time(),
+        topic=group.topic.name,
+        stream_link=stream_link,
+        # TODO(Nishant): Get app link from Ram/Vivan and add it here.
+        app_link=""
+    )
+
+    event_id, meeting_link = calendar_services.google_calendar_service.create_event(
+        start_datetim=group.local_start,
+        end_datetime=group.local_end,
+        users=[user],
+        summary=summary,
+        description=description,
+        conference_name=constants.DEFAULT_CONFERENCE_NAME_FOR_WEBINAR,
+        meeting_link=stream_link
+    )
+
+    models.GoogleCalendarEvent.objects.update_or_create(
+        user=group.host,
+        group_id=group.id,
+        event_id=event_id,
+        meeting_link=meeting_link,
+        defaults={
+            "starts_at": group.local_start,
+            "ends_at": group.local_end
+        }
+    )
 
     return event_id

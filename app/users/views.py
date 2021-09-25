@@ -452,18 +452,25 @@ class NetworkView(
         return self.list(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
-        ids = services.get_all_user_more_than_3_meetings()
-        queryset = self.filter_queryset(self.get_queryset())
+        """Returns list of users with 3+ meeting on the platform."""
+        ids = services.get_user_with_number_of_meetings(
+            number_of_meeting=3
+        )
 
-        results = queryset.filter(user__pk__in=ids)
+        queryset = self.filter_queryset(
+            self.get_queryset()
+        )
+
+        # Keeping people with photo's up in the list of users.
+        results = queryset.filter(user__pk__in=ids).order_by("-photo")
         page = self.paginate_queryset(results)
 
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        if page is None:
+            serialized = self.get_serializer(results, many=True)
+            return Response(serialized.data)
 
-        serialized = self.get_serializer(results, many=True)
-        return Response(serialized.data)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class RefererEmailView(APIView):

@@ -41,4 +41,29 @@ def update_calendar_event_for_user_joining_a_group(sender, user, group, **kwargs
         group(Group): Group the user joined into.
 
     """
-    return private.update_or_create_calendar_event_for_conversation(user, group)
+    return private.update_or_create_calendar_event_for_conversation(group)
+
+
+@receiver(conversations_signals.webinar_created)
+def create_calendar_event_for_webinar_host(sender, group, *args, **kwargs):
+    """Creates google calendar event when an attendee joins a live steam.
+
+    Args:
+        sender(Group Class): Group class representation for the group joined.
+        group(Group): Group the user joined into.
+
+    """
+    return private.create_calendar_event_for_webinar_host(group)
+
+
+@receiver(conversations_signals.attendee_added_to_group)
+def create_calendar_event_for_webinar_attendee(sender, group, user, **kwargs):
+    """Creates google calendar event when an attendee joins a live steam.
+
+    Args:
+        sender(Group Class): Group class representation for the group joined.
+        group(Group): Group the user joined into.
+        user(User): User that joined the group.
+
+    """
+    return private.create_calendar_event_for_webinar_attendee(user, group)

@@ -22,6 +22,14 @@ class DyteParticipantViewSet(
 
     @action(methods=["POST"], detail=True)
     def connect(self, request, *args, **kwargs):
+        """This request creates auth token for people who are
+            joining into the call.
+
+        Note:
+             This is will create auth token for every user again
+                regarded of whether it's expired.
+
+        """
         pk = kwargs.get("pk")
         user = request.user
 
@@ -35,14 +43,24 @@ class DyteParticipantViewSet(
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if group.host.pk == user.pk:
-            result = public.add_participant_to_meeting(dyte_meeting, user, constants.DEFAULT_WEBINAR_HOST_PRESET_NAME)
+            # Add the host to the dyte meeting.
+            result = public.add_participant_to_meeting(
+                dyte_meeting,
+                user,
+                constants.DEFAULT_WEBINAR_HOST_PRESET_NAME
+            )
         else:
-            result = public.add_participant_to_meeting(dyte_meeting.dyte_meeting, user)
+            # Add other participants to the dyte meeting.
+            result = public.add_participant_to_meeting(
+                dyte_meeting.dyte_meeting,
+                user
+            )
+
         serialized = self.get_serializer(result)
         return Response(serialized.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
-
+        """Returns a dyte participant for user."""
         pk = kwargs.get("pk")
         user = request.user
 

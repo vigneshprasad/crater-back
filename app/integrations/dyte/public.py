@@ -45,4 +45,3 @@ def get_dyte_webinar_for_group(group):
 
     """
     return group.dyte_webinar.first()
-

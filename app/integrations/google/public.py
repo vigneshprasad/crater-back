@@ -18,26 +18,47 @@ def create_calendar_event_for_meeting(meeting):
     end_datetime = meeting.local_end
 
     # Create meeting link using Dyte (if the meeting already doesn't have a link).
-    meeting_link = dyte_public.create_meeting_link(meeting) if not meeting.link else meeting.link
+    meeting_link = dyte_public.create_meeting_link(
+        meeting
+    ) if not meeting.link else meeting.link
+
+    try:
+        user1 = users[0]
+        user2 = users[1]
+    except KeyError:
+        return None
+
+    # Create summary and description for meetings.
+    summary = constants.DEFAULT_SUMMARY_FOR_MEETING.format(
+            name1=user1.get_display_first_name(),
+            name2=user2.get_display_first_name()
+        )
+    description = constants.DEFAULT_DESCRIPTION_FOR_MEETING
+
     event_id, meeting_link = calendar_services.google_calendar_service.create_event(
-        start_datetime,
-        end_datetime,
-        users,
-        meeting_link=meeting_link
+        start_datetim=start_datetime,
+        end_datetime=end_datetime,
+        users=users,
+        summary=summary,
+        description=description,
+        conference_name=constants.DEFAULT_CONFERENCE_NAME_FOR_MEETING,
+        meeting_link=meeting_link,
     )
+
+    if not event_id:
+        return meeting_link
+
     # Creating model entries for each user.
     for user in users:
-        # If there is no event ID, don't create the row.
-        if not event_id:
-            continue
-
-        models.GoogleCalendarEvent.objects.create(
+        models.GoogleCalendarEvent.objects.update_or_create(
             user=user,
             meeting_id=meeting.id,
             meeting_link=meeting_link,
             event_id=event_id,
-            starts_at=start_datetime,
-            ends_at=end_datetime
+            defaults={
+                "starts_at": start_datetime,
+                "ends_at": end_datetime
+            }
         )
 
     return meeting_link

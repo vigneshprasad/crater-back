@@ -19,7 +19,7 @@ def get_users_for_ids(user_ids):
         user_ids(list): List of user ids.
 
     Returns:
-        List of user objects for the provided ID's
+        List of user objects for the provided ID"s
 
     """
     return list(models.User.objects.filter(
@@ -32,9 +32,9 @@ def get_social_account_info(social_account):
     if not social_account:
         return data
     extra_data = social_account.extra_data
-    if social_account.provider == 'google':
+    if social_account.provider == "google":
         data = {
-            'photo_url': extra_data['picture']
+            "photo_url": extra_data["picture"]
         }
     return data
 
@@ -47,10 +47,10 @@ def get_education_level_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_EDUCATION_LEVEL_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_EDUCATION_LEVEL_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -62,10 +62,10 @@ def get_company_type_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_COMPANY_TYPE_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_COMPANY_TYPE_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -77,10 +77,10 @@ def get_company_type_advised_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_COMPANY_TYPE_ADVISED_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_COMPANY_TYPE_ADVISED_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -92,10 +92,10 @@ def get_years_of_experience_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_YEARS_OF_EXP_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_YEARS_OF_EXP_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -107,10 +107,10 @@ def get_sector_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_SECTOR_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_SECTOR_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -134,10 +134,10 @@ def get_other_tag_field_info():
 
 def get_name_field_info():
     return {
-        'label': constants.PROFILE_NAME_LABEL,
-        'type': constants.PROFILE_FIELD_TEXT_TYPE,
-        'options': None,
-        'blank': False,
+        "label": constants.PROFILE_NAME_LABEL,
+        "type": constants.PROFILE_FIELD_TEXT_TYPE,
+        "options": None,
+        "blank": False,
     }
 
 
@@ -149,10 +149,10 @@ def get_companies_invested_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_COMPANIES_INVESTED_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_COMPANIES_INVESTED_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -164,10 +164,10 @@ def get_number_of_employees_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_NUMBER_OF_EMPLOYEES_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_NUMBER_OF_EMPLOYEES_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -179,10 +179,10 @@ def get_project_type_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_PROJECT_TYPE_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_PROJECT_TYPE_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -194,10 +194,10 @@ def get_stage_of_company_field_info():
             "name": item[1],
         })
     return {
-        'label': constants.PROFILE_STAGE_OF_COMPANY_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_STAGE_OF_COMPANY_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
@@ -210,14 +210,28 @@ def get_aspiration_field_info():
             "name": tag.name,
         })
     return {
-        'label': constants.PROFILE_ASPIRATION_LABEL,
-        'type': constants.PROFILE_FIELD_DROPDOWN_TYPE,
-        'options': options,
-        'blank': False,
+        "label": constants.PROFILE_ASPIRATION_LABEL,
+        "type": constants.PROFILE_FIELD_DROPDOWN_TYPE,
+        "options": options,
+        "blank": False,
     }
 
 
-def get_all_user_more_than_3_meetings():
+def get_user_with_number_of_meetings(number_of_meeting):
+    """Return all users with some minimum number of meetings
+        on the platform.
+
+    Args:
+        number_of_meeting(int): Minimum number of meetings
+            a user should have to be in this list.
+
+    Returns:
+        Return list of user_pks not user objects for all
+            users with minimum number of meetings.
+
+    """
     return meeting_models.Meeting.objects.all().values("participants").annotate(
-        num_meetings=Count('participants')
-    ).filter(num_meetings__gt=2).values_list("participants", flat=True)
+        number_of_meetings=Count("participants")
+    ).filter(
+        number_of_meetings__gte=number_of_meeting
+    ).values_list("participants", flat=True)
