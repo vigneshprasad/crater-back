@@ -5,6 +5,7 @@ def run(dry_run=True):
 
     print("Getting all Webhooks")
     all_webhooks = dyte_service.get_all_webhooks()
+    all_webhooks_data = all_webhooks["data"]["webhooks"]
 
     print("Deleting webhooks")
     print([webhook["id"] for webhook in all_webhooks])

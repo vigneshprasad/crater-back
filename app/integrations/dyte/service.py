@@ -16,7 +16,7 @@ class DyteService:
         "get_all_meetings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings",
         "get_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{dyte_meeting_id}",
         "create_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhook",
-        "delete_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhook/{webhook_id}",
+        "delete_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks/{webhook_id}",
         "get_all_webhooks": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks",
     }
 
@@ -303,9 +303,8 @@ class DyteService:
             a particular event.
 
         """
-        url = self.DYTE_API_ENDPOINTS["create_webhook"].format(
-            org_id=self.org_id
-        )
+
+        url = self.DYTE_API_ENDPOINTS["create_webhook"].format(org_id=self.org_id)
         data = {
             "events": events,
             "name": name,
@@ -324,17 +323,11 @@ class DyteService:
             logging.error("Dyte webhook creation failed.")
             return None
 
-        webhook_id = response_json.get("id")
-        # Create dyte webhook object.
-        dyte_webhook = models.DyteWebhook.objects.create(
-            webhook_id=webhook_id,
-            name=name,
-            events=events,
-            url=webhook_endpoint,
-            is_active=True
-        )
+        webhook_data = None
+        if response_json["success"]:
+            webhook_data = response_json["data"]["webhook"]
 
-        return dyte_webhook
+        return webhook_data
 
     def delete_webhook(self, webhook_id):
         """Deletes a webhook on Dyte's end.
@@ -343,12 +336,10 @@ class DyteService:
             webhook_id(uuid): Id of the webhook on Dyte's end.
 
         """
-        url = self.DYTE_API_ENDPOINTS["get_all_webhooks"].format(
-            org_id=self.org_id,
-            webhook_id=webhook_id
-        )
+
+        url = self.DYTE_API_ENDPOINTS["delete_webhook"].format(org_id=self.org_id, webhook_id=webhook_id)
         response = requests.request(
-            "GET",
+            "DELETE",
             url,
             headers=self._get_authorization_headers()
         )
@@ -356,21 +347,14 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte webhooks get failed.")
+            logging.error("Dyte webhooks delete failed.")
             return None
 
-        try:
-            dyte_webhook = models.DyteWebhook.objects.get(
-                webhook_id=webhook_id,
-                is_active=False
-            )
-        except models.DyteWebhook.DoesNotExist:
-            return None
-
-        return dyte_webhook
+        return response_json["success"]
 
     def get_all_webhooks(self):
         """Returns all webhooks on Dyte's end."""
+
         url = self.DYTE_API_ENDPOINTS["get_all_webhooks"].format(org_id=self.org_id)
         response = requests.request(
             "GET",
@@ -384,7 +368,11 @@ class DyteService:
             logging.error("Dyte webhooks get failed.")
             return None
 
-        return response_json
+        webhooks_data = None
+        if response_json["success"]:
+            webhooks_data = response_json["data"]["webhooks"]
+
+        return webhooks_data
 
 
 dyte_service = DyteService(

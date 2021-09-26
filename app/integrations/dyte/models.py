@@ -1,36 +1,10 @@
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from integrations.dyte import constants
-
-
-class DyteWebhook(base_model.BaseModel):
-
-    EVENT_CHOICES = (
-        (constants.DYTE_EVENT_MEETING_STARTED, constants.DYTE_EVENT_MEETING_STARTED),
-        (constants.DYTE_EVENT_MEETING_ENDED, constants.DYTE_EVENT_MEETING_ENDED),
-        (constants.DYTE_EVENT_PARTICIPANT_JOINED, constants.DYTE_EVENT_PARTICIPANT_JOINED),
-        (constants.DYTE_EVENT_PARTICIPANT_LEFT, constants.DYTE_EVENT_PARTICIPANT_LEFT),
-        (constants.DYTE_EVENT_RECORDING_STATUS_UPDATE, constants.DYTE_EVENT_RECORDING_STATUS_UPDATE)
-    )
-
-    webhook_id = models.CharField(max_length=128)
-    name = models.CharField(
-        max_length=32,
-        verbose_name=_("Webhook Name")
-    )
-    url = models.URLField(
-        verbose_name=_("Webhook Url")
-    )
-    events = ArrayField(
-        models.CharField(max_length=64, blank=True, choices=EVENT_CHOICES)
-    )
-    is_active = models.BooleanField(default=True)
 
 
 class DyteMeeting(base_model.BaseModel):
+
     meeting = models.ForeignKey(
         "meetings.Meeting",
         related_name="dyte_meeting",
@@ -53,6 +27,7 @@ class DyteMeeting(base_model.BaseModel):
 
 
 class DyteMeetingParticipant(base_model.BaseModel):
+
     dyte_meeting = models.ForeignKey(
         "dyte.DyteMeeting",
         related_name="meeting_participants",
