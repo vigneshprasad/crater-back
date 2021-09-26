@@ -475,3 +475,10 @@ class LiveCountConsumer(WebsocketConsumer):
                         "count": current
                     })
                 )
+            else:
+                self.send(
+                    text_data=json.dumps({
+                        "type": "live_count",
+                        "count": 0
+                    })
+                )
