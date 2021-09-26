@@ -8,6 +8,8 @@ class DyteMeetingSerializer(ModelSerializer):
     class Meta:
         model = models.DyteMeeting
         fields = (
+            "meeting",
+            "group",
             "dyte_meeting_id",
             "room_name"
         )

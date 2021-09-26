@@ -1,5 +1,3 @@
-import datetime
-
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
@@ -9,7 +7,6 @@ from conversations import signals
 from conversations import services
 from integrations.dyte import public as dyte_public
 from matching import private as matching_private
-from pytz import utc
 from resources.meetings import signals as meeting_signals
 from resources.curated_articles import signals as article_signals
 
@@ -25,19 +22,20 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
     if not (instance.type == constants.GROUP_TYPE_WEBINAR_ENUM):
         return
 
-    # TODO(Sanjeev): Put time check after testing
-    # if instance.is_live and datetime.datetime.now().replace(tzinfo=utc) \
-    #         >= (instance.start.replace(tzinfo=utc) - datetime.timedelta(minutes=30)):
-    if instance.is_live:
-        services.cache_live_webinar(group=instance)
-
-    if not instance.is_live:
-        services.remove_cached_live_webinar(group=instance)
-
     if dyte_public.get_dyte_webinar_for_group(instance):
         return
 
     signals.webinar_created.send(sender=instance.__class__, group=instance)
+
+
+@receiver(signals.group_marked_live)
+def create_webinar_cache(sender, group, *args, **kwargs):
+    services.cache_live_webinar(group=group)
+
+
+@receiver(signals.group_marked_closed)
+def remove_webinar_cache(sender, group, *args, **kwargs):
+    services.remove_cached_live_webinar(group=group)
 
 
 @receiver(m2m_changed, sender=models.Group.speakers.through)

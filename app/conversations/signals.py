@@ -20,6 +20,18 @@ webinar_created = Signal(providing_args=[
     "group"
 ])
 
+group_marked_live = Signal(providing_args=[
+    "group"
+])
+
+group_marked_inactive = Signal(providing_args=[
+    "group"
+])
+
+group_marked_closed = Signal(providing_args=[
+    "group"
+])
+
 attendee_added_to_group = Signal(providing_args=[
     "group",
     "user"

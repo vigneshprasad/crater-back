@@ -10,6 +10,7 @@ from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import services
+from integrations.dyte import public as dyte_public
 from resources.meetings import serializers as meeting_serializers
 from resources.meetings import models as meeting_models
 from resources.curated_articles import serializers as articles_serializer
@@ -342,9 +343,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         elif group.host.uuid == user.uuid:
             return None
 
-        if not services.get_dyte_meeting_participant(
-                meeting_id=group.dyte_webinar.first().dyte_meeting_id,
-                user_uuid=user.uuid
+        if not dyte_public.get_dyte_participant_for_user_and_group(
+            user=user,
+            group=group
         ):
             return False
 

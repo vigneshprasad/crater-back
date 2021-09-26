@@ -9,6 +9,7 @@ app_name = "dyte"
 router = routers.SimpleRouter()
 
 router.register("participant", views.DyteParticipantViewSet, base_name="dyte_participants")
+router.register("meeting", views.DyteMeetingViewSet, base_name="dyte_meetings")
 
 urlpatterns = [
     path("", include(router.urls))

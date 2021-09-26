@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib import admin
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
@@ -30,70 +32,74 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "id",
         "topic",
         "type",
-        "group_speakers",
-        "group_attendees",
+        "all_speakers",
+        "attendees_count",
         "start",
-        "end",
-        "calculate_score",
-        "score",
-        "is_approved",
         "is_featured",
-        "is_live"
+        "is_live",
+        "closed"
     )
     readonly_fields = (
-        "is_approved",
-        "approved_at"
+        "closed_at",
+        "approved_at",
+        "last_live_at"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
-    search_fields = ("speakers__email", )
+    search_fields = ("speakers__email", "speaker__name", "speaker__username")
+    list_editable = ("is_featured", "is_live", "closed")
     list_filter = (
         ("start", filter.DateRangeFilter),
         "topic"
     )
 
-    def get_row_actions(self, obj):
-        row_actions = [
-            {
-                "divided": True,
-                "label": "Approve",
-                "action": "approve_group",
-                "enabled": obj.is_approved is False,
-            },
-        ]
-        row_actions += super(GroupAdmin, self).get_row_actions(obj)
-        return row_actions
+    def save_model(self, request, obj, form, change):
+        if not change:
+            return super(GroupAdmin, self).save_model(request, obj, form, change)
+
+        fields_changed = form.changed_data
+        cleaned_data = form.cleaned_data
+        if "closed" in fields_changed:
+            if cleaned_data["closed"]:
+                obj.mark_closed()
+
+        if "is_approved" in fields_changed:
+            if cleaned_data["is_approved"]:
+                obj.approve()
+
+        if "is_live" in fields_changed:
+            if cleaned_data["is_live"]:
+                obj.mark_live()
+
+        return super(GroupAdmin, self).save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related(
+            "host",
+            "topic"
+        ).prefetch_related(
+            "speakers",
+            "attendees",
+            "interests",
+            "categories"
+        ).all()
 
     @staticmethod
-    def approve_group(request, obj):
-        if obj.is_approved:
-            return
-        obj.approve()
-
-        # Sending signal for approval of a group.
-        signals.conversation_approved.send(sender=obj.__class__, group=obj)
+    def all_speakers(obj):
+        return [speaker.username for speaker in obj.speakers.all()]
 
     @staticmethod
-    def group_speakers(obj):
-        if not obj.speakers.all():
-            return ""
-        return ", ".join((speaker.__str__() or "") for speaker in obj.speakers.all())
+    def speaker_count(obj):
+        return obj.speakers.count()
 
     @staticmethod
-    def group_attendees(obj):
-        if not obj.attendees.all():
-            return ""
-        return ", ".join((attendee.__str__() or "") for attendee in obj.attendees.all())
-
-    @staticmethod
-    def group_interests(obj):
-        if not obj.interests.all():
-            return ""
-        return ", ".join((interest.name or "") for interest in obj.interests.all())
+    def attendees_count(obj):
+        return obj.attendees.count()
 
     @staticmethod
     def get_rangefilter_start_title(request, field_path="start"):
         """Returns the title for the start date filter."""
-        return "Filter by Start Date"
+        return "Start Date"
 
 
 @admin.register(models.Invite)

@@ -119,8 +119,7 @@ def get_groups_for_user(user, queryset=None):
 
     Args:
         user(User): user from the context or request
-        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
-        not closed.
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups.
 
     Returns:
         Queryset<Group>: queryset of filtered groups for user
@@ -130,7 +129,7 @@ def get_groups_for_user(user, queryset=None):
     now_time = timezone.now()
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False, is_approved=True)
+        queryset = models.Group.objects.filter(is_approved=True)
 
     return queryset.filter(
         start__gte=(now_time - datetime.timedelta(days=2)),
@@ -143,8 +142,7 @@ def filter_groups_by_score(user, queryset=None):
 
     Args:
         user(User): user from the context or request
-        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
-        not closed.
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups.
 
     Returns:
         Queryset<Group>: queryset of filtered groups for user
@@ -153,7 +151,7 @@ def filter_groups_by_score(user, queryset=None):
     user_score = user.score
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False, is_approved=True)
+        queryset = models.Group.objects.filter(is_approved=True)
 
     return queryset.filter(
         score__lte=(user_score + 5)
@@ -166,8 +164,7 @@ def get_distinct_groups_by_score(user, queryset=None):
 
     Args:
         user(User): user from the context or request
-        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
-        not closed.
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups.
 
     Returns:
         Queryset<Group>: queryset of filtered groups for user
@@ -176,7 +173,7 @@ def get_distinct_groups_by_score(user, queryset=None):
     user_score = user.score
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False)
+        queryset = models.Group.objects.all()
 
     filtered_queryset = queryset.filter(
         score__lte=(user_score + 5),
@@ -259,26 +256,6 @@ def get_or_create_topic(name, image, description, creator):
     return topic
 
 
-def get_dyte_meeting_participant(meeting_id, user_uuid):
-    """Return DyteMeetingParticipant instance of given
-        meeting and user
-
-    Args:
-        meeting_id(string): Dyte meeting uuid
-        user_uuid(string): User uuid
-
-    """
-    try:
-        dyte_participant = dyte_models.DyteMeetingParticipant.objects.get(
-            dyte_meeting__dyte_meeting_id=meeting_id,
-            participant__uuid=user_uuid
-        )
-    except dyte_models.DyteMeetingParticipant.DoesNotExist:
-        return None
-
-    return dyte_participant
-
-
 def participant_count(limit, current, sec):
     """Calculates participant count based on the
         current count and seconds into the session.
@@ -317,6 +294,7 @@ def cache_live_webinar(group):
 
     Args:
         group(Group): Group instance with type webinar
+
     """
     try:
         # Check if live webinars are cached
@@ -352,6 +330,7 @@ def remove_cached_live_webinar(group):
 
     Args:
         group(Group): Group instance with type webinar
+
     """
     try:
         # Check if live webinars are cached

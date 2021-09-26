@@ -170,20 +170,24 @@ class GroupsViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.GroupSerializer
-    queryset = models.Group.objects.filter(closed=False)
+    queryset = models.Group.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         """Create queryset based on the params."""
-        q = models.Group.objects.filter(closed=False)
+
+        queryset = models.Group.objects.all()
         # Get the user's score.
         topic_ids = self.request.data.get("topics", None)
         if not topic_ids:
-            return q
+            return queryset
 
-        return q.filter(Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids))
+        return queryset.filter(
+            Q(topic_id__in=topic_ids) | Q(topic__parent_id__in=topic_ids)
+        )
 
     def list(self, request, *args, **kwargs):
+
         user = request.user
         user_groups = services.get_groups_for_user(user)
         serialized = self.get_serializer(user_groups, many=True)
@@ -393,7 +397,7 @@ class GroupCalendarViewSet(
     viewsets.GenericViewSet,
 ):
     serializer_class = serializers.GroupSerializer
-    queryset = models.Group.objects.filter(closed=False)
+    queryset = models.Group.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     def _make_date_dict(self, queryset):
@@ -451,7 +455,7 @@ class GroupWebinarViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.GroupWebinarSerializer
-    queryset = models.Group.objects.filter(closed=False, type=constants.GROUP_TYPE_WEBINAR_ENUM)
+    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ["host", "categories"]
 
