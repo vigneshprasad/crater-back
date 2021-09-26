@@ -280,12 +280,12 @@ def get_dyte_meeting_participant(meeting_id, user_uuid):
 
 
 def participant_count(limit, current, sec):
-    limit = limit / 100
+    limit = min(limit / 100, 100)
     sec = sec + 10
     final = current
     random = np.random.rand()
     prob = max(0.5, (1 - (sec / limit)))
-    neg_prob = min(0.5, (sec * 1.5 / limit))
+    neg_prob = min(0.5, (sec * 1 / limit))
     if random <= prob:
         final = final + np.random.randint(1, 8)
     if random <= neg_prob:
