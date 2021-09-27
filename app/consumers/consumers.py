@@ -420,7 +420,7 @@ class LiveCountConsumer(WebsocketConsumer):
         try:
             self.is_valid_user(token)
             async_to_sync(self.channel_layer.group_add)(
-                self.user_id,
+                self.group_id,
                 self.channel_name
             )
             self.accept()
@@ -428,13 +428,13 @@ class LiveCountConsumer(WebsocketConsumer):
             if not self.validate_group_id():
                 self.send_no_permissions()
 
-        except (ValidationError, AuthenticationFailed, InvalidAlgorithmError, User.DoesNotExist) as v:
-            async_to_sync(self.channel_layer.group_add('anonymous', 'anonymous'))
+        except (ValidationError, AuthenticationFailed, InvalidAlgorithmError, User.DoesNotExist):
             self.send_no_permissions()
 
-    def is_valid_user(self, token):
+    @staticmethod
+    def is_valid_user(token):
         payload = jwt_decode_handler(token)
-        self.user_id = str(User.objects.get(uuid=payload.get('user_id')).uuid)
+        User.objects.get(uuid=payload.get('user_id'))
 
     def send_no_permissions(self, *args, **kwargs):
         """
@@ -450,7 +450,7 @@ class LiveCountConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         try:
             async_to_sync(self.channel_layer.group_discard)(
-                self.user_id,
+                self.group_id,
                 self.channel_name
             )
         except TypeError as ex:
@@ -459,26 +459,5 @@ class LiveCountConsumer(WebsocketConsumer):
     def validate_group_id(self):
         return Group.objects.filter(id=self.group_id).exists()
 
-    def receive(self, text_data=None, bytes_data=None):
-        data = json.loads(text_data)
-        if data.get("event") == "live_count":
-            # Check cache
-            cached_value = REDIS.get(f"{self.group_id}")
-
-            if cached_value is not None:
-                obj = json.loads(cached_value.decode('ascii'))
-                current = obj.get("current")
-
-                self.send(
-                    text_data=json.dumps({
-                        "type": "live_count",
-                        "count": current
-                    })
-                )
-            else:
-                self.send(
-                    text_data=json.dumps({
-                        "type": "live_count",
-                        "count": 0
-                    })
-                )
+    def send_live_count(self, event):
+        self.send(event.get("text"))
