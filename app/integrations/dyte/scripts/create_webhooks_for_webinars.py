@@ -31,12 +31,12 @@ def run(dry_run=True):
         print(webhook_data["name"], webhook_data["events"], webhook_data["url"])
 
         if not dry_run:
-            webhook = dyte_service.create_webhook(
+            webhook_data = dyte_service.create_webhook(
                 name=webhook_data["name"],
                 events=webhook_data["events"],
                 webhook_endpoint=webhook_data["url"]
             )
             print("Created Webhook")
-            print(webhook.id, webhook.webhook_id)
+            print(webhook_data)
 
     print("----")

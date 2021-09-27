@@ -40,7 +40,7 @@ DEFAULT_DESCRIPTION_FOR_CONVERSATIONS = "Hi, your conversation has been schedule
 
 
 DEFAULT_CONFERENCE_NAME_FOR_WEBINAR = "Live Stream"
-ATTENDEE_SUMMARY_FOR_WEBINARS = "Live Stream with {creator_name} | {topic}\n\n"
+ATTENDEE_SUMMARY_FOR_WEBINARS = "Live Stream with {creator_name} | {topic}."
 ATTENDEE_DESCRIPTION_FOR_WEBINARS = "Hi, {creator_name} will go live at: \n\n " \
                                     "Date: {date} \n" \
                                     "Time: {time}. \n\n" \
@@ -49,8 +49,8 @@ ATTENDEE_DESCRIPTION_FOR_WEBINARS = "Hi, {creator_name} will go live at: \n\n " 
                                     "Link to the stream: {stream_link} \n\n" \
                                     "You can also view it on the mobile app {app_link}"
 
-HOST_SUMMARY_FOR_WEBINARS = "Your Live Stream on Crater (WorkNetwork)\n\n"
-HOST_DESCRIPTION_FOR_WEBINARS = "Hi, {creator_name} your live stream has been set up for:" \
+HOST_SUMMARY_FOR_WEBINARS = "Your Live Stream on Crater (WorkNetwork)."
+HOST_DESCRIPTION_FOR_WEBINARS = "Hi, {creator_name} your live stream has been set up for \n\n:" \
                                 "Date: {date} \n" \
                                 "Time: {time}. \n\n" \
                                 "Topic: {topic} \n\n" \

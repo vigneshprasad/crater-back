@@ -227,7 +227,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
     )
 
     event_id, meeting_link = calendar_services.google_calendar_service.create_event(
-        start_datetim=group.local_start,
+        start_datetime=group.local_start,
         end_datetime=group.local_end,
         users=[user],
         summary=summary,

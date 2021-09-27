@@ -86,7 +86,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
     @staticmethod
     def all_speakers(obj):
-        return [speaker.username for speaker in obj.speakers.all()]
+        return [speaker.__str__() for speaker in obj.speakers.all()]
 
     @staticmethod
     def speaker_count(obj):
