@@ -2,6 +2,8 @@ import datetime
 import json
 
 import numpy as np
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.db.models import Q
 from django.utils import timezone
 
@@ -359,6 +361,19 @@ def remove_cached_live_webinar(group):
                     cached_webinar_count = REDIS.get(f"{group.id}")
                     if cached_webinar_count is not None:
                         REDIS.delete(f"{group.id}")
+
+                        # Send live count as 0 to channel layer group
+                        channel_layer = get_channel_layer()
+                        async_to_sync(channel_layer.group_send)(
+                            f"{group.id}",
+                            {
+                                "type": "send.live_count",
+                                "text": json.dumps({
+                                    "type": "live_count",
+                                    "count": 0
+                                })
+                            }
+                        )
 
                     if not live_webinars:
                         REDIS.delete("live_webinars")
