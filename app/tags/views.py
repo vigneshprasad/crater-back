@@ -13,7 +13,7 @@ class TagViewSet(mixins.RetrieveModelMixin,
                  mixins.ListModelMixin,
                  viewsets.GenericViewSet):
     queryset = models.Tag.objects.filter(is_active=True).order_by(Lower('name'))
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.TagSerializer
 
 
