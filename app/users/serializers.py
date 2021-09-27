@@ -651,64 +651,64 @@ class ProfileSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_years_of_experience_detail(obj):
         return {
-            "key": obj.years_of_experience,
-            "value": obj.get_years_of_experience_display()
+            "value": obj.years_of_experience,
+            "name": obj.get_years_of_experience_display()
         }
 
     @staticmethod
     def get_education_level_detail(obj):
         return {
-            "key": obj.education_level,
-            "value": obj.get_education_level_display()
+            "value": obj.education_level,
+            "name": obj.get_education_level_display()
         }
 
     @staticmethod
     def get_company_type_detail(obj):
         return {
-            "key": obj.company_type,
-            "value": obj.get_company_type_display()
+            "value": obj.company_type,
+            "name": obj.get_company_type_display()
         }
 
     @staticmethod
     def get_company_type_advised_detail(obj):
         return {
-            "key": obj.company_type_advised,
-            "value": obj.get_company_type_advised_display()
+            "value": obj.company_type_advised,
+            "name": obj.get_company_type_advised_display()
         }
 
     @staticmethod
     def get_sector_detail(obj):
         return {
-            "key": obj.sector,
-            "value": obj.get_sector_display()
+            "value": obj.sector,
+            "name": obj.get_sector_display()
         }
 
     @staticmethod
     def get_number_of_employees_detail(obj):
         return {
-            "key": obj.number_of_employees,
-            "value": obj.get_number_of_employees_display()
+            "value": obj.number_of_employees,
+            "name": obj.get_number_of_employees_display()
         }
 
     @staticmethod
     def get_project_type_detail(obj):
         return {
-            "key": obj.project_type,
-            "value": obj.get_project_type_display()
+            "value": obj.project_type,
+            "name": obj.get_project_type_display()
         }
 
     @staticmethod
     def get_stage_of_company_detail(obj):
         return {
-            "key": obj.stage_of_company,
-            "value": obj.get_stage_of_company_display()
+            "value": obj.stage_of_company,
+            "name": obj.get_stage_of_company_display()
         }
 
     @staticmethod
     def get_companies_invested_detail(obj):
         return {
-            "key": obj.companies_invested,
-            "value": obj.get_companies_invested_display()
+            "value": obj.companies_invested,
+            "name": obj.get_companies_invested_display()
         }
 
     def validate_cover(self, cover):

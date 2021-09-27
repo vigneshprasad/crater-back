@@ -40,7 +40,7 @@ class DyteMeetingViewSet(
         )
 
         # If the dyte meeting is not for a group return.
-        group = dyte_meeting.group
+        group = dyte_meeting.group if dyte_meeting else None
         if not group:
             return Response(status=status.HTTP_200_OK)
 

@@ -271,6 +271,7 @@ def participant_count(limit, current, sec):
     if not limit:
         return 0, 0
 
+    max_follower_count = limit / 10
     limit = min(limit / 100, 100)
     sec += 10
 
@@ -279,15 +280,18 @@ def participant_count(limit, current, sec):
 
     # Calculate probability for participant going up or down.
     random = np.random.rand()
-    prob = max(0.5, (1 - (sec / limit)))
-    neg_prob = min(0.5, (sec * 1 / limit))
+    prob = max(0.5, (1 - (sec / max_follower_count)))
+    neg_prob = min(0.5, (sec / max_follower_count))
 
     # Update the final count of participants based on the probability.
     final += np.random.randint(1, 8) if random <= prob else final
     final -= np.random.randint(1, 5) if random <= neg_prob else final
 
     # Calculate new final participant count and current seconds.
-    final, sec = (current, sec) if (final < 0 or final > limit) else (final, sec)
+    final, sec = (current, sec) if (
+            final < 1 or final > limit
+    ) else (final, sec)
+
     return final, sec
 
 
