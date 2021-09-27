@@ -2,8 +2,10 @@ import datetime
 import json
 import logging
 
+from asgiref.sync import async_to_sync
 from celery.schedules import crontab
 from celery.task import periodic_task
+from channels.layers import get_channel_layer
 
 from conversations import constants
 from conversations import models
@@ -275,3 +277,16 @@ def cache_participant_count():
 
             current, sec = services.participant_count(data.get('follower_count'), current, sec)
             REDIS.set(f"{data.get('group_id')}", json.dumps({"current": current, "sec": sec}))
+
+            # Send the current live count to channel layer group
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"{data.get('group_id')}",
+                {
+                    "type": "send.live_count",
+                    "text": json.dumps({
+                        "type": "live_count",
+                        "count": current
+                    })
+                }
+            )
