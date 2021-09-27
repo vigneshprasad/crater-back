@@ -624,6 +624,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "other_tag",
             "allow_meeting_request",
             "can_connect",
+            "primary_url",
             "years_of_experience_detail",
             "education_level_detail",
             "company_type_detail",

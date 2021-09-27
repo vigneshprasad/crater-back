@@ -8,6 +8,7 @@ class CreatorAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "user",
+        "order",
         "number_of_subscribers",
         "certified",
         "type",
@@ -15,6 +16,10 @@ class CreatorAdmin(admin.ModelAdmin):
         "is_active"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related("user").order_by("-order")
 
 
 @admin.register(models.Community)
