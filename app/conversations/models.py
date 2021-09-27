@@ -1,8 +1,5 @@
 import datetime
-
 import pytz
-
-from datetime import timedelta
 
 from django.db import models
 from django.conf import settings
@@ -12,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
 from conversations import constants
+from conversations import signals
 from resources.meetings import models as meeting_models
 
 
@@ -218,7 +216,11 @@ class Group(base_model.BaseModel):
 
     is_featured = models.BooleanField(default=False)
     is_full = models.BooleanField(default=False)
+
     is_live = models.BooleanField(default=False)
+    # Denotes the datetime at which the group was marked live or
+    # inactive.
+    last_live_at = models.DateTimeField(null=True, blank=True)
 
     # Group closed status and datetime of closure.
     # TODO(Nishant): Can change this into statuses as well.
@@ -250,7 +252,10 @@ class Group(base_model.BaseModel):
             update_fields=None
     ):
         if not self.end and not self.type == constants.GROUP_TYPE_WEBINAR_ENUM:
-            self.end = self.start + timedelta(hours=1)
+            self.end = self.start + datetime.timedelta(hours=1)
+        else:
+            # Adding end date for webinars as +30 from start.
+            self.end = self.start + datetime.timedelta(minutes=30)
 
         return super(Group, self).save(force_insert, force_update, using, update_fields)
 
@@ -258,6 +263,48 @@ class Group(base_model.BaseModel):
         self.is_approved = True
         self.approved_at = datetime.datetime.now()
         self.save()
+
+    def mark_live(self):
+        """Mark group as live."""
+        self.is_live = True
+        self.last_live_at = datetime.datetime.now()
+        self.save()
+        # Send group marked live signal.
+        signals.group_marked_live.send(
+            sender=self.__class__,
+            group=self
+        )
+
+    def mark_inactive(self):
+        """Mark group as not live."""
+        self.is_live = False
+        self.last_live_at = datetime.datetime.now()
+        self.save()
+        # Send group marked live signal.
+        signals.group_marked_inactive.send(
+            sender=self.__class__,
+            group=self
+        )
+
+    def mark_closed(self):
+        """Marks group as closed.
+
+        Note:
+            This marks as group as inactive and
+                then closes the group.
+
+        """
+
+        # Mark the meeting as inactive first.
+        self.mark_inactive()
+        self.closed = True
+        self.closed_at = datetime.datetime.now()
+        self.save()
+        # Send group marked live signal.
+        signals.group_marked_closed.send(
+            sender=self.__class__,
+            group=self
+        )
 
     @property
     def local_start(self):
@@ -268,6 +315,17 @@ class Group(base_model.BaseModel):
     def local_end(self):
         """Return start in the local timezone."""
         return self.end.astimezone(pytz.timezone(settings.TIME_ZONE)) if self.end else None
+
+    def get_all_users(self):
+        """Returns all users that are part of the group."""
+        users = [self.host]
+        speakers_and_attendees = self.speakers.all() | self.attendees.all()
+        for user in speakers_and_attendees:
+            if user in users:
+                continue
+            users.append(user)
+
+        return users
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""

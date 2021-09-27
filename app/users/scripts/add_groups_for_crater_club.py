@@ -27,9 +27,8 @@ def add_users_to_group(dry_run=False):
         worknetwork_group = Group.objects.get(name=constants.WORKNETWORK_GROUP)
 
     for user in models.User.objects.all():
-
         print("Adding {} to group {}".format(user.email, constants.WORKNETWORK_GROUP))
-
         if dry_run:
             continue
+        user.groups.clear()
         user.groups.add(worknetwork_group)

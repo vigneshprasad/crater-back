@@ -66,8 +66,9 @@ class GoogleCalendarService:
             start_datetime,
             end_datetime,
             users,
-            summary=None,
-            description=None,
+            summary,
+            description,
+            conference_name=constants.DEFAULT_CONFERENCE_NAME_FOR_MEETING,
             meeting_link=None
 
     ):
@@ -79,6 +80,7 @@ class GoogleCalendarService:
             users(list/queryset): List of user"s who are attending the event.
             summary(str): The title of the Google calendar event.
             description(str): The description for Google calendar event.
+            conference_name(str): Conference name for the event.
             meeting_link(str): External meeting link to be added to the event.
 
         """
@@ -86,20 +88,6 @@ class GoogleCalendarService:
             return None, meeting_link
 
         request_id = str(uuid.uuid4())
-
-        # Calculate description based on if we have a meeting link or not.
-        try:
-            user1 = users[0]
-            user2 = users[1]
-        except KeyError:
-            return None, meeting_link
-
-        summary = "{} <> {}| Professional Networking | WorkNetwork".format(
-            user1.get_display_first_name(),
-            user2.get_display_first_name()
-        ) if not summary else summary
-
-        description = description if description else constants.DEFAULT_DESCRIPTION_FOR_MEETING_EVENTS
 
         if not (start_datetime and end_datetime):
             return None, meeting_link
@@ -116,7 +104,12 @@ class GoogleCalendarService:
                 "timeZone": constants.DEFAULT_TIMEZONE
             },
             "recurrence": [],
-            "attendees": [{"email": user.email} for user in users]
+            "attendees": [
+                {
+                    "email": user.email if user.email else "",
+                    "displayName": user.name.title() if user.name else "",
+                } for user in users
+            ]
         }
 
         # Changing the request body based on if we have external meeting link
@@ -124,12 +117,11 @@ class GoogleCalendarService:
         if meeting_link:
             request_body["conferenceData"] = {
                 "conferenceSolution": {
-                    "name": "1:1 Meeting",
+                    "name": conference_name,
                     "key": {
                         "type": constants.ADD_ON_LINK
                     },
-                    # TODO(Nishant): Change this from default Google Meets icon to our icon.
-                    "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
+                    "iconUri": constants.DEFAULT_ICON_URI_FOR_GOOGLE_EVENTS
                 },
                 "entryPoints": [
                     {
@@ -166,21 +158,31 @@ class GoogleCalendarService:
 
         Args:
             event_id(str): Event ID for the google calendar event.
-            users(list): List of user in the event to be update on the
-                calendar.
+            users(list/queryset): All user that are part of the
+                updated event.
 
         """
         if not self.service:
-            return None
+            return None, None
 
-        patch_body = {"attendees": [{"email": user.email} for user in users]}
+        patch_body = {
+            "attendees": [
+                {
+                    "email": user.email if user.email else "",
+                    "displayName": user.name.title() if user.name else ""
+                } for user in users
+            ]
+        }
 
-        return self.service.events().patch(
+        event = self.service.events().patch(
             calendarId=self.calendar_id,
             eventId=event_id,
             body=patch_body,
             conferenceDataVersion=self.conference_data_version
         ).execute()
+
+        event_id = event.get("id", "")
+        return event_id
 
     def update_event_conference_to_google_meet(self, event_id):
         """Updates conference type to google meets for WorkNetwork Calendar.
@@ -227,8 +229,7 @@ class GoogleCalendarService:
                     "key": {
                         "type": constants.ADD_ON_LINK
                     },
-                    # TODO(Nishant): Change this from default Google Meets icon to our icon.
-                    "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png"
+                    "iconUri": constants.DEFAULT_ICON_URI_FOR_GOOGLE_EVENTS
                 },
                 "entryPoints": [
                     {

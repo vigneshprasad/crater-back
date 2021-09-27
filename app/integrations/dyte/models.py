@@ -4,6 +4,7 @@ from base import models as base_model
 
 
 class DyteMeeting(base_model.BaseModel):
+
     meeting = models.ForeignKey(
         "meetings.Meeting",
         related_name="dyte_meeting",
@@ -26,6 +27,7 @@ class DyteMeeting(base_model.BaseModel):
 
 
 class DyteMeetingParticipant(base_model.BaseModel):
+
     dyte_meeting = models.ForeignKey(
         "dyte.DyteMeeting",
         related_name="meeting_participants",
@@ -38,3 +40,11 @@ class DyteMeetingParticipant(base_model.BaseModel):
     )
     auth_token = models.TextField()
     is_online = models.BooleanField(default=False)
+
+    def mark_online(self):
+        self.is_online = True
+        self.save()
+
+    def mark_offline(self):
+        self.is_online = False
+        self.save()

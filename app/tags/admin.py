@@ -2,134 +2,136 @@ from adminsortable2.admin import SortableAdminMixin
 from django.contrib import admin
 from django.contrib.admin import register
 from django.utils.safestring import mark_safe
+
 from tags import models
-from tags.models import Tag, ArticleTag, MasterClassTag, Industry, Funding, Company, CityProxy, WorkCityProxy, EventTag, \
-    SourceWebsite, Interests, Faq
 from utils.mixins import ViewActionMixin
 
 
 class TagAdminBase(SortableAdminMixin, ViewActionMixin, admin.ModelAdmin):
-    """
-    Base class for Tag Admin
-    """
-    icon_name = 'local_offer'
-    list_display = ('tag_name', 'action', 'order')
-    search_fields = ['name']
+    """Base class for Tag Admin"""
+    icon_name = "local_offer"
+    list_display = ("id", "tag_name", "action", "order")
+    search_fields = ["name"]
 
     @staticmethod
     def tag_name(tag):
-        return mark_safe(f'<span class="new badge" data-badge-caption="{tag.name}"></span>')
+        return mark_safe(f"<span class='new badge' data-badge-caption='{tag.name}'></span>")
 
 
 @register(models.Objective)
 class ObjectiveAdmin(admin.ModelAdmin):
-    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
-@register(Tag)
-class TagAdmin(TagAdminBase):
-    """
-    Sortable User Tags admin configuration
-    """
-    list_display = ('tag_name', 'action', 'order', 'is_active')
+@register(models.Tag)
+class TagAdmin(admin.ModelAdmin):
+    """Sortable User Tags admin configuration"""
+    list_display = (
+        "id",
+        "name",
+        "order",
+        "is_active"
+    )
+    search_fields = ["name"]
 
 
-@register(ArticleTag)
-class ArticleTagAdmin(TagAdminBase):
-    """
-    Sortable Curated Article Tags admin configuration
-    """
+@register(models.ArticleTag)
+class ArticleTagAdmin(admin.ModelAdmin):
+    """Sortable Curated Article Tags admin configuration"""
+    list_display = (
+        "id",
+        "name",
+        "order"
+    )
+    search_fields = ["name"]
 
 
-@register(SourceWebsite)
+@register(models.SourceWebsite)
 class SourceWebsiteAdmin(admin.ModelAdmin):
     """
     Sortable Curated Article Tags admin configuration
     """
-    list_display = ('name', 'url', 'order')
+    list_display = ("name", "url", "order")
 
 
-@register(EventTag)
-class ArticleTagAdmin(TagAdminBase):
-    """
-    Sortable Curated Article Tags admin configuration
-    """
+@register(models.EventTag)
+class ArticleTagAdmin(admin.ModelAdmin):
+    """Sortable Curated Article Tags admin configuration"""
+    icon_name = "local_offer"
+    list_display = ("id", "name", "order")
+    search_fields = ["name"]
 
 
-@register(MasterClassTag)
-class MasterClassTagAdmin(TagAdminBase):
+@register(models.MasterClassTag)
+class MasterClassTagAdmin(admin.ModelAdmin):
     """
     Sortable Master Classes Tags admin configuration
     """
+    icon_name = "local_offer"
+    list_display = ("id", "name", "order")
+    search_fields = ["name"]
 
 
-@register(Industry)
-class IndustryTagAdmin(TagAdminBase):
-    """
-    Sortable Industry Tag admin configuration
-    """
+@register(models.Industry)
+class IndustryTagAdmin(admin.ModelAdmin):
+    """Sortable Industry Tag admin configuration"""
+    icon_name = "local_offer"
+    list_display = ("id", "name", "order")
+    search_fields = ["name"]
 
 
-@register(Interests)
+@register(models.Interests)
 class InterestsAdmin(admin.ModelAdmin):
-    """
-    Sortable Interests admin configuration
-    """
-    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
-    icon_name = 'local_offer'
-    list_display = ('name', 'icon')
-    search_fields = ['name']
-
-    @staticmethod
-    def tag_name(tag):
-        return mark_safe(f'<span class="new badge" data-badge-caption="{tag.name}"></span>')
+    """Sortable Interests admin configuration"""
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    icon_name = "local_offer"
+    list_display = ("name", "icon")
+    search_fields = ["name"]
 
 
-@register(Funding)
-class FundingMasterClassTagAdmin(TagAdminBase):
-    """
-    Sortable Funding Tag admin configuration
-    """
+@register(models.Funding)
+class FundingMasterClassTagAdmin(admin.ModelAdmin):
+    """Sortable Funding Tag admin configuration"""
+    icon_name = "local_offer"
+    list_display = ("id", "name", "order")
+    search_fields = ["name"]
 
 
-@register(Company)
-class CompanyTagAdmin(TagAdminBase):
-    """
-    Sortable Company Tag admin configuration
-    """
+@register(models.Company)
+class CompanyTagAdmin(admin.ModelAdmin):
+    """Sortable Company Tag admin configuration"""
+    icon_name = "local_offer"
+    list_display = ("id", "name", "order")
+    search_fields = ["name"]
 
 
-@register(CityProxy)
+@register(models.CityProxy)
 class CityTagAdmin(TagAdminBase):
-    """
-    Sortable Company Tag admin configuration
-    """
-    fields = ('name', 'country')
-    list_display = ('tag_name', 'country', 'action', 'order')
+    """Sortable Company Tag admin configuration"""
+    fields = ("name", "country")
+    list_display = ("tag_name", "country", "action", "order")
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_work=False)
 
 
-@register(WorkCityProxy)
+@register(models.WorkCityProxy)
 class CityTagAdmin(TagAdminBase):
-    """
-    Sortable Company Tag admin configuration
-    """
-    fields = ('name', 'country')
-    list_display = ('tag_name', 'country', 'action', 'order')
+    """Sortable Company Tag admin configuration"""
+    fields = ("name", "country")
+    list_display = ("tag_name", "country", "action", "order")
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_work=True)
 
 
-@register(Faq)
+@register(models.Faq)
 class FaqAdmin(admin.ModelAdmin):
     fields = (
-        'category',
-        'question',
-        'answer',
-        'order',
+        "category",
+        "question",
+        "answer",
+        "order",
     )
-    list_display = ('category', 'question')
-    exclude = ('created_at', 'deleted_at', 'updated_at', 'is_deleted')
+    list_display = ("category", "question")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

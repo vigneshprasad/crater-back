@@ -49,7 +49,7 @@ class CreatorViewSet(
 
         page = self.paginate_queryset(followed_creators)
 
-        if not page:
+        if page is None:
             serializer = self.get_serializer(followed_creators, many=True)
             return Response(serializer.data)
 

@@ -121,8 +121,7 @@ def get_groups_for_user(user, queryset=None):
 
     Args:
         user(User): user from the context or request
-        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
-        not closed.
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups.
 
     Returns:
         Queryset<Group>: queryset of filtered groups for user
@@ -132,7 +131,7 @@ def get_groups_for_user(user, queryset=None):
     now_time = timezone.now()
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False, is_approved=True)
+        queryset = models.Group.objects.filter(is_approved=True)
 
     return queryset.filter(
         start__gte=(now_time - datetime.timedelta(days=2)),
@@ -145,8 +144,7 @@ def filter_groups_by_score(user, queryset=None):
 
     Args:
         user(User): user from the context or request
-        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
-        not closed.
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups.
 
     Returns:
         Queryset<Group>: queryset of filtered groups for user
@@ -155,7 +153,7 @@ def filter_groups_by_score(user, queryset=None):
     user_score = user.score
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False, is_approved=True)
+        queryset = models.Group.objects.filter(is_approved=True)
 
     return queryset.filter(
         score__lte=(user_score + 5)
@@ -168,8 +166,7 @@ def get_distinct_groups_by_score(user, queryset=None):
 
     Args:
         user(User): user from the context or request
-        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups
-        not closed.
+        queryset(Queryset<Group>): queryset of groups to operate on defaults to all groups.
 
     Returns:
         Queryset<Group>: queryset of filtered groups for user
@@ -178,7 +175,7 @@ def get_distinct_groups_by_score(user, queryset=None):
     user_score = user.score
 
     if queryset is None:
-        queryset = models.Group.objects.filter(closed=False)
+        queryset = models.Group.objects.all()
 
     filtered_queryset = queryset.filter(
         score__lte=(user_score + 5),
@@ -261,41 +258,36 @@ def get_or_create_topic(name, image, description, creator):
     return topic
 
 
-def get_dyte_meeting_participant(meeting_id, user_uuid):
-    """Return DyteMeetingParticipant instance of given
-        meeting and user
+def participant_count(limit, current, sec):
+    """Calculates participant count based on the
+        current count and seconds into the session.
 
     Args:
-        meeting_id(string): Dyte meeting uuid
-        user_uuid(string): User uuid
+        limit(int): Max count for participants.
+        current(int): Current participant count.
+        sec(int): Number of seconds into the session.
 
     """
-    try:
-        dyte_participant = dyte_models.DyteMeetingParticipant.objects.get(
-            dyte_meeting__dyte_meeting_id=meeting_id,
-            participant__uuid=user_uuid
-        )
-    except dyte_models.DyteMeetingParticipant.DoesNotExist:
-        return None
+    if not limit:
+        return 0, 0
 
-    return dyte_participant
-
-
-def participant_count(limit, current, sec):
     limit = min(limit / 100, 100)
-    sec = sec + 10
+    sec += 10
+
+    # Make the final count and current count same.
     final = current
+
+    # Calculate probability for participant going up or down.
     random = np.random.rand()
     prob = max(0.5, (1 - (sec / limit)))
     neg_prob = min(0.5, (sec * 1 / limit))
-    if random <= prob:
-        final = final + np.random.randint(1, 8)
-    if random <= neg_prob:
-        final = final - np.random.randint(1, 5)
-    if final > limit:
-        return current, sec
-    if final < 0:
-        return current, sec
+
+    # Update the final count of participants based on the probability.
+    final += np.random.randint(1, 8) if random <= prob else final
+    final -= np.random.randint(1, 5) if random <= neg_prob else final
+
+    # Calculate new final participant count and current seconds.
+    final, sec = (current, sec) if (final < 0 or final > limit) else (final, sec)
     return final, sec
 
 
@@ -304,6 +296,7 @@ def cache_live_webinar(group):
 
     Args:
         group(Group): Group instance with type webinar
+
     """
     try:
         # Check if live webinars are cached
@@ -339,6 +332,7 @@ def remove_cached_live_webinar(group):
 
     Args:
         group(Group): Group instance with type webinar
+
     """
     try:
         # Check if live webinars are cached

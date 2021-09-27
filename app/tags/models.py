@@ -71,7 +71,7 @@ class MasterClassTag(models.Model):
     Tag for Master Class created by admin
     """
     name = models.CharField(_("Name"), max_length=255)
-    order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = _("Master Class Tag")
@@ -86,7 +86,7 @@ class MasterClassTag(models.Model):
 class ArticleTag(models.Model):
     """Tag for Article created by Admin."""
     name = models.CharField(_("Name"), max_length=255)
-    order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = _("Curated Article Tag")
@@ -101,7 +101,7 @@ class ArticleTag(models.Model):
 class EventTag(models.Model):
     """Tag for Event created by Admin."""
     name = models.CharField(_("Name"), max_length=255)
-    order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = _("Curated Article Tag")
@@ -134,7 +134,7 @@ class Funding(models.Model):
         max_length=255,
         verbose_name=_("Name")
     )
-    order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = _("Funding")
@@ -150,7 +150,7 @@ class Company(models.Model):
         max_length=255,
         verbose_name=_("Name")
     )
-    order = models.PositiveIntegerField(default=0, blank=False, null=False)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = _("Company")
@@ -185,9 +185,7 @@ class SourceWebsite(models.Model):
 
 
 class CityProxy(City):
-    """
-    City proxy model with relation to City, which is_work value is False
-    """
+    """City proxy model with relation to City, which is_work value is False"""
     proxy = True
 
     class Meta:
@@ -197,9 +195,7 @@ class CityProxy(City):
 
 
 class WorkCityProxy(City):
-    """
-    City proxy model with relation to City, which is_work value is True
-    """
+    """City proxy model with relation to City, which is_work value is True"""
     proxy = True
 
     class Meta:
