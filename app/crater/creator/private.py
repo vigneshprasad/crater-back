@@ -70,18 +70,18 @@ def add_user_to_community(user, community):
     return community_member
 
 
-def get_follower_for_creator(user, creator):
+def get_follower_for_user_and_creator_id(user, creator_id):
     """Returns follower object for user and creator.
 
     Args:
         user(User): User who is the follower.
-        creator(Creator): Creator being followed by the
+        creator_id(integer): ID of Creator being followed by the
             user.
 
     """
     try:
         follower = models.Follower.objects.get(
-            creator=creator,
+            creator_id=creator_id,
             user=user
         )
     except models.Follower.DoesNotExist:

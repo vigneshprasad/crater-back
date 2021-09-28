@@ -274,7 +274,7 @@ class FollowerViewSet(
         user = request.user
         creator_id = kwargs.get("creator")
 
-        follower = private.get_follower_for_creator(user, creator_id)
+        follower = private.get_follower_for_user_and_creator_id(user, creator_id)
 
         # If the user already has a follower object and is not unfollowed
         # throw and exception.
@@ -320,7 +320,7 @@ class FollowerViewSet(
         user = request.user
         creator_id = kwargs.get("creator")
 
-        follower = private.get_follower_for_creator(user, creator_id)
+        follower = private.get_follower_for_user_and_creator_id(user, creator_id)
 
         # If the user has never followed the creator, throw an exception.
         if not follower:
