@@ -237,7 +237,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
     )
 
     models.GoogleCalendarEvent.objects.update_or_create(
-        user=group.host,
+        user=user,
         group_id=group.id,
         event_id=event_id,
         meeting_link=meeting_link,
