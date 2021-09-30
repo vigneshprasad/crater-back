@@ -11,7 +11,6 @@ from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import signals
-from integrations.dyte import models as dyte_models
 
 from crater.creator import models as creator_models
 
@@ -293,7 +292,7 @@ def participant_count(limit, current, sec):
     if not limit:
         return 0, 0
 
-    max_follower_count = limit / 20
+    max_subscriber_count = min(limit / 5, 1500)
     limit = min(limit / 100, 100)
     sec += 10
 
@@ -302,12 +301,20 @@ def participant_count(limit, current, sec):
 
     # Calculate probability for participant going up or down.
     random = np.random.rand()
-    prob = max(0.5, (1 - (sec / max_follower_count)))
-    neg_prob = min(0.5, (sec / max_follower_count))
+    random_2 = np.random.rand()
+    prob = max(0.6, (1 - (sec / max_subscriber_count)))
+    neg_prob = min(0.6, (sec * 2 / max_subscriber_count))
 
     # Update the final count of participants based on the probability.
-    final += np.random.randint(1, 8) if random <= prob else 0
-    final -= np.random.randint(1, 5) if random <= neg_prob else 0
+    if sec > 1800:
+        final += np.random.randint(1, 2) if random_2 <= prob else 0
+        final -= np.random.randint(1, 3) if random <= neg_prob else 0
+    elif (sec // 300) % 2 == 1:
+        final += np.random.randint(1, 3) if random_2 <= prob else 0
+        final -= np.random.randint(1, 3) if random <= neg_prob else 0
+    else:
+        final += np.random.randint(1, 8) if random_2 <= prob else 0
+        final -= np.random.randint(1, 6) if random <= neg_prob else 0
 
     # Calculate new final participant count and current seconds.
     final, sec = (current, sec) if (
@@ -333,7 +340,7 @@ def cache_live_webinar(group):
             REDIS.set("live_webinars", json.dumps({
                 "webinars": [{
                     "group_id": group.id,
-                    "follower_count": creator.follower_count
+                    "subscriber_count": creator.number_of_subscribers
                 }]
             }))
         else:
@@ -341,7 +348,7 @@ def cache_live_webinar(group):
             creator = creator_models.Creator.objects.get(user=group.host)
             data_to_cache = {
                 "group_id": group.id,
-                "follower_count": creator.follower_count
+                "subscriber_count": creator.number_of_subscribers
             }
 
             # Cache current live webinar details if not present
@@ -370,7 +377,7 @@ def remove_cached_live_webinar(group):
                 creator = creator_models.Creator.objects.get(user=group.host)
                 data_to_cache = {
                     "group_id": group.id,
-                    "follower_count": creator.follower_count
+                    "subscriber_count": creator.number_of_subscribers
                 }
 
                 # Remove current live webinar from cache if present
