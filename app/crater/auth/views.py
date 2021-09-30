@@ -11,12 +11,12 @@ from crater.auth import constants
 from crater.auth import exceptions
 from crater.auth import models
 from crater.auth import serializers
+from integrations.freshchat import tasks
 from users import constants as user_constants
 from users import public as user_public
 from users import permissions as user_permissions
 from users import serializers as user_serializers
 from users import utils as user_utils
-from users import tasks
 
 
 class PhoneNumberRegisterView(

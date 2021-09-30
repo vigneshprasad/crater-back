@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from integrations.freshchat import constants
-from integrations.freshchat import utils
+from integrations.freshchat import private
 
 
 GET_OUTBOUND_MESSAGE_ENDPOINT = "get_outbound_message"
@@ -106,7 +106,7 @@ class FreshChatWhatsappService:
             Response JSON if available.
 
         """
-        freshchat_user = utils.get_freshchat_user(user)
+        freshchat_user = private.get_freshchat_user(user)
         if freshchat_user and freshchat_user.freshchat_user_id:
             response = requests.get(
                 url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[GET_USER_ENDPOINT].format(
@@ -147,7 +147,7 @@ class FreshChatWhatsappService:
             ]
         }
 
-        freshchat_user = utils.get_freshchat_user(user)
+        freshchat_user = private.get_freshchat_user(user)
 
         if freshchat_user and freshchat_user.freshchat_user_id:
             response = requests.put(
@@ -172,7 +172,7 @@ class FreshChatWhatsappService:
         freshchat_user_id = response_json.get('id')
 
         if response.status_code == constants.FRESHCHAT_STATUS_CREATED:
-            utils.create_or_update_freshchat_user(
+            private.create_or_update_freshchat_user(
                 user,
                 freshchat_user_id
             )
@@ -324,7 +324,7 @@ def _get_and_process_outbound_message_after_delay(user_pk, request_id):
     )
     status = get_response_json.get('status')
     message_id = get_response_json.get('message_id')
-    utils.create_message(
+    private.create_message(
         user,
         status,
         message_id,
