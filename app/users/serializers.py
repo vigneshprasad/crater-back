@@ -239,7 +239,6 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         # Adding each user to worknetwork group.
         self.add_to_worknetwork_group(user)
         setup_user_email(request, user, [])
-        user.send_verify_email()
         return user
 
     def custom_signup(self, request, user):
@@ -400,7 +399,6 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
                 objectives=objectives
             )
         if old_email != new_email:
-            instance.send_verify_email()
             instance.refresh_auth_secret_key()
         return instance
 

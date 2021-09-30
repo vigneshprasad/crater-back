@@ -104,6 +104,62 @@ def send_conversation_confirmation_email_for_user(user, group):
         )
 
 
+@periodic_task(run_every=crontab(minute="*10"))
+def send_whatsapp_reminder_for_webinar_attendees(meetings=None):
+    """Send whatsapp reminder to all attendees for Webinar
+
+    Note:
+        Sends reminder to attendees of webinar which is
+            starting 10 minutes from now.
+
+    """
+    now_time = datetime.datetime.now()
+
+    start_datetime = now_time
+    end_datetime = (now_time + datetime.timedelta(minutes=10))
+
+    # Send it for all group, except for webinars.
+    webinars = models.Group.objects.filter(
+        start__gt=start_datetime,
+        start__lte=end_datetime,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+
+    for webinar in webinars:
+        # Send whatsapp reminder for webinar to attendees.
+        freshchat_public.send_whatsapp_reminder_for_webinar_attendees(
+            webinar
+        )
+
+
+@periodic_task(run_every=crontab(minute="*10"))
+def send_whatsapp_reminder_for_webinar_host(meetings=None):
+    """Send webinar reminder whatsapp for the host.
+
+    Note:
+        Sends reminder to host of webinar which is
+            starting 10 minutes from now.
+
+    """
+    now_time = datetime.datetime.now()
+
+    start_datetime = now_time
+    end_datetime = (now_time + datetime.timedelta(minutes=10))
+
+    # Send it for all group, except for webinars.
+    webinars = models.Group.objects.filter(
+        start__gt=start_datetime,
+        start__lte=end_datetime,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+
+    for webinar in webinars:
+        # Send whatsapp reminder for webinar to attendees.
+        freshchat_public.send_whatsapp_reminder_for_webinar_host(
+            webinar
+        )
+
+
 @periodic_task(run_every=crontab(minute="*/10"))
 def send_whatsapp_conversation_reminders(meetings=None):
     """Sends whatsapp reminders for people 30 minutes before their meetings.
@@ -118,14 +174,18 @@ def send_whatsapp_conversation_reminders(meetings=None):
     start_datetime = now_time
     end_datetime = (now_time + datetime.timedelta(minutes=10))
 
+    # Send it for all group, except for webinars.
     groups = models.Group.objects.filter(
         start__gt=start_datetime,
-        start__lte=end_datetime,
-    )
+        start__lte=end_datetime
+    ).exclude(type=constants.GROUP_TYPE_WEBINAR_ENUM)
 
-    logging.info("Sending reminders for groups between {} - {}. Groups count: {}".format(
-        start_datetime, end_datetime, groups.count()
-    ))
+    # Log id's of the groups we are sending reminders for.
+    logging.info(
+        "Sending reminders for groups between {} - {}. Group ID's: {}".format(
+            start_datetime, end_datetime, [group.id for group in groups]
+        )
+    )
 
     exclude_list = []
 
@@ -157,8 +217,8 @@ def send_group_feedback_emails(groups=None):
 
     groups = models.Group.objects.filter(
         end__gte=start_datetime,
-        end__lt=end_datetime,
-    ) if not groups else groups
+        end__lt=end_datetime
+    ).exclude(type=constants.GROUP_TYPE_WEBINAR_ENUM) if not groups else groups
 
     logging.info("Sending feedback emails for groups between {} - {}. groups count: {}".format(
         start_datetime, end_datetime, groups.count()

@@ -16,6 +16,7 @@ from users import public as user_public
 from users import permissions as user_permissions
 from users import serializers as user_serializers
 from users import utils as user_utils
+from users import tasks
 
 
 class PhoneNumberRegisterView(
@@ -103,8 +104,19 @@ class PhoneNumberRegisterView(
         # Create a JWT token for the user for upcoming requests.
         token = jwt_encode(user)
         # Add user to crater club group.
-        crater_club_group, _ = Group.objects.get_or_create(name=user_constants.CRATER_CLUB_GROUP)
-        user.groups.add(crater_club_group)
+        crater_club_group, _ = Group.objects.get_or_create(
+            name=user_constants.CRATER_CLUB_GROUP
+        )
+
+        if crater_club_group not in user.groups.all():
+            user.groups.add(crater_club_group)
+
+            # Send welcome crater whatsapp after 2 minutes
+            # on first login/signup on Crater.
+            tasks.send_welcome_crater_whatsapp(user).appy_async(
+                countdown=120
+            )
+
         # Getting user detail once the user is verified.
         user_details = user_serializers.UserDetailSerializer(user).data
 

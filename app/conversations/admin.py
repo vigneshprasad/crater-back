@@ -60,7 +60,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         cleaned_data = form.cleaned_data
         if "closed" in fields_changed:
             if cleaned_data["closed"]:
-                obj.mark_closed()
+                obj.mark_closed(user=request.user)
 
         if "is_approved" in fields_changed:
             if cleaned_data["is_approved"]:
@@ -68,7 +68,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
         if "is_live" in fields_changed:
             if cleaned_data["is_live"]:
-                obj.mark_live()
+                obj.mark_live(user=request.user)
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 

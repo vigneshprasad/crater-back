@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from django.conf import settings
@@ -75,7 +76,7 @@ def send_conversation_registration_confirmation(sender, preference, **kwargs):
 
     time_slots = preference.time_slots.all()
     time_list = [time_slot.get_display() for time_slot in time_slots] if time_slots else "No Time Slots Selected." 
-    time_str = ', '.join(time_list)
+    time_str = ", ".join(time_list)
 
     logging.info("Send a message to a user who has created a meeting preference".format(user.email))
 
@@ -229,3 +230,40 @@ def send_meeting_request_approved_message(sender, meeting_request, *args, **kwar
 @receiver(meeting_signals.meeting_request_declined)
 def send_meeting_request_declined_message(sender, meeting_request, *args, **kwargs):
     pass
+
+
+@receiver(conversation_signals.attendee_added_to_group)
+def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwargs):
+    """Send whatsapp to attendee for RSVPing to the webinar.
+
+    Args:
+        sender(Group class): Class object for group.
+        group(Group): Webinar group we are creating dyte meeting
+            for.
+        user(User): User that got added to the group.
+
+    """
+
+    # If the webinar is already live, don't send this message.
+    if datetime.datetime.now() > group.start:
+        return
+
+    attendee_name = user.get_display_first_name()
+    host = group.host
+    if not host:
+        return
+
+    host_name = host.name.title()
+    display_start = group.get_display_start()
+    topic_name = group.topic.name
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=host,
+        template_name=constants.WEBINAR_ATTENDEE_RSVP_CONFIRMATION_TEMPLATE,
+        template_data=[
+            {"data": attendee_name},
+            {"data": host_name},
+            {"data": display_start},
+            {"data": topic_name}
+        ]
+    )

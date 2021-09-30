@@ -28,6 +28,7 @@ MEETING_REMINDER_RSVP_LINK = "meeting_unconfirmed_link"
 MEETING_REGISTRATION_TEMPLATE = "confirmation_of_registration_updated"
 
 # Registration Templates
+CRATER_WELCOME_TEMPLATE = "crater_welcome"
 REGISTRATION_CONFIRMATION = "huddle_welcome"
 REGISTRATION_TEMPLATE_DEFAULT_TOPIC = "startup funding, building a business and product management"
 
@@ -72,17 +73,24 @@ CONVERSATION_REMINDER_TEMPLATE = "huddle_meeting_reminder_group"
 CONVERSATION_PARTICIPANTS_APP_LINK = "View on the app: {}"
 CONVERSATION_RSVP = "Please RSVP using the calendar invite. Note this meeting will take place on the mobile app."
 
+# Webinar templates.
+WEBINAR_ATTENDEE_REMINDER_TEMPLATE = "crater_stream_reminder"
+WEBINAR_ATTENDEE_REMINDER_DELAY = "10"
+
+WEBINAR_HOST_REMINDER_TEMPLATE = "crater_stream_reminder_2"
+WEBINAR_ATTENDEE_RSVP_CONFIRMATION_TEMPLATE = "crater_stream_rsvp_confirmation"
+
 # Freshchat API responses.
 FRESHCHAT_STATUS_SUCCESS = 200
 FRESHCHAT_STATUS_CREATED = 201
 FRESHCHAT_STATUS_ACCEPTED = 202
 
 # Possible message statuses.
-FRESHCHAT_MESSAGE_ACCEPTED = 'ACCEPTED'
-FRESHCHAT_MESSAGE_SENT = 'SENT'
-FRESHCHAT_MESSAGE_DELIVERED = 'DELIVERED'
-FRESHCHAT_MESSAGE_FAILED = 'FAILED'
-FRESHCHAT_MESSAGE_IN_PROGRESS = 'IN_PROGRESS'
+FRESHCHAT_MESSAGE_ACCEPTED = "ACCEPTED"
+FRESHCHAT_MESSAGE_SENT = "SENT"
+FRESHCHAT_MESSAGE_DELIVERED = "DELIVERED"
+FRESHCHAT_MESSAGE_FAILED = "FAILED"
+FRESHCHAT_MESSAGE_IN_PROGRESS = "IN_PROGRESS"
 
 # If message response status is in these, it means that
 # message is yet to be sent to the user.

@@ -13,6 +13,29 @@ from utils.tiny_url_service import tiny_url_service
 from utils.deep_link_service import deep_link_service
 
 
+def send_welcome_crater_whatsapp(user):
+    """Sending welcome message to people who
+        join Crater.
+
+    Args:
+        user(User): User who has signed up on crater.
+
+    """
+    # Refreshing the user from DB to update the name.
+    user.refresh_from_db()
+    name = user.name.title() if user.name else None
+    if not name:
+        return
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.CRATER_WELCOME_TEMPLATE,
+        template_data=[
+            {"data": name}
+        ]
+    )
+
+
 def send_meeting_whatsapp_reminder_to_user(user, meeting):
     """Send whatsapp message to user for upcoming meeting.
 
@@ -143,6 +166,7 @@ def send_meeting_time_confirmation(user, start_time, end_time):
 #         ]
 #     )
 
+
 def send_meeting_confirmation_rsvp(user, meeting):
     """ Send a message with confirming time and a rsvp link
 
@@ -210,13 +234,13 @@ def send_conversation_confirmation_rsvp_for_user(user, group):
         matched_users_thread = matched_list.pop().get_display_first_name()
     else:
         last_user = matched_list.pop()
-        matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
+        matched_users_thread = ", ".join([matched_user.get_display_first_name() for matched_user in matched_list])
         matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
 
     topic = group.topic.name
 
-    date = group.start.strftime('%a, %d %b %Y')
-    start_time = local_start_datetime.strftime('%I:%M %p')
+    date = group.start.strftime("%a, %d %b %Y")
+    start_time = local_start_datetime.strftime("%I:%M %p")
     date_time = "{}, {}".format(start_time, date)
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
@@ -256,13 +280,13 @@ def send_conversation_reminder_for_user(user, group):
         matched_users_thread = matched_list.pop().get_display_first_name()
     else:
         last_user = matched_list.pop()
-        matched_users_thread = ', '.join([matched_user.get_display_first_name() for matched_user in matched_list])
+        matched_users_thread = ", ".join([matched_user.get_display_first_name() for matched_user in matched_list])
         matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
 
     topic = group.topic.name
 
-    date = group.start.strftime('%a, %d %b %Y')
-    start_time = local_start_datetime.strftime('%I:%M %p')
+    date = group.start.strftime("%a, %d %b %Y")
+    start_time = local_start_datetime.strftime("%I:%M %p")
     date_time = "{}, {}".format(start_time, date)
     group_link = "https://{}/group?id={}".format(settings.FRONT_URL, group.id)
     deeplink = deep_link_service.make_firebase_deep_link(group_link)
@@ -295,5 +319,73 @@ def send_meeting_rsvp_reminder(user, meeting):
         template_name=constants.MEETING_REMINDER_RSVP_LINK,
         template_data=[
             {"data": url}
+        ]
+    )
+
+
+def send_whatsapp_reminder_for_webinar_host(group):
+    """Send whatsapp reminder to webinar host before start time.
+
+    Args:
+        group(Group): Webinar to whose host we are sending
+            the reminder.
+
+    """
+    host = group.host
+    start_time = group.get_display_start_time()
+    topic_name = group.topic.name
+    stream_link = "https://crater.club/session/{group_id}".format(
+        group_id=group.id
+    )
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=host,
+        template_name=constants.WEBINAR_HOST_REMINDER_TEMPLATE,
+        template_data=[
+            {"data": host.name.title()},
+            {"data": start_time + " today."},
+            {"data": topic_name},
+            {"data": stream_link},
+        ]
+    )
+
+
+def send_whatsapp_reminder_for_webinar_attendees(group):
+    """Send whatsapp reminder to webinar attendees before start time.
+
+    Args:
+        group(Group): Webinar to whose attendees we are sending
+            the reminder.
+
+    """
+    for attendee in group.attendees.all():
+        send_whatsapp_reminder_for_webinar_attendee(attendee, group)
+
+
+def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
+    """Send whatsapp reminder to webinar attendees before start time.
+
+    Args:
+        attendee(User): User we are sending the reminder to.
+        group(Group): Webinar we are sending the reminder for.
+
+    """
+    attendee_name = attendee.get_display_first_name()
+    creator_name = group.host.name.title()
+
+    topic_name = group.topic.name
+    stream_link = "https://crater.club/session/{group_id}".format(
+        group_id=group.id
+    )
+
+    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=attendee,
+        template_name=constants.WEBINAR_ATTENDEE_REMINDER_TEMPLATE,
+        template_data=[
+            {"data": attendee_name},
+            {"data": creator_name},
+            {"data": constants.WEBINAR_ATTENDEE_REMINDER_DELAY},
+            {"data": topic_name},
+            {"data": stream_link},
         ]
     )

@@ -13,6 +13,7 @@ from utils.instagram_service import instagram_service
 from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
+from integrations.freshchat import public as freshchat_public
 
 
 @shared_task(name="send_twilio_message")
@@ -109,3 +110,14 @@ def auto_refresh_instagram_long_access_token(self):
         if new_token:
             profile.instagram = new_token
             profile.save()
+
+
+@task
+def send_welcome_crater_whatsapp(user):
+    """Send a welcome whatsapp message to the provided user.
+
+    Args:
+        user(User): User who signed up to Crater.
+
+    """
+    freshchat_public.send_welcome_crater_whatsapp(user)
