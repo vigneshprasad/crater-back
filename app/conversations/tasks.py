@@ -104,7 +104,7 @@ def send_conversation_confirmation_email_for_user(user, group):
         )
 
 
-@periodic_task(run_every=crontab(minute="*10"))
+@periodic_task(run_every=crontab(minute="*/10"))
 def send_whatsapp_reminder_for_webinar_attendees(meetings=None):
     """Send whatsapp reminder to all attendees for Webinar
 
@@ -132,7 +132,7 @@ def send_whatsapp_reminder_for_webinar_attendees(meetings=None):
         )
 
 
-@periodic_task(run_every=crontab(minute="*10"))
+@periodic_task(run_every=crontab(minute="*/10"))
 def send_whatsapp_reminder_for_webinar_host(meetings=None):
     """Send webinar reminder whatsapp for the host.
 

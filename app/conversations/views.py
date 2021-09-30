@@ -361,17 +361,37 @@ class RequestViewSet(
 
     def create(self, request, *args, **kwargs):
         user = request.user
-        serializer = self.get_serializer(data=request.data)
+        data = request.data
+        group_id = data.get("group")
+        participant_type = data.get("participant_type")
+
+        # Get request for given params.
+        request = services.get_request_for_user_and_group_id(
+            user,
+            group_id,
+            participant_type=participant_type
+        )
+
+        if request:
+            group_already_joined_exceptions = exceptions.GroupAlreadyJoined()
+            return Response(
+                group_already_joined_exceptions.get_error_body(),
+                status=group_already_joined_exceptions.status_code
+            )
+
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         group_request = serializer.save()
         headers = self.get_success_headers(serializer.data)
 
         try:
-            if group_request.participant_type == constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM:
-                result = services.add_attendee_to_group_for_request(user, group_request)
-            else:
-                result = services.add_speaker_to_group_for_request(user, group_request)
-
+            result = services.add_attendee_to_group_for_request(
+                user,
+                group_request
+            ) if constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM else services.add_speaker_to_group_for_request(
+                user,
+                group_request
+            )
             serializer = self.get_serializer(result)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

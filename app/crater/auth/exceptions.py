@@ -6,7 +6,6 @@ class LoginOtpMismatch(base_exceptions.BaseAPIException):
 
     def __init__(self):
         super().__init__(
-            status_code="400",
             message="Wrong OTP provided.",
             error_code="loginOtpMismatch"
         )

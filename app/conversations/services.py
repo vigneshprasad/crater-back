@@ -58,7 +58,7 @@ def add_speaker_to_group_for_request(speaker, group_request):
     if models.Group.objects.filter(start=group.start, speakers=speaker):
         raise exceptions.GroupJoinedAtTheSameTime()
 
-    group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
+    group_request.status = constants.REQUEST_STATUS_ACCEPTED_ENUM
     group_request.group.speakers.add(speaker)
     group_request.save()
 
@@ -210,6 +210,28 @@ def get_groups_for_user_and_start(user, start):
         Q(host=user) | Q(speakers=user),
         start=start
     ) or None
+
+
+def get_request_for_user_and_group_id(
+        user,
+        group_id,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+):
+    """Return a Request for given user and group_id.
+
+    Args:
+        user(User): User who has requested to join the group.
+        group_id(int): ID of group to for which we are getting
+            the request for.
+        participant_type(int): Participant type the user requested
+            for.
+
+    """
+    return models.Request.objects.filter(
+        requester=user,
+        group_id=group_id,
+        participant_type=participant_type
+    ).last()
 
 
 def add_attendee_to_group_for_request(attendee, group_request):

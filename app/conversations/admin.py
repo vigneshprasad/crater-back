@@ -1,11 +1,8 @@
-import datetime
-
 from django.contrib import admin
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
 
 from conversations import models
-from conversations import signals
 
 
 @admin.register(models.SuggestedTopic)
