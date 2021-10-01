@@ -114,7 +114,7 @@ class PhoneNumberRegisterView(
             # Send welcome crater whatsapp after 2 minutes
             # on first login/signup on Crater.
             tasks.send_welcome_crater_whatsapp.apply_async(
-                args=(user, ),
+                args=(user.pk, ),
                 countdown=60
             )
 
