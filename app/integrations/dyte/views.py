@@ -1,5 +1,6 @@
 import datetime
 
+import pytz
 from rest_framework import status
 from rest_framework import mixins
 from rest_framework.decorators import action
@@ -46,7 +47,8 @@ class DyteMeetingViewSet(
         if not group:
             return Response(status=status.HTTP_200_OK)
 
-        if datetime.datetime.now() > group.start:
+        utc = pytz.utc
+        if datetime.datetime.now(tz=utc) > group.start:
             # Mark group as closed on meeting end.
             group.mark_closed(user=group.host)
 
