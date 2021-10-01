@@ -64,3 +64,32 @@ def get_dyte_participant_for_user_and_group(user, group):
         user=user,
         group_id=group.id
     )
+
+
+def start_recording(room_name):
+    """Start Dyte meeting recording
+
+    Args:
+        room_name(str): Dyte meeting room name
+    """
+    return dyte_service.start_recording(room_name)
+
+
+def stop_recording(room_name, recording_id):
+    """Stop Dyte meeting recording
+
+    Args:
+        room_name(str): Dyte meeting room name
+        recording_id(str): Dyte meeting recording id
+    """
+    return dyte_service.stop_recording(room_name, recording_id)
+
+
+def get_recording(meeting_id, recording_id):
+    """Get Dyte meeting recording
+
+    Args:
+        meeting_id(str): Dyte meeting id
+        recording_id(str): Dyte meeting recording id
+    """
+    return dyte_service.start_recording(meeting_id, recording_id)

@@ -19,3 +19,5 @@ DYTE_EVENT_MEETING_ENDED = "meeting.ended"
 DYTE_EVENT_PARTICIPANT_JOINED = "meeting.participantJoined"
 DYTE_EVENT_PARTICIPANT_LEFT = "meeting.participantLeft"
 DYTE_EVENT_RECORDING_STATUS_UPDATE = "recording.statusUpdate"
+
+DYTE_MEETING_RECORDING_AWS_PATH = "dyte_webinar_recording_test/"
