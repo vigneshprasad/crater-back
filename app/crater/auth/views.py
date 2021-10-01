@@ -113,8 +113,9 @@ class PhoneNumberRegisterView(
 
             # Send welcome crater whatsapp after 2 minutes
             # on first login/signup on Crater.
-            tasks.send_welcome_crater_whatsapp(user).appy_async(
-                countdown=120
+            tasks.send_welcome_crater_whatsapp.apply_async(
+                args=(user, ),
+                countdown=60
             )
 
         # Getting user detail once the user is verified.
