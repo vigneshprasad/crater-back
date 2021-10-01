@@ -23,8 +23,16 @@ def send_welcome_crater_whatsapp(user):
     """
     # Refreshing the user from DB to update the name.
     user.refresh_from_db()
-    name = user.name.title() if user.name else None
+    name = user.display_name
+
+    # Raising a sentry issue if message is not sent
+    # for monitoring.
     if not name:
+        logging.error(
+            "Crater welcome message not sent: {}".format(
+                user.__str__()
+            )
+        )
         return
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(

@@ -122,6 +122,8 @@ class RequestAdmin(admin.ModelAdmin):
         "status",
         "is_recommended"
     )
+    search_fields = ("requester__username", "requested__name")
+    list_filter = ("group", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
