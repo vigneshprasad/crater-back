@@ -11,7 +11,6 @@ from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import signals
-from integrations.dyte import models as dyte_models
 
 from crater.creator import models as creator_models
 
@@ -58,7 +57,7 @@ def add_speaker_to_group_for_request(speaker, group_request):
     if models.Group.objects.filter(start=group.start, speakers=speaker):
         raise exceptions.GroupJoinedAtTheSameTime()
 
-    group_request.status = models.Request.REQUEST_STATUS_CHOICES[1][0]
+    group_request.status = constants.REQUEST_STATUS_ACCEPTED_ENUM
     group_request.group.speakers.add(speaker)
     group_request.save()
 
@@ -212,6 +211,28 @@ def get_groups_for_user_and_start(user, start):
     ) or None
 
 
+def get_request_for_user_and_group_id(
+        user,
+        group_id,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+):
+    """Return a Request for given user and group_id.
+
+    Args:
+        user(User): User who has requested to join the group.
+        group_id(int): ID of group to for which we are getting
+            the request for.
+        participant_type(int): Participant type the user requested
+            for.
+
+    """
+    return models.Request.objects.filter(
+        requester=user,
+        group_id=group_id,
+        participant_type=participant_type
+    ).last()
+
+
 def add_attendee_to_group_for_request(attendee, group_request):
     """Add speaker to group as an attendee and raise exception if conditions not met
 
@@ -271,6 +292,7 @@ def participant_count(limit, current, sec):
     if not limit:
         return 0, 0
 
+    max_subscriber_count = min(limit / 5, 1500)
     limit = min(limit / 100, 100)
     sec += 10
 
@@ -279,15 +301,26 @@ def participant_count(limit, current, sec):
 
     # Calculate probability for participant going up or down.
     random = np.random.rand()
-    prob = max(0.5, (1 - (sec / limit)))
-    neg_prob = min(0.5, (sec * 1 / limit))
+    random_2 = np.random.rand()
+    prob = max(0.6, (1 - (sec / max_subscriber_count)))
+    neg_prob = min(0.6, (sec * 2 / max_subscriber_count))
 
     # Update the final count of participants based on the probability.
-    final += np.random.randint(1, 8) if random <= prob else final
-    final -= np.random.randint(1, 5) if random <= neg_prob else final
+    if sec > 1800:
+        final += np.random.randint(1, 2) if random_2 <= prob else 0
+        final -= np.random.randint(1, 3) if random <= neg_prob else 0
+    elif (sec // 300) % 2 == 1:
+        final += np.random.randint(1, 3) if random_2 <= prob else 0
+        final -= np.random.randint(1, 3) if random <= neg_prob else 0
+    else:
+        final += np.random.randint(1, 8) if random_2 <= prob else 0
+        final -= np.random.randint(1, 6) if random <= neg_prob else 0
 
     # Calculate new final participant count and current seconds.
-    final, sec = (current, sec) if (final < 0 or final > limit) else (final, sec)
+    final, sec = (current, sec) if (
+            final < 1 or final > limit
+    ) else (final, sec)
+
     return final, sec
 
 
@@ -307,7 +340,7 @@ def cache_live_webinar(group):
             REDIS.set("live_webinars", json.dumps({
                 "webinars": [{
                     "group_id": group.id,
-                    "follower_count": creator.follower_count
+                    "subscriber_count": creator.number_of_subscribers
                 }]
             }))
         else:
@@ -315,7 +348,7 @@ def cache_live_webinar(group):
             creator = creator_models.Creator.objects.get(user=group.host)
             data_to_cache = {
                 "group_id": group.id,
-                "follower_count": creator.follower_count
+                "subscriber_count": creator.number_of_subscribers
             }
 
             # Cache current live webinar details if not present
@@ -344,7 +377,7 @@ def remove_cached_live_webinar(group):
                 creator = creator_models.Creator.objects.get(user=group.host)
                 data_to_cache = {
                     "group_id": group.id,
-                    "follower_count": creator.follower_count
+                    "subscriber_count": creator.number_of_subscribers
                 }
 
                 # Remove current live webinar from cache if present

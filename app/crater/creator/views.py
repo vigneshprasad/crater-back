@@ -152,15 +152,17 @@ class CommunityMemberViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    permission_classes = [user_permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CommunityMemberSerializer
     pagination_class = paginators.CommunityMemberPagination
     # All followers of the creator.
-    queryset = models.CommunityMember.objects.filter(is_active=True)
+    queryset = models.CommunityMember.objects.filter(
+        is_active=True
+    )
     filterset_fields = ["community"]
 
     @action(
-        methods=["get"],
+        methods=["POST"],
         permission_classes=[user_permissions.IsAuthenticated],
         serializer_class=serializers.CommunityMemberSerializer,
         pagination_class=paginators.CommunityMemberPagination,
@@ -170,7 +172,7 @@ class CommunityMemberViewSet(
         """Endpoint for joining a creator community."""
         user = request.user
         community_id = kwargs.get("community")
-        community_member = private.get_community_member_for_user(user, community_id)
+        community_member = private.get_member_for_user_and_community_id(user, community_id)
 
         if not community_member:
             # If not community member is not found, create one.
@@ -201,7 +203,6 @@ class CommunityMemberViewSet(
         data = {
             "user": user.pk,
             "community": community_id,
-            "joined_at": timezone.now(),
             "is_active": True
         }
         serializer = self.get_serializer(data, community_member, partial=True)
@@ -214,7 +215,7 @@ class CommunityMemberViewSet(
         )
 
     @action(
-        methods=["get"],
+        methods=["POST"],
         permission_classes=[user_permissions.IsAuthenticated],
         serializer_class=serializers.CommunityMemberSerializer,
         pagination_class=paginators.CommunityMemberPagination,
@@ -224,7 +225,7 @@ class CommunityMemberViewSet(
         """Endpoint for leave a creator community."""
         user = request.user
         community_id = kwargs.get("community")
-        community_member = private.get_community_member_for_user(user, community_id)
+        community_member = private.get_member_for_user_and_community_id(user, community_id)
 
         if not community_member or (community_member and not community_member.is_active):
             # If there is no community member or if the community member is.
@@ -273,7 +274,7 @@ class FollowerViewSet(
         user = request.user
         creator_id = kwargs.get("creator")
 
-        follower = private.get_follower(user, creator_id)
+        follower = private.get_follower_for_user_and_creator_id(user, creator_id)
 
         # If the user already has a follower object and is not unfollowed
         # throw and exception.
@@ -319,7 +320,7 @@ class FollowerViewSet(
         user = request.user
         creator_id = kwargs.get("creator")
 
-        follower = private.get_follower(user, creator_id)
+        follower = private.get_follower_for_user_and_creator_id(user, creator_id)
 
         # If the user has never followed the creator, throw an exception.
         if not follower:

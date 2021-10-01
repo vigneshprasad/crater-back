@@ -77,7 +77,12 @@ class CommunityMember(base_models.BaseModel):
         related_name="communities_joined",
         on_delete=models.CASCADE
     )
-    joined_at = models.DateTimeField(null=True, blank=True)
+    # When the user joined the
+    joined_at = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+        blank=True
+    )
     is_active = models.BooleanField(default=True)
 
 
@@ -98,8 +103,15 @@ class Follower(base_models.BaseModel):
         on_delete=models.CASCADE,
         related_name="following"
     )
+    # When the user started following the creator.
+    followed_at = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+        blank=True
+    )
+
+    # Is the creator being followed right now.
     unfollowed = models.BooleanField(default=False)
-    followed_at = models.DateTimeField(null=True, blank=True)
     unfollowed_at = models.DateTimeField(null=True, blank=True)
 
 

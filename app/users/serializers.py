@@ -239,7 +239,6 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         # Adding each user to worknetwork group.
         self.add_to_worknetwork_group(user)
         setup_user_email(request, user, [])
-        user.send_verify_email()
         return user
 
     def custom_signup(self, request, user):
@@ -400,7 +399,6 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
                 objectives=objectives
             )
         if old_email != new_email:
-            instance.send_verify_email()
             instance.refresh_auth_secret_key()
         return instance
 
@@ -480,6 +478,17 @@ class PasswordResetConfirmSerializer(rest_auth_serializers.PasswordResetConfirmS
             }
         )
         return super().validate(attrs)
+
+
+class ProfileChoiceSerializer(serializers.ChoiceField):
+
+    def to_representation(self, value):
+        if not value:
+            return None
+        return {
+            "name": self._choices[value],
+            "value": value
+        }
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -565,15 +574,51 @@ class ProfileSerializer(serializers.ModelSerializer):
     can_connect = serializers.SerializerMethodField(read_only=True)
 
     # TODO(Nishant): Move to this later completely.
-    years_of_experience_detail = serializers.SerializerMethodField(source="get_years_of_experience_detail", read_only=True)
-    education_level_detail = serializers.SerializerMethodField(source="get_education_level_detail", read_only=True)
-    company_type_detail = serializers.SerializerMethodField(source="get_company_type_detail", read_only=True)
-    company_type_advised_detail = serializers.SerializerMethodField(source="get_company_type_advised_detail", read_only=True)
-    sector_detail = serializers.SerializerMethodField(source="get_sector_detail", read_only=True)
-    number_of_employees_detail = serializers.SerializerMethodField(source="get_number_of_employees_detail", read_only=True)
-    project_type_detail = serializers.SerializerMethodField(source="get_project_type_detail", read_only=True)
-    stage_of_company_detail = serializers.SerializerMethodField(source="get_stage_of_company_detail", read_only=True)
-    companies_invested_detail = serializers.SerializerMethodField(source="get_companies_invested_detail", read_only=True)
+    years_of_experience_detail = ProfileChoiceSerializer(
+        source="years_of_experience",
+        read_only=True,
+        choices=models.Profile.YEARS_OF_EXPERIENCE_CHOICES
+    )
+    education_level_detail = ProfileChoiceSerializer(
+        source="education_level",
+        read_only=True,
+        choices=models.Profile.EDUCATION_LEVEL_CHOICES
+    )
+    company_type_detail = ProfileChoiceSerializer(
+        source="company_type",
+        read_only=True,
+        choices=models.Profile.COMPANY_TYPE_CHOICES
+    )
+    company_type_advised_detail = ProfileChoiceSerializer(
+        source="company_type_advised",
+        read_only=True,
+        choices=models.Profile.COMPANY_TYPE_CHOICES
+    )
+    sector_detail = ProfileChoiceSerializer(
+        source="sector",
+        read_only=True,
+        choices=models.Profile.SECTOR_CHOICES
+    )
+    number_of_employees_detail = ProfileChoiceSerializer(
+        source="number_of_employees",
+        read_only=True,
+        choices=models.Profile.NUMBER_OF_EMPLOYEE_CHOICES
+    )
+    project_type_detail = ProfileChoiceSerializer(
+        source="project_type",
+        read_only=True,
+        choices=models.Profile.PROJECT_TYPE_CHOICES
+    )
+    stage_of_company_detail = ProfileChoiceSerializer(
+        source="stage_of_company",
+        read_only=True,
+        choices=models.Profile.STAGE_OF_COMPANY_CHOICES
+    )
+    companies_invested_detail = ProfileChoiceSerializer(
+        source="companies_invested",
+        read_only=True,
+        choices=models.Profile.COMPANIES_INVESTED_CHOICES
+    )
 
     instagram_id = ""
     instagram_token = None
@@ -647,69 +692,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "is_instagram_set",
             "is_cover_video"
         )
-
-    @staticmethod
-    def get_years_of_experience_detail(obj):
-        return {
-            "key": obj.years_of_experience,
-            "value": obj.get_years_of_experience_display()
-        }
-
-    @staticmethod
-    def get_education_level_detail(obj):
-        return {
-            "key": obj.education_level,
-            "value": obj.get_education_level_display()
-        }
-
-    @staticmethod
-    def get_company_type_detail(obj):
-        return {
-            "key": obj.company_type,
-            "value": obj.get_company_type_display()
-        }
-
-    @staticmethod
-    def get_company_type_advised_detail(obj):
-        return {
-            "key": obj.company_type_advised,
-            "value": obj.get_company_type_advised_display()
-        }
-
-    @staticmethod
-    def get_sector_detail(obj):
-        return {
-            "key": obj.sector,
-            "value": obj.get_sector_display()
-        }
-
-    @staticmethod
-    def get_number_of_employees_detail(obj):
-        return {
-            "key": obj.number_of_employees,
-            "value": obj.get_number_of_employees_display()
-        }
-
-    @staticmethod
-    def get_project_type_detail(obj):
-        return {
-            "key": obj.project_type,
-            "value": obj.get_project_type_display()
-        }
-
-    @staticmethod
-    def get_stage_of_company_detail(obj):
-        return {
-            "key": obj.stage_of_company,
-            "value": obj.get_stage_of_company_display()
-        }
-
-    @staticmethod
-    def get_companies_invested_detail(obj):
-        return {
-            "key": obj.companies_invested,
-            "value": obj.get_companies_invested_display()
-        }
 
     def validate_cover(self, cover):
         user = self.context["request"].user

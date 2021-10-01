@@ -1,11 +1,8 @@
-import datetime
-
 from django.contrib import admin
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
 
 from conversations import models
-from conversations import signals
 
 
 @admin.register(models.SuggestedTopic)
@@ -60,7 +57,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         cleaned_data = form.cleaned_data
         if "closed" in fields_changed:
             if cleaned_data["closed"]:
-                obj.mark_closed()
+                obj.mark_closed(user=request.user)
 
         if "is_approved" in fields_changed:
             if cleaned_data["is_approved"]:
@@ -68,7 +65,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
         if "is_live" in fields_changed:
             if cleaned_data["is_live"]:
-                obj.mark_live()
+                obj.mark_live(user=request.user)
+            else:
+                obj.mark_inactive(user=request.user)
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
@@ -124,3 +123,17 @@ class RequestAdmin(admin.ModelAdmin):
         "is_recommended"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
+@admin.register(models.GroupLiveLog)
+class GroupLiveLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "user",
+        "live_status",
+        "created_at"
+    )
+    search_fields = ("user", )
+    list_filter = ("group", )
+    exclude = ("deleted_at", "updated_at", "is_deleted")

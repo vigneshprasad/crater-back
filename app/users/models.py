@@ -345,6 +345,7 @@ class User(AbstractUser):
             )
 
     def send_verify_email(self):
+
         email_address, created = EmailAddress.objects.get_or_create(
             user=self, email__iexact=self.email, defaults={"email": self.email}
         )

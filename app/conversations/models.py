@@ -264,29 +264,37 @@ class Group(base_model.BaseModel):
         self.approved_at = datetime.datetime.now()
         self.save()
 
-    def mark_live(self):
+    def mark_live(self, user=None):
         """Mark group as live."""
         self.is_live = True
         self.last_live_at = datetime.datetime.now()
         self.save()
+
+        # Create log for change on the is_live key.
+        self._log_is_live_change(user=user)
+
         # Send group marked live signal.
         signals.group_marked_live.send(
             sender=self.__class__,
             group=self
         )
 
-    def mark_inactive(self):
+    def mark_inactive(self, user=None):
         """Mark group as not live."""
         self.is_live = False
         self.last_live_at = datetime.datetime.now()
         self.save()
+
+        # Create log for change on the is_live key.
+        self._log_is_live_change(user=user)
+
         # Send group marked live signal.
         signals.group_marked_inactive.send(
             sender=self.__class__,
             group=self
         )
 
-    def mark_closed(self):
+    def mark_closed(self, user=None):
         """Marks group as closed.
 
         Note:
@@ -296,7 +304,7 @@ class Group(base_model.BaseModel):
         """
 
         # Mark the meeting as inactive first.
-        self.mark_inactive()
+        self.mark_inactive(user=user)
         self.closed = True
         self.closed_at = datetime.datetime.now()
         self.save()
@@ -304,6 +312,32 @@ class Group(base_model.BaseModel):
         signals.group_marked_closed.send(
             sender=self.__class__,
             group=self
+        )
+
+    def _log_is_live_change(self, user=None):
+        """Creates a log if is_live on group changes."""
+        if not user:
+            return
+
+        # Check if the current status and last
+        latest_group_live_log = GroupLiveLog.objects.filter(
+            group=self
+        ).last()
+
+        # If there is latest log and the status has not changed
+        # don't create another log.
+        # TODO(Nishant): Can remove this, but it's good condition
+        # in case we want precise data.
+        if (
+                latest_group_live_log and
+                latest_group_live_log.live_status == self.is_live
+        ):
+            return
+
+        return GroupLiveLog.objects.create(
+            user=user,
+            group=self,
+            live_status=self.is_live,
         )
 
     @property
@@ -339,6 +373,15 @@ class Group(base_model.BaseModel):
 
         """
         display_time = self.get_display_time()
+        display_date = self.get_display_day()
+        return "{} @ {}".format(display_date, display_time)
+
+    def get_display_start(self):
+        """This is the display start date time for a Group.
+            ex. "Friday, 31 July - 08:00 PM"
+
+        """
+        display_time = self.get_display_start_time()
         display_date = self.get_display_day()
         return "{} @ {}".format(display_date, display_time)
 
@@ -466,3 +509,16 @@ class Request(base_model.BaseModel):
     def mark_status_as_declined(self):
         self.status = constants.REQUEST_STATUS_DECLINED
         self.save()
+
+
+class GroupLiveLog(base_model.BaseModel):
+    """Keeps logs of is_live change on the Group model."""
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE
+    )
+    group = models.ForeignKey(
+        Group,
+        on_delete=models.CASCADE
+    )
+    live_status = models.BooleanField()

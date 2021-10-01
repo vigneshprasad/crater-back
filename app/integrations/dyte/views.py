@@ -1,3 +1,6 @@
+import datetime
+
+import pytz
 from rest_framework import status
 from rest_framework import mixins
 from rest_framework.decorators import action
@@ -40,12 +43,15 @@ class DyteMeetingViewSet(
         )
 
         # If the dyte meeting is not for a group return.
-        group = dyte_meeting.group
+        group = dyte_meeting.group if dyte_meeting else None
         if not group:
             return Response(status=status.HTTP_200_OK)
 
-        # Mark group as closed on meeting end.
-        group.mark_closed()
+        utc = pytz.utc
+        if datetime.datetime.now(tz=utc) > group.start:
+            # Mark group as closed on meeting end.
+            group.mark_closed(user=group.host)
+
         return Response(status=status.HTTP_200_OK)
 
 
@@ -145,15 +151,16 @@ class DyteParticipantViewSet(
             return Response(status=status.HTTP_200_OK)
 
         # If the group is not present or the group doesn't
-        # have a host return 200.
+        # have a host return 200. If the group is
+        # marked closed, don't make it live.
         group = participant.dyte_meeting.group
-        if not (group and group.host):
+        if group and group.closed:
             return Response(status=status.HTTP_200_OK)
 
         # If the group host has joined mark meeting as
         # live.
         if group.host.uuid.__str__() == user_pk:
-            group.mark_live()
+            group.mark_live(user=participant.participant)
 
         # Mark the participant online.
         participant.mark_online()
@@ -199,7 +206,7 @@ class DyteParticipantViewSet(
         # If the group host has joined mark meeting as
         # not live/inactive.
         if group.host.uuid.__str__() == user_pk:
-            group.mark_inactive()
+            group.mark_inactive(user=participant.participant)
 
         # Mark the participant offline.
         participant.mark_offline()

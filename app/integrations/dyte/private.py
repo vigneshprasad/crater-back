@@ -52,8 +52,8 @@ def get_participant_for_user_id_and_dyte_meeting_id(user_pk, dyte_meeting_id):
     try:
         participant = models.DyteMeetingParticipant.objects.get(
             participant_id=user_pk,
-            meeting_id=dyte_meeting_id
-        ).first()
+            dyte_meeting__dyte_meeting_id=dyte_meeting_id
+        )
     except (models.DyteMeetingParticipant.DoesNotExist, ValidationError):
         return None
 

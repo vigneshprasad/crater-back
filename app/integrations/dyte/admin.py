@@ -9,11 +9,17 @@ class DyteMeetingAdmin(admin.ModelAdmin):
         "id",
         "dyte_meeting_id",
         "room_name",
+        "group",
         "meeting",
-        "group"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    list_filter = (
+        "group",
+        "group__start"
+    )
     search_fields = (
+        "meeting_id",
+        "group_id",
         "meeting__participants__name",
         "meeting__participants__username",
         "group__host__name",
@@ -31,20 +37,14 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "id",
         "participant",
         "dyte_meeting",
-        # "dyte_group",
-        # "dyte_meeting",
         "is_online"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    list_filter = (
+        "dyte_meeting__group",
+        "dyte_meeting__group__start"
+    )
     search_fields = (
         "participant__name",
         "participant__username"
     )
-
-    @staticmethod
-    def get_dyte_group(obj):
-        return obj.dyte.group
-
-    @staticmethod
-    def get_dyte_meeting(obj):
-        return obj.dyte.meeting

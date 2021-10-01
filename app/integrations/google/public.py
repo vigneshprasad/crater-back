@@ -36,7 +36,7 @@ def create_calendar_event_for_meeting(meeting):
     description = constants.DEFAULT_DESCRIPTION_FOR_MEETING
 
     event_id, meeting_link = calendar_services.google_calendar_service.create_event(
-        start_datetim=start_datetime,
+        start_datetime=start_datetime,
         end_datetime=end_datetime,
         users=users,
         summary=summary,

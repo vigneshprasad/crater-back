@@ -216,7 +216,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
         creator_name=host.name.title(),
         topic=group.topic.name
     )
-    description = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
+    description = constants.ATTENDEE_DESCRIPTION_FOR_WEBINARS.format(
         creator_name=host.name.title(),
         date=group.get_display_day(),
         time=group.get_display_start_time(),
@@ -237,7 +237,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
     )
 
     models.GoogleCalendarEvent.objects.update_or_create(
-        user=group.host,
+        user=user,
         group_id=group.id,
         event_id=event_id,
         meeting_link=meeting_link,

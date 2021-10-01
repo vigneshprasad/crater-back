@@ -1,9 +1,36 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from conversations import signals as conversation_signals
 from crater.creator import models
 from crater.creator import private
 from crater.creator import signals
+
+
+@receiver(post_save, sender=models.Follower)
+def send_creator_followed_on_follower_creation(sender, instance, *args, **kwargs):
+    follower = instance
+    if not kwargs.get("created"):
+        return
+
+    # Send creator followed signals.
+    signals.creator_followed.send(
+        sender=follower.__class__,
+        follower=follower
+    )
+
+
+@receiver(post_save, sender=models.CommunityMember)
+def send_creator_followed_on_follower_creation(sender, instance, *args, **kwargs):
+    community_member = instance
+    if not kwargs.get("created"):
+        return
+
+    # Send creator followed signals.
+    signals.user_added_to_community.send(
+        sender=community_member.__class__,
+        community_member=community_member
+    )
 
 
 @receiver(post_save, sender=models.Creator)
@@ -48,3 +75,23 @@ def update_follower_count(sender, follower, *args, **kwargs):
     creator = follower.creator
     creator.follower_count = private.get_follower_count_for_creator(creator)
     creator.save()
+
+
+@receiver(conversation_signals.attendee_added_to_group)
+def add_attendee_to_creator_followers(sender, user, group, *args, **kwargs):
+    """Creates google calendar event when an attendee joins a live steam.
+
+    Args:
+        sender(Group Class): Group class representation for the group joined.
+        user(User): User that joined the group.
+        group(Group): Group the user joined into.
+
+    """
+    host = group.host
+
+    try:
+        creator = host.creator
+    except models.Creator.DoesNotExist:
+        return
+
+    private.create_follower_for_creator(user, creator)

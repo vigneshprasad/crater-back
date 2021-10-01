@@ -1,5 +1,3 @@
-from rest_framework import status
-
 from base import exceptions as base_exceptions
 
 
@@ -13,6 +11,22 @@ class GroupMaxSpeakersException(base_exceptions.BaseAPIException):
         super().__init__(
             message="This group is full. Please to join another group",
             error_code="groupMaxSpeakersError"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)
+
+
+class GroupAlreadyJoined(base_exceptions.BaseAPIException):
+    """Exception raised when max members reached in group and attempting to add one more
+        user.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            message="You have already joined the group.",
+            error_code="groupAlreadyJoined"
         )
 
     def __str__(self):

@@ -14,7 +14,7 @@ from integrations.dyte import public as dyte_public
 from resources.meetings import serializers as meeting_serializers
 from resources.meetings import models as meeting_models
 from resources.curated_articles import serializers as articles_serializer
-
+from users import serializers as user_serializers
 from community.mixins import SetCreatorRequestDataMixin
 
 
@@ -269,6 +269,11 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
     topic_detail = TopicSerializer(source="topic", read_only=True)
     host_detail = GroupUserSerializer(source="host", read_only=True)
+    # Host profile details.
+    host_profile_details = user_serializers.ProfileSerializer(
+        source="host.profile",
+        read_only=True
+    )
 
     topic = serializers.CharField(required=True, write_only=True)
     image = serializers.FileField(required=False, write_only=True)
@@ -295,6 +300,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "closed_at",
             "topic_detail",
             "host_detail",
+            "host_profile_details",
             "type",
             "is_live",
             "live_count",
