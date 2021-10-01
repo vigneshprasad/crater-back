@@ -149,9 +149,10 @@ class DyteParticipantViewSet(
             return Response(status=status.HTTP_200_OK)
 
         # If the group is not present or the group doesn't
-        # have a host return 200.
+        # have a host return 200. If the group is
+        # marked closed, don't make it live.
         group = participant.dyte_meeting.group
-        if not (group and group.host and group.closed):
+        if group and group.closed:
             return Response(status=status.HTTP_200_OK)
 
         # If the group host has joined mark meeting as

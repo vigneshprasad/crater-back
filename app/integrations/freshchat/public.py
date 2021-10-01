@@ -338,14 +338,17 @@ def send_whatsapp_reminder_for_webinar_host(group):
         group_id=group.id
     )
 
+    data_2 = constants.DATA_2_FOR_HOST_REMINDER.format(
+        start_time=start_time,
+        stream_link=stream_link
+    )
+
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=host,
         template_name=constants.WEBINAR_HOST_REMINDER_TEMPLATE,
         template_data=[
             {"data": host.name.title()},
-            {"data": start_time + " today."},
-            {"data": topic_name},
-            {"data": stream_link},
+            {"data": data_2}
         ]
     )
 
@@ -378,14 +381,21 @@ def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
         group_id=group.id
     )
 
+    data_2 = constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
+        creator_name=creator_name,
+        topic_name=topic_name
+    )
+    data_3 = constants.DATA_3_FOR_ATTENDEE_REMINDER.format(
+        minutes_remaining=constants.WEBINAR_ATTENDEE_REMINDER_DELAY_STR,
+        stream_link=stream_link
+    )
+
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=attendee,
         template_name=constants.WEBINAR_ATTENDEE_REMINDER_TEMPLATE,
         template_data=[
             {"data": attendee_name},
-            {"data": creator_name},
-            {"data": constants.WEBINAR_ATTENDEE_REMINDER_DELAY},
-            {"data": topic_name},
-            {"data": stream_link},
+            {"data": data_2},
+            {"data": data_3}
         ]
     )

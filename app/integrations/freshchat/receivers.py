@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+import pytz
+from django.utils import timezone
 from django.conf import settings
 from django.dispatch import receiver
 
@@ -245,7 +247,8 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
     """
 
     # If the webinar is already live, don't send this message.
-    if datetime.datetime.now() > group.start:
+    utc = pytz.utc
+    if datetime.datetime.now(tz=utc) > group.start:
         return
 
     attendee_name = user.get_display_first_name()
@@ -258,7 +261,7 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
     topic_name = group.topic.name
 
     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
-        user=host,
+        user=user,
         template_name=constants.WEBINAR_ATTENDEE_RSVP_CONFIRMATION_TEMPLATE,
         template_data=[
             {"data": attendee_name},

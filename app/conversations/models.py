@@ -294,7 +294,7 @@ class Group(base_model.BaseModel):
             group=self
         )
 
-    def mark_closed(self):
+    def mark_closed(self, user=None):
         """Marks group as closed.
 
         Note:
@@ -304,7 +304,7 @@ class Group(base_model.BaseModel):
         """
 
         # Mark the meeting as inactive first.
-        self.mark_inactive()
+        self.mark_inactive(user=user)
         self.closed = True
         self.closed_at = datetime.datetime.now()
         self.save()
@@ -337,7 +337,7 @@ class Group(base_model.BaseModel):
         return GroupLiveLog.objects.create(
             user=user,
             group=self,
-            is_live=self.is_live,
+            live_status=self.is_live,
         )
 
     @property

@@ -105,7 +105,7 @@ def send_conversation_confirmation_email_for_user(user, group):
 
 
 @periodic_task(run_every=crontab(minute="*/10"))
-def send_whatsapp_reminder_for_webinar_attendees(meetings=None):
+def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     """Send whatsapp reminder to all attendees for Webinar
 
     Note:
@@ -114,7 +114,6 @@ def send_whatsapp_reminder_for_webinar_attendees(meetings=None):
 
     """
     now_time = datetime.datetime.now()
-
     start_datetime = now_time
     end_datetime = (now_time + datetime.timedelta(minutes=10))
 
@@ -133,7 +132,7 @@ def send_whatsapp_reminder_for_webinar_attendees(meetings=None):
 
 
 @periodic_task(run_every=crontab(minute="*/10"))
-def send_whatsapp_reminder_for_webinar_host(meetings=None):
+def send_whatsapp_reminder_for_webinar_host(groups=None):
     """Send webinar reminder whatsapp for the host.
 
     Note:

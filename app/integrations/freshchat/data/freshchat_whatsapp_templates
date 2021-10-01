@@ -127,6 +127,7 @@ Hey {1}
 
 You had asked us to notify you for the live stream with {2}. The stream will start in {3}
 
+-- Not using the details.
 Details:
 
 Talking about: {4}
@@ -137,6 +138,7 @@ Hey {1}
 
 Just a quick reminder that you are scheduled to host a live stream at {2}. {3} members of your community have said they will join in.
 
+-- Not using the details.
 Details
 
 Topic: {4}
@@ -148,6 +150,7 @@ Hey {1}
 
 Just a quick reminder that you are scheduled to host a live stream at {2}.
 
+-- Not using the details.
 Details
 Topic: {3}
 Link: {4}
@@ -162,3 +165,9 @@ Your spot is reserved. {2} is getting ready to go live on {3} & talk about {4}. 
 Hey {1}
 
 Super excited to see you join Crater. At Crater, you can join live streams with creators & mentors, network with like minds & be part of exclusive clubs.
+
+-- Not using the details.
+Registered number{1}
+Registered email{2}
+Link to the app{3}
+To unsubscribe{4}

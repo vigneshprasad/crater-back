@@ -75,9 +75,12 @@ CONVERSATION_RSVP = "Please RSVP using the calendar invite. Note this meeting wi
 
 # Webinar templates.
 WEBINAR_ATTENDEE_REMINDER_TEMPLATE = "crater_stream_reminder"
-WEBINAR_ATTENDEE_REMINDER_DELAY = "10"
+DATA_2_FOR_ATTENDEE_REMINDER = "{creator_name}. Topic: {topic_name}"
+DATA_3_FOR_ATTENDEE_REMINDER = "{minutes_remaining} here: {stream_link}"
+WEBINAR_ATTENDEE_REMINDER_DELAY_STR = "10 minutes"
 
 WEBINAR_HOST_REMINDER_TEMPLATE = "crater_stream_reminder_2"
+DATA_2_FOR_HOST_REMINDER = "{start_time}. Here is the link: {stream_link}. For any assistance you call us on: +919930474469"
 WEBINAR_ATTENDEE_RSVP_CONFIRMATION_TEMPLATE = "crater_stream_rsvp_confirmation"
 
 # Freshchat API responses.

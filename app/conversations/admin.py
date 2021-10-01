@@ -66,6 +66,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if "is_live" in fields_changed:
             if cleaned_data["is_live"]:
                 obj.mark_live(user=request.user)
+            else:
+                obj.mark_inactive(user=request.user)
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
@@ -121,3 +123,17 @@ class RequestAdmin(admin.ModelAdmin):
         "is_recommended"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
+@admin.register(models.GroupLiveLog)
+class GroupLiveLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "user",
+        "live_status",
+        "created_at"
+    )
+    search_fields = ("user", )
+    list_filter = ("group", )
+    exclude = ("deleted_at", "updated_at", "is_deleted")

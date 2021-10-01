@@ -10,9 +10,9 @@ from users import models as user_models
 class FreshChatUser(base_models.BaseModel):
     user = models.OneToOneField(
         user_models.User,
-        related_name='freshchat_user',
+        related_name="freshchat_user",
         on_delete=models.CASCADE,
-        verbose_name=_('FreshChat User')
+        verbose_name=_("FreshChat User")
     )
     freshchat_user_id = models.CharField(
         max_length=512,
@@ -23,7 +23,7 @@ class FreshChatUser(base_models.BaseModel):
 
 class Message(base_models.BaseModel):
     # Possible message statuses from Freshchat.
-    message_statuses = (
+    FRESHCHAT_MESSAGE_STATUS = (
         (constants.FRESHCHAT_MESSAGE_ACCEPTED, constants.FRESHCHAT_MESSAGE_ACCEPTED),
         (constants.FRESHCHAT_MESSAGE_IN_PROGRESS, constants.FRESHCHAT_MESSAGE_IN_PROGRESS),
         (constants.FRESHCHAT_MESSAGE_SENT, constants.FRESHCHAT_MESSAGE_SENT),
@@ -33,9 +33,9 @@ class Message(base_models.BaseModel):
 
     user = models.ForeignKey(
         user_models.User,
-        related_name='freshchat_messages',
+        related_name="freshchat_messages",
         on_delete=models.CASCADE,
-        verbose_name=_('FreshChat Messages')
+        verbose_name=_("User")
     )
     request_id = models.CharField(
         max_length=512,
@@ -51,7 +51,7 @@ class Message(base_models.BaseModel):
         max_length=32,
         null=True,
         blank=True,
-        choices=message_statuses
+        choices=FRESHCHAT_MESSAGE_STATUS
     )
     data = JSONField(
         null=True,
@@ -59,13 +59,49 @@ class Message(base_models.BaseModel):
     )
 
     @property
+    def template_name(self):
+        """Return template name of the message sent to Freshchat."""
+        response_data = self.data
+        if not response_data:
+            return None
+
+        message_template_data = response_data.get("data").get("message_template") if \
+            response_data.get("data") else None
+
+        if not message_template_data:
+            return None
+
+        template_name = message_template_data.get("template_name")
+
+        return template_name
+
+    @property
+    def template_data(self):
+        """Return template data used to send the Freshchat message."""
+        response_data = self.data
+        if not response_data:
+            return None
+
+        message_template_data = response_data.get("data").get("message_template") if \
+            response_data.get("data") else None
+
+        if not message_template_data:
+            return None
+
+        template_data = message_template_data.get("template_data")
+
+        return template_data
+
+    @property
     def failure_info(self):
         """Returns failure code and reason if the message sending failed."""
         if self.status not in constants.FRESHCHAT_MESSAGE_FAILURE_STATUSES:
-            return {}
+            return None
+
         if not self.data:
-            return {}
+            return None
+
         return {
-            'failure_code': self.data.get('failure_code'),
-            'failure_reason': self.data.get('failure_reason')
+            "failure_code": self.data.get("failure_code"),
+            "failure_reason": self.data.get("failure_reason")
         }
