@@ -11,7 +11,7 @@ from crater.auth import constants
 from crater.auth import exceptions
 from crater.auth import models
 from crater.auth import serializers
-from integrations.freshchat import tasks
+from crater.auth import tasks
 from users import constants as user_constants
 from users import public as user_public
 from users import permissions as user_permissions
