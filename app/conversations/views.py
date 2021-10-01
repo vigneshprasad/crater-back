@@ -399,17 +399,22 @@ class RequestViewSet(
             return Response(e.get_error_body(), status=e.status_code)
 
     def retrieve(self, request, *args, **kwargs):
+
         pk = kwargs.get("pk")
         user = request.user
-        try:
-            group_request = self.get_queryset().get(
-                requester=user,
-                group_id=pk,
-            )
-            serialized = self.get_serializer(group_request)
-            return Response(status=status.HTTP_200_OK, data=serialized.data)
-        except models.Request.DoesNotExist:
+
+        # There multiple objects in the backend for now.
+        # TODO(Nishant): Cleanup GroupRequest and make 1 request for each user/group.
+        group_request = self.get_queryset().filter(
+            requester=user,
+            group_id=pk,
+        ).last()
+
+        if not group_request:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serialized = self.get_serializer(group_request)
+        return Response(status=status.HTTP_200_OK, data=serialized.data)
 
 
 class GroupCalendarViewSet(
