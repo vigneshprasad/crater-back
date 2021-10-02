@@ -35,7 +35,7 @@ def send_welcome_crater_whatsapp(user):
         )
         return
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.CRATER_WELCOME_TEMPLATE,
         template_data=[
@@ -70,7 +70,7 @@ def send_meeting_whatsapp_reminder_to_user(user, meeting):
     )
     whatsapp_prompt = constants.MEETING_REMINDER_WHATSAPP_PROMPT_TEXT.format(whatsapp_prompt_link)
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_REMINDER_TEMPLATE,
         template_data=[
@@ -101,6 +101,8 @@ def send_meeting_opt_in_messages(users):
             ]
         )
 
+    return True
+
 
 def send_meeting_time_confirmation(user, start_time, end_time):
     """Send meeting time slot confirmation messages.
@@ -120,7 +122,7 @@ def send_meeting_time_confirmation(user, start_time, end_time):
     end_time = end_time.strftime('%I:%M %p')
     time = "{} - {}".format(start_time, end_time)
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_CONFIRMATION_WITH_EMAIL_SENT,
         template_data=[
@@ -199,7 +201,7 @@ def send_meeting_confirmation_rsvp(user, meeting):
     date_time = "{} - {}, {}".format(start_time, end_time, date)
     url = "clicking here - {}".format(services.create_public_rsvp_url(user, meeting))
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_CONFIRMATION_TEMPLATE,
         template_data=[
@@ -221,6 +223,8 @@ def send_conversation_confirmation_rsvp_for_group(group):
     speakers = group.speakers.all()
     for speaker in speakers:
         send_conversation_confirmation_rsvp_for_user(speaker, group)
+
+    return True
 
 
 def send_conversation_confirmation_rsvp_for_user(user, group):
@@ -251,7 +255,7 @@ def send_conversation_confirmation_rsvp_for_user(user, group):
     start_time = local_start_datetime.strftime("%I:%M %p")
     date_time = "{}, {}".format(start_time, date)
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.CONVERSATION_CONFIRMATION_TEMPLATE,
         template_data=[
@@ -299,7 +303,7 @@ def send_conversation_reminder_for_user(user, group):
     group_link = "https://{}/group?id={}".format(settings.FRONT_URL, group.id)
     deeplink = deep_link_service.make_firebase_deep_link(group_link)
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.CONVERSATION_REMINDER_TEMPLATE,
         template_data=[
@@ -322,7 +326,7 @@ def send_meeting_rsvp_reminder(user, meeting):
 
     url = services.create_public_rsvp_url(user, meeting)
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_REMINDER_RSVP_LINK,
         template_data=[
@@ -351,7 +355,7 @@ def send_whatsapp_reminder_for_webinar_host(group):
         stream_link=stream_link
     )
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=host,
         template_name=constants.WEBINAR_HOST_REMINDER_TEMPLATE,
         template_data=[
@@ -372,6 +376,8 @@ def send_whatsapp_reminder_for_webinar_attendees(group):
     for attendee in group.attendees.all():
         send_whatsapp_reminder_for_webinar_attendee(attendee, group)
 
+    return True
+
 
 def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
     """Send whatsapp reminder to webinar attendees before start time.
@@ -382,7 +388,15 @@ def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
 
     """
     attendee_name = attendee.get_display_first_name()
-    creator_name = group.host.name.title()
+    creator_name = group.host.display_name
+
+    if not attendee_name:
+        logging.error(
+            "Attendee RSVP message didn't go: {}".format(
+                attendee.__str__()
+            )
+        )
+        return False
 
     topic_name = group.topic.name
     stream_link = "https://crater.club/session/{group_id}".format(
@@ -398,7 +412,7 @@ def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
         stream_link=stream_link
     )
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=attendee,
         template_name=constants.WEBINAR_ATTENDEE_REMINDER_TEMPLATE,
         template_data=[

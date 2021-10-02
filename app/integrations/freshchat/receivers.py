@@ -43,7 +43,7 @@ def send_worknetwork_registration_confirmation(sender, user, **kwargs):
         user.email,
     ))
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.REGISTRATION_CONFIRMATION,
         template_data=[
@@ -82,7 +82,7 @@ def send_conversation_registration_confirmation(sender, preference, **kwargs):
 
     logging.info("Send a message to a user who has created a meeting preference".format(user.email))
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.CONVERSATION_REGISTRATION_TEMPLATE,
         template_data=[
@@ -116,7 +116,7 @@ def send_registration_confirmation(sender, preference, **kwargs):
 
     logging.info("Send a message to a user who has created a meeting preference".format(user.email))
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.MEETING_REGISTRATION_TEMPLATE,
         template_data=[
@@ -167,6 +167,8 @@ def send_meeting_cancellation_message(sender, meeting, *args, **kwargs):
         ]
     )
 
+    return True
+
 
 @receiver(meeting_signals.reschedule_request_created)
 def send_reschedule_requested_message(sender, reschedule_request, *args, **kwargs):
@@ -175,7 +177,7 @@ def send_reschedule_requested_message(sender, reschedule_request, *args, **kwarg
 
     public_reschedule_url = services.create_public_reschedule_url(reschedule_request)
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=approver,
         template_name=constants.MEETING_RESCHEDULE_REQUEST_TEMPLATE,
         template_data=[
@@ -192,7 +194,7 @@ def send_reschedule_request_approved_message(sender, reschedule_request, **kwarg
     requested_by = reschedule_request.requested_by
     meeting = reschedule_request.new_meeting
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=requested_by,
         template_name=constants.MEETING_RESCHEDULE_REQUEST_APPROVED_TEMPLATE,
         template_data=[
@@ -209,7 +211,7 @@ def send_reschedule_request_declined_message(sender, reschedule_request, *args, 
     approver = reschedule_request.approver
     requested_by = reschedule_request.requested_by
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=requested_by,
         template_name=constants.MEETING_RESCHEDULE_REQUEST_DECLINED_TEMPLATE,
         template_data=[
@@ -260,7 +262,7 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
     display_start = group.get_display_start()
     topic_name = group.topic.name
 
-    freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
         template_name=constants.WEBINAR_ATTENDEE_RSVP_CONFIRMATION_TEMPLATE,
         template_data=[

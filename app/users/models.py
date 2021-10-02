@@ -304,7 +304,8 @@ class User(AbstractUser):
         return status
 
     def get_display_first_name(self):
-        return self.first_name.title() if self.first_name else self.name.title()
+        """Returns first name in title format."""
+        return self.first_name.title() if self.first_name.strip() else self.name.title()
 
     @property
     def has_services(self):
