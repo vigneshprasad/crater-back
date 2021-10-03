@@ -363,7 +363,10 @@ class RequestViewSet(
         user = request.user
         data = request.data
         group_id = data.get("group")
-        participant_type = data.get("participant_type")
+        participant_type = data.get(
+            "participant_type",
+            constants.REQUEST_PARTICIPANT_SPEAKER_ENUM
+        )
 
         # Get request for given params.
         request = services.get_request_for_user_and_group_id(
@@ -385,13 +388,23 @@ class RequestViewSet(
         headers = self.get_success_headers(serializer.data)
 
         try:
-            result = services.add_attendee_to_group_for_request(
-                user,
-                group_request
-            ) if constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM else services.add_speaker_to_group_for_request(
-                user,
-                group_request
-            )
+            if participant_type == constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM:
+                result = services.add_attendee_to_group_for_request(
+                    user,
+                    group_request
+                )
+            elif participant_type == constants.REQUEST_PARTICIPANT_SPEAKER_ENUM:
+                result = services.add_speaker_to_group_for_request(
+                    user,
+                    group_request
+                )
+            else:
+                invalid_participant_type_exception = exceptions.InvalidParticipantType()
+                return Response(
+                    invalid_participant_type_exception.get_error_body(),
+                    status=invalid_participant_type_exception.status_code
+                )
+
             serializer = self.get_serializer(result)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
