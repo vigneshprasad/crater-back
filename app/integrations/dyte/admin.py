@@ -41,6 +41,7 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
+        "is_online",
         "dyte_meeting__group",
         "dyte_meeting__group__start"
     )

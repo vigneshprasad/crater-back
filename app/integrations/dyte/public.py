@@ -92,4 +92,4 @@ def get_recording(meeting_id, recording_id):
         meeting_id(str): Dyte meeting id
         recording_id(str): Dyte meeting recording id
     """
-    return dyte_service.start_recording(meeting_id, recording_id)
+    return dyte_service.get_recording(meeting_id, recording_id)
