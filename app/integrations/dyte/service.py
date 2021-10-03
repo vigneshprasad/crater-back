@@ -11,24 +11,22 @@ from freelance import settings
 class DyteService:
     DYTE_API_ENDPOINTS = {
         "join_meeting": constants.DYTE_JOIN_MEETING_BASE_URL + "/meeting/join/{room_name}",
-
-        # These are server to server endpoints.
+        # Meeting endpoints.
         "create_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meeting",
         "get_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{dyte_meeting_id}",
         "get_all_meetings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings",
-
+        # Participant addition enpoint.
         "add_participant": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/participant",
-
+        # Webhook endpoints.
         "create_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhook",
         "get_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks/{webhook_id}",
         "delete_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks/{webhook_id}",
         "get_all_webhooks": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks",
-
+        # Recording endpoints.
         "start_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/rooms/{room_name}/recording",
-        "stop_recording": constants.DYTE_PROD_BASE_URL +
-                          "/v1/organizations/{org_id}/rooms/{room_name}/recordings/{recording_id}",
-        "get_recording": constants.DYTE_PROD_BASE_URL +
-                         "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings/{recording_id}",
+        "stop_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/rooms/{room_name}/recordings/{recording_id}",
+        "get_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings/{recording_id}",
+        "get_all_recordings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings",
     }
 
     def __init__(self, org_id, app_id):
@@ -212,8 +210,10 @@ class DyteService:
 
         """
 
-        add_participant_endpoint = self.DYTE_API_ENDPOINTS["add_participant"].format(org_id=self.org_id,
-                                                                                     meeting_id=dyte_meeting.dyte_meeting_id)
+        add_participant_endpoint = self.DYTE_API_ENDPOINTS["add_participant"].format(
+            org_id=self.org_id,
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
 
         data = {
             "clientSpecificId": str(user.uuid),
@@ -402,7 +402,11 @@ class DyteService:
 
         Args:
             room_name(str): Dyte meeting room name
+
         """
+        if not room_name:
+            return None
+
         url = self.DYTE_API_ENDPOINTS["start_recording"].format(org_id=self.org_id, room_name=room_name)
         data = {
             "storageConfig": {
@@ -440,7 +444,11 @@ class DyteService:
         Args:
             room_name(str): Dyte meeting room name
             recording_id(str): Dyte recording id
+
         """
+        if not (room_name and recording_id):
+            return None
+
         url = self.DYTE_API_ENDPOINTS["stop_recording"].format(
             org_id=self.org_id,
             room_name=room_name,
@@ -474,7 +482,11 @@ class DyteService:
         Args:
             meeting_id(str): Dyte meeting id
             recording_id(str): Dyte recording id
+
         """
+        if not (meeting_id and recording_id):
+            return None
+
         url = self.DYTE_API_ENDPOINTS["get_recording"].format(
             org_id=self.org_id,
             meeting_id=meeting_id,
@@ -490,12 +502,46 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte stop recording failed.")
+            logging.error("Dyte get recording failed.")
             return None
 
         recording_data = None
         if response_json.get("success"):
             recording_data = response_json["data"]["recording"]
+
+        return recording_data
+
+    def get_all_recordings(self, meeting_id):
+        """Get a recording for a given meeting
+
+        Args:
+            meeting_id(str): Dyte meeting id.
+
+        """
+
+        if not meeting_id:
+            return None
+
+        url = self.DYTE_API_ENDPOINTS["get_all_recordings"].format(
+            org_id=self.org_id,
+            meeting_id=meeting_id
+        )
+
+        response = requests.request(
+            "GET",
+            url,
+            headers=self._get_authorization_headers()
+        )
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            logging.error("Dyte get recordings failed.")
+            return None
+
+        recording_data = None
+        if response_json.get("success"):
+            recording_data = response_json["data"]["recordings"]
 
         return recording_data
 

@@ -66,30 +66,50 @@ def get_dyte_participant_for_user_and_group(user, group):
     )
 
 
-def start_recording(room_name):
+def start_recording_for_group(group):
     """Start Dyte meeting recording
 
     Args:
-        room_name(str): Dyte meeting room name
+        group(Group): Group we are starting the recording
+            for.
+
     """
-    return dyte_service.start_recording(room_name)
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return None
+
+    return dyte_service.start_recording(
+        room_name=dyte_meeting.room_name
+    )
 
 
-def stop_recording(room_name, recording_id):
-    """Stop Dyte meeting recording
-
-    Args:
-        room_name(str): Dyte meeting room name
-        recording_id(str): Dyte meeting recording id
-    """
-    return dyte_service.stop_recording(room_name, recording_id)
-
-
-def get_recording(meeting_id, recording_id):
+def get_recordings_for_group(group):
     """Get Dyte meeting recording
 
     Args:
-        meeting_id(str): Dyte meeting id
-        recording_id(str): Dyte meeting recording id
+        group(Group): Group we are getting the recordings
+            for.
+
     """
-    return dyte_service.get_recording(meeting_id, recording_id)
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return None
+
+    return dyte_service.get_recording(dyte_meeting.dyte_meeting_id)
+
+
+def stop_recording_for_group_and_recording_id(group, recording_id):
+    """Stop Dyte meeting recording
+
+    Args:
+        group(Group): Group we are stopping the recording
+            for.
+        recording_id(str): Dyte meeting recording id for
+            recording.
+
+    """
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return None
+
+    return dyte_service.stop_recording(dyte_meeting.room_name, recording_id)
