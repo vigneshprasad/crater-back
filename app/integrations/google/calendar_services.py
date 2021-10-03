@@ -103,6 +103,9 @@ class GoogleCalendarService:
             }
             attendees_list.append(attendee_data)
 
+        if not attendees_list:
+            return None, meeting_link
+
         request_body = {
             "summary": summary,
             "description": description,
