@@ -117,13 +117,13 @@ class InviteAdmin(admin.ModelAdmin):
 class RequestAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "group",
-        "group_type",
         "requester",
         "participant_type",
-        "status",
+        "group",
+        "group_type",
+        "status"
     )
-    search_fields = ("requester__username", "requested__name")
+    search_fields = ("requester__username", "requester__name")
     list_filter = ("group", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
