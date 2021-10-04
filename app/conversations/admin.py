@@ -74,13 +74,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.select_related(
-            "host",
-            "topic"
+            "host"
         ).prefetch_related(
             "speakers",
-            "attendees",
-            "interests",
-            "categories"
+            "attendees"
         )
 
     @staticmethod
