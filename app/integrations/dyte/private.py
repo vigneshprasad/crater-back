@@ -78,3 +78,19 @@ def get_participant_for_user_and_group_id(user, group_id):
         return None
 
     return participant
+
+
+def get_dyte_meeting_recording_for_recording_id(recording_id):
+    """Get Dyte meeting recording for a recording id.
+
+    Args:
+        recording_id(str): Dyte meeting recording id.
+    """
+    try:
+        dyte_meeting_recording = models.DyteMeetingRecording.objects.get(
+            recording_id=recording_id
+        )
+    except models.DyteMeetingRecording.DoesNotExist:
+        return None
+
+    return dyte_meeting_recording
