@@ -103,7 +103,7 @@ def get_recordings_for_group(group):
         return None
 
     return dyte_service.get_all_recordings(
-        dyte_meeting_id=dyte_meeting.dyte_meeting_id
+        dyte_meeting=dyte_meeting
     )
 
 

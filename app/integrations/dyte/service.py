@@ -402,6 +402,7 @@ class DyteService:
 
         Args:
             dyte_meeting(DyteMeeting): DyteMeeting object
+
         """
         url = self.DYTE_API_ENDPOINTS["start_recording"].format(
             org_id=self.org_id,
@@ -440,7 +441,7 @@ class DyteService:
                 dyte_meeting=dyte_meeting,
                 recording_id=recording_data.get("id"),
                 status=recording_data.get("status"),
-                path=f'{constants.DYTE_MEETING_RECORDING_AWS_PATH}/{recording_data.get("outputFileName")}'
+                path=f"{constants.DYTE_MEETING_RECORDING_AWS_PATH}/{recording_data.get('outputFileName')}"
             )
 
         return dyte_meeting_recording
@@ -518,20 +519,20 @@ class DyteService:
 
         return recording_data
 
-    def get_all_recordings(self, dyte_meeting_id):
+    def get_all_recordings(self, dyte_meeting):
         """Get a recording for a given meeting
 
         Args:
-            dyte_meeting_id(str): Dyte meeting id.
+            dyte_meeting(DyteMeeting): DyteMeeting object
 
         """
 
-        if not dyte_meeting_id:
-            return None
+        if not dyte_meeting.dyte_meeting_id:
+            return False
 
         url = self.DYTE_API_ENDPOINTS["get_all_recordings"].format(
             org_id=self.org_id,
-            meeting_id=dyte_meeting_id
+            meeting_id=dyte_meeting.dyte_meeting_id
         )
 
         response = requests.request(
