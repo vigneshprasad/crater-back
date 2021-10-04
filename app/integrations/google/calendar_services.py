@@ -92,6 +92,20 @@ class GoogleCalendarService:
         if not (start_datetime and end_datetime):
             return None, meeting_link
 
+        # Create Attendees list for the calendar event.
+        attendees_list = []
+        for user in users:
+            if not user.email.strip():
+                continue
+            attendee_data = {
+                "email": user.email,
+                "displayName": user.display_name if user.display_name else ""
+            }
+            attendees_list.append(attendee_data)
+
+        if not attendees_list:
+            return None, meeting_link
+
         request_body = {
             "summary": summary,
             "description": description,
@@ -104,12 +118,7 @@ class GoogleCalendarService:
                 "timeZone": constants.DEFAULT_TIMEZONE
             },
             "recurrence": [],
-            "attendees": [
-                {
-                    "email": user.email if user.email else "",
-                    "displayName": user.name.title() if user.name else "",
-                } for user in users
-            ]
+            "attendees": attendees_list
         }
 
         # Changing the request body based on if we have external meeting link
@@ -163,15 +172,24 @@ class GoogleCalendarService:
 
         """
         if not self.service:
-            return None, None
+            return None
+
+        # Create Attendees list for the calendar event.
+        attendees_list = []
+        for user in users:
+            if not user.email.strip():
+                continue
+            attendee_data = {
+                "email": user.email,
+                "displayName": user.display_name if user.display_name else ""
+            }
+            attendees_list.append(attendee_data)
+
+        if not attendees_list:
+            return None
 
         patch_body = {
-            "attendees": [
-                {
-                    "email": user.email if user.email else "",
-                    "displayName": user.name.title() if user.name else ""
-                } for user in users
-            ]
+            "attendees": attendees_list
         }
 
         event = self.service.events().patch(

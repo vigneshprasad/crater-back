@@ -146,8 +146,8 @@ def send_1_on_1_meeting_intro_emails(meetings=None):
         display_time = meeting.get_display_time()
 
         subject = "Introducing {} & {}".format(
-            p1.name.title(),
-            p2.name.title()
+            p1.display_name,
+            p2.display_name
         )
         to_emails = [p1.email, p2.email, choices.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
         # Populating data.

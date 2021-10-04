@@ -178,6 +178,14 @@ class User(AbstractUser):
     def __str__(self):
         return "{} ({})".format(self.name, self.username)
 
+    @property
+    def display_name(self):
+        name = self.name.strip()
+        if not name:
+            return None
+
+        return name.title()
+
     def set_phone_number_verified(self):
         """Marks a users phone number as verified.
 
@@ -296,7 +304,8 @@ class User(AbstractUser):
         return status
 
     def get_display_first_name(self):
-        return self.first_name.title() if self.first_name else self.name.title()
+        """Returns first name in title format."""
+        return self.first_name.title() if self.first_name.strip() else self.name.title()
 
     @property
     def has_services(self):

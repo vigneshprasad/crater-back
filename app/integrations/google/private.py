@@ -76,7 +76,7 @@ def update_or_create_calendar_event_for_conversation(group):
         group_id=group.id,
     ).last()
 
-    if not google_calendar_event:
+    if not (google_calendar_event and google_calendar_event.event_id):
         # Create the calendar event for the group.
         return create_calendar_event_for_conversations(group)
 
@@ -95,8 +95,8 @@ def update_or_create_calendar_event_for_conversation(group):
             models.GoogleCalendarEvent.objects.update_or_create(
                 user=user,
                 group_id=group.id,
-                event_id=event_id,
                 defaults={
+                    "event_id": event_id,
                     "starts_at": group.local_start,
                     "ends_at": group.local_end
                 }
@@ -141,12 +141,14 @@ def create_calendar_event_for_conversations(group):
 
     # Create rows for users.
     for user in users:
-        models.GoogleCalendarEvent.objects.create(
+        models.GoogleCalendarEvent.objects.update_or_create(
             user=user,
             group_id=group.id,
-            event_id=event_id,
-            starts_at=start_datetime,
-            ends_at=end_datetime
+            defaults={
+                "event_id": event_id,
+                "starts_at": start_datetime,
+                "ends_at": end_datetime
+            }
         )
 
     return event_id
@@ -167,7 +169,7 @@ def create_calendar_event_for_webinar_host(group):
     )
     summary = constants.HOST_SUMMARY_FOR_WEBINARS
     description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
-        creator_name=host.name.title(),
+        creator_name=host.display_name,
         date=group.get_display_day(),
         time=group.get_display_start_time(),
         topic=group.topic.name,
@@ -213,11 +215,11 @@ def create_calendar_event_for_webinar_attendee(user, group):
     )
 
     summary = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
-        creator_name=host.name.title(),
+        creator_name=host.display_name,
         topic=group.topic.name
     )
     description = constants.ATTENDEE_DESCRIPTION_FOR_WEBINARS.format(
-        creator_name=host.name.title(),
+        creator_name=host.display_name,
         date=group.get_display_day(),
         time=group.get_display_start_time(),
         topic=group.topic.name,

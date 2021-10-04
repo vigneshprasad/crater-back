@@ -11,6 +11,7 @@ from channels.layers import get_channel_layer
 from conversations import constants
 from conversations import models
 from conversations import services
+from integrations.dyte import public as dyte_public
 from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import public as freshchat_public
 from resources.meetings import services as meeting_services
@@ -101,6 +102,30 @@ def send_conversation_confirmation_email_for_user(user, group):
             content={},
             from_email=from_email,
             merge_vars=data
+        )
+
+
+@periodic_task(run_every=crontab(minute="*/5"))
+def start_recording_for_webinars(groups=None):
+    """Start recording for webinars 5 minutes
+        before the webinar starts.
+
+    """
+    now_time = datetime.datetime.now()
+    start_datetime = now_time
+    end_datetime = (now_time + datetime.timedelta(minutes=5))
+
+    # Send it for all group, except for webinars.
+    webinars = models.Group.objects.filter(
+        start__gt=start_datetime,
+        start__lte=end_datetime,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+
+    for webinar in webinars:
+        # Send whatsapp reminder for webinar to attendees.
+        dyte_public.start_recording_for_group(
+            webinar
         )
 
 
