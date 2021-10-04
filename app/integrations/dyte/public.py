@@ -1,3 +1,5 @@
+import logging
+
 from integrations.dyte.service import dyte_service
 from integrations.dyte import constants
 from integrations.dyte import private
@@ -76,7 +78,12 @@ def start_recording_for_group(group):
     """
     dyte_meeting = group.dyte_webinar.first()
     if not dyte_meeting:
-        return None
+        logging.error(
+            "Dyte meeting not present for group: {}".format(
+                group.id
+            )
+        )
+        return False
 
     return dyte_service.start_recording(
         room_name=dyte_meeting.room_name
@@ -112,6 +119,11 @@ def stop_recording_for_group_and_recording_id(group, recording_id):
     """
     dyte_meeting = group.dyte_webinar.first()
     if not dyte_meeting:
-        return None
+        logging.error(
+            "Dyte meeting not present for group: {}".format(
+                group.id
+            )
+        )
+        return False
 
     return dyte_service.stop_recording(dyte_meeting.room_name, recording_id)

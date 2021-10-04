@@ -33,7 +33,7 @@ def send_welcome_crater_whatsapp(user):
                 user.__str__()
             )
         )
-        return
+        return False
 
     return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
