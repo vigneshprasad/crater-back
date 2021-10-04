@@ -86,7 +86,7 @@ def start_recording_for_group(group):
         return False
 
     return dyte_service.start_recording(
-        room_name=dyte_meeting.room_name
+        dyte_meeting=dyte_meeting
     )
 
 
