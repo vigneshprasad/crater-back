@@ -397,13 +397,16 @@ class DyteService:
 
         return webhooks_data
 
-    def start_recording(self, room_name):
+    def start_recording(self, dyte_meeting):
         """Start a recording for a given meeting room
 
         Args:
-            room_name(str): Dyte meeting room name
+            dyte_meeting(DyteMeeting): DyteMeeting object
         """
-        url = self.DYTE_API_ENDPOINTS["start_recording"].format(org_id=self.org_id, room_name=room_name)
+        url = self.DYTE_API_ENDPOINTS["start_recording"].format(
+            org_id=self.org_id,
+            room_name=dyte_meeting.room_name
+        )
         data = {
             "storageConfig": {
                 "type": "aws",
