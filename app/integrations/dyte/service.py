@@ -397,17 +397,16 @@ class DyteService:
 
         return webhooks_data
 
-    def start_recording(self, room_name):
+    def start_recording(self, dyte_meeting):
         """Start a recording for a given meeting room
 
         Args:
-            room_name(str): Dyte meeting room name
-
+            dyte_meeting(DyteMeeting): DyteMeeting object
         """
-        if not room_name:
-            return None
-
-        url = self.DYTE_API_ENDPOINTS["start_recording"].format(org_id=self.org_id, room_name=room_name)
+        url = self.DYTE_API_ENDPOINTS["start_recording"].format(
+            org_id=self.org_id,
+            room_name=dyte_meeting.room_name
+        )
         data = {
             "storageConfig": {
                 "type": "aws",
@@ -432,11 +431,19 @@ class DyteService:
             logging.error("Dyte start recording failed.")
             return None
 
-        recording_data = None
+        dyte_meeting_recording = None
         if response_json.get("success"):
             recording_data = response_json["data"]["recording"]
 
-        return recording_data
+            # Create dyte meeting recording object
+            dyte_meeting_recording = models.DyteMeetingRecording.create(
+                dyte_meeting=dyte_meeting,
+                recording_id=recording_data.get("id"),
+                status=recording_data.get("status"),
+                path=f'{constants.DYTE_MEETING_RECORDING_AWS_PATH}/{recording_data.get("outputFileName")}'
+            )
+
+        return dyte_meeting_recording
 
     def stop_recording(self, room_name, recording_id):
         """Get a recording for a given meeting

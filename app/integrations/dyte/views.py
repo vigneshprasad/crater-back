@@ -212,3 +212,41 @@ class DyteParticipantViewSet(
         participant.mark_offline()
 
         return Response(status=status.HTTP_200_OK)
+
+
+class DyteMeetingRecordingViewSet(
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.DyteMeetingRecording.objects.all()
+    serializer_class = serializers.DyteMeetingRecordingSerializer
+
+    @action(
+        methods=["POST"],
+        detail=False,
+        permission_classes=[permissions.AllowAny]
+    )
+    def status(self, request):
+        """Webhook from dyte if there is a status update for
+        a meeting recording.
+        """
+        data = request.data
+        # TODO(Sanjeev): Verify webhook using signature
+
+        dyte_recording_details = data.get("recording")
+        recording_id = dyte_recording_details.get("recordingId")
+        recording_status = dyte_recording_details.get("status")
+
+        dyte_meeting_recording = private.get_dyte_meeting_recording_for_recording_id(
+            recording_id=recording_id
+        )
+        if not dyte_meeting_recording:
+            return Response(status=status.HTTP_200_OK)
+
+        # Update recording status if it has changed
+        if dyte_meeting_recording.status != dyte_recording_details.get("status"):
+            dyte_meeting_recording.status = recording_status
+            dyte_meeting_recording.save()
+
+        return Response(status=status.HTTP_200_OK)
