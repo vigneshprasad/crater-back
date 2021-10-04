@@ -81,13 +81,13 @@ class FreshChatWhatsappService:
         """
         if not user.has_profile:
             logging.error("Message not sent for {}. No profile".format(
-                user.email
+                user.__str__()
             ))
             return False
 
         if not user.get_phone_number():
             logging.error("Message not sent for {}. No Phone Number".format(
-                user.email
+                user.__str__()
             ))
             return False
 
@@ -183,7 +183,7 @@ class FreshChatWhatsappService:
         else:
             logging.error(
                 "FreshChat Create/Update User Failed for {}".format(
-                    user.email
+                    user.__str__()
                 ),
                 extra={
                     "status_code": response.status_code,
@@ -292,7 +292,7 @@ class FreshChatWhatsappService:
         else:
             logging.error(
                 "FreshChat Post Outbound Message Failed for {}".format(
-                    user.email
+                    user.__str__()
                 ),
                 extra={
                     "status_code": response.status_code,
