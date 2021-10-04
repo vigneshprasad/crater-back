@@ -511,20 +511,20 @@ class DyteService:
 
         return recording_data
 
-    def get_all_recordings(self, meeting_id):
+    def get_all_recordings(self, dyte_meeting_id):
         """Get a recording for a given meeting
 
         Args:
-            meeting_id(str): Dyte meeting id.
+            dyte_meeting_id(str): Dyte meeting id.
 
         """
 
-        if not meeting_id:
+        if not dyte_meeting_id:
             return None
 
         url = self.DYTE_API_ENDPOINTS["get_all_recordings"].format(
             org_id=self.org_id,
-            meeting_id=meeting_id
+            meeting_id=dyte_meeting_id
         )
 
         response = requests.request(

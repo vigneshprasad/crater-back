@@ -237,7 +237,7 @@ class FreshChatWhatsappService:
         """Sends a single outbound message through Freshchat for whatsapp.
 
         Args:
-            user(User): User"s on our App.
+            user(User): User's on our App.
             template_name(str): Template name as exists on Whatsapp.
             template_data(list(dict)): List of dicts, containing context
                 for the template.

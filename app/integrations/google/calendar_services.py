@@ -172,7 +172,7 @@ class GoogleCalendarService:
 
         """
         if not self.service:
-            return None, None
+            return None
 
         # Create Attendees list for the calendar event.
         attendees_list = []
@@ -184,6 +184,9 @@ class GoogleCalendarService:
                 "displayName": user.display_name if user.display_name else ""
             }
             attendees_list.append(attendee_data)
+
+        if not attendees_list:
+            return None
 
         patch_body = {
             "attendees": attendees_list
