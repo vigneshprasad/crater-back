@@ -169,7 +169,7 @@ def create_calendar_event_for_webinar_host(group):
     )
     summary = constants.HOST_SUMMARY_FOR_WEBINARS
     description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
-        creator_name=host.name.title(),
+        creator_name=host.display_name,
         date=group.get_display_day(),
         time=group.get_display_start_time(),
         topic=group.topic.name,
@@ -215,11 +215,11 @@ def create_calendar_event_for_webinar_attendee(user, group):
     )
 
     summary = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
-        creator_name=host.name.title(),
+        creator_name=host.display_name,
         topic=group.topic.name
     )
     description = constants.ATTENDEE_DESCRIPTION_FOR_WEBINARS.format(
-        creator_name=host.name.title(),
+        creator_name=host.display_name,
         date=group.get_display_day(),
         time=group.get_display_start_time(),
         topic=group.topic.name,

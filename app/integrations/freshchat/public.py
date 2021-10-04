@@ -359,7 +359,7 @@ def send_whatsapp_reminder_for_webinar_host(group):
         user=host,
         template_name=constants.WEBINAR_HOST_REMINDER_TEMPLATE,
         template_data=[
-            {"data": host.name.title()},
+            {"data": host.display_name},
             {"data": data_2}
         ]
     )

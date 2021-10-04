@@ -258,7 +258,7 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
     if not host:
         return
 
-    host_name = host.name.title()
+    host_name = host.display_name
     display_start = group.get_display_start()
     topic_name = group.topic.name
 
