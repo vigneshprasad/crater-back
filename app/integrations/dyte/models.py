@@ -2,6 +2,7 @@ import datetime
 
 from django.conf import settings
 from django.db import models
+from django.utils.html import format_html
 
 from base import models as base_model
 from integrations.dyte import constants
@@ -87,4 +88,5 @@ class DyteMeetingRecording(base_model.BaseModel):
 
     @property
     def object_url(self):
-        return settings.AWS_DEFAULT_OBJECT_URL + self.path
+        url = settings.AWS_DEFAULT_OBJECT_URL + self.path
+        return format_html("<a target='_blank' href='{url}'>{url}</a>", url=url)
