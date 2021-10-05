@@ -11,6 +11,7 @@ from base import models as base_model
 from conversations import constants
 from conversations import signals
 from resources.meetings import models as meeting_models
+from utils import validators as validator_utils
 
 
 class SuggestedTopic(base_model.BaseModel):
@@ -513,6 +514,7 @@ class Request(base_model.BaseModel):
 
 class GroupLiveLog(base_model.BaseModel):
     """Keeps logs of is_live change on the Group model."""
+
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE
@@ -522,3 +524,37 @@ class GroupLiveLog(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     live_status = models.BooleanField()
+
+
+def recording_storage_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT.
+    return "{0} ({1})/{2}/{3}".format(
+        instance.host.display_name,
+        instance.host.username,
+        instance.id,
+        filename
+    )
+
+
+class GroupRecording(base_model.BaseModel):
+
+    group = models.OneToOneField(
+        Group,
+        related_name="recordings",
+        on_delete=models.SET_NULL
+    )
+    recording = models.FileField(
+        upload_to=recording_storage_path,
+        null=True,
+        validators=[validator_utils.SizeValidator(size=512)]
+    )
+
+    # All dyte recordings for this GroupRecording.
+    dyte_recordings = models.ManyToManyField(
+        "dyte.DyteMeetingRecording",
+        null=True,
+        blank=True
+    )
+
+    is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)

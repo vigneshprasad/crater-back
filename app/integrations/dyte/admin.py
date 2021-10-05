@@ -56,8 +56,9 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "dyte_meeting",
-        "recording_id",
         "status",
+        "recording_id",
+        "object_url",
         "started_at",
         "stopped_at"
     )

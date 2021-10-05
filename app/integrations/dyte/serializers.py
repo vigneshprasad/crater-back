@@ -29,10 +29,11 @@ class DyteParticipantSerializer(ModelSerializer):
 
 
 class DyteMeetingRecordingSerializer(ModelSerializer):
+
     dyte_meeting_detail = DyteMeetingSerializer(source="dyte_meeting")
 
     class Meta:
-        model = models.DyteMeetingMeetingRecording
+        model = models.DyteMeetingRecording
         fields = (
             "pk",
             "dyte_meeting",

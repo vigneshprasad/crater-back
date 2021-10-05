@@ -229,7 +229,8 @@ class DyteMeetingRecordingViewSet(
     )
     def status(self, request):
         """Webhook from dyte if there is a status update for
-        a meeting recording.
+            a meeting recording.
+
         """
         data = request.data
         # TODO(Sanjeev): Verify webhook using signature
@@ -237,6 +238,8 @@ class DyteMeetingRecordingViewSet(
         dyte_recording_details = data.get("recording")
         recording_id = dyte_recording_details.get("recordingId")
         recording_status = dyte_recording_details.get("status")
+        started_at = dyte_recording_details.get("startedTime")
+        stopped_at = dyte_recording_details.get("stoppedTime")
 
         dyte_meeting_recording = private.get_dyte_meeting_recording_for_recording_id(
             recording_id=recording_id
@@ -244,9 +247,24 @@ class DyteMeetingRecordingViewSet(
         if not dyte_meeting_recording:
             return Response(status=status.HTTP_200_OK)
 
-        # Update recording status if it has changed
-        if dyte_meeting_recording.status != dyte_recording_details.get("status"):
-            dyte_meeting_recording.status = recording_status
-            dyte_meeting_recording.save()
+        # Update recording status only if it has changed.
+        if dyte_meeting_recording.status == recording_status:
+            return Response(status=status.HTTP_200_OK)
+
+        # Update the status and start and stopped times.
+        dyte_meeting_recording.status = recording_status
+
+        try:
+            dyte_meeting_recording.started_at = datetime.datetime.strptime(
+                started_at, constants.DYTE_DATETIME_FORMAT
+            ) if started_at else None
+            dyte_meeting_recording.stopped_at = datetime.datetime.strptime(
+                stopped_at, constants.DYTE_DATETIME_FORMAT
+            ) if stopped_at else None
+        except ValueError:
+            dyte_meeting_recording.started_at = None
+            dyte_meeting_recording.stopped_at = None
+
+        dyte_meeting_recording.save()
 
         return Response(status=status.HTTP_200_OK)
