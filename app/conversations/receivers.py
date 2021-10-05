@@ -6,6 +6,7 @@ from conversations import models
 from conversations import signals
 from conversations import services
 from integrations.dyte import public as dyte_public
+from integrations.dyte import signals as dyte_signals
 from matching import private as matching_private
 from resources.meetings import signals as meeting_signals
 from resources.curated_articles import signals as article_signals
@@ -143,3 +144,39 @@ def add_attendees_to_dyte_webinar(sender, instance, *args, **kwargs):
         group=instance,
         users=attendees
     )
+
+
+@receiver(dyte_signals.new_recording_started)
+def create_or_update_group_recording(sender, dyte_recording, *args, **kwargs):
+    """Creates or updates group recording for a new dyte recording started.
+
+    Args:
+        sender(dyte.DyteMeetingRecording class): Dyte recording object class.
+        dyte_recording(dyte.DyteMeetingRecording): Dyte recording that was just
+            started.
+
+    """
+    group = dyte_recording.dyte_meeting.group
+    if not group:
+        return
+
+    try:
+        group_recording = group.recording
+    except models.GroupRecording.DoesNotExist:
+        group_recording = None
+
+    if not group_recording:
+        # If there is no group recording for the group
+        # create one.
+        group_recording = models.GroupRecording.objects.create(
+            group=group
+        )
+        group_recording.dyte_recordings.add(dyte_recording)
+
+        return group_recording
+
+    # Updating the existing group recording if the object is
+    # present for the group.
+    group_recording.dyte_recordings.add(dyte_recording)
+
+    return group_recording

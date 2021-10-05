@@ -86,6 +86,12 @@ class DyteMeetingRecording(base_model.BaseModel):
     started_at = models.DateTimeField(null=True, blank=True)
     stopped_at = models.DateTimeField(null=True, blank=True)
 
+    def __str__(self):
+        return "{}: {}".format(
+            self.pk,
+            self.recording_id
+        )
+
     @property
     def object_url(self):
         url = settings.AWS_DEFAULT_OBJECT_URL + self.path

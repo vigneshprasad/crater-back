@@ -1,8 +1,23 @@
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from conversations import signals as conversation_signals
 from integrations.dyte.service import dyte_service
+from integrations.dyte import models
 from integrations.dyte import private
+from integrations.dyte import signals
+
+
+@receiver(post_save, sender=models.DyteMeetingRecording)
+def send_recording_created(sender, instance, *args, **kwargs):
+    if not kwargs.get("created"):
+        return
+
+    # Signal send when a recording is created.
+    signals.new_recording_started.send(
+        sender=instance.__class__,
+        dyte_recording=instance
+    )
 
 
 @receiver(conversation_signals.webinar_created)

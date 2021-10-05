@@ -408,6 +408,12 @@ class DyteService:
             org_id=self.org_id,
             room_name=dyte_meeting.room_name
         )
+
+        group_id = dyte_meeting.group_id if dyte_meeting.group_id else dyte_meeting.meeting_id
+        path = constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+            group_id=group_id
+        )
+
         data = {
             "storageConfig": {
                 "type": "aws",
@@ -415,7 +421,7 @@ class DyteService:
                 "secret": settings.AWS_SECRET_ACCESS_KEY,
                 "region": settings.AWS_S3_REGION_NAME,
                 "bucket": settings.AWS_STORAGE_BUCKET_NAME,
-                "path": constants.DYTE_MEETING_RECORDING_AWS_PATH
+                "path": path
             }
         }
 
@@ -455,7 +461,7 @@ class DyteService:
             recording_id=recording_id,
             defaults={
                 "status": status,
-                "path": f"/{constants.DYTE_MEETING_RECORDING_AWS_PATH}{recording_data.get('outputFileName')}"
+                "path": f"/{path}{recording_data.get('outputFileName')}"
             }
         )
 
