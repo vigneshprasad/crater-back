@@ -95,7 +95,7 @@ class GoogleCalendarService:
         # Create Attendees list for the calendar event.
         attendees_list = []
         for user in users:
-            if not user.email.strip():
+            if not user.email:
                 continue
             attendee_data = {
                 "email": user.email,
@@ -177,7 +177,7 @@ class GoogleCalendarService:
         # Create Attendees list for the calendar event.
         attendees_list = []
         for user in users:
-            if not user.email.strip():
+            if not user.email:
                 continue
             attendee_data = {
                 "email": user.email,
