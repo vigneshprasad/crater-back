@@ -524,37 +524,3 @@ class GroupLiveLog(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     live_status = models.BooleanField()
-
-
-def recording_storage_path(instance, filename):
-    # file will be uploaded to MEDIA_ROOT.
-    return "{0} ({1})/{2}/{3}".format(
-        instance.host.display_name,
-        instance.host.username,
-        instance.id,
-        filename
-    )
-
-
-class GroupRecording(base_model.BaseModel):
-
-    group = models.OneToOneField(
-        Group,
-        related_name="recordings",
-        on_delete=models.SET_NULL
-    )
-    recording = models.FileField(
-        upload_to=recording_storage_path,
-        null=True,
-        validators=[validator_utils.SizeValidator(size=512)]
-    )
-
-    # All dyte recordings for this GroupRecording.
-    dyte_recordings = models.ManyToManyField(
-        "dyte.DyteMeetingRecording",
-        null=True,
-        blank=True
-    )
-
-    is_published = models.BooleanField(default=False)
-    published_at = models.DateTimeField(null=True, blank=True)

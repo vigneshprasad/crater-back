@@ -65,7 +65,6 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         "dyte_meeting__group",
-        "dyte_meeting__group__start",
         "status"
     )
     search_fields = (

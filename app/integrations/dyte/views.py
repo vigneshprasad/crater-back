@@ -157,10 +157,18 @@ class DyteParticipantViewSet(
         if group and group.closed:
             return Response(status=status.HTTP_200_OK)
 
-        # If the group host has joined mark meeting as
-        # live.
         if group.host.uuid.__str__() == user_pk:
+            # If the group host has joined mark meeting as
+            # live.
             group.mark_live(user=participant.participant)
+
+            # Start recording the session if there are
+            # no active recordings for the live stream.
+            active_recordings = private.get_active_recording_for_meeting_id(
+                dyte_meeting=participant.dyte_meeting
+            )
+            if not active_recordings:
+                public.start_recording_for_group(group)
 
         # Mark the participant online.
         participant.mark_online()
@@ -236,6 +244,7 @@ class DyteMeetingRecordingViewSet(
         # TODO(Sanjeev): Verify webhook using signature
 
         dyte_recording_details = data.get("recording")
+
         recording_id = dyte_recording_details.get("recordingId")
         recording_status = dyte_recording_details.get("status")
         started_at = dyte_recording_details.get("startedTime")

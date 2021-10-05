@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 
+from integrations.dyte import constants
 from integrations.dyte import models
 
 
@@ -95,3 +96,21 @@ def get_dyte_meeting_recording_for_recording_id(recording_id):
         return None
 
     return dyte_meeting_recording
+
+
+def get_active_recording_for_meeting_id(dyte_meeting):
+    """Returns active recording going on for a live stream.
+
+    Args:
+        dyte_meeting(DyteMeeting): Dyte meeting object.
+
+    """
+    dyte_meeting_recordings = models.DyteMeetingRecording.objects.filter(
+        dyte_meeting=dyte_meeting,
+        status__in=[
+            constants.DYTE_RECORDING_STATUS_INVOKED,
+            constants.DYTE_RECORDING_STATUS_RECORDING
+        ]
+    )
+
+    return dyte_meeting_recordings
