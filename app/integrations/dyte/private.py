@@ -98,7 +98,7 @@ def get_dyte_meeting_recording_for_recording_id(recording_id):
     return dyte_meeting_recording
 
 
-def get_active_recording_for_meeting_id(dyte_meeting):
+def get_active_recording_for_dyte_meeting(dyte_meeting):
     """Returns active recording going on for a live stream.
 
     Args:
