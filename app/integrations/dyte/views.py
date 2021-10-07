@@ -88,7 +88,7 @@ class DyteParticipantViewSet(
         if not dyte_meeting:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if group.host.pk == user.pk:
+        if (group.host.pk == user.pk) or (user in group.speakers.all()):
             # Add the host to the dyte meeting.
             result = public.add_participant_to_meeting(
                 dyte_meeting,

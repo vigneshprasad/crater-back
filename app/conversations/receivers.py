@@ -1,4 +1,5 @@
 from django.db.models.signals import m2m_changed, post_save
+from django.contrib.auth import get_user_model
 from django.dispatch import receiver
 
 from conversations import constants
@@ -70,6 +71,29 @@ def change_group_occupancy_status(sender, instance, *args, **kwargs):
     instance.is_full = True
     instance.save()
 
+
+@receiver(m2m_changed, sender=models.Group.speakers.through)
+def create_calendar_add_dyte_participant_for_new_speakers(sender, instance, *args, **kwargs):
+    """Create calendar when a new speaker is added"""
+    if kwargs.get("action") not in ["post_add"]:
+        return
+
+    if not instance.type == constants.GROUP_TYPE_WEBINAR_ENUM:
+        return
+
+    if not instance.host:
+        return
+
+    speaker_ids = kwargs.get("pk_set")
+
+    speakers = get_user_model().objects.filter(pk__in=speaker_ids).exclude(pk=instance.host.pk)
+
+    signals.speakers_added_to_webinar.send(
+        sender=instance.__class__,
+        group=instance,
+        speakers=speakers
+    )
+    
 
 @receiver(meeting_signals.new_meeting_registration)
 def update_topic_for_meeting_preference(sender, preference, *args, **kwargs):

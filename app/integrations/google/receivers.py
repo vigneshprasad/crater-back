@@ -67,3 +67,16 @@ def create_calendar_event_for_webinar_attendee(sender, group, user, **kwargs):
 
     """
     return private.create_calendar_event_for_webinar_attendee(user, group)
+
+
+@receiver(conversations_signals.speakers_added_to_webinar)
+def create_calendar_event_for_webinar_speaker(sender, group, speakers, **kwargs):
+    """Creates google calendar event when speaker joins a live stream.
+
+    Args:
+        sender(Group Class): Group class representation for the group joined.
+        group(Group): Group the user joined into.
+        speakers(User): Speakers that joined the group.
+
+    """
+    return private.create_calendar_event_for_webinar_speakers(speakers, group)
