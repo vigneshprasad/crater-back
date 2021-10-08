@@ -248,9 +248,11 @@ def create_calendar_event_for_webinar_speakers(speakers, group):
             user=speaker,
             group_id=group.id,
             event_id=event_id,
-            meeting_link=meeting_link,
-            starts_at=group.local_start,
-            ends_at=group.local_end
+            defaults={
+                "meeting_link": meeting_link,
+                "starts_at": group.local_start,
+                "ends_at": group.local_end
+            }
         )
 
 

@@ -71,7 +71,7 @@ def add_participant_to_dyte_meeting(sender, group, user, *args, **kwargs):
 
 
 @receiver(conversation_signals.speakers_added_to_webinar)
-def add_participants_to_dyte_meeting(sender, group, speakers, *args, **kwargs):
+def add_webinar_speakers_to_dyte_meeting(sender, group, speakers, *args, **kwargs):
     """Add participant to dyte meeting once a speaker is added to the webinar.
 
     Args:
