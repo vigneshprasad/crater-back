@@ -432,6 +432,15 @@ class Group(base_model.BaseModel):
         """
         return self.local_end.strftime("%I:%M %p") if self.local_end else None
 
+    def get_host_and_speakers(self):
+        """Return a list of hosts and speakers."""
+        users = [self.host]
+        speakers = self.speakers.all()
+        for speaker in speakers:
+            if speaker in users:
+                continue
+            users.append(speaker)
+        return users
 
 class Invite(base_model.BaseModel):
 

@@ -3,6 +3,7 @@ from django.dispatch import receiver
 
 from conversations import signals as conversation_signals
 from integrations.dyte.service import dyte_service
+from integrations.dyte import constants
 from integrations.dyte import models
 from integrations.dyte import private
 from integrations.dyte import signals
@@ -81,3 +82,29 @@ def add_participant_to_dyte_meeting(sender, group, user, *args, **kwargs):
         return False
 
     dyte_service.add_participant_to_meeting(dyte_meeting, user)
+
+
+@receiver(conversation_signals.speakers_added_to_webinar)
+def add_webinar_speakers_to_dyte_meeting(sender, group, speakers, *args, **kwargs):
+    """Add participant to dyte meeting once a speaker is added to the webinar.
+
+    Args:
+        sender(Group class): Class object for group.
+        group(Group): Webinar group we are creating dyte meeting
+            for.
+        speakers(list/queryset): List of queryset of speakers that got
+            added to the group.
+
+    """
+    dyte_meeting = group.dyte_webinar.first()
+
+    if not dyte_meeting:
+        return False
+
+    for speaker in speakers:
+        # If the user has already been added as a participant for
+        # dyte meeting, don't add again.
+        if private.get_dyte_participant_for_user_and_group(speaker, group):
+            continue
+
+        dyte_service.add_participant_to_meeting(dyte_meeting=dyte_meeting, user=speaker, preset_name=constants.DEFAULT_WEBINAR_HOST_PRESET_NAME)
