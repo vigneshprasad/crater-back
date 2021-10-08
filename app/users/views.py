@@ -117,6 +117,7 @@ class ProfileViewSet(
         return None
 
     def retrieve(self, request, *args, **kwargs):
+
         instance = self.get_object()
 
         if not instance:
@@ -128,7 +129,10 @@ class ProfileViewSet(
         data["photo"] = photo.url if hasattr(photo, "url") else photo
 
         # Everytime profile retrieve gets called we update user activity.
-        profile_requested.send(sender=instance.__class__, profile=instance)
+        profile_requested.send(
+            sender=instance.__class__,
+            profile=instance
+        )
 
         return Response(data)
 

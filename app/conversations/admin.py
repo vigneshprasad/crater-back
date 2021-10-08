@@ -42,7 +42,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "last_live_at"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
-    search_fields = ("speakers__email", "speaker__name", "speaker__username")
+    search_fields = ("speakers__email", "speakers__name", "speakers__username")
     list_editable = ("is_featured", "is_live", "closed")
     list_filter = (
         ("start", filter.DateRangeFilter),
@@ -74,14 +74,11 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.select_related(
-            "host",
-            "topic"
+            "host"
         ).prefetch_related(
             "speakers",
-            "attendees",
-            "interests",
-            "categories"
-        ).all()
+            "attendees"
+        )
 
     @staticmethod
     def all_speakers(obj):
@@ -117,12 +114,26 @@ class InviteAdmin(admin.ModelAdmin):
 class RequestAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "group",
         "requester",
-        "status",
-        "is_recommended"
+        "participant_type",
+        "group",
+        "group_type",
+        "status"
     )
+    search_fields = ("requester__username", "requester__name")
+    list_filter = ("group", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related(
+            "group"
+        )
+
+    @staticmethod
+    def group_type(obj):
+        group_type_dict = dict(models.Group.GROUP_TYPE_CHOICES)
+        return group_type_dict.get(obj.group.type)
 
 
 @admin.register(models.GroupLiveLog)

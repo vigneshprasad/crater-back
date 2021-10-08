@@ -10,7 +10,7 @@ def create_default_community_for_creator(creator):
 
     """
     user = creator.user
-    community_name = user.name.title() + "'s Club"
+    community_name = user.display_name + "'s Club"
 
     community = models.Community.objects.create(
         name=community_name,

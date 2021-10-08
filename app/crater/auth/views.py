@@ -111,11 +111,11 @@ class PhoneNumberRegisterView(
         if crater_club_group not in user.groups.all():
             user.groups.add(crater_club_group)
 
-            # Send welcome crater whatsapp after 2 minutes
+            # Send welcome crater whatsapp after 5 minutes
             # on first login/signup on Crater.
             tasks.send_welcome_crater_whatsapp.apply_async(
                 args=(user.pk, ),
-                countdown=60
+                countdown=300
             )
 
         # Getting user detail once the user is verified.

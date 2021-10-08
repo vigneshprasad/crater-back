@@ -81,13 +81,13 @@ class FreshChatWhatsappService:
         """
         if not user.has_profile:
             logging.error("Message not sent for {}. No profile".format(
-                user.email
+                user.__str__()
             ))
             return False
 
         if not user.get_phone_number():
             logging.error("Message not sent for {}. No Phone Number".format(
-                user.email
+                user.__str__()
             ))
             return False
 
@@ -169,7 +169,7 @@ class FreshChatWhatsappService:
         except JSONDecodeError:
             response_json = {}
 
-        freshchat_user_id = response_json.get('id')
+        freshchat_user_id = response_json.get("id")
 
         if response.status_code == constants.FRESHCHAT_STATUS_CREATED:
             private.create_or_update_freshchat_user(
@@ -178,12 +178,12 @@ class FreshChatWhatsappService:
             )
         elif response.status_code == constants.FRESHCHAT_STATUS_ACCEPTED:
             pass
-            # If the status is Accepted, we don't get any response from
+            # If the status is Accepted, we don"t get any response from
             # FreshChat. Not updating anything here.
         else:
             logging.error(
                 "FreshChat Create/Update User Failed for {}".format(
-                    user.email
+                    user.__str__()
                 ),
                 extra={
                     "status_code": response.status_code,
@@ -211,7 +211,7 @@ class FreshChatWhatsappService:
         if response.status_code == constants.FRESHCHAT_STATUS_SUCCESS:
             try:
                 response_json = response.json()
-                response_json = response_json.get('outbound_messages')[0]
+                response_json = response_json.get("outbound_messages")[0]
             except (JSONDecodeError, IndexError):
                 response_json = {}
         else:
@@ -281,7 +281,7 @@ class FreshChatWhatsappService:
         except JSONDecodeError:
             response_json = {}
 
-        request_id = response_json.get('request_id')
+        request_id = response_json.get("request_id")
 
         if response.status_code == constants.FRESHCHAT_STATUS_ACCEPTED:
             # Doing a delayed call for get_outbound_message and creating Message object.
@@ -292,7 +292,7 @@ class FreshChatWhatsappService:
         else:
             logging.error(
                 "FreshChat Post Outbound Message Failed for {}".format(
-                    user.email
+                    user.__str__()
                 ),
                 extra={
                     "status_code": response.status_code,
@@ -322,8 +322,8 @@ def _get_and_process_outbound_message_after_delay(user_pk, request_id):
     get_response_json = freshchat_whatsapp_service.get_outbound_message(
         request_id=request_id
     )
-    status = get_response_json.get('status')
-    message_id = get_response_json.get('message_id')
+    status = get_response_json.get("status")
+    message_id = get_response_json.get("message_id")
     private.create_message(
         user,
         status,

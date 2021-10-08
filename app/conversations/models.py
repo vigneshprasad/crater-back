@@ -79,7 +79,10 @@ class Topic(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     is_approved = models.BooleanField(default=True)
-    description = models.TextField(max_length=255, null=True, blank=True)
+    description = models.TextField(
+        null=True,
+        blank=True
+    )
     creator = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,

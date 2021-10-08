@@ -18,8 +18,8 @@ class GroupMaxSpeakersException(base_exceptions.BaseAPIException):
 
 
 class GroupAlreadyJoined(base_exceptions.BaseAPIException):
-    """Exception raised when max members reached in group and attempting to add one more
-        user.
+    """Exception raised when user has already RSVP'd to the group
+        before.
 
     """
 
@@ -27,6 +27,22 @@ class GroupAlreadyJoined(base_exceptions.BaseAPIException):
         super().__init__(
             message="You have already joined the group.",
             error_code="groupAlreadyJoined"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)
+
+
+class InvalidParticipantType(base_exceptions.BaseAPIException):
+    """Exception raised when we given Invalid participant type
+        to create request API.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            message="Participant type provided is invalid.",
+            error_code="invalidParticipantType"
         )
 
     def __str__(self):
