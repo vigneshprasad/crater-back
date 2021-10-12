@@ -48,3 +48,8 @@ speaker_added_to_group = Signal(providing_args=[
     "group",
     "user"
 ])
+
+speakers_added_to_webinar = Signal(providing_args=[
+    "group",
+    "speakers"
+])

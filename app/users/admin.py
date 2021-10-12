@@ -50,11 +50,23 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     form = UserForm
     fieldsets = (
         ("Approvals", {
-            "fields": (("is_active", "groups"), ("is_approved", "is_service_approved"),),
+            "fields": (
+                ("is_active", "groups"),
+                ("is_approved", "is_service_approved"),
+            ),
         }),
         ("User Data", {
-            "fields": (("name", "email"), ("username", "phone_number"), ("referer", "phone_number_verified"), ("rating", "intent"),
-                       "objectives", "source", "new_source", "score", "city"),
+            "fields": (
+                ("name", "email"),
+                ("username", "phone_number"),
+                ("referer", "phone_number_verified"),
+                ("rating", "intent"),
+                "objectives",
+                "source",
+                "new_source",
+                "score",
+                "city"
+            ),
         }),
     )
     autocomplete_fields = ["city"]

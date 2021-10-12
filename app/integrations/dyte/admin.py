@@ -49,3 +49,25 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "participant__name",
         "participant__username"
     )
+
+
+@admin.register(models.DyteMeetingRecording)
+class DyteMeetingRecordingAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "dyte_meeting",
+        "status",
+        "recording_id",
+        "object_url",
+        "started_at",
+        "stopped_at"
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    list_filter = (
+        "dyte_meeting__group",
+        "status"
+    )
+    search_fields = (
+        "recording_id",
+        "dyte_meeting__group__host__name"
+    )

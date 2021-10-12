@@ -88,7 +88,7 @@ class DyteParticipantViewSet(
         if not dyte_meeting:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if group.host.pk == user.pk:
+        if (group.host.pk == user.pk) or (user in group.speakers.all()):
             # Add the host to the dyte meeting.
             result = public.add_participant_to_meeting(
                 dyte_meeting,
@@ -157,10 +157,18 @@ class DyteParticipantViewSet(
         if group and group.closed:
             return Response(status=status.HTTP_200_OK)
 
-        # If the group host has joined mark meeting as
-        # live.
         if group.host.uuid.__str__() == user_pk:
+            # If the group host has joined mark meeting as
+            # live.
             group.mark_live(user=participant.participant)
+
+            # Start recording the session if there are
+            # no active recordings for the live stream.
+            active_recordings = private.get_active_recording_for_meeting_id(
+                dyte_meeting=participant.dyte_meeting
+            )
+            if not active_recordings:
+                public.start_recording_for_group(group)
 
         # Mark the participant online.
         participant.mark_online()
@@ -210,5 +218,62 @@ class DyteParticipantViewSet(
 
         # Mark the participant offline.
         participant.mark_offline()
+
+        return Response(status=status.HTTP_200_OK)
+
+
+class DyteMeetingRecordingViewSet(
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.DyteMeetingRecording.objects.all()
+    serializer_class = serializers.DyteMeetingRecordingSerializer
+
+    @action(
+        methods=["POST"],
+        detail=False,
+        permission_classes=[permissions.AllowAny]
+    )
+    def status(self, request):
+        """Webhook from dyte if there is a status update for
+            a meeting recording.
+
+        """
+        data = request.data
+        # TODO(Sanjeev): Verify webhook using signature
+
+        dyte_recording_details = data.get("recording")
+
+        recording_id = dyte_recording_details.get("recordingId")
+        recording_status = dyte_recording_details.get("status")
+        started_at = dyte_recording_details.get("startedTime")
+        stopped_at = dyte_recording_details.get("stoppedTime")
+
+        dyte_meeting_recording = private.get_dyte_meeting_recording_for_recording_id(
+            recording_id=recording_id
+        )
+        if not dyte_meeting_recording:
+            return Response(status=status.HTTP_200_OK)
+
+        # Update recording status only if it has changed.
+        if dyte_meeting_recording.status == recording_status:
+            return Response(status=status.HTTP_200_OK)
+
+        # Update the status and start and stopped times.
+        dyte_meeting_recording.status = recording_status
+
+        try:
+            dyte_meeting_recording.started_at = datetime.datetime.strptime(
+                started_at, constants.DYTE_DATETIME_FORMAT
+            ) if started_at else None
+            dyte_meeting_recording.stopped_at = datetime.datetime.strptime(
+                stopped_at, constants.DYTE_DATETIME_FORMAT
+            ) if stopped_at else None
+        except ValueError:
+            dyte_meeting_recording.started_at = None
+            dyte_meeting_recording.stopped_at = None
+
+        dyte_meeting_recording.save()
 
         return Response(status=status.HTTP_200_OK)

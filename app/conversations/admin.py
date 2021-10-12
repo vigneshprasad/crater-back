@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
 
@@ -55,10 +56,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
         fields_changed = form.changed_data
         cleaned_data = form.cleaned_data
-        if "closed" in fields_changed:
-            if cleaned_data["closed"]:
-                obj.mark_closed(user=request.user)
-
         if "is_approved" in fields_changed:
             if cleaned_data["is_approved"]:
                 obj.approve()
@@ -68,6 +65,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 obj.mark_live(user=request.user)
             else:
                 obj.mark_inactive(user=request.user)
+
+        if "closed" in fields_changed:
+            if cleaned_data["closed"]:
+                obj.mark_closed(user=request.user)
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
@@ -121,7 +122,11 @@ class RequestAdmin(admin.ModelAdmin):
         "status"
     )
     search_fields = ("requester__username", "requester__name")
-    list_filter = ("group", )
+    list_filter = (
+        ("created_at", filter.DateRangeFilter),
+        ("group__start", filter.DateRangeFilter),
+        "group"
+    )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     def get_queryset(self, request):
@@ -134,6 +139,16 @@ class RequestAdmin(admin.ModelAdmin):
     def group_type(obj):
         group_type_dict = dict(models.Group.GROUP_TYPE_CHOICES)
         return group_type_dict.get(obj.group.type)
+
+    @staticmethod
+    def get_rangefilter_group__start_title(request, field_path="group__start"):
+        """Returns the title for the start date filter."""
+        return "Group Start Filter"
+
+    @staticmethod
+    def get_rangefilter_created_at_title(request, field_path="created_at"):
+        """Returns the title for the start date filter."""
+        return "RSVP'd at Filter"
 
 
 @admin.register(models.GroupLiveLog)
@@ -148,3 +163,64 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
     search_fields = ("user", )
     list_filter = ("group", )
     exclude = ("deleted_at", "updated_at", "is_deleted")
+
+
+@admin.register(models.GroupRecording)
+class GroupRecordingAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "recording",
+        "status",
+        "all_dyte_recordings",
+        "is_published"
+    )
+    search_fields = (
+        "group__host__username",
+        "group__host__name",
+    )
+    list_filter = (
+        ("created_at", filter.DateRangeFilter),
+        ("group__start", filter.DateRangeFilter),
+        "group"
+    )
+    exclude = ("deleted_at", "updated_at", "is_deleted")
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.prefetch_related(
+            "dyte_recordings"
+        )
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            return super(GroupRecordingAdmin, self).save_model(request, obj, form, change)
+
+        fields_changed = form.changed_data
+        cleaned_data = form.cleaned_data
+        if "is_published" in fields_changed:
+            if cleaned_data["is_published"]:
+                obj.publish()
+
+        return super(GroupRecordingAdmin, self).save_model(request, obj, form, change)
+
+    @staticmethod
+    def all_dyte_recordings(obj):
+        dyte_recordings = [
+            dyte_recording.object_url for dyte_recording in obj.dyte_recordings.all()
+        ]
+        return format_html(" ||| ".join(dyte_recording for dyte_recording in dyte_recordings))
+
+    @staticmethod
+    def status(obj):
+        return ", ".join([dyte_recording.status for dyte_recording in obj.dyte_recordings.all()])
+
+    @staticmethod
+    def get_rangefilter_group__start_title(request, field_path="group__start"):
+        """Returns the title for the start date filter."""
+        return "Group Start Filter"
+
+    @staticmethod
+    def get_rangefilter_created_at_title(request, field_path="created_at"):
+        """Returns the title for the start date filter."""
+        return "Created at Filter"

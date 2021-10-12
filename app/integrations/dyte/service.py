@@ -397,17 +397,23 @@ class DyteService:
 
         return webhooks_data
 
-    def start_recording(self, room_name):
+    def start_recording(self, dyte_meeting):
         """Start a recording for a given meeting room
 
         Args:
-            room_name(str): Dyte meeting room name
+            dyte_meeting(DyteMeeting): DyteMeeting object
 
         """
-        if not room_name:
-            return None
+        url = self.DYTE_API_ENDPOINTS["start_recording"].format(
+            org_id=self.org_id,
+            room_name=dyte_meeting.room_name
+        )
 
-        url = self.DYTE_API_ENDPOINTS["start_recording"].format(org_id=self.org_id, room_name=room_name)
+        group_id = dyte_meeting.group_id if dyte_meeting.group_id else dyte_meeting.meeting_id
+        path = constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+            group_id=group_id
+        )
+
         data = {
             "storageConfig": {
                 "type": "aws",
@@ -415,7 +421,7 @@ class DyteService:
                 "secret": settings.AWS_SECRET_ACCESS_KEY,
                 "region": settings.AWS_S3_REGION_NAME,
                 "bucket": settings.AWS_STORAGE_BUCKET_NAME,
-                "path": constants.DYTE_MEETING_RECORDING_AWS_PATH
+                "path": path
             }
         }
 
@@ -432,11 +438,34 @@ class DyteService:
             logging.error("Dyte start recording failed.")
             return None
 
-        recording_data = None
-        if response_json.get("success"):
-            recording_data = response_json["data"]["recording"]
+        dyte_meeting_recording = None
+        if not response_json.get("success"):
+            return dyte_meeting_recording
 
-        return recording_data
+        recording_data = response_json["data"]["recording"]
+        recording_id = recording_data.get("id")
+        status = recording_data.get("status")
+
+        if status and status == constants.DYTE_RECORDING_STATUS_ERRORED:
+            error_message = recording_data.get("errMessage")
+            logging.error(
+                "Dyte recording {} for Group: {}".format(
+                    error_message,
+                    dyte_meeting.group.id
+                )
+            )
+            return None
+
+        dyte_meeting_recording, _ = models.DyteMeetingRecording.objects.update_or_create(
+            dyte_meeting=dyte_meeting,
+            recording_id=recording_id,
+            defaults={
+                "status": status,
+                "path": f"/{path}{recording_data.get('outputFileName')}"
+            }
+        )
+
+        return dyte_meeting_recording.recording_id
 
     def stop_recording(self, room_name, recording_id):
         """Get a recording for a given meeting
@@ -511,20 +540,20 @@ class DyteService:
 
         return recording_data
 
-    def get_all_recordings(self, dyte_meeting_id):
+    def get_all_recordings(self, dyte_meeting):
         """Get a recording for a given meeting
 
         Args:
-            dyte_meeting_id(str): Dyte meeting id.
+            dyte_meeting(DyteMeeting): DyteMeeting object
 
         """
 
-        if not dyte_meeting_id:
-            return None
+        if not dyte_meeting.dyte_meeting_id:
+            return False
 
         url = self.DYTE_API_ENDPOINTS["get_all_recordings"].format(
             org_id=self.org_id,
-            meeting_id=dyte_meeting_id
+            meeting_id=dyte_meeting.dyte_meeting_id
         )
 
         response = requests.request(

@@ -1,4 +1,5 @@
 from django.db.models.signals import m2m_changed, post_save
+from django.contrib.auth import get_user_model
 from django.dispatch import receiver
 
 from conversations import constants
@@ -6,6 +7,7 @@ from conversations import models
 from conversations import signals
 from conversations import services
 from integrations.dyte import public as dyte_public
+from integrations.dyte import signals as dyte_signals
 from matching import private as matching_private
 from resources.meetings import signals as meeting_signals
 from resources.curated_articles import signals as article_signals
@@ -70,6 +72,29 @@ def change_group_occupancy_status(sender, instance, *args, **kwargs):
     instance.is_full = True
     instance.save()
 
+
+@receiver(m2m_changed, sender=models.Group.speakers.through)
+def create_calendar_add_dyte_participant_for_new_speakers(sender, instance, *args, **kwargs):
+    """Create calendar when a new speaker is added"""
+    if kwargs.get("action") not in ["post_add"]:
+        return
+
+    if not instance.type == constants.GROUP_TYPE_WEBINAR_ENUM:
+        return
+
+    if not instance.host:
+        return
+
+    speaker_ids = kwargs.get("pk_set")
+
+    speakers = get_user_model().objects.filter(pk__in=speaker_ids).exclude(pk=instance.host.pk)
+
+    signals.speakers_added_to_webinar.send(
+        sender=instance.__class__,
+        group=instance,
+        speakers=speakers
+    )
+    
 
 @receiver(meeting_signals.new_meeting_registration)
 def update_topic_for_meeting_preference(sender, preference, *args, **kwargs):
@@ -143,3 +168,39 @@ def add_attendees_to_dyte_webinar(sender, instance, *args, **kwargs):
         group=instance,
         users=attendees
     )
+
+
+@receiver(dyte_signals.new_recording_started)
+def create_or_update_group_recording(sender, dyte_recording, *args, **kwargs):
+    """Creates or updates group recording for a new dyte recording started.
+
+    Args:
+        sender(dyte.DyteMeetingRecording class): Dyte recording object class.
+        dyte_recording(dyte.DyteMeetingRecording): Dyte recording that was just
+            started.
+
+    """
+    group = dyte_recording.dyte_meeting.group
+    if not group:
+        return
+
+    try:
+        group_recording = group.recording
+    except models.GroupRecording.DoesNotExist:
+        group_recording = None
+
+    if not group_recording:
+        # If there is no group recording for the group
+        # create one.
+        group_recording = models.GroupRecording.objects.create(
+            group=group
+        )
+        group_recording.dyte_recordings.add(dyte_recording)
+
+        return group_recording
+
+    # Updating the existing group recording if the object is
+    # present for the group.
+    group_recording.dyte_recordings.add(dyte_recording)
+
+    return group_recording

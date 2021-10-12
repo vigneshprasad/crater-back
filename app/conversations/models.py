@@ -2,6 +2,7 @@ import datetime
 import pytz
 
 from django.db import models
+from django.core import exceptions
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.html import format_html
@@ -11,6 +12,7 @@ from base import models as base_model
 from conversations import constants
 from conversations import signals
 from resources.meetings import models as meeting_models
+from utils import validators as validator_utils
 
 
 class SuggestedTopic(base_model.BaseModel):
@@ -79,7 +81,10 @@ class Topic(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     is_approved = models.BooleanField(default=True)
-    description = models.TextField(max_length=255, null=True, blank=True)
+    description = models.TextField(
+        null=True,
+        blank=True
+    )
     creator = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -427,6 +432,15 @@ class Group(base_model.BaseModel):
         """
         return self.local_end.strftime("%I:%M %p") if self.local_end else None
 
+    def get_host_and_speakers(self):
+        """Return a list of hosts and speakers."""
+        users = [self.host]
+        speakers = self.speakers.all()
+        for speaker in speakers:
+            if speaker in users:
+                continue
+            users.append(speaker)
+        return users
 
 class Invite(base_model.BaseModel):
 
@@ -513,6 +527,7 @@ class Request(base_model.BaseModel):
 
 class GroupLiveLog(base_model.BaseModel):
     """Keeps logs of is_live change on the Group model."""
+
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE
@@ -522,3 +537,58 @@ class GroupLiveLog(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     live_status = models.BooleanField()
+
+
+def recording_storage_path(instance, filename):
+    """File storage path for group recordings.
+
+    Note:
+        Example: "live_stream_recordings/nishant(+9132763723723)/413/filename.mp4
+
+    """
+    group = instance.group
+    return f"live_stream_recordings/{group.host.__str__()}/{group.id}/{filename}"
+
+
+class GroupRecording(base_model.BaseModel):
+    """Recording for the group.
+
+    Note:
+        This is specific to live streams for now.
+
+    """
+
+    group = models.OneToOneField(
+        Group,
+        related_name="recording",
+        on_delete=models.CASCADE
+    )
+    recording = models.FileField(
+        upload_to=recording_storage_path,
+        null=True,
+        validators=[validator_utils.SizeValidator(size=512)]
+    )
+
+    # All dyte recordings for this GroupRecording.
+    # Generally there will be only
+    dyte_recordings = models.ManyToManyField(
+        "dyte.DyteMeetingRecording"
+    )
+
+    is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
+
+    def publish(self):
+        """Publish the group recording.
+
+        Note:
+            Publishing the recording is only allowed if the
+                recording is present.
+
+        """
+        if not self.recording:
+            raise exceptions.ValidationError("Recording must be present to publish.")
+
+        self.is_published = True
+        self.published_at = datetime.datetime.now()
+        self.save()
