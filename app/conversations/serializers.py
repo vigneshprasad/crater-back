@@ -17,9 +17,10 @@ from resources.curated_articles import serializers as articles_serializer
 from users import serializers as user_serializers
 from community.mixins import SetCreatorRequestDataMixin
 
+from utils import fields
+
 
 class SuggestedTopicSerializer(serializers.ModelSerializer):
-
     topic = serializers.CharField(source="name")
 
     class Meta:
@@ -32,7 +33,6 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         ref_name = "group_category"
         model = models.Category
@@ -46,7 +46,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TopicSerializer(serializers.ModelSerializer):
-
     root = serializers.SerializerMethodField(read_only=True)
     article_detail = articles_serializer.CuratedArticleSerializer(source="article", read_only=True)
 
@@ -76,7 +75,6 @@ class TopicSerializer(serializers.ModelSerializer):
 
 
 class GroupUserSerializer(serializers.ModelSerializer):
-
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
 
@@ -104,7 +102,6 @@ class GroupUserSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
-
     topic_detail = TopicSerializer(source="topic", read_only=True)
     categories_detail_list = CategorySerializer(source="categories", many=True, read_only=True)
     interests_detail_list = meeting_serializers.MeetingInterestSerializer(source="interests", read_only=True, many=True)
@@ -205,7 +202,6 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class InviteSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = models.Invite
         fields = "__all__"
@@ -266,7 +262,6 @@ class OptinSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
 
 
 class GroupWebinarSerializer(serializers.ModelSerializer):
-
     topic_detail = TopicSerializer(source="topic", read_only=True)
     host_detail = GroupUserSerializer(source="host", read_only=True)
     # Host profile details.
@@ -276,11 +271,11 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     )
 
     topic = serializers.CharField(required=True, write_only=True)
-    image = serializers.FileField(required=False, write_only=True)
+    image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
 
-    categories_detail_list = CategorySerializer(source="categories", many=True)
+    categories_detail_list = CategorySerializer(source="categories", many=True, read_only=True)
 
     # TODO(Nishant): Figure out how to show is past.
     is_past = serializers.SerializerMethodField(read_only=True)
@@ -318,7 +313,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "closed": {"read_only": True},
             "closed_at": {"read_only": True},
             "type": {"read_only": True},
-            "is_live": {"read_only": True}
+            "is_live": {"read_only": True},
+            "categories": {"required": True},
         }
 
     @staticmethod
@@ -350,8 +346,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             return None
 
         if not dyte_public.get_dyte_participant_for_user_and_group(
-            user=user,
-            group=group
+                user=user,
+                group=group
         ):
             return False
 
@@ -366,13 +362,14 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         start = validated_data["start"]
         if services.get_groups_for_user_and_start(user, start):
             raise exceptions.GroupCreatedAtTheSameTime()
+        elif start < timezone.now():
+            raise exceptions.GroupStartDateTimeNotInFuture()
 
-        if validated_data.get("image", None) is not None:
-            validated_data.pop("image")
+        image = validated_data.pop("image") if validated_data.get("image") else None
 
         topic = services.get_or_create_topic(
             name=validated_data.get("topic"),
-            image=validated_data.get("image"),
+            image=image,
             description=validated_data.get("description"),
             creator=user
         )

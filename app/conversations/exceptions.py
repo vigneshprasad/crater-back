@@ -96,3 +96,18 @@ class TopicAlreadySuggested(base_exceptions.BaseAPIException):
 
     def __str__(self):
         return "{}".format(self.message)
+
+
+class GroupStartDateTimeNotInFuture(base_exceptions.BaseAPIException):
+    """Exception raised when a user creates a group with start datetime
+        not in future
+
+    """
+    def __init__(self):
+        super().__init__(
+            message="The start datetime is not in the future.",
+            error_code="groupStartDateTimeNotInFuture"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)
