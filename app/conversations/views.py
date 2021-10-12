@@ -456,7 +456,6 @@ class GroupCalendarViewSet(
         return data
 
     def get_queryset(self):
-
         start = self.request.query_params.get("start", None)
         end = self.request.query_params.get("end", None)
 
@@ -506,11 +505,6 @@ class GroupWebinarViewSet(
         groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
         serialized = self.get_serializer(groups, many=True)
         return Response(serialized.data)
-
-    def perform_create(self, serializer):
-        group = serializer.save()
-        # Create webinar on Dyte
-        dyte_public.create_webinar(group)
 
 
 class CategoryViewSet(
