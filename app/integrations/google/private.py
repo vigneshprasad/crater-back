@@ -198,6 +198,7 @@ def create_calendar_event_for_webinar_host(group):
 
     return event_id
 
+
 def create_calendar_event_for_webinar_speakers(speakers, group):
     """Create calendar event for a live stream an speaker.
 
