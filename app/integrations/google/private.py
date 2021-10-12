@@ -95,8 +95,8 @@ def update_or_create_calendar_event_for_conversation(group):
             models.GoogleCalendarEvent.objects.update_or_create(
                 user=user,
                 group_id=group.id,
+                event_id=event_id,
                 defaults={
-                    "event_id": event_id,
                     "starts_at": group.local_start,
                     "ends_at": group.local_end
                 }
@@ -144,8 +144,8 @@ def create_calendar_event_for_conversations(group):
         models.GoogleCalendarEvent.objects.update_or_create(
             user=user,
             group_id=group.id,
+            event_id=event_id,
             defaults={
-                "event_id": event_id,
                 "starts_at": start_datetime,
                 "ends_at": end_datetime
             }
