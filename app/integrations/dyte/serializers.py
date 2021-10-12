@@ -41,5 +41,6 @@ class DyteMeetingRecordingSerializer(ModelSerializer):
             "status",
             "path",
             "started_at",
-            "stopped_at"
+            "stopped_at",
+            "dyte_meeting_detail"
         )

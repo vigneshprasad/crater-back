@@ -171,8 +171,13 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "id",
         "group",
         "recording",
+        "status",
         "all_dyte_recordings",
         "is_published"
+    )
+    search_fields = (
+        "group__host__username",
+        "group__host__name",
     )
     list_filter = (
         ("created_at", filter.DateRangeFilter),
@@ -205,6 +210,10 @@ class GroupRecordingAdmin(admin.ModelAdmin):
             dyte_recording.object_url for dyte_recording in obj.dyte_recordings.all()
         ]
         return format_html(" ||| ".join(dyte_recording for dyte_recording in dyte_recordings))
+
+    @staticmethod
+    def status(obj):
+        return ", ".join([dyte_recording.status for dyte_recording in obj.dyte_recordings.all()])
 
     @staticmethod
     def get_rangefilter_group__start_title(request, field_path="group__start"):

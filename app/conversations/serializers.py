@@ -11,11 +11,34 @@ from conversations import exceptions
 from conversations import models
 from conversations import services
 from integrations.dyte import public as dyte_public
+from integrations.dyte import serializers as dyte_serializers
 from resources.meetings import serializers as meeting_serializers
 from resources.meetings import models as meeting_models
 from resources.curated_articles import serializers as articles_serializer
 from users import serializers as user_serializers
 from community.mixins import SetCreatorRequestDataMixin
+
+
+class GroupRecordingSerializer(serializers.ModelSerializer):
+
+    dyte_recordings_details = dyte_serializers.DyteMeetingRecordingSerializer(
+        source="dyte_recordings",
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+
+        model = models.GroupRecording
+        fields = (
+            "id",
+            "group",
+            "recording",
+            "dyte_recordings",
+            "is_published",
+            "published_at",
+            "dyte_recordings_details"
+        )
 
 
 class SuggestedTopicSerializer(serializers.ModelSerializer):
@@ -114,6 +137,7 @@ class GroupSerializer(serializers.ModelSerializer):
     is_speaker = serializers.SerializerMethodField(read_only=True)
     is_past = serializers.SerializerMethodField()
     relevancy = serializers.SerializerMethodField()
+    recording_details = GroupRecordingSerializer(source="recording", read_only=True)
 
     class Meta:
         ref_name = "group_meeting"
@@ -143,7 +167,8 @@ class GroupSerializer(serializers.ModelSerializer):
             "type",
             "attendees",
             "attendees_detail_list",
-            "categories_detail_list"
+            "categories_detail_list",
+            "recording_details"
         )
         extra_kwargs = {
             "is_approved": {"required": False}
@@ -284,6 +309,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
     # TODO(Nishant): Figure out how to show is past.
     is_past = serializers.SerializerMethodField(read_only=True)
+    recording_details = GroupRecordingSerializer(source="recording", read_only=True)
 
     class Meta:
         model = models.Group
@@ -308,7 +334,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "is_past",
             "is_featured",
             "categories",
-            "categories_detail_list"
+            "categories_detail_list",
+            "recording_details"
         )
 
         extra_kwargs = {
