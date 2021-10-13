@@ -354,6 +354,7 @@ def cache_live_webinar(group):
 
             if cache:
                 creator = creator_models.Creator.objects.get(user=group.host)
+                participant = creator.participant_count
                 data_to_cache = {
                     "group_id": group.id,
                     "participant": participant if participant else creator.number_of_subscribers
