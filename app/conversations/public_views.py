@@ -38,6 +38,14 @@ class GroupWebinarPublicViewSet(
             is_live=True
         )
 
+
+    def _get_past_webinars(self):
+        """Return past webinars with recordings"""
+        return self.get_queryset().filter(
+            start__lte=datetime.datetime.now(),
+            recording__isnull=False
+        )
+
     def _get_featured_webinars(self):
         """Return featured webinars.
 
@@ -134,4 +142,17 @@ class GroupWebinarPublicViewSet(
         ).order_by("-live", "start")
         serializer = self.get_serializer(queryset, many=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        filterset_fields=["host"],
+    )
+    def past(self, request):
+        queryset = self.filter_queryset(
+            self._get_past_webinars()
+        )
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

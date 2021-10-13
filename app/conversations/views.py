@@ -528,6 +528,6 @@ class GroupRecodingViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    serializers_class = serializers.GroupRecordingSerializer
+    serializer_class = serializers.GroupRecordingSerializer
     queryset = models.GroupRecording.objects.filter(is_published=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
