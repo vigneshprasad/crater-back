@@ -171,6 +171,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "id",
         "group",
         "recording",
+        "order",
         "status",
         "all_dyte_recordings",
         "is_published"

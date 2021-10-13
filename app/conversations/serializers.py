@@ -34,6 +34,7 @@ class GroupRecordingSerializer(serializers.ModelSerializer):
             "id",
             "group",
             "recording",
+            "order",
             "dyte_recordings",
             "is_published",
             "published_at",

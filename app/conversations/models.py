@@ -573,8 +573,10 @@ class GroupRecording(base_model.BaseModel):
     # All dyte recordings for this GroupRecording.
     # Generally there will be only
     dyte_recordings = models.ManyToManyField(
-        "dyte.DyteMeetingRecording"
+        "dyte.DyteMeetingRecording",
+        blank=True
     )
+    order = models.PositiveIntegerField(null=True, blank=True)
 
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
