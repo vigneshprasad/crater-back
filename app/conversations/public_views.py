@@ -50,7 +50,7 @@ class GroupWebinarPublicViewSet(
         published_groups_with_recording = groups_with_recordings.filter(
             recording__recording__isnull=False,
             recording__is_published=True
-        ).order_by("recording__order")
+        ).order_by("-recording__order")
 
         return published_groups_with_recording
 
