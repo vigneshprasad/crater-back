@@ -349,7 +349,7 @@ def cache_live_webinar(group):
 
             cache = True
             for data in live_webinars:
-                if data["group_id"] == group.id:
+                if data.get("group_id") == group.id:
                     cache = False
 
             if cache:
@@ -378,7 +378,7 @@ def remove_cached_live_webinar(group):
         cached_live_webinars = REDIS.get("live_webinars")
         if not cached_live_webinars:
             return
-        
+
         live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
 
         for data in live_webinars:

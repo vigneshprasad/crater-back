@@ -1,6 +1,5 @@
 from integrations.dyte import constants
 from integrations.dyte.service import dyte_service
-from integrations.dyte.scripts import delete_old_dyte_webhooks
 
 ALL_WEBHOOK_DATA = [
     {
@@ -18,14 +17,42 @@ ALL_WEBHOOK_DATA = [
         "events": [constants.DYTE_EVENT_MEETING_ENDED],
         "url": "https://back.worknetwork.in/v1/integrations/dyte/meeting/ended/"
     },
+    {
+        "name": "Meeting Recording",
+        "events": [constants.DYTE_EVENT_RECORDING_STATUS_UPDATE],
+        "url": "https://back.worknetwork.in/v1/integrations/dyte/recording/status/"
+    },
+]
+
+ALL_WEBHOOK_DATA_PREPROD = [
+    {
+        "name": "Participant Joined Testing",
+        "events": [constants.DYTE_EVENT_PARTICIPANT_JOINED],
+        "url": "https://back-pre.1worknetwork.com/v1/integrations/dyte/participant/joined/"
+    },
+    {
+        "name": "Participant Left Testing",
+        "events": [constants.DYTE_EVENT_PARTICIPANT_LEFT],
+        "url": "https://back-pre.1worknetwork.com/v1/integrations/dyte/participant/left/"
+    },
+    {
+        "name": "Meeting Ended Testing",
+        "events": [constants.DYTE_EVENT_MEETING_ENDED],
+        "url": "https://back-pre.1worknetwork.com/v1/integrations/dyte/meeting/ended/"
+    },
+    {
+        "name": "Meeting Recording Testing",
+        "events": [constants.DYTE_EVENT_RECORDING_STATUS_UPDATE],
+        "url": "https://back-pre.1worknetwork.com/v1/integrations/dyte/recording/status/"
+    },
 ]
 
 
-def run(dry_run=True):
+def run(dry_run=True, pre_prod=True):
 
-    delete_old_dyte_webhooks.run(dry_run=dry_run)
+    all_webhook_data = ALL_WEBHOOK_DATA_PREPROD if pre_prod else ALL_WEBHOOK_DATA
 
-    for webhook_data in ALL_WEBHOOK_DATA:
+    for webhook_data in all_webhook_data:
 
         print("Creating Webhook")
         print(webhook_data["name"], webhook_data["events"], webhook_data["url"])
