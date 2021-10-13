@@ -367,7 +367,7 @@ def cache_participant_count():
             sec = obj.get("sec")
 
         current, sec = services.participant_count(
-            data.get("subscriber_count"),
+            data.get("participant"),
             current,
             sec
         )

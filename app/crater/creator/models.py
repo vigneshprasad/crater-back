@@ -29,6 +29,7 @@ class Creator(base_models.BaseModel):
     # Temporary key for showcasing creators.
     order = models.PositiveIntegerField(null=True, blank=True)
     follower_count = models.PositiveIntegerField(null=True, blank=True)
+    participant_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:

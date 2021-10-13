@@ -292,8 +292,8 @@ def participant_count(limit, current, sec):
     if not limit:
         return 0, 0
 
-    max_subscriber_count = min(limit / 5, 1500)
-    limit = min(limit / 100, 100)
+    rate_of_change = min(limit / 5, 1500)
+    limit = limit / 100 if limit else 100
     sec += 10
 
     # Make the final count and current count same.
@@ -302,8 +302,8 @@ def participant_count(limit, current, sec):
     # Calculate probability for participant going up or down.
     random = np.random.rand()
     random_2 = np.random.rand()
-    prob = max(0.6, (1 - (sec / max_subscriber_count)))
-    neg_prob = min(0.6, (sec * 2 / max_subscriber_count))
+    prob = max(0.6, (1 - (sec / rate_of_change)))
+    neg_prob = min(0.6, (sec * 2 / rate_of_change))
 
     # Update the final count of participants based on the probability.
     if sec > 1800:
@@ -336,11 +336,12 @@ def cache_live_webinar(group):
         cached_live_webinars = REDIS.get("live_webinars")
         if cached_live_webinars is None:
             creator = creator_models.Creator.objects.get(user=group.host)
+            participant = creator.participant_count
 
             REDIS.set("live_webinars", json.dumps({
                 "webinars": [{
                     "group_id": group.id,
-                    "subscriber_count": creator.number_of_subscribers
+                    "participant": participant if participant else creator.number_of_subscribers
                 }]
             }))
         else:
@@ -355,7 +356,7 @@ def cache_live_webinar(group):
                 creator = creator_models.Creator.objects.get(user=group.host)
                 data_to_cache = {
                     "group_id": group.id,
-                    "subscriber_count": creator.number_of_subscribers
+                    "participant": participant if participant else creator.number_of_subscribers
                 }
                 live_webinars.append(data_to_cache)
                 REDIS.set("live_webinars", json.dumps({"webinars": live_webinars}))
@@ -374,34 +375,36 @@ def remove_cached_live_webinar(group):
     try:
         # Check if live webinars are cached
         cached_live_webinars = REDIS.get("live_webinars")
-        if cached_live_webinars is not None:
-            live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
+        if not cached_live_webinars:
+            return
+        
+        live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
 
-            for data in live_webinars:
-                if data["group_id"] == group.id:
-                    live_webinars.remove(data)
+        for data in live_webinars:
+            if data["group_id"] == group.id:
+                live_webinars.remove(data)
 
-                    if not live_webinars:
-                        REDIS.delete("live_webinars")
-                    else:
-                        REDIS.set("live_webinars", json.dumps({"webinars": live_webinars}))
+                if not live_webinars:
+                    REDIS.delete("live_webinars")
+                else:
+                    REDIS.set("live_webinars", json.dumps({"webinars": live_webinars}))
 
-                    cached_webinar_count = REDIS.get(f"{group.id}")
-                    if cached_webinar_count is not None:
-                        REDIS.delete(f"{group.id}")
+                cached_webinar_count = REDIS.get(f"{group.id}")
+                if cached_webinar_count is not None:
+                    REDIS.delete(f"{group.id}")
 
-                        # Send live count as 0 to channel layer group
-                        channel_layer = get_channel_layer()
-                        async_to_sync(channel_layer.group_send)(
-                            f"{group.id}",
-                            {
-                                "type": "send.live_count",
-                                "text": json.dumps({
-                                    "type": "live_count",
-                                    "count": 0
-                                })
-                            }
-                        )
+                    # Send live count as 0 to channel layer group
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.group_send)(
+                        f"{group.id}",
+                        {
+                            "type": "send.live_count",
+                            "text": json.dumps({
+                                "type": "live_count",
+                                "count": 0
+                            })
+                        }
+                    )
 
     except creator_models.Creator.DoesNotExist:
         pass
