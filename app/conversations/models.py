@@ -442,6 +442,7 @@ class Group(base_model.BaseModel):
             users.append(speaker)
         return users
 
+
 class Invite(base_model.BaseModel):
 
     INVITE_STATUS_CHOICES = (

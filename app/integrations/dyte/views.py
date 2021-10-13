@@ -164,7 +164,7 @@ class DyteParticipantViewSet(
 
             # Start recording the session if there are
             # no active recordings for the live stream.
-            active_recordings = private.get_active_recording_for_meeting_id(
+            active_recordings = private.get_active_recording_for_dyte_meeting(
                 dyte_meeting=participant.dyte_meeting
             )
             if not active_recordings:
