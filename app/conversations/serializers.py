@@ -294,8 +294,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    topic = serializers.CharField(required=True, write_only=True)
-    image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
+    topic_title = serializers.CharField(required=True, write_only=True)
+    topic_image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False,
+                                         write_only=True)
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
 
@@ -311,7 +312,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "id",
             "host",
             "topic",
-            "image",
+            "topic_title",
+            "topic_image",
             "description",
             "start",
             "privacy",
@@ -340,6 +342,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "closed_at": {"read_only": True},
             "type": {"read_only": True},
             "is_live": {"read_only": True},
+            "topic": {"read_only": True},
             "categories": {"required": True},
         }
 
@@ -391,10 +394,11 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         elif start < timezone.now():
             raise exceptions.GroupStartDateTimeNotInFuture()
 
-        image = validated_data.pop("image") if validated_data.get("image") else None
+        title = validated_data.pop("topic_title") if validated_data.get("topic_title") else None
+        image = validated_data.pop("topic_image") if validated_data.get("topic_image") else None
 
         topic = services.get_or_create_topic(
-            name=validated_data.get("topic"),
+            name=title,
             image=image,
             description=validated_data.get("description"),
             creator=user
