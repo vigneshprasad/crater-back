@@ -4,7 +4,6 @@ from integrations.dyte import models
 
 
 class DyteMeetingSerializer(ModelSerializer):
-
     class Meta:
         model = models.DyteMeeting
         fields = (
@@ -16,7 +15,6 @@ class DyteMeetingSerializer(ModelSerializer):
 
 
 class DyteParticipantSerializer(ModelSerializer):
-
     dyte_meeting_detail = DyteMeetingSerializer(source="dyte_meeting")
 
     class Meta:
@@ -26,5 +24,23 @@ class DyteParticipantSerializer(ModelSerializer):
             "dyte_meeting",
             "auth_token",
             "is_online",
+            "dyte_meeting_detail"
+        )
+
+
+class DyteMeetingRecordingSerializer(ModelSerializer):
+
+    dyte_meeting_detail = DyteMeetingSerializer(source="dyte_meeting")
+
+    class Meta:
+        model = models.DyteMeetingRecording
+        fields = (
+            "pk",
+            "dyte_meeting",
+            "recording_id",
+            "status",
+            "path",
+            "started_at",
+            "stopped_at",
             "dyte_meeting_detail"
         )

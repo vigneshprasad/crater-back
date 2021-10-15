@@ -95,8 +95,8 @@ def update_or_create_calendar_event_for_conversation(group):
             models.GoogleCalendarEvent.objects.update_or_create(
                 user=user,
                 group_id=group.id,
+                event_id=event_id,
                 defaults={
-                    "event_id": event_id,
                     "starts_at": group.local_start,
                     "ends_at": group.local_end
                 }
@@ -144,8 +144,8 @@ def create_calendar_event_for_conversations(group):
         models.GoogleCalendarEvent.objects.update_or_create(
             user=user,
             group_id=group.id,
+            event_id=event_id,
             defaults={
-                "event_id": event_id,
                 "starts_at": start_datetime,
                 "ends_at": end_datetime
             }
@@ -197,6 +197,64 @@ def create_calendar_event_for_webinar_host(group):
     )
 
     return event_id
+
+
+def create_calendar_event_for_webinar_speakers(speakers, group):
+    """Create calendar event for a live stream an speaker.
+
+    Args:
+        group(Group): Group the user joined into.
+        speakers(Speaker): Speakers for whom the calendar needs to be created
+
+    """
+    
+    host = group.host
+    if not host:
+        return 
+
+    for speaker in speakers: 
+        # TODO(Nishant): This has to change for each environment.
+        google_calendar_event = models.GoogleCalendarEvent.objects.filter(
+            group_id=group.id,
+            user=speaker
+        ).last()
+
+        if google_calendar_event:
+            continue
+ 
+        stream_link = "https://crater.club/session/{group_id}".format(
+            group_id=group.id
+        )
+        summary = constants.HOST_SUMMARY_FOR_WEBINARS
+        description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
+            creator_name=speaker.name.title(),
+            date=group.get_display_day(),
+            time=group.get_display_start_time(),
+            topic=group.topic.name,
+            stream_link=stream_link,
+            phone_number=speaker.username
+        )
+
+        event_id, meeting_link = calendar_services.google_calendar_service.create_event(
+            start_datetime=group.local_start,
+            end_datetime=group.local_end,
+            users=[speaker],
+            summary=summary,
+            description=description,
+            conference_name=constants.DEFAULT_CONFERENCE_NAME_FOR_WEBINAR,
+            meeting_link=stream_link
+        )
+
+        models.GoogleCalendarEvent.objects.update_or_create(
+            user=speaker,
+            group_id=group.id,
+            event_id=event_id,
+            defaults={
+                "meeting_link": meeting_link,
+                "starts_at": group.local_start,
+                "ends_at": group.local_end
+            }
+        )
 
 
 def create_calendar_event_for_webinar_attendee(user, group):

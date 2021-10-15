@@ -292,8 +292,8 @@ def participant_count(limit, current, sec):
     if not limit:
         return 0, 0
 
-    max_subscriber_count = min(limit / 5, 1500)
-    limit = min(limit / 100, 100)
+    rate_of_change = min(limit / 5, 1500)
+    limit = limit / 100 if limit else 100
     sec += 10
 
     # Make the final count and current count same.
@@ -302,8 +302,8 @@ def participant_count(limit, current, sec):
     # Calculate probability for participant going up or down.
     random = np.random.rand()
     random_2 = np.random.rand()
-    prob = max(0.6, (1 - (sec / max_subscriber_count)))
-    neg_prob = min(0.6, (sec * 2 / max_subscriber_count))
+    prob = max(0.6, (1 - (sec / rate_of_change)))
+    neg_prob = min(0.6, (sec * 2 / rate_of_change))
 
     # Update the final count of participants based on the probability.
     if sec > 1800:
@@ -332,32 +332,39 @@ def cache_live_webinar(group):
 
     """
     try:
-        # Check if live webinars are cached
-        cached_live_webinars = REDIS.get("live_webinars")
-        if cached_live_webinars is None:
-            creator = creator_models.Creator.objects.get(user=group.host)
-
-            REDIS.set("live_webinars", json.dumps({
-                "webinars": [{
-                    "group_id": group.id,
-                    "subscriber_count": creator.number_of_subscribers
-                }]
-            }))
-        else:
-            live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
-            creator = creator_models.Creator.objects.get(user=group.host)
-            data_to_cache = {
-                "group_id": group.id,
-                "subscriber_count": creator.number_of_subscribers
-            }
-
-            # Cache current live webinar details if not present
-            if data_to_cache not in live_webinars:
-                live_webinars.append(data_to_cache)
-                REDIS.set("live_webinars", json.dumps({"webinars": live_webinars}))
-
+        creator = creator_models.Creator.objects.get(user=group.host)
     except creator_models.Creator.DoesNotExist:
-        pass
+        return False
+
+    # Data to be cached to Redis for the group.
+    data_to_cache_for_group = {
+        "group_id": group.id,
+        "participant": creator.participant_count or creator.number_of_subscribers
+    }
+
+    cached_live_webinars = REDIS.get("live_webinars")
+    live_webinars = json.loads(cached_live_webinars.decode("ascii")).get(
+        "webinars",
+        []
+    ) if cached_live_webinars else []
+
+    # Generate list of all group ids in the cache.
+    group_ids = [webinar.get("group_id") for webinar in live_webinars]
+
+    # If the Group Id is already present in cached group
+    # ids, return.
+    if group.id in group_ids:
+        return True
+
+    live_webinars.append(data_to_cache_for_group)
+    REDIS.set(
+        "live_webinars",
+        json.dumps({
+            "webinars": live_webinars
+        })
+    )
+
+    return True
 
 
 def remove_cached_live_webinar(group):
@@ -367,45 +374,49 @@ def remove_cached_live_webinar(group):
         group(Group): Group instance with type webinar
 
     """
-    try:
-        # Check if live webinars are cached
-        cached_live_webinars = REDIS.get("live_webinars")
-        if cached_live_webinars is not None:
-            live_webinars = json.loads(cached_live_webinars.decode('ascii')).get('webinars')
+    # Check if live webinars are cached
+    cached_live_webinars = REDIS.get("live_webinars")
+    if not cached_live_webinars:
+        return True
 
-            if live_webinars:
-                creator = creator_models.Creator.objects.get(user=group.host)
-                data_to_cache = {
-                    "group_id": group.id,
-                    "subscriber_count": creator.number_of_subscribers
+    live_webinars = json.loads(cached_live_webinars.decode("ascii")).get("webinars")
+    group_data = None
+
+    for data in live_webinars:
+        if data.get("group_id") == group.id:
+            group_data = data
+
+    # If there is not data related to the group
+    # in the cache, return.
+    if not group_data:
+        return True
+
+    # Remove the group data from the live webinars.
+    live_webinars.remove(group_data)
+
+    REDIS.set(
+        "live_webinars",
+        json.dumps({"webinars": live_webinars})
+    ) if live_webinars else REDIS.delete("live_webinars")
+
+    cached_webinar_count = REDIS.get(f"{group.id}")
+    if not cached_webinar_count:
+        return True
+
+    # Delete the group count from REDIS.
+    REDIS.delete(f"{group.id}")
+
+    # Send live count as 0 to channel layer group
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"{group.id}",
+        {
+            "type": "send.live_count",
+            "text": json.dumps(
+                {
+                    "type": "live_count",
+                    "count": 0
                 }
-
-                # Remove current live webinar from cache if present
-                if data_to_cache in live_webinars:
-                    live_webinars.remove(data_to_cache)
-                    REDIS.set("live_webinars", json.dumps({"webinars": live_webinars}))
-
-                    cached_webinar_count = REDIS.get(f"{group.id}")
-                    if cached_webinar_count is not None:
-                        REDIS.delete(f"{group.id}")
-
-                        # Send live count as 0 to channel layer group
-                        channel_layer = get_channel_layer()
-                        async_to_sync(channel_layer.group_send)(
-                            f"{group.id}",
-                            {
-                                "type": "send.live_count",
-                                "text": json.dumps({
-                                    "type": "live_count",
-                                    "count": 0
-                                })
-                            }
-                        )
-
-                    if not live_webinars:
-                        REDIS.delete("live_webinars")
-            else:
-                REDIS.delete("live_webinars")
-
-    except creator_models.Creator.DoesNotExist:
-        pass
+            )
+        }
+    )

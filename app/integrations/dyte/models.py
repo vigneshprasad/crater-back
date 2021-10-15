@@ -1,6 +1,11 @@
+import datetime
+
+from django.conf import settings
 from django.db import models
+from django.utils.html import format_html
 
 from base import models as base_model
+from integrations.dyte import constants
 
 
 class DyteMeeting(base_model.BaseModel):
@@ -38,13 +43,56 @@ class DyteMeetingParticipant(base_model.BaseModel):
         on_delete=models.CASCADE,
         related_name="dyte_participant"
     )
+
+    # Auth token for joining the dyte call.
     auth_token = models.TextField()
+
+    last_online_at = models.DateTimeField(null=True, blank=True)
     is_online = models.BooleanField(default=False)
 
     def mark_online(self):
         self.is_online = True
+        self.last_online_at = datetime.datetime.now()
         self.save()
 
     def mark_offline(self):
         self.is_online = False
         self.save()
+
+
+class DyteMeetingRecording(base_model.BaseModel):
+
+    RECORDING_STATUS = (
+        (constants.DYTE_RECORDING_STATUS_INVOKED, constants.DYTE_RECORDING_STATUS_INVOKED),
+        (constants.DYTE_RECORDING_STATUS_RECORDING, constants.DYTE_RECORDING_STATUS_RECORDING),
+        (constants.DYTE_RECORDING_STATUS_UPLOADING, constants.DYTE_RECORDING_STATUS_UPLOADING),
+        (constants.DYTE_RECORDING_STATUS_UPLOADED, constants.DYTE_RECORDING_STATUS_UPLOADED),
+        (constants.DYTE_RECORDING_STATUS_ERRORED, constants.DYTE_RECORDING_STATUS_ERRORED)
+    )
+
+    dyte_meeting = models.ForeignKey(
+        "dyte.DyteMeeting",
+        related_name="meeting_recording",
+        on_delete=models.CASCADE
+    )
+    # Recording ID on Dyte's servers.
+    recording_id = models.CharField(max_length=128)
+    status = models.CharField(
+        max_length=16,
+        default=constants.DYTE_RECORDING_STATUS_INVOKED,
+        choices=RECORDING_STATUS
+    )
+    path = models.TextField()
+    started_at = models.DateTimeField(null=True, blank=True)
+    stopped_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return "{}: {}".format(
+            self.pk,
+            self.recording_id
+        )
+
+    @property
+    def object_url(self):
+        url = settings.AWS_DEFAULT_OBJECT_URL + self.path
+        return format_html("<a target='_blank' href='{url}'>{url}</a>", url=url)

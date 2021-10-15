@@ -515,3 +515,13 @@ class CategoryViewSet(
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.filter(is_active=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class GroupRecodingViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.GroupRecordingSerializer
+    queryset = models.GroupRecording.objects.filter(is_published=True)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]

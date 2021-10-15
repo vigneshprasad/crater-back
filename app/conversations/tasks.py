@@ -129,7 +129,7 @@ def start_recording_for_webinars(groups=None):
         )
 
 
-# @periodic_task(run_every=crontab(minute="*/10"))
+@periodic_task(run_every=crontab(minute="*/10"))
 def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     """Send whatsapp reminder to all attendees for Webinar
 
@@ -156,7 +156,7 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
         )
 
 
-# @periodic_task(run_every=crontab(minute="*/10"))
+@periodic_task(run_every=crontab(minute="*/10"))
 def send_whatsapp_reminder_for_webinar_host(groups=None):
     """Send webinar reminder whatsapp for the host.
 
@@ -367,7 +367,7 @@ def cache_participant_count():
             sec = obj.get("sec")
 
         current, sec = services.participant_count(
-            data.get("subscriber_count"),
+            data.get("participant"),
             current,
             sec
         )
