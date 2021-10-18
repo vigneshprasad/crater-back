@@ -129,7 +129,7 @@ def start_recording_for_webinars(groups=None):
         )
 
 
-@periodic_task(run_every=crontab(minute="*/10"))
+@periodic_task(run_every=crontab(minute="*/5"))
 def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     """Send whatsapp reminder to all attendees for Webinar
 
@@ -140,7 +140,7 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=10))
+    end_datetime = (now_time + datetime.timedelta(minutes=5))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
@@ -339,7 +339,7 @@ def create_user_introductions_for_eligible_users(profiles=None):
         profile.save()
 
 
-@periodic_task(run_every=datetime.timedelta(seconds=10))
+# @periodic_task(run_every=datetime.timedelta(seconds=10))
 def cache_participant_count():
     """Calculate current participant count for live webinars.
 
