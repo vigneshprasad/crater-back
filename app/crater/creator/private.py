@@ -1,4 +1,5 @@
 from crater.creator import models
+from crater.creator import signals
 
 
 def create_default_community_for_creator(creator):
@@ -62,10 +63,16 @@ def add_user_to_community(user, community):
         added to.
 
     """
-    community_member, _ = models.CommunityMember.objects.get_or_create(
+    community_member, created = models.CommunityMember.objects.get_or_create(
         user=user,
         community=community
     )
+
+    if created:
+        signals.user_added_to_community.send(
+            sender=community_member.__class__,
+            community_member=community_member
+        )
 
     return community_member
 
@@ -110,6 +117,14 @@ def create_follower_for_creator(user, creator):
             "unfollowed": False
         }
     )
+
+    # Send a creator followed signal
+    # when the creator is followed.
+    if created:
+        signals.creator_followed.send(
+            sender=follower.__class__,
+            follower=follower
+        )
 
     return follower
 
