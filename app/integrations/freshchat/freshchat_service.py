@@ -79,6 +79,9 @@ class FreshChatWhatsappService:
             user(User): User we are sending messages to.
 
         """
+        if not settings.ALLOW_WHATSAPP_SENDING:
+            return False
+
         if not user.has_profile:
             logging.error("Message not sent for {}. No profile".format(
                 user.__str__()
