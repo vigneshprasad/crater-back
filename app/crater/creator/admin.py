@@ -43,10 +43,10 @@ class CommunityAdmin(admin.ModelAdmin):
 class CommunityMemberAdmin(admin.ModelAdmin):
     list_display = (
         "id",
+        "user",
         "community",
-        "user"
+        "joined_at"
     )
-    list_filter = ("community__creator", )
     search_fields = (
         "user__username",
         "user__name"
@@ -58,8 +58,8 @@ class CommunityMemberAdmin(admin.ModelAdmin):
 class FollowerAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "creator",
         "user",
+        "creator",
         "unfollowed",
         "followed_at"
     )
