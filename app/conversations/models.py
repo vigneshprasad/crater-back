@@ -599,4 +599,4 @@ class GroupRtmp(base_model.BaseModel):
         related_name="rtmp",
         on_delete=models.CASCADE
     )
-    link = models.URLField()
+    link = models.TextField()
