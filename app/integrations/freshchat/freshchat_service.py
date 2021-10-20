@@ -79,6 +79,9 @@ class FreshChatWhatsappService:
             user(User): User we are sending messages to.
 
         """
+        if not settings.ALLOW_WHATSAPP_SENDING:
+            return False
+
         if not user.has_profile:
             logging.error("Message not sent for {}. No profile".format(
                 user.__str__()
@@ -249,9 +252,6 @@ class FreshChatWhatsappService:
 
         """
 
-        if not self._can_send_message_to_user(user):
-            return False
-
         data = {
             "from": {"phone_number": self.from_phone_number},
             "to": [{"phone_number": user.get_phone_number()}],
@@ -266,6 +266,10 @@ class FreshChatWhatsappService:
                 }
             }
         }
+
+        if not self._can_send_message_to_user(user):
+            # TODO(Nishant): Add logging for debugging.
+            return False
 
         if rich_template_data:
             data["data"]["message_template"] = rich_template_data

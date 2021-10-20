@@ -31,6 +31,11 @@ class CommunityAdmin(admin.ModelAdmin):
         "is_default",
         "is_active"
     )
+    list_filter = ("creator",)
+    search_fields = (
+        "creator__user__username",
+        "creator__user__name"
+    )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
@@ -38,8 +43,13 @@ class CommunityAdmin(admin.ModelAdmin):
 class CommunityMemberAdmin(admin.ModelAdmin):
     list_display = (
         "id",
+        "user",
         "community",
-        "user"
+        "joined_at"
+    )
+    search_fields = (
+        "user__username",
+        "user__name"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
@@ -48,9 +58,16 @@ class CommunityMemberAdmin(admin.ModelAdmin):
 class FollowerAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "creator",
         "user",
+        "creator",
         "unfollowed",
         "followed_at"
+    )
+    list_filter = ("creator", )
+    search_fields = (
+        "creator__user__username",
+        "creator__user__name",
+        "user__username",
+        "user__name"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
