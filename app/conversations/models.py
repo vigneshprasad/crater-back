@@ -16,7 +16,6 @@ from utils import validators as validator_utils
 
 
 class SuggestedTopic(base_model.BaseModel):
-
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
         (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
@@ -103,7 +102,6 @@ class Topic(base_model.BaseModel):
 
 
 class Category(base_model.BaseModel):
-
     name = models.CharField(max_length=64)
     # Denotes a specific color for a category.
     color = models.CharField(
@@ -148,7 +146,6 @@ class Category(base_model.BaseModel):
 
 
 class Group(base_model.BaseModel):
-
     GROUP_PRIVACY_CHOICES = (
         (constants.GROUP_PRIVACY_PUBLIC_ENUM, constants.GROUP_PRIVACY_PUBLIC),
         (constants.GROUP_PRIVACY_PRIVATE_ENUM, constants.GROUP_PRIVACY_PRIVATE)
@@ -444,7 +441,6 @@ class Group(base_model.BaseModel):
 
 
 class Invite(base_model.BaseModel):
-
     INVITE_STATUS_CHOICES = (
         (constants.INVITE_STATUS_PENDING_ENUM, constants.INVITE_STATUS_PENDING),
         (constants.INVITE_STATUS_ACCEPTED_ENUM, constants.INVITE_STATUS_ACCEPTED),
@@ -486,7 +482,6 @@ class Invite(base_model.BaseModel):
 
 
 class Request(base_model.BaseModel):
-
     REQUEST_STATUS_CHOICES = (
         (constants.REQUEST_STATUS_PENDING_ENUM, constants.REQUEST_STATUS_PENDING),
         (constants.REQUEST_STATUS_ACCEPTED_ENUM, constants.REQUEST_STATUS_ACCEPTED),
@@ -595,3 +590,13 @@ class GroupRecording(base_model.BaseModel):
         self.is_published = True
         self.published_at = datetime.datetime.now()
         self.save()
+
+
+class GroupRtmp(base_model.BaseModel):
+    """RTMP for the group."""
+    group = models.OneToOneField(
+        Group,
+        related_name="rtmp",
+        on_delete=models.CASCADE
+    )
+    link = models.TextField()
