@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from twilio.rest import Client
 from twilio.base import exceptions
@@ -21,6 +23,7 @@ class TwilioService:
 
     def send_message(self, phone_number, body):
         if not self._can_send_message():
+            # TODO(Nishant): Add logging for debugging.
             return
 
         try:

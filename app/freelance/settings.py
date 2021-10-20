@@ -352,7 +352,7 @@ MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
 
-ALLOW_MESSAGE_SENDING = os.getenv("ALLOW_MESSAGE_SENDING", True)
+ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
 DEFAULT_SMS_PHONE_NUMBER = os.getenv("DEFAULT_SMS_PHONE_NUMBER", "")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "example")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "example")
@@ -423,7 +423,7 @@ sentry_sdk.init(
 )
 
 # ----------- FRESHCHAT ---------#
-ALLOW_WHATSAPP_SENDING = os.getenv("ALLOW_WHATSAPP_SENDING", True)
+ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
 FRESHCHAT_BASE_URL = "https://api.in.freshchat.com/v2"
 FRESHCHAT_USER_CREATION_ALLOWED = False if os.getenv("FRESHCHAT_USER_CREATION_ALLOWED", True) == "False" else True
 FRESHCHAT_APP_ID = os.getenv("FRESHCHAT_APP_ID")

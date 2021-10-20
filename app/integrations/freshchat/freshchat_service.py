@@ -252,9 +252,6 @@ class FreshChatWhatsappService:
 
         """
 
-        if not self._can_send_message_to_user(user):
-            return False
-
         data = {
             "from": {"phone_number": self.from_phone_number},
             "to": [{"phone_number": user.get_phone_number()}],
@@ -269,6 +266,10 @@ class FreshChatWhatsappService:
                 }
             }
         }
+
+        if not self._can_send_message_to_user(user):
+            # TODO(Nishant): Add logging for debugging.
+            return False
 
         if rich_template_data:
             data["data"]["message_template"] = rich_template_data
