@@ -47,6 +47,25 @@ class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     success_url = reverse_lazy("admin:dashboard_dashboard_changelist")
 
 
+class UserViewSet(
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.UserDetailSerializer
+    queryset = models.User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    )
+    def count(self, request):
+        count = self.get_queryset().count()
+        return Response({
+            "count": count + constants.BASE_USER_COUNT
+        }, status=status.HTTP_200_OK)
+
+
 class ProfileViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
