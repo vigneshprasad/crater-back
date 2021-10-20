@@ -4,6 +4,7 @@ import json
 import numpy as np
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
@@ -13,8 +14,6 @@ from conversations import models
 from conversations import signals
 
 from crater.creator import models as creator_models
-
-from freelance.settings import REDIS
 
 
 def get_root_topic(topic):
@@ -342,7 +341,7 @@ def cache_live_webinar(group):
         "participant": creator.participant_count or creator.number_of_subscribers
     }
 
-    cached_live_webinars = REDIS.get("live_webinars")
+    cached_live_webinars = settings.REDIS.get("live_webinars")
     live_webinars = json.loads(cached_live_webinars.decode("ascii")).get(
         "webinars",
         []
@@ -357,7 +356,7 @@ def cache_live_webinar(group):
         return True
 
     live_webinars.append(data_to_cache_for_group)
-    REDIS.set(
+    settings.REDIS.set(
         "live_webinars",
         json.dumps({
             "webinars": live_webinars
@@ -375,7 +374,7 @@ def remove_cached_live_webinar(group):
 
     """
     # Check if live webinars are cached
-    cached_live_webinars = REDIS.get("live_webinars")
+    cached_live_webinars = settings.REDIS.get("live_webinars")
     if not cached_live_webinars:
         return True
 
@@ -394,17 +393,17 @@ def remove_cached_live_webinar(group):
     # Remove the group data from the live webinars.
     live_webinars.remove(group_data)
 
-    REDIS.set(
+    settings.REDIS.set(
         "live_webinars",
         json.dumps({"webinars": live_webinars})
-    ) if live_webinars else REDIS.delete("live_webinars")
+    ) if live_webinars else settings.REDIS.delete("live_webinars")
 
-    cached_webinar_count = REDIS.get(f"{group.id}")
+    cached_webinar_count = settings.REDIS.get(f"{group.id}")
     if not cached_webinar_count:
         return True
 
     # Delete the group count from REDIS.
-    REDIS.delete(f"{group.id}")
+    settings.REDIS.delete(f"{group.id}")
 
     # Send live count as 0 to channel layer group
     channel_layer = get_channel_layer()

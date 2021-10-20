@@ -1,6 +1,8 @@
 from conversations import models as conversation_models
 from conversations import constants as conversation_constants
-from conversations import signals as conversation_signals
+from crater.creator import models
+from crater.creator import private
+from crater.creator import signals
 
 
 def run(dry_run=True):
@@ -13,8 +15,14 @@ def run(dry_run=True):
         if not dry_run:
             # Will creator followers for creators and add the user to
             # community of the creator.
-            conversation_signals.attendee_added_to_group.send(
-                sender=request.__dict__,
-                user=request.requester,
-                group=request.group
+            host = request.host
+            try:
+                creator = host.creator
+            except models.Creator.DoesNotExist:
+                continue
+
+            follower = private.create_follower_for_creator(request.requester, creator)
+            signals.creator_followed.send(
+                sender=follower.__class__,
+                follower=follower
             )

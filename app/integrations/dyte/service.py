@@ -425,6 +425,11 @@ class DyteService:
             }
         }
 
+        if hasattr(dyte_meeting.group, 'rtmp'):
+            data["liveStreamingConfig"] = {
+                "rtmpUrl": dyte_meeting.group.rtmp.link
+            }
+
         response = requests.request(
             "POST",
             url,

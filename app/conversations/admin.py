@@ -160,8 +160,8 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
         "live_status",
         "created_at"
     )
-    search_fields = ("user", )
-    list_filter = ("group", )
+    search_fields = ("user",)
+    list_filter = ("group",)
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
 
@@ -225,3 +225,22 @@ class GroupRecordingAdmin(admin.ModelAdmin):
     def get_rangefilter_created_at_title(request, field_path="created_at"):
         """Returns the title for the start date filter."""
         return "Created at Filter"
+
+
+@admin.register(models.GroupRtmp)
+class GroupRtmpAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "link",
+    )
+    search_fields = (
+        "group__host__username",
+        "group__host__name",
+    )
+    list_filter = (
+        ("created_at", filter.DateRangeFilter),
+        ("group__start", filter.DateRangeFilter),
+        "group"
+    )
+    exclude = ("deleted_at", "updated_at", "is_deleted")

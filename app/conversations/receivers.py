@@ -30,14 +30,14 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
     signals.webinar_created.send(sender=instance.__class__, group=instance)
 
 
-@receiver(signals.group_marked_live)
-def create_webinar_cache(sender, group, *args, **kwargs):
-    services.cache_live_webinar(group=group)
+# @receiver(signals.group_marked_live)
+# def create_webinar_cache(sender, group, *args, **kwargs):
+#     services.cache_live_webinar(group=group)
 
 
-@receiver(signals.group_marked_closed)
-def remove_webinar_cache(sender, group, *args, **kwargs):
-    services.remove_cached_live_webinar(group=group)
+# @receiver(signals.group_marked_closed)
+# def remove_webinar_cache(sender, group, *args, **kwargs):
+#     services.remove_cached_live_webinar(group=group)
 
 
 @receiver(m2m_changed, sender=models.Group.speakers.through)

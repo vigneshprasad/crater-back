@@ -1,5 +1,8 @@
-from twilio.rest import Client
+import logging
+
 from django.conf import settings
+from twilio.rest import Client
+from twilio.base import exceptions
 
 
 class TwilioService:
@@ -14,12 +17,24 @@ class TwilioService:
     def _get_client(self):
         return Client(self._account_sid, self._auth_token)
 
+    @staticmethod
+    def _can_send_message():
+        return settings.ALLOW_MESSAGE_SENDING
+
     def send_message(self, phone_number, body):
-        message = self.client.messages.create(
-            to=phone_number,
-            from_=self.from_number,
-            body=body
-        )
+        if not self._can_send_message():
+            # TODO(Nishant): Add logging for debugging.
+            return
+
+        try:
+            message = self.client.messages.create(
+                to=phone_number,
+                from_=self.from_number,
+                body=body
+            )
+        except exceptions.TwilioRestException:
+            return
+
         return message.sid
 
 
