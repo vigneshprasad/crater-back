@@ -741,6 +741,10 @@ class Profile(models.Model):
         return self.user.name if self.user.name else self.user.username
 
     @property
+    def is_creator(self):
+        return bool(hasattr(self.user, "creator") and self.user.creator)
+
+    @property
     def is_instagram_set(self):
         return bool(self.instagram)
 

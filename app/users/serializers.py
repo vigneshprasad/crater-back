@@ -678,7 +678,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "number_of_employees_detail",
             "project_type_detail",
             "stage_of_company_detail",
-            "companies_invested_detail"
+            "companies_invested_detail",
+            "is_creator"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
