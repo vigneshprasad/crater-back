@@ -14,6 +14,7 @@ register_router.register("bank_details", views.BankDetailViewSet, base_name="ban
 register_router.register("verify", views.VerificationView, base_name="verify")
 register_router.register("user_services", views.UserServicesViewSet, base_name="services")
 register_router.register("investor_services", views.InvestorServicesViewSet, base_name="investor-services")
+register_router.register("users", views.UserViewSet, base_name="users-view")
 
 router = routers.SimpleRouter()
 router.register("investors", views.InvestorsViewSet, base_name="investors")

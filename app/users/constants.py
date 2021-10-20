@@ -26,6 +26,8 @@ INTENT_CHOICES = (
     (INTENT_SERVICES, INTENT_SERVICES.title())
 )
 
+BASE_USER_COUNT = 15000
+
 template_names = {
     "password_reset": "Password Reset New",
     "verify_email": "Verify email",
