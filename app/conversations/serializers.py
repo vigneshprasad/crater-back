@@ -391,7 +391,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         # at the same time.
         start = validated_data["start"]
         if services.get_groups_for_user_and_start(user, start):
-            raise exceptions.GroupCreatedAtTheSameTime()
+            raise serializers.ValidationError(exceptions.GroupCreatedAtTheSameTime().get_error_body())
         elif start < timezone.now():
             raise serializers.ValidationError(exceptions.GroupStartDateTimeNotInFuture().get_error_body())
         elif start < tomorrow:
