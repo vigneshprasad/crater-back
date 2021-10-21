@@ -21,7 +21,7 @@ class GroupWebinarPublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.GroupWebinarSerializer
-    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)
+    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True)
     permission_classes = [user_permissions.AllowAny]
     filterset_fields = ["categories"]
 

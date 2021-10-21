@@ -485,14 +485,25 @@ class GroupCalendarViewSet(
         return Response(response)
 
 
+class AllGroupWebinarViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)
+    serializer_class = serializers.GroupWebinarSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filterset_fields = ["host", "categories"]
+
+
 class GroupWebinarViewSet(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
+    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True)
     serializer_class = serializers.GroupWebinarSerializer
-    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ["host", "categories"]
 

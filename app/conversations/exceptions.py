@@ -111,3 +111,18 @@ class GroupStartDateTimeNotInFuture(base_exceptions.BaseAPIException):
 
     def __str__(self):
         return "{}".format(self.message)
+
+
+class GroupStartLessThan24Hours(base_exceptions.BaseAPIException):
+    """Exception raised when a user creates a group with start datetime
+        less then 24 hours
+
+    """
+    def __init__(self):
+        super().__init__(
+            message="The start time is too soon.",
+            error_code="groupStartLessThan24Hours"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)
