@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from base import models as base_model
 from conversations import constants
 from conversations import signals
+from model_utils.models import TimeStampedModel
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
 
@@ -600,3 +601,26 @@ class GroupRtmp(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     link = models.TextField()
+
+
+class GroupQuestion(TimeStampedModel):
+    """
+    Question for the group.
+    """
+    question = models.TextField()
+    group = models.ForeignKey(
+        Group,
+        related_name='group_questions',
+        on_delete=models.CASCADE
+    )
+    sender = models.ForeignKey(
+        get_user_model(),
+        related_name='sender_questions',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"{self.pk}-{self.sender}"

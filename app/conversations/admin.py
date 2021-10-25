@@ -244,3 +244,21 @@ class GroupRtmpAdmin(admin.ModelAdmin):
         "group"
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
+
+
+@admin.register(models.GroupQuestion)
+class GroupQuestionAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "sender",
+        "question"
+    )
+    search_fields = (
+        "question",
+    )
+    list_filter = (
+        "group",
+        "sender"
+    )
+    exclude = ("updated_at",)
