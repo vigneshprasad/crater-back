@@ -480,7 +480,7 @@ class GroupCalendarViewSet(
     )
     def my(self, request, *args, **kwargs):
         user = request.user
-        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
+        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user) | Q(attendees=user)).order_by("start")
         response = self._make_date_dict(groups)
         return Response(response)
 
