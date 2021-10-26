@@ -305,6 +305,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     # TODO(Nishant): Figure out how to show is past.
     is_past = serializers.SerializerMethodField(read_only=True)
     recording_details = GroupRecordingSerializer(source="recording", read_only=True)
+    speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
 
     class Meta:
         model = models.Group
@@ -331,7 +332,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "is_featured",
             "categories",
             "categories_detail_list",
-            "recording_details"
+            "recording_details",
+            "speakers",
+            "speakers_detail_list"
         )
 
         extra_kwargs = {
