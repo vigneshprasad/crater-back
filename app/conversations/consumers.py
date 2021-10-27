@@ -58,7 +58,6 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         """
         Broadcast user message on the channel group
         """
-        print(event)
         await self.send(event["message"])
 
     async def get_group_messages(self, event):
