@@ -2,8 +2,10 @@ import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from rest_framework.exceptions import ValidationError
 
 from .models import Group, GroupMessage
+from .serializers import GroupMessageSerializer
 
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
@@ -41,21 +43,22 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None):
         text_data = json.loads(text_data)
 
-        await self.create_group_message(text_data.get("text"))
-
-        # Broadcast message on the channel group
-        await self.channel_layer.group_send(
-            f"crater_live_{self.group.id}",
-            {
-                "type": "broadcast.message",
-                "message": json.dumps(text_data)
-            }
-        )
+        group_message = await self.create_group_message(text_data.get("text"))
+        if group_message:
+            # Broadcast message on the channel group
+            await self.channel_layer.group_send(
+                f"crater_live_{self.group.id}",
+                {
+                    "type": "broadcast.message",
+                    "message": json.dumps(group_message)
+                }
+            )
 
     async def broadcast_message(self, event):
         """
         Broadcast user message on the channel group
         """
+        print(event)
         await self.send(event["message"])
 
     async def get_group_messages(self, event):
@@ -92,8 +95,20 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def create_group_message(self, message):
-        GroupMessage.objects.create(
-            message=message,
-            group=self.group,
-            sender=self.user
-        )
+        group_message = None
+        data = {
+            "group": self.group.id,
+            "sender": self.user.uuid,
+            "message": message
+        }
+
+        try:
+            serializer = GroupMessageSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            group_message = serializer.data
+        except ValidationError:
+            pass
+
+        return group_message
