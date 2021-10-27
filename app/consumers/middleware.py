@@ -1,23 +1,19 @@
-import jwt
+from urllib.parse import parse_qsl
 
+from channels.auth import AuthMiddlewareStack
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import ValidationError
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_jwt.utils import jwt_decode_handler
 from users.models import User
 
 
 @database_sync_to_async
 def get_user(token_key):
-    if not token_key:
-        return AnonymousUser()
-
     try:
         payload = jwt_decode_handler(token_key)
         user = User.objects.get(uuid=payload.get('user_id'))
         return user
-    except (ValidationError, AuthenticationFailed, jwt.InvalidAlgorithmError, User.DoesNotExist):
+    except Exception:
         return AnonymousUser()
 
 
@@ -40,10 +36,12 @@ class TokenAuthMiddlewareInstance:
         self.inner = self.middleware.inner
 
     async def __call__(self, receive, send):
-        token_key = \
-            (dict((x.split('=') for x in self.scope['query_string'].decode().split("&")))).get('token', None)
+        token_key = dict(parse_qsl(self.scope['query_string'].decode())).get("token")
 
         self.scope['user'] = await get_user(token_key)
         inner = self.inner(self.scope)
 
         return await inner(receive, send)
+
+
+TokenAuthMiddlewareStack = lambda inner: TokenAuthMiddleware(AuthMiddlewareStack(inner))
