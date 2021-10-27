@@ -35,7 +35,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "start",
         "is_featured",
         "is_live",
-        "closed"
+        "closed",
+        "is_published"
     )
     readonly_fields = (
         "closed_at",
@@ -44,7 +45,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = ("speakers__email", "speakers__name", "speakers__username")
-    list_editable = ("is_featured", "is_live", "closed")
+    list_editable = ("is_published", "is_featured", "is_live", "closed")
     list_filter = (
         ("start", filter.DateRangeFilter),
         "topic"

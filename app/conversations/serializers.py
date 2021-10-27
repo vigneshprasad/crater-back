@@ -305,6 +305,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     # TODO(Nishant): Figure out how to show is past.
     is_past = serializers.SerializerMethodField(read_only=True)
     recording_details = GroupRecordingSerializer(source="recording", read_only=True)
+    speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
 
     class Meta:
         model = models.Group
@@ -331,7 +332,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "is_featured",
             "categories",
             "categories_detail_list",
-            "recording_details"
+            "recording_details",
+            "speakers",
+            "speakers_detail_list"
         )
 
         extra_kwargs = {
@@ -385,14 +388,17 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get("request")
         user = request.user
+        tomorrow = timezone.now() + datetime.timedelta(hours=24)
 
         # Raise an exception if the user already has a group
         # at the same time.
         start = validated_data["start"]
         if services.get_groups_for_user_and_start(user, start):
-            raise exceptions.GroupCreatedAtTheSameTime()
+            raise serializers.ValidationError(exceptions.GroupCreatedAtTheSameTime().get_error_body())
         elif start < timezone.now():
-            raise exceptions.GroupStartDateTimeNotInFuture()
+            raise serializers.ValidationError(exceptions.GroupStartDateTimeNotInFuture().get_error_body())
+        elif start < tomorrow:
+            raise serializers.ValidationError(exceptions.GroupStartLessThan24Hours().get_error_body())
 
         title = validated_data.pop("topic_title") if validated_data.get("topic_title") else None
         image = validated_data.pop("topic_image") if validated_data.get("topic_image") else None
@@ -412,7 +418,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "privacy": constants.GROUP_PRIVACY_PUBLIC_ENUM,
             "medium": constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM,
             "type": constants.GROUP_TYPE_WEBINAR_ENUM,
-            "calculate_score": False
+            "calculate_score": False,
+            "is_published": True
         }
         validated_data.update(webinar_data)
 

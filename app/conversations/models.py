@@ -238,6 +238,7 @@ class Group(base_model.BaseModel):
     # group is visible in all conversations etc.
     is_approved = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
+    is_published = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

@@ -480,9 +480,20 @@ class GroupCalendarViewSet(
     )
     def my(self, request, *args, **kwargs):
         user = request.user
-        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
+        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user) | Q(attendees=user)).order_by("start")
         response = self._make_date_dict(groups)
         return Response(response)
+
+
+class AllGroupWebinarViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)
+    serializer_class = serializers.GroupWebinarSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filterset_fields = ["host", "categories"]
 
 
 class GroupWebinarViewSet(
@@ -491,8 +502,8 @@ class GroupWebinarViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
+    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True)
     serializer_class = serializers.GroupWebinarSerializer
-    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ["host", "categories"]
 
