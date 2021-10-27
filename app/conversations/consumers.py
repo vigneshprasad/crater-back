@@ -3,11 +3,11 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
-from .models import Group
+from .models import Group, GroupMessage
 
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
-    group_id = None
+    group = None
     user = None
 
     async def connect(self):
@@ -18,30 +18,51 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         if self.user.is_anonymous:
             await self.send_no_permissions()
 
-        self.group_id = self.scope["url_route"]["kwargs"].get("group_id")
+        group_id = self.scope["url_route"]["kwargs"].get("group_id")
 
         # Validate group id
-        group = await self.validate_group_id()
-        if not group:
+        try:
+            await self.validate_group_id(group_id)
+        except Group.DoesNotExist:
             await self.send_invalid_group_err()
 
         # Add channel name to the group
         await self.channel_layer.group_add(
-            f"crater_live_{self.group_id}",
+            f"crater_live_{self.group.id}",
             self.channel_name
         )
 
     async def disconnect(self, code):
         await self.channel_layer.group_discard(
-            f"crater_live_{self.group_id}",
+            f"crater_live_{self.group.id}",
             self.channel_name
         )
 
     async def receive(self, text_data=None, bytes_data=None):
-        await self.send(text_data=json.dumps({
-            'type': 'message',
-            'data': json.loads(text_data)
-        }))
+        text_data = json.loads(text_data)
+
+        await self.create_group_message(text_data.get("text"))
+
+        # Broadcast message on the channel group
+        await self.channel_layer.group_send(
+            f"crater_live_{self.group.id}",
+            {
+                "type": "broadcast.message",
+                "message": json.dumps(text_data)
+            }
+        )
+
+    async def broadcast_message(self, event):
+        """
+        Broadcast user message on the channel group
+        """
+        await self.send(event["message"])
+
+    async def get_group_messages(self, event):
+        """
+        Retrieve group messages
+        """
+        pass
 
     async def send_invalid_group_err(self, *args, **kwargs):
         """
@@ -66,5 +87,13 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         await self.close()
 
     @database_sync_to_async
-    def validate_group_id(self):
-        return Group.objects.filter(id=self.group_id).exists()
+    def validate_group_id(self, group_id):
+        self.group = Group.objects.get(id=group_id)
+
+    @database_sync_to_async
+    def create_group_message(self, message):
+        GroupMessage.objects.create(
+            message=message,
+            group=self.group,
+            sender=self.user
+        )
