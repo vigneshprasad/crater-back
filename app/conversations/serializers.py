@@ -1,6 +1,7 @@
 import copy
 import datetime
 
+from django.conf import settings
 from django.utils import timezone
 
 from rest_framework import serializers
@@ -295,7 +296,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     )
 
     topic_title = serializers.CharField(required=True, write_only=True)
-    topic_image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False,
+    topic_image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True,
+                                         required=False,
                                          write_only=True)
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
@@ -424,3 +426,24 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         validated_data.update(webinar_data)
 
         return super().create(validated_data)
+
+
+class GroupMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.GroupMessage
+        fields = (
+            "id",
+            "group",
+            "sender",
+            "message",
+            "created"
+        )
+
+    def to_representation(self, instance):
+        return {
+            "id": instance.id,
+            "sender": str(instance.sender.uuid),
+            "group": instance.group.id,
+            "message": instance.message,
+            "created": instance.created.strftime(settings.DEFAULT_DATETIME_FORMAT)
+        }
