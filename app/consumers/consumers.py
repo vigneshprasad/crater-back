@@ -1,5 +1,4 @@
 import json
-import time
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -16,8 +15,6 @@ from consumers.connect import ChatAuthConsumer
 from conversations.models import Group
 from users.models import User
 from rest_framework_jwt.utils import jwt_decode_handler
-
-from freelance.settings import REDIS
 
 
 class ChatConsumer(ChatAuthConsumer):
