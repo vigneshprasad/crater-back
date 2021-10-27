@@ -603,11 +603,11 @@ class GroupRtmp(base_model.BaseModel):
     link = models.TextField()
 
 
-class GroupQuestion(TimeStampedModel):
+class GroupMessage(TimeStampedModel):
     """
-    Question for the group.
+    Message for the group.
     """
-    question = models.TextField()
+    message = models.TextField()
     group = models.ForeignKey(
         Group,
         related_name='group_questions',
