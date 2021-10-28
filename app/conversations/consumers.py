@@ -2,10 +2,9 @@ import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from rest_framework.exceptions import ValidationError
 
-from .models import Group, GroupMessage
-from .serializers import GroupMessageSerializer
+from .models import Group
+from . import services
 
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
@@ -41,11 +40,21 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data=None, bytes_data=None):
-        text_data = json.loads(text_data)
+        data = json.loads(text_data)
 
-        group_message = await self.create_group_message(text_data.get("text"))
+        await getattr(self, data.get("type"))(data.get("text"))
+
+    async def group_message(self, text):
+        """
+        Create GroupMessage object and send it over channel layer
+        """
+        group_message = await services.create_group_message(
+            group=self.group,
+            sender=self.user,
+            message=text
+        )
+
         if group_message:
-            # Broadcast message on the channel group
             await self.channel_layer.group_send(
                 f"crater_live_{self.group.id}",
                 {
@@ -56,7 +65,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     async def broadcast_message(self, event):
         """
-        Broadcast user message on the channel group
+        Broadcast message on channel group
         """
         await self.send(event["message"])
 
@@ -64,7 +73,12 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         """
         Retrieve group messages
         """
-        pass
+        group_messages = await services.get_paginated_group_messages(self.group)
+
+        # page = event.get("page")
+        await self.send(json.dumps({
+            "data": group_messages
+        }))
 
     async def send_invalid_group_err(self, *args, **kwargs):
         """
@@ -91,23 +105,3 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def validate_group_id(self, group_id):
         self.group = Group.objects.get(id=group_id)
-
-    @database_sync_to_async
-    def create_group_message(self, message):
-        group_message = None
-        data = {
-            "group": self.group.id,
-            "sender": self.user.uuid,
-            "message": message
-        }
-
-        try:
-            serializer = GroupMessageSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-
-            group_message = serializer.data
-        except ValidationError:
-            pass
-
-        return group_message

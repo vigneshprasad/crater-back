@@ -3,6 +3,7 @@ import json
 
 import numpy as np
 from asgiref.sync import async_to_sync
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.db.models import Q
@@ -12,8 +13,10 @@ from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import signals
+from conversations.serializers import GroupMessageSerializer
 
 from crater.creator import models as creator_models
+from rest_framework.exceptions import ValidationError
 
 
 def get_root_topic(topic):
@@ -419,3 +422,36 @@ def remove_cached_live_webinar(group):
             )
         }
     )
+
+
+@database_sync_to_async
+def create_group_message(group, sender, message):
+    data = {
+        "group": group.id,
+        "sender": sender.uuid,
+        "message": message
+    }
+
+    try:
+        serializer = GroupMessageSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        group_message = serializer.data
+    except ValidationError:
+        group_message = None
+
+    return group_message
+
+
+@database_sync_to_async
+def get_paginated_group_messages(group):
+    try:
+        queryset = models.GroupMessage.objects.filter(group=group)
+        serializer = GroupMessageSerializer(queryset, many=True)
+
+        group_messages = serializer.data
+    except Exception:
+        group_messages = []
+
+    return group_messages
