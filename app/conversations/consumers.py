@@ -75,10 +75,13 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             "payload": event["message"]
         }))
 
-    async def get_group_messages(self, event={}):
+    async def get_group_messages(self, event=None):
         """
         Retrieve group messages
         """
+        if event is None:
+            event = {}
+
         page = event.get("page", 1)
         group_messages, pages = await services.get_paginated_group_messages(self.group, page)
 
