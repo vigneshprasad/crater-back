@@ -73,11 +73,14 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         """
         Retrieve group messages
         """
-        group_messages = await services.get_paginated_group_messages(self.group)
+        page = event.get("page", 1)
+        group_messages, pages = await services.get_paginated_group_messages(self.group, page)
 
-        # page = event.get("page")
         await self.send(json.dumps({
-            "data": group_messages
+            "type": "get_group_messages",
+            "page": page,
+            "pages": pages,
+            "data": group_messages,
         }))
 
     async def send_invalid_group_err(self, *args, **kwargs):
