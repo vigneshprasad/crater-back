@@ -604,7 +604,7 @@ class GroupRtmp(base_model.BaseModel):
     link = models.TextField()
 
 
-class GroupMessage(TimeStampedModel):
+class GroupMessage(base_model.BaseModel):
     """
     Message for the group.
     """
@@ -619,9 +619,14 @@ class GroupMessage(TimeStampedModel):
         related_name='sender_questions',
         on_delete=models.CASCADE
     )
+    display_name = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True
+    )
 
     class Meta:
-        ordering = ["-created"]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.pk}-{self.sender}"

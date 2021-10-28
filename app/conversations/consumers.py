@@ -33,6 +33,8 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+        await self.get_group_messages()
+
     async def disconnect(self, code):
         await self.channel_layer.group_discard(
             f"crater_live_{self.group.id}",
@@ -42,34 +44,38 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data=None, bytes_data=None):
         data = json.loads(text_data)
 
-        await getattr(self, data.get("type"))(data.get("text"))
+        await getattr(self, data.get("type"))(data.get("payload"))
 
-    async def group_message(self, text):
+    async def send_group_message(self, payload):
         """
         Create GroupMessage object and send it over channel layer
         """
+        message = payload.get("message")
         group_message = await services.create_group_message(
             group=self.group,
             sender=self.user,
-            message=text
+            message=message
         )
 
         if group_message:
             await self.channel_layer.group_send(
                 f"crater_live_{self.group.id}",
                 {
-                    "type": "broadcast.message",
-                    "message": json.dumps(group_message)
+                    "type": "broadcast_new_group_message",
+                    "message": group_message
                 }
             )
 
-    async def broadcast_message(self, event):
+    async def broadcast_new_group_message(self, event):
         """
         Broadcast message on channel group
         """
-        await self.send(event["message"])
+        await self.send(json.dumps({
+            "type": "new_group_message",
+            "payload": event["message"]
+        }))
 
-    async def get_group_messages(self, event):
+    async def get_group_messages(self, event={}):
         """
         Retrieve group messages
         """
@@ -77,10 +83,12 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         group_messages, pages = await services.get_paginated_group_messages(self.group, page)
 
         await self.send(json.dumps({
-            "type": "get_group_messages",
-            "page": page,
-            "pages": pages,
-            "data": group_messages,
+            "type": "group_messages_received",
+            "payload": {
+                "page": page,
+                "pages": pages,
+                "messages": group_messages,
+            }
         }))
 
     async def send_invalid_group_err(self, *args, **kwargs):
