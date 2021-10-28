@@ -436,7 +436,8 @@ class GroupMessageSerializer(serializers.ModelSerializer):
             "group",
             "sender",
             "message",
-            "created"
+            "display_name",
+            "created_at"
         )
 
     def to_representation(self, instance):
@@ -445,5 +446,6 @@ class GroupMessageSerializer(serializers.ModelSerializer):
             "sender": str(instance.sender.uuid),
             "group": instance.group.id,
             "message": instance.message,
-            "created": instance.created.strftime(settings.DEFAULT_DATETIME_FORMAT)
+            "created_at": instance.created_at.strftime(settings.DEFAULT_DATETIME_FORMAT),
+            "display_name": instance.display_name
         }
