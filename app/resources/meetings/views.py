@@ -147,6 +147,7 @@ class MeetingViewSet(
     serializer_class = serializers.MeetingSerializer
     queryset = models.Meeting.objects.all()
     permission_classes = [user_permissions.IsAuthenticated]
+    filterset_fields = ["participants"]
 
     def get_queryset(self):
         return self.request.user.meeting_set.all()
