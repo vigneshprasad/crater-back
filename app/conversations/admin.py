@@ -15,12 +15,14 @@ class SuggestedTopicAdmin(admin.ModelAdmin):
 @admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "parent", "image", "is_active")
+    search_fields = ("name", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "is_active", "color", "color_example")
+    search_fields = ("name", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
@@ -38,13 +40,14 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "closed",
         "is_published"
     )
+    raw_id_fields = ("speakers", "attendees", "host", )
     readonly_fields = (
         "closed_at",
         "approved_at",
         "last_live_at"
     )
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
-    search_fields = ("speakers__email", "speakers__name", "speakers__username")
+    exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
+    search_fields = ("speakers__email", "speakers__name", "speakers__username", )
     list_editable = ("is_published", "is_featured", "is_live", "closed")
     list_filter = (
         ("start", filter.DateRangeFilter),
@@ -72,15 +75,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 obj.mark_closed(user=request.user)
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.select_related(
-            "host"
-        ).prefetch_related(
-            "speakers",
-            "attendees"
-        )
 
     @staticmethod
     def all_speakers(obj):
