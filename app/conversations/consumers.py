@@ -1,5 +1,6 @@
 import json
 
+from rest_framework.renderers import JSONRenderer
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
@@ -58,11 +59,12 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         )
 
         if group_message:
+            json_result = json.loads(JSONRenderer().render(group_message).decode('utf8'))
             await self.channel_layer.group_send(
                 f"crater_live_{self.group.id}",
                 {
                     "type": "broadcast_new_group_message",
-                    "message": group_message
+                    "message": json_result
                 }
             )
 
@@ -80,11 +82,12 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         Retrieve group messages
         """
         group_messages = await services.get_paginated_group_messages(self.group)
+        results = json.loads(JSONRenderer().render(group_messages).decode('utf8'))
         # page = event.get("page")
         await self.send(json.dumps({
             "type": "group_messages_received",
             "payload": {
-                "messages": group_messages,
+                "messages": results,
             }
         }))
 

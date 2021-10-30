@@ -446,12 +446,7 @@ def create_group_message(group, sender, message):
 
 @database_sync_to_async
 def get_paginated_group_messages(group):
-    try:
-        queryset = models.GroupMessage.objects.filter(group=group)
-        serializer = GroupMessageSerializer(queryset, many=True)
+    queryset = models.GroupMessage.objects.filter(group=group)
+    serializer = GroupMessageSerializer(queryset, many=True)
 
-        group_messages = serializer.data
-    except Exception:
-        group_messages = []
-
-    return group_messages
+    return serializer.data

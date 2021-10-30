@@ -428,7 +428,19 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class GroupChatUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name",
+            "email",
+        )
+
+
 class GroupMessageSerializer(serializers.ModelSerializer):
+    sender_detail = GroupChatUserSerializer(source="sender", read_only=True)
+
     class Meta:
         model = models.GroupMessage
         fields = (
@@ -437,15 +449,6 @@ class GroupMessageSerializer(serializers.ModelSerializer):
             "sender",
             "message",
             "display_name",
-            "created_at"
+            "created_at",
+            "sender_detail"
         )
-
-    def to_representation(self, instance):
-        return {
-            "id": instance.id,
-            "sender": str(instance.sender.uuid),
-            "group": instance.group.id,
-            "message": instance.message,
-            "created_at": instance.created_at.strftime(settings.DEFAULT_DATETIME_FORMAT),
-            "display_name": instance.display_name
-        }
