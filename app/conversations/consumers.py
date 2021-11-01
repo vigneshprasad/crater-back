@@ -77,7 +77,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             "payload": event["message"]
         }))
 
-    async def get_group_messages(self):
+    async def get_group_messages(self, event=None):
         """
         Retrieve group messages
         """

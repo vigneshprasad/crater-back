@@ -1,5 +1,6 @@
 import datetime
 import json
+import math
 
 import numpy as np
 from asgiref.sync import async_to_sync
@@ -450,3 +451,33 @@ def get_paginated_group_messages(group):
     serializer = GroupMessageSerializer(queryset, many=True)
 
     return serializer.data
+
+
+# def get_paginated_group_messages(group, page):
+#     page_size = 20
+#     cache_key = f"crater_g{group.id}_messages"
+#     count = None
+
+#     try:
+#         cached_data = settings.REDIS.get(cache_key)
+#         if not cached_data:
+#             # If group messages are not cached, query from DB and cache it.
+#             queryset = models.GroupMessage.objects.filter(group=group)
+#             serializer = GroupMessageSerializer(queryset, many=True)
+#             group_messages = serializer.data
+#             count = queryset.count()
+
+#             # Cache group messages
+#             settings.REDIS.set(cache_key, json.dumps({"messages": group_messages, "count": count}))
+#         else:
+#             cached_data_json = json.loads(cached_data)
+#             group_messages = cached_data_json.get("messages")
+#             count = cached_data_json.get("count", 0)
+
+#         # Paginated results
+#         paginated_group_messages = group_messages[page_size * (page - 1):page * page_size]
+
+#     except Exception:
+#         paginated_group_messages = []
+
+#     return paginated_group_messages, math.ceil(count / page_size)
