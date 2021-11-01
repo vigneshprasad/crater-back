@@ -52,10 +52,12 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         Create GroupMessage object and send it over channel layer
         """
         message = payload.get("message")
+        display_name = payload.get("display_name")
         group_message = await services.create_group_message(
             group=self.group,
             sender=self.user,
-            message=message
+            message=message,
+            display_name=display_name
         )
 
         if group_message:

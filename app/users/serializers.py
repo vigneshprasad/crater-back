@@ -19,6 +19,7 @@ from rest_auth import serializers as rest_auth_serializers
 from rest_auth.registration import serializers as register_serializers
 from rest_framework import exceptions
 from rest_framework import serializers
+from django.contrib.auth.models import Group
 
 from tags import models as tag_models
 from tags import serializers as tag_serializers
@@ -35,6 +36,16 @@ from wn_analytics import models as wn_analytics_models
 
 logger = logging.getLogger("django.request")
 logger.setLevel(logging.ERROR)
+
+
+class UserGroupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Group
+        fields = (
+            "name",
+            "pk"
+        )
 
 
 class LoginSerializer(rest_auth_serializers.LoginSerializer):
@@ -619,6 +630,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True,
         choices=models.Profile.COMPANIES_INVESTED_CHOICES
     )
+    groups = UserGroupSerializer(source="user.groups", read_only=True, many=True)
 
     instagram_id = ""
     instagram_token = None
@@ -679,7 +691,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "project_type_detail",
             "stage_of_company_detail",
             "companies_invested_detail",
-            "is_creator"
+            "is_creator",
+            "groups"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}

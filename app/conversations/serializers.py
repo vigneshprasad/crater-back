@@ -429,13 +429,20 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):
+    first_name = serializers.SerializerMethodField()
+
     class Meta:
         model = get_user_model()
         fields = (
             "pk",
             "name",
             "email",
+            "first_name",
         )
+
+    @staticmethod
+    def get_first_name(user):
+        return user.name.split()[0]
 
 
 class GroupMessageSerializer(serializers.ModelSerializer):

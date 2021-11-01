@@ -426,11 +426,12 @@ def remove_cached_live_webinar(group):
 
 
 @database_sync_to_async
-def create_group_message(group, sender, message):
+def create_group_message(group, sender, message, display_name=None):
     data = {
         "group": group.id,
         "sender": sender.uuid,
-        "message": message
+        "message": message,
+        "display_name": display_name
     }
 
     try:
