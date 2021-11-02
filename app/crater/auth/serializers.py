@@ -45,7 +45,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         phone_number = validated_data.get("phone_number")
-        validated_data["otp"] = "1111" if constants.DEBUG else private.generate_otp()
+        validated_data["otp"] = "1111" if (constants.DEBUG or phone_number in constants.TEST_PHONE_NUMBERS) else private.generate_otp()
         # When a new OTP is created mark the old ones as expired.
         models.PhoneOtp.objects.filter(phone_number=phone_number).update(is_expired=True)
 

@@ -16,6 +16,7 @@ from conversations import services
 from conversations import exceptions
 from conversations import signals
 from conversations import constants
+from conversations import paginators
 from integrations.dyte import public as dyte_public
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
@@ -504,18 +505,31 @@ class GroupWebinarViewSet(
 ):
     queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True)
     serializer_class = serializers.GroupWebinarSerializer
+    pagination_class = paginators.WebinarPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ["host", "categories"]
 
     @action(
         methods=["GET"],
         detail=False,
+        permission_classes=[permissions.IsAuthenticated]
     )
     def my(self, request):
+
         user = request.user
-        groups = self.get_queryset().filter(Q(speakers=user) | Q(host=user)).order_by("start")
-        serialized = self.get_serializer(groups, many=True)
-        return Response(serialized.data)
+        groups = self.filter_queryset(
+            self.get_queryset().filter(
+                Q(speakers=user) | Q(host=user) | Q(attendees=user)
+            ).order_by("start")
+        )
+        page = self.paginate_queryset(groups)
+
+        if page is None:
+            serializer = self.get_serializer(groups, many=True)
+            return Response(serializer.data)
+
+        serialized = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serialized.data)
 
 
 class CategoryViewSet(
