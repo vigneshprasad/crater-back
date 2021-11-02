@@ -1,6 +1,7 @@
 import copy
 import datetime
 
+from django.conf import settings
 from django.utils import timezone
 
 from rest_framework import serializers
@@ -295,7 +296,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     )
 
     topic_title = serializers.CharField(required=True, write_only=True)
-    topic_image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False,
+    topic_image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True,
+                                         required=False,
                                          write_only=True)
     live_count = serializers.SerializerMethodField(read_only=True)
     rsvp = serializers.SerializerMethodField(read_only=True)
@@ -424,3 +426,36 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         validated_data.update(webinar_data)
 
         return super().create(validated_data)
+
+
+class GroupChatUserSerializer(serializers.ModelSerializer):
+    first_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name",
+            "email",
+            "first_name",
+        )
+
+    @staticmethod
+    def get_first_name(user):
+        return user.name.split()[0]
+
+
+class GroupMessageSerializer(serializers.ModelSerializer):
+    sender_detail = GroupChatUserSerializer(source="sender", read_only=True)
+
+    class Meta:
+        model = models.GroupMessage
+        fields = (
+            "id",
+            "group",
+            "sender",
+            "message",
+            "display_name",
+            "created_at",
+            "sender_detail"
+        )

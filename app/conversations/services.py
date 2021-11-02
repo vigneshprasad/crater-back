@@ -1,8 +1,10 @@
 import datetime
 import json
+import math
 
 import numpy as np
 from asgiref.sync import async_to_sync
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.db.models import Q
@@ -12,8 +14,10 @@ from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import signals
+from conversations.serializers import GroupMessageSerializer
 
 from crater.creator import models as creator_models
+from rest_framework.exceptions import ValidationError
 
 
 def get_root_topic(topic):
@@ -419,3 +423,62 @@ def remove_cached_live_webinar(group):
             )
         }
     )
+
+
+@database_sync_to_async
+def create_group_message(group, sender, message, display_name=None):
+    data = {
+        "group": group.id,
+        "sender": sender.uuid,
+        "message": message,
+        "display_name": display_name
+    }
+
+    try:
+        serializer = GroupMessageSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        group_message = serializer.data
+    except ValidationError:
+        group_message = None
+
+    return group_message
+
+
+@database_sync_to_async
+def get_paginated_group_messages(group):
+    queryset = models.GroupMessage.objects.filter(group=group)
+    serializer = GroupMessageSerializer(queryset, many=True)
+
+    return serializer.data
+
+
+# def get_paginated_group_messages(group, page):
+#     page_size = 20
+#     cache_key = f"crater_g{group.id}_messages"
+#     count = None
+
+#     try:
+#         cached_data = settings.REDIS.get(cache_key)
+#         if not cached_data:
+#             # If group messages are not cached, query from DB and cache it.
+#             queryset = models.GroupMessage.objects.filter(group=group)
+#             serializer = GroupMessageSerializer(queryset, many=True)
+#             group_messages = serializer.data
+#             count = queryset.count()
+
+#             # Cache group messages
+#             settings.REDIS.set(cache_key, json.dumps({"messages": group_messages, "count": count}))
+#         else:
+#             cached_data_json = json.loads(cached_data)
+#             group_messages = cached_data_json.get("messages")
+#             count = cached_data_json.get("count", 0)
+
+#         # Paginated results
+#         paginated_group_messages = group_messages[page_size * (page - 1):page * page_size]
+
+#     except Exception:
+#         paginated_group_messages = []
+
+#     return paginated_group_messages, math.ceil(count / page_size)
