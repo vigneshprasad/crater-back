@@ -400,6 +400,15 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             )
         if old_email != new_email:
             instance.refresh_auth_secret_key()
+
+        # Update first name and last name of the user.
+        name = validated_data.get("name")
+        if name:
+            name_list = name.split()
+            instance.first_name = name_list[0]
+            instance.last_name = " ".join(name_list[1:])
+        instance.save()
+
         return instance
 
 
@@ -781,6 +790,15 @@ class ProfileSerializer(serializers.ModelSerializer):
             instance.new_tag.add(user_tags[0])
         super().update(instance, validated_data)
 
+        user = instance.user
+        name = validated_data.get("name")
+        if not name:
+            return instance
+
+        name_list = name.split()
+        user.first_name = name_list[0]
+        user.last_name = " ".join(name_list[1:])
+
         return instance
 
     def create(self, validated_data):
@@ -794,6 +812,16 @@ class ProfileSerializer(serializers.ModelSerializer):
             profile.new_tag.add(user_tags[0])
 
         profile.save()
+
+        user = profile.user
+        name = validated_data.get("name")
+        if not name:
+            return profile
+
+        name_list = name.split()
+        user.first_name = name_list[0]
+        user.last_name = " ".join(name_list[1:])
+
         return profile
 
 

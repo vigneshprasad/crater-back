@@ -41,8 +41,8 @@ class AdminCreationForm(GroupMixin, UserCreationForm):
         return True
 
 
-class UserForm(GroupMixin, UserChangeForm):
-    groups = GroupModelChoiceField(queryset=Group.objects.all())
+class UserForm(UserChangeForm):
+    groups = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
     city = forms.ModelChoiceField(
         queryset=tags_models.CityProxy.objects.all(),
         required=False
