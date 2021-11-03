@@ -91,12 +91,7 @@ class ProfileViewSet(
         if not name:
             return
 
-        user.name = name
-        name_list = name.split()
-        user.first_name = name_list[0]
-        user.last_name = " ".join(name_list[1:])
-
-        user.save()
+        user.set_name()
 
     def create(self, request, *args, **kwargs):
         """Create or update profile for a user."""

@@ -253,7 +253,8 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
         return user
 
     def custom_signup(self, request, user):
-        user.name = self.validated_data.get("name")
+        name = self.validated_data.get("name")
+        user.set_name(name)
 
     def add_to_group(self, user):
         role = self.validated_data.get("role", "user")
@@ -414,10 +415,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
         # Update first name and last name of the user.
         name = validated_data.get("name")
-        if name:
-            name_list = name.split()
-            instance.first_name = name_list[0]
-            instance.last_name = " ".join(name_list[1:])
+        instance.set_name(name)
         instance.save()
 
         return instance
@@ -805,12 +803,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         user = instance.user
         name = validated_data.get("name")
-        if not name:
-            return instance
-
-        name_list = name.split()
-        user.first_name = name_list[0]
-        user.last_name = " ".join(name_list[1:])
+        user.set_name(name)
 
         return instance
 
@@ -828,12 +821,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         user = profile.user
         name = validated_data.get("name")
-        if not name:
-            return profile
-
-        name_list = name.split()
-        user.first_name = name_list[0]
-        user.last_name = " ".join(name_list[1:])
+        user.set_name(name)
 
         return profile
 

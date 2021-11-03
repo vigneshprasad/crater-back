@@ -178,6 +178,22 @@ class User(AbstractUser):
     def __str__(self):
         return "{} ({})".format(self.name, self.username)
 
+    def set_name(self, name):
+        """Sets name, first_name and last_name for the user.
+
+        Args:
+            name(str): Name of the user.
+
+        """
+        if not name:
+            return
+
+        self.name = name
+        name_list = name.split()
+        self.first_name = name_list[0]
+        self.last_name = " ".join(name_list[1:])
+        self.save()
+
     @property
     def display_name(self):
         """Return display name for the user."""
