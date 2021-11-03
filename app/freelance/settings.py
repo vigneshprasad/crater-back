@@ -418,7 +418,7 @@ SENTRY_DSN = os.getenv("SENTRY_DNS")
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     environment=os.getenv("ENVIRONMENT"),
-    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration(), AioHttpIntegration()],
+    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
     attach_stacktrace=True,
     send_default_pii=True
 )
