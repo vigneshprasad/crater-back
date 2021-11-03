@@ -23,7 +23,8 @@ class CreatorSerializer(serializers.ModelSerializer):
             "type",
             "order",
             "default_community",
-            "profile_detail"
+            "profile_detail",
+            "slug"
         )
         extra_kwargs = {
             "number_of_subscribers": {
@@ -36,6 +37,9 @@ class CreatorSerializer(serializers.ModelSerializer):
                 "read_only": True
             },
             "type": {
+                "read_only": True
+            },
+            "slug": {
                 "read_only": True
             }
         }
