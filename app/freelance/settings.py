@@ -423,6 +423,7 @@ sentry_sdk.init(
     send_default_pii=True
 )
 
+
 # ----------- FRESHCHAT ---------#
 ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
 FRESHCHAT_BASE_URL = "https://api.in.freshchat.com/v2"

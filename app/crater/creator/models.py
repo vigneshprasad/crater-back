@@ -32,7 +32,7 @@ class Creator(base_models.BaseModel):
     follower_count = models.PositiveIntegerField(null=True, blank=True)
     participant_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, blank=True)
 
     class Meta:
         ordering = ["follower_count"]

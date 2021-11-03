@@ -12,13 +12,13 @@ router = DefaultRouter()
 # Auth endpoints for creator.
 router.register("auth", auth_views.PhoneNumberRegisterView, base_name="crater-auth")
 
-
 # Creator app endpoints.
+router.register("creator/s", creator_views.CreatorSlugViewSet, base_name="crater-creator-slug")
 router.register("creator", creator_views.CreatorViewSet, base_name="crater-creator")
 router.register("community/members", creator_views.CommunityMemberViewSet, base_name="crater-community-members")
 router.register("community", creator_views.CommunityViewSet, base_name="crater-communities")
 router.register("followers", creator_views.FollowerViewSet, base_name="crater-followers")
 
 urlpatterns = [
-    path("", include(router.urls))
+    path("", include(router.urls)),
 ]

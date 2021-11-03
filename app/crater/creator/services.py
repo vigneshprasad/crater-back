@@ -4,23 +4,25 @@ from django.utils.text import slugify
 
 
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
+    return "".join(random.choice(chars) for _ in range(size))
 
 
-def generate_unique_slug_for_creator(instance, new_slug=None):
-    if new_slug is not None:
-        slug = new_slug
-    else:
-        str = instance.user.name.lower()
-        slug = slugify(str)
+def generate_unique_slug_for_creator(creator, new_slug=None):
+    """Generate a unique slug for a creator."""
 
-    Klass = instance.__class__
+    slug = new_slug if new_slug is not None else slugify(creator.user.name.lower())
+
+    Klass = creator.__class__
     qs_exists = Klass.objects.filter(slug=slug).exists()
+    if not qs_exists:
+        return slug
 
-    if qs_exists:
-        new_slug = "{slug}-{randstr}".format(
-            slug=slug,
-            randstr=random_string_generator(size=4)
-        )
-        return generate_unique_slug_for_creator(instance, new_slug=new_slug)
-    return slug
+    new_slug = "{slug}-{random_str}".format(
+        slug=slug,
+        random_str=random_string_generator(size=4)
+    )
+
+    # Generate a unique slug again.
+    return generate_unique_slug_for_creator(
+        creator, new_slug=new_slug
+    )

@@ -17,7 +17,6 @@ from users import permissions as user_permissions
 
 class CreatorViewSet(
     mixins.UpdateModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
@@ -55,6 +54,18 @@ class CreatorViewSet(
 
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class CreatorSlugViewSet(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.CreatorSerializer
+    pagination_class = paginators.CreatorPagination
+    queryset = models.Creator.objects.filter(is_active=True).order_by("-order")
+    lookup_field = "slug"
 
 
 class CommunityViewSet(
