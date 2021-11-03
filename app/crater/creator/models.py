@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db import models
+from crater.creator.services import generate_unique_slug_for_creator
 
 from base import models as base_models
 
@@ -31,12 +32,19 @@ class Creator(base_models.BaseModel):
     follower_count = models.PositiveIntegerField(null=True, blank=True)
     participant_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    slug = models.SlugField(unique=True)
 
     class Meta:
         ordering = ["follower_count"]
 
     def __str__(self):
         return "{}".format(self.user.__str__())
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.slug:
+            self.slug = generate_unique_slug_for_creator(self)
+        return super(Creator, self).save(force_insert, force_update, using, update_fields)
 
 
 class Community(base_models.BaseModel):

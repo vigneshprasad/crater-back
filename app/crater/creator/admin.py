@@ -13,7 +13,8 @@ class CreatorAdmin(admin.ModelAdmin):
         "certified",
         "type",
         "follower_count",
-        "is_active"
+        "is_active",
+        "slug"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
