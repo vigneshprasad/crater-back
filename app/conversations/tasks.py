@@ -115,7 +115,7 @@ def start_recording_for_webinars(groups=None):
     start_datetime = now_time
     end_datetime = (now_time + datetime.timedelta(minutes=5))
 
-    # Send it for all group, except for webinars.
+    # Get all webinars start 5 minutes from now.
     webinars = models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
@@ -123,7 +123,7 @@ def start_recording_for_webinars(groups=None):
     )
 
     for webinar in webinars:
-        # Send whatsapp reminder for webinar to attendees.
+        # Start recording for each webinar.
         dyte_public.start_recording_for_group(
             webinar
         )

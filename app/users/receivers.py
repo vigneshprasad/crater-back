@@ -1,14 +1,10 @@
 import datetime
-import logging
 
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 
-from notifications import signals as notification_signals
-from users import constants
-from users import services
 from users import signals
 from users import models
 
@@ -34,8 +30,9 @@ def create_push_and_rent(sender, instance, *args, **kwargs):
 
 @receiver(post_save, sender=get_user_model())
 def set_referrer_relation(sender, instance, *args, **kwargs):
-    if instance.referer:
-        models.Referral.objects.get_or_create(user=instance)
+    if not instance.referer:
+        return
+    models.Referral.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=User)
@@ -44,7 +41,7 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
         sender=instance.__class__,
         user=instance,
     )
-    
+
     if created:
         signals.user_signed_up.send(
             sender=instance.__class__,

@@ -427,6 +427,19 @@ def remove_cached_live_webinar(group):
 
 @database_sync_to_async
 def create_group_message(group, sender, message, display_name=None):
+    """Create a group message.
+
+    Args:
+        group(Group): Group for which we are creating group
+            messages for.
+        sender(User): User who sent the message.
+        message(text): Message sent by the user.
+        display_name(str): Display name entered by the user.
+
+    Note:
+        display_name will only be present for livestream_chat_admins.
+
+    """
     data = {
         "group": group.id,
         "sender": sender.uuid,
@@ -438,7 +451,7 @@ def create_group_message(group, sender, message, display_name=None):
         serializer = GroupMessageSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
+        # Serialized group message.
         group_message = serializer.data
     except ValidationError:
         group_message = None
