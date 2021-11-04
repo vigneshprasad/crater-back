@@ -161,13 +161,15 @@ class DyteParticipantViewSet(
             # If the group host has joined mark meeting as
             # live.
             group.mark_live(user=participant.participant)
-
             # Start recording the session if there are
             # no active recordings for the live stream.
             active_recordings = private.get_active_recording_for_dyte_meeting(
                 dyte_meeting=participant.dyte_meeting
             )
-            if not active_recordings:
+
+            # Won't allow recording to start if the call is not
+            # about to start 5 minutes from now.
+            if not active_recordings and group.can_start_recording():
                 public.start_recording_for_group(group)
 
         # Mark the participant online.

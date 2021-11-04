@@ -318,6 +318,11 @@ class Group(base_model.BaseModel):
             group=self
         )
 
+    def can_start_recording(self):
+        """Returns True if the recording can start."""
+        recording_min_time = self.start - datetime.timedelta(minutes=5)
+        return datetime.datetime.now() > recording_min_time
+
     def _log_is_live_change(self, user=None):
         """Creates a log if is_live on group changes."""
         if not user:
