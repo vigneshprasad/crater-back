@@ -171,6 +171,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "all_dyte_recordings",
         "is_published"
     )
+    raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
         "group__host__username",
         "group__host__name",
@@ -249,6 +250,7 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "sender",
         "message"
     )
+    raw_id_fields = ("sender", )
     search_fields = (
         "message",
     )

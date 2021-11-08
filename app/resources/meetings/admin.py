@@ -36,7 +36,7 @@ class MeetingConfigAdmin(ModelAdmin):
 
 
 @register(models.MeetingPreference)
-class MeetingPreference(ModelAdmin):
+class MeetingPreferenceAdmin(ModelAdmin):
     list_display = (
         "id",
         "user",
@@ -85,7 +85,7 @@ class MeetingPreference(ModelAdmin):
 
 
 @register(models.Meeting)
-class Meeting(ModelAdmin):
+class MeetingAdmin(ModelAdmin):
     list_display = ("id", "meeting_participants", "start", "status")
     search_fields = ("participants__email", "start", "participants__phone_number")
     date_hierarchy = "start"
@@ -101,7 +101,7 @@ class Meeting(ModelAdmin):
 
 
 @register(models.MeetingRSVP)
-class MeetingRsvp(ModelAdmin):
+class MeetingRSVPAdmin(ModelAdmin):
     list_display = ("id", "meeting", "participant", "status")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = ["participant__email"]
@@ -109,7 +109,7 @@ class MeetingRsvp(ModelAdmin):
 
 
 @register(models.RescheduleRequest)
-class RescheduleRequests(ModelAdmin):
+class RescheduleRequestAdmin(ModelAdmin):
     list_display = (
         "id",
         "requested_by",
@@ -122,13 +122,15 @@ class RescheduleRequests(ModelAdmin):
 
 
 @register(models.MeetingRequest)
-class MeetingRequests(ModelAdmin):
+class MeetingRequestAdmin(ModelAdmin):
     list_display = (
         "id",
         "requested_by",
         "requested_to",
         "time_slots",
         "selected_time_slot",
-        "status"
+        "status",
+        "created_at"
     )
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("requested_by", "requested_to", )
+    exclude = ("deleted_at", "updated_at", "is_deleted")
