@@ -20,7 +20,6 @@ import django.core.mail.backends.smtp
 from corsheaders.defaults import default_headers
 
 from django.utils.translation import ugettext_lazy as _
-from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
