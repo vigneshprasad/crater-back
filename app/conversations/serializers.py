@@ -18,6 +18,7 @@ from resources.meetings import models as meeting_models
 from resources.curated_articles import serializers as articles_serializer
 from users import serializers as user_serializers
 from community.mixins import SetCreatorRequestDataMixin
+from crater.creator import serializers as creator_serializers
 
 from utils import fields
 
@@ -100,6 +101,7 @@ class TopicSerializer(serializers.ModelSerializer):
 class GroupUserSerializer(serializers.ModelSerializer):
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
+    creator_detail = creator_serializers.CreatorSerializer(source="creator", read_only=True)
 
     class Meta:
         model = get_user_model()
@@ -109,6 +111,7 @@ class GroupUserSerializer(serializers.ModelSerializer):
             "name",
             "photo",
             "introduction",
+            "creator_detail",
         )
 
     @staticmethod

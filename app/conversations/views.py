@@ -17,7 +17,6 @@ from conversations import exceptions
 from conversations import signals
 from conversations import constants
 from conversations import paginators
-from integrations.dyte import public as dyte_public
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
 
