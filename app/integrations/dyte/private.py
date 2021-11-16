@@ -105,12 +105,12 @@ def get_active_recording_for_dyte_meeting(dyte_meeting):
         dyte_meeting(DyteMeeting): Dyte meeting object.
 
     """
-    dyte_meeting_recordings = models.DyteMeetingRecording.objects.filter(
+    dyte_meeting_active_recording = models.DyteMeetingRecording.objects.filter(
         dyte_meeting=dyte_meeting,
         status__in=[
             constants.DYTE_RECORDING_STATUS_INVOKED,
             constants.DYTE_RECORDING_STATUS_RECORDING
         ]
-    )
+    ).first()
 
-    return dyte_meeting_recordings
+    return dyte_meeting_active_recording

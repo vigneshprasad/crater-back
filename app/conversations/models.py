@@ -614,9 +614,6 @@ class GroupRtmp(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     link = models.TextField()
-    # TODO(Nishant): Add is_active to RTMP. I'll show the status
-    # of RTMP, whether it can be used again or not.
-    # is_active = models.BooleanField(default=False)
 
 
 class GroupMessage(base_model.BaseModel):

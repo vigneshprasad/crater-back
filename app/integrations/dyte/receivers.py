@@ -125,18 +125,16 @@ def stop_recording_on_group_close(sender, group, *args, **kwargs):
         group(Group): Webinar group we are creating dyte meeting
             for.
 
-    TODO(Nishant): Change this function when Dyte fixes the recordingStatusUpdate webhook.
-
     """
-    recordings = public.get_recordings_for_group(group)
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return False
 
-    active_recording = None
-    for recording in recordings:
-        if not recording["status"] in [constants.DYTE_RECORDING_STATUS_INVOKED, constants.DYTE_RECORDING_STATUS_RECORDING]:
-            continue
-        active_recording = recording["id"]
-
+    active_recording = private.get_active_recording_for_dyte_meeting(dyte_meeting)
     if not active_recording:
         return False
 
-    return public.stop_recording_for_group_and_recording_id(group, active_recording)
+    return public.stop_recording_for_group_and_recording_id(
+        group,
+        active_recording.recording_id
+    )
