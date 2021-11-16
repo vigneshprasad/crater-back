@@ -17,6 +17,7 @@ from users import permissions as user_permissions
 
 class CreatorViewSet(
     mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
@@ -182,7 +183,7 @@ class CommunityMemberViewSet(
     def join(self, request, *args, **kwargs):
         """Endpoint for joining a creator community."""
         user = request.user
-        community_id = kwargs.get("community")
+        community_id = request.data.get("community")
         community_member = private.get_member_for_user_and_community_id(user, community_id)
 
         if not community_member:
@@ -193,8 +194,8 @@ class CommunityMemberViewSet(
                 "joined_at": timezone.now(),
                 "is_active": True
             }
-            serializer = self.get_serializer(data)
-            serializer.is_valid(raise_exceptions=True)
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
 
             return Response(
@@ -283,7 +284,7 @@ class FollowerViewSet(
     )
     def follow(self, request, *args, **kwargs):
         user = request.user
-        creator_id = kwargs.get("creator")
+        creator_id = request.data.get("creator")
 
         follower = private.get_follower_for_user_and_creator_id(user, creator_id)
 
@@ -315,7 +316,7 @@ class FollowerViewSet(
             self.perform_create(serializer)
 
         # Send signals that the creator is unfollowed.
-        signals.creator_followed(sender=follower.__class__, follower=follower)
+        signals.creator_followed.send(sender=follower.__class__, follower=follower)
 
         return Response(
             serializer.data,
