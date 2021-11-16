@@ -10,7 +10,7 @@ class CreatorSerializer(serializers.ModelSerializer):
 
     # Return serializer default community for a creator.
     default_community = serializers.SerializerMethodField(read_only=True)
-    is_follower = serializers.SerializerMethodField()
+    is_follower = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
 

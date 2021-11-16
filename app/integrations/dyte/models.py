@@ -55,7 +55,11 @@ class DyteMeetingParticipant(base_model.BaseModel):
         """Returns if the user joined the stream."""
         if not self.last_online_at:
             return False
-        return self.dyte_meeting.group.start < self.last_online_at
+
+        # The user can sit on the stream 5 minutes before the stream
+        # TODO(Nishant): Check the front end logic here.
+        latest_group_join_time = self.dyte_meeting.group.start - datetime.timedelta(minutes=5)
+        return latest_group_join_time <= self.last_online_at
 
     def mark_online(self):
         self.is_online = True
@@ -64,6 +68,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     def mark_offline(self):
         self.is_online = False
+        self.last_online_at = datetime.datetime.now()
         self.save()
 
 

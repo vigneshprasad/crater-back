@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from crater.creator.services import generate_unique_slug_for_creator
 
 from base import models as base_models
+from crater.creator import services
 
 
 class Creator(base_models.BaseModel):
@@ -43,7 +43,7 @@ class Creator(base_models.BaseModel):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if not self.slug:
-            self.slug = generate_unique_slug_for_creator(self)
+            self.slug = services.generate_unique_slug_for_creator(self)
         return super(Creator, self).save(force_insert, force_update, using, update_fields)
 
 
