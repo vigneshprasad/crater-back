@@ -425,10 +425,14 @@ class DyteService:
             }
         }
 
-        if hasattr(dyte_meeting.group, 'rtmp'):
+        if hasattr(dyte_meeting.group, "rtmp"):
             data["liveStreamingConfig"] = {
                 "rtmpUrl": dyte_meeting.group.rtmp.link
             }
+            # TODO(Nishant): Mark the RTMP as live. Do this if we add is_active to RTMP.
+            # rtmp = dyte_meeting.group.rtmp
+            # rtmp.is_active = True
+            # rtmp.save()
 
         response = requests.request(
             "POST",

@@ -37,6 +37,8 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "id",
         "is_online",
         "participant",
+        "joined_stream",
+        "last_online_at",
         "dyte_meeting"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
@@ -49,6 +51,11 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "participant__name",
         "participant__username"
     )
+
+    def joined_stream(self, obj):
+        return obj.joined_group
+
+    joined_stream.boolean = True
 
 
 @admin.register(models.DyteMeetingRecording)

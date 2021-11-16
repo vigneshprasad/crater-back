@@ -5,6 +5,7 @@ from django.db import models
 from django.core import exceptions
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
@@ -319,9 +320,15 @@ class Group(base_model.BaseModel):
         )
 
     def can_start_recording(self):
-        """Returns True if the recording can start."""
+        """Returns True if the recording can start.
+
+        Note:
+            Only allowing recording to start 5 minutes
+            before group starts.
+
+        """
         recording_min_time = self.start - datetime.timedelta(minutes=5)
-        return datetime.datetime.now() > recording_min_time
+        return timezone.now() >= recording_min_time
 
     def _log_is_live_change(self, user=None):
         """Creates a log if is_live on group changes."""
@@ -607,6 +614,9 @@ class GroupRtmp(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     link = models.TextField()
+    # TODO(Nishant): Add is_active to RTMP. I'll show the status
+    # of RTMP, whether it can be used again or not.
+    # is_active = models.BooleanField(default=False)
 
 
 class GroupMessage(base_model.BaseModel):

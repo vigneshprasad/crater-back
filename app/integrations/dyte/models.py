@@ -50,6 +50,13 @@ class DyteMeetingParticipant(base_model.BaseModel):
     last_online_at = models.DateTimeField(null=True, blank=True)
     is_online = models.BooleanField(default=False)
 
+    @property
+    def joined_group(self):
+        """Returns if the user joined the stream."""
+        if not self.last_online_at:
+            return False
+        return self.dyte_meeting.group.start < self.last_online_at
+
     def mark_online(self):
         self.is_online = True
         self.last_online_at = datetime.datetime.now()

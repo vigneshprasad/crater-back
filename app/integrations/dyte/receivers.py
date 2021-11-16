@@ -6,6 +6,7 @@ from integrations.dyte.service import dyte_service
 from integrations.dyte import constants
 from integrations.dyte import models
 from integrations.dyte import private
+from integrations.dyte import public
 from integrations.dyte import signals
 
 
@@ -107,4 +108,33 @@ def add_webinar_speakers_to_dyte_meeting(sender, group, speakers, *args, **kwarg
         if private.get_dyte_participant_for_user_and_group(speaker, group):
             continue
 
-        dyte_service.add_participant_to_meeting(dyte_meeting=dyte_meeting, user=speaker, preset_name=constants.DEFAULT_WEBINAR_HOST_PRESET_NAME)
+        dyte_service.add_participant_to_meeting(
+            dyte_meeting=dyte_meeting,
+            user=speaker,
+            preset_name=constants.DEFAULT_WEBINAR_HOST_PRESET_NAME
+        )
+
+
+# TODO(Nishant): Activate this function for proper functioning of RTMP.
+# @receiver(conversation_signals.group_marked_closed)
+def stop_recording_on_group_close(sender, group, *args, **kwargs):
+    """Stops the recording when the group is marked closed.
+
+    Args:
+        sender(Group class): Class object for group.
+        group(Group): Webinar group we are creating dyte meeting
+            for.
+
+    """
+    recordings = public.get_recordings_for_group(group)
+
+    active_recording = None
+    for recording in recordings:
+        if not recording["status"] in [constants.DYTE_RECORDING_STATUS_INVOKED, constants.DYTE_RECORDING_STATUS_RECORDING]:
+            continue
+        active_recording = recording["id"]
+
+    if not active_recording:
+        return False
+
+    return public.stop_recording_for_group_and_recording_id(group, active_recording)
