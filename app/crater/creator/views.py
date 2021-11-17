@@ -309,14 +309,18 @@ class FollowerViewSet(
         if follower:
             serializer = self.get_serializer(data=data, instance=follower, partial=True)
             serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
         else:
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
+
+        # Update or create the follower.
+        follower = serializer.save()
 
         # Send signals that the creator is unfollowed.
-        signals.creator_followed.send(sender=follower.__class__, follower=follower)
+        signals.creator_followed.send(
+            sender=follower.__class__,
+            follower=follower
+        )
 
         return Response(
             serializer.data,
@@ -359,10 +363,13 @@ class FollowerViewSet(
         }
         serializer = self.get_serializer(data=data, instance=follower, partial=True)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        follower = serializer.save()
 
         # Send signals that the creator is unfollowed.
-        signals.creator_unfollowed(sender=follower.__class__, follower=follower)
+        signals.creator_unfollowed(
+            sender=follower.__class__,
+            follower=follower
+        )
 
         return Response(
             serializer.data,
