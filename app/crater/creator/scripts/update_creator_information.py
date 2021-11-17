@@ -7,6 +7,7 @@ FIELDS = [
     "Email",
     "Subscriber Count",
     "Order",
+    "Certified",
 ]
 
 
@@ -25,6 +26,7 @@ def run(
         email = row.get("Email").strip()
         subscriber_count = row.get("Subscriber Count").strip()
         order = row.get("Order").strip()
+        certified = row.get("Certified").strip()
         user = get_user_model.objects.get(email=email)
         creator = crater_models.Creator.objects.get(user=user)
         if not creator:
@@ -35,7 +37,8 @@ def run(
         if dry_run:
             creator.subscriber_count = subscriber_count
             creator.order = order
+            creator.certified = certified
             creator.save()
-            
+
                     
         
