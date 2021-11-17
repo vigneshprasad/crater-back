@@ -47,7 +47,10 @@ class CreatorSerializer(serializers.ModelSerializer):
         }
 
     def get_is_follower(self, creator):
-        """Returns True is the request user is already following the creator."""
+        """Returns True if the requesting user is
+            following the creator.
+
+        """
         request = self.context.get("request")
         if not request:
             return False
