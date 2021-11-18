@@ -1,6 +1,7 @@
+import urllib
+import csv
+
 from django.contrib.auth import get_user_model
-from conversations import models as conversation_models
-from conversations import constants as conversation_constants
 from crater.creator import models as crater_models
 
 FIELDS = [
@@ -15,7 +16,7 @@ def run(
         file_url="https://1worknetwork-dev.s3.ap-south-1.amazonaws.com/data/creator_data.csv",
         dry_run=True
 ):
-    response = urllib_request.urlopen(file_url)
+    response = urllib.request.urlopen(file_url)
     lines = [line.decode("utf-8") for line in response.readlines()]
     reader = csv.DictReader(lines)
 
@@ -24,21 +25,28 @@ def run(
         row = dict(row)
         # Getting all the fields in the right format.
         email = row.get("Email").strip()
-        subscriber_count = row.get("Subscriber Count").strip()
-        order = row.get("Order").strip()
-        certified = row.get("Certified").strip()
-        user = get_user_model.objects.get(email=email)
-        creator = crater_models.Creator.objects.get(user=user)
-        if not creator:
-            print("Creator does not exist with this email{}".format(email))
+        subscriber_count = row.get("Subscriber Count").strip() if row.get("Subscriber Count") else 0
+        order = row.get("Order").strip() if row.get("Order") else 0
+        certified = row.get("Certified").strip().capitalize()
 
-        print("Updating creator information, {} - followers: {}, order: {}").format(email, subscriber_count, order)
+        try:
+            user = get_user_model().objects.get(email=email)
+            creator = crater_models.Creator.objects.get(user=user)
+        except get_user_model().DoesNotExist:
+            print("User does not exist with this email: {}".format(email))
+            continue
+        except crater_models.Creator.DoesNotExist:
+            print("Creator does not exist with this email: {}".format(email))
+            continue
 
-        if dry_run:
-            creator.subscriber_count = subscriber_count
-            creator.order = order
+        print(
+            "Updating creator information, {} - subscriber_count: {}, order: {}, certified: {}".format(
+                email, subscriber_count, order, certified
+            )
+        )
+
+        if not dry_run:
+            creator.number_of_subscribers = int(subscriber_count)
+            creator.order = int(order)
             creator.certified = certified
             creator.save()
-
-                    
-        
