@@ -13,16 +13,17 @@ def run(dry_run=True):
         if not host:
             print("Group has no host")
 
-        creator = crater_models.Creator.objects.get(user=host)
-        if creator:
-            print("Creator already exists")        
+        creator = crater_models.Creator.objects.filter(user=host)
+        if creator.exists():
+            print("Creator already exists")
+            continue
         
         print("Making Creator Object {}".format(host.email))
 
         if not dry_run:
             creator = crater_models.Creator.objects.create(
                 user=host,
-                no_of_subscribers=1000,
+                number_of_subscribers=1000,
                 certified=False,
                 order=0,
             )
