@@ -130,12 +130,12 @@ class Coin(base_models.BaseModel):
         Creator,
         on_delete=models.CASCADE
     )
-    # Coins held by the creator at the current moment.
-    coins_held = models.PositiveIntegerField()
-
-    price = models.PositiveIntegerField()
-    # Maximum coins that can be help by the creator.
-    max_coins = models.PositiveIntegerField()
+    # # Coins held by the creator at the current moment.
+    # coins_held = models.PositiveIntegerField()
+    #
+    # price = models.PositiveIntegerField()
+    # # Maximum coins that can be help by the creator.
+    # max_coins = models.PositiveIntegerField()
 
     is_active = models.BooleanField(default=True)
 
