@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 from base import models as base_models
+from crater.auctions import constants
 
 
 class Auction(base_models.BaseModel):
@@ -23,12 +24,16 @@ class Auction(base_models.BaseModel):
 
 
 class Bid(base_models.BaseModel):
+    """Represents a bid placed on an auction or a bid from a user
+        to another user for number of coins.
+
+    """
     # TODO(Nishant): Think of how a bid from one user to another will work.
 
     BID_STATUS_CHOICES = (
-        1, "Accepted",
-        2, "Rejected",
-        3, "Cancelled"
+        (constants.BID_STATUS_ACCEPTED_ENUM, constants.BID_STATUS_ACCEPTED),
+        (constants.BID_STATUS_REJECTED_ENUM, constants.BID_STATUS_REJECTED),
+        (constants.BID_STATUS_CANCELLED_ENUM, constants.BID_STATUS_CANCELLED)
     )
 
     auction = models.ForeignKey(
@@ -50,6 +55,12 @@ class Bid(base_models.BaseModel):
 
 
 class CoinPriceLog(base_models.BaseModel):
+    """This is the log of the price of a Creator token.
+
+    Note:
+        Ideally it'll always be the last accepted bid price.
+
+    """
     coin = models.ForeignKey(
         "creator.Coin",
         related_name="auctions",
@@ -57,3 +68,5 @@ class CoinPriceLog(base_models.BaseModel):
     )
     price = models.PositiveIntegerField()
 
+    # TODO(Nishant): Should we keep a bid object here?
+    bid = models.ForeignKey(Bid, on_delete=models.CASCADE)
