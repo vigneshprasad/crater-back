@@ -140,3 +140,23 @@ class CommunityMemberSerializer(serializers.ModelSerializer):
                 "required": False
             }
         }
+
+
+class CoinSerializer(serializers.ModelSerializer):
+
+    creator_detail = CreatorSerializer(source="creator", read_only=True)
+
+    class Meta:
+
+        model = models.CommunityMember
+        fields = (
+            "id",
+            "name",
+            "is_active",
+            "display"
+        )
+        extra_kwargs = {
+            "is_active": {
+                "read_only": True
+            }
+        }

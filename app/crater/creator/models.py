@@ -137,8 +137,11 @@ class Coin(base_models.BaseModel):
     # # Maximum coins that can be help by the creator.
     # max_coins = models.PositiveIntegerField()
 
+    # Name of the coin.
+    name = models.CharField(max_length=32)
     is_active = models.BooleanField(default=True)
 
     # Contains all the display functionality
     # of the creator coin.
+    # TODO(Nishant): Decide fields we need for display of the coin.
     display = JSONField(default=dict)

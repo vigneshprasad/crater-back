@@ -140,8 +140,10 @@ INSTALLED_APPS = [
     "communications.notifications",
     "devices",
     "crater.auth",
-    "crater.creator"
+    "crater.creator",
+    "crater.rewards"
 ]
+
 
 SITE_ID = 1
 

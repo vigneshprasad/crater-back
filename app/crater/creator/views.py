@@ -375,3 +375,14 @@ class FollowerViewSet(
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+
+class CoinsViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.CoinSerializer
+    queryset = models.Coin.objects.filter(is_active=True)
+
