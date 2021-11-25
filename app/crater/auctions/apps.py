@@ -2,4 +2,8 @@ from django.apps import AppConfig
 
 
 class AuctionsConfig(AppConfig):
-    name = 'auctions'
+    name = "crater.auctions"
+    label = "auctions"
+
+    def ready(self):
+        pass

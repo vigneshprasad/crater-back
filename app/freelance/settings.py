@@ -141,9 +141,9 @@ INSTALLED_APPS = [
     "devices",
     "crater.auth",
     "crater.creator",
-    "crater.rewards"
+    "crater.rewards",
+    "crater.auctions"
 ]
-
 
 SITE_ID = 1
 
