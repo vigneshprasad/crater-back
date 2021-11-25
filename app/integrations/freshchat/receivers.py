@@ -261,6 +261,11 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
     host_name = host.display_name
     display_start = group.get_display_start()
     topic_name = group.topic.name
+    stream_link = "https://crater.club/session/{group_id}".format(
+        group_id=group.id
+    )
+    stream_message = "The stream will go live here: {}".format(stream_link)
+    data_4 = "{}. {}".format(topic_name, stream_message)
 
     return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
@@ -269,6 +274,6 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
             {"data": attendee_name},
             {"data": host_name},
             {"data": display_start},
-            {"data": topic_name}
+            {"data": data_4}
         ]
     )
