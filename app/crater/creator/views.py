@@ -275,7 +275,7 @@ class FollowerViewSet(
     pagination_class = paginators.FollowerPagination
     # All followers of the creator.
     queryset = models.Follower.objects.filter(unfollowed=False)
-    filterset_fields = ["creator"]
+    filterset_fields = ["creator", "creator__user"]
 
     @action(
         methods=["post"],
