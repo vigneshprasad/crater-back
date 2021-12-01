@@ -16,6 +16,8 @@ class CreatorAdmin(admin.ModelAdmin):
         "is_active",
         "slug"
     )
+    list_filter = ("certified", "is_active")
+    search_fields = ("user__name", "user__username")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     def get_queryset(self, request):

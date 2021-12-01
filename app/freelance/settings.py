@@ -26,6 +26,8 @@ from sentry_sdk.integrations.redis import RedisIntegration
 
 
 # All environment variables.
+from crater import creator
+
 ENVIRONMENT = os.getenv("ENVIRONMENT")
 ENVIRONMENT_PREPROD = "preprod"
 ENVIRONMENT_PROD = "prod"
@@ -142,7 +144,8 @@ INSTALLED_APPS = [
     "crater.auth",
     "crater.creator",
     "crater.rewards",
-    "crater.auctions"
+    "crater.auctions",
+    "crater.exchange"
 ]
 
 SITE_ID = 1
