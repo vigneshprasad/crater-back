@@ -11,6 +11,7 @@ class TransactionViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.TransactionSerializer
     queryset = models.Transaction.objects.all()
@@ -21,6 +22,7 @@ class UserCoinHoldingViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.UserCoinHoldingSerializer
     queryset = models.UserCoinHolding.objects.all()

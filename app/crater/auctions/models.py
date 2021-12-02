@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-# Create your models here.
 from base import models as base_models
 from crater.auctions import constants
 
 
 class Auction(base_models.BaseModel):
+    """Creator auction for their Tokens."""
+
     coin = models.ForeignKey(
         "creator.Coin",
         related_name="auctions",
@@ -43,6 +44,8 @@ class Bid(base_models.BaseModel):
         get_user_model(),
         on_delete=models.CASCADE
     )
+
+    # What auction is the bid made for.
     auction = models.ForeignKey(
         Auction,
         null=True,
