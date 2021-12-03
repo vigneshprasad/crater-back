@@ -66,7 +66,7 @@ class CreatorViewSet(
         permission_classes=(user_permissions.IsAuthenticated,),
         detail=False
     )
-    def self(self, request):
+    def me(self, request):
         """Returns the creator instance for the requested
             user if it exists.
         """
