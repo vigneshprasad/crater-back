@@ -725,22 +725,22 @@ class ProfileSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(_("Please use your cover file"))
         return cover
 
-    def validate_instagram(self, instagram_token):
-        if instagram_token:
-            self.instagram_token, self.instagram_id = instagram_service.convert_code_to_long_access_token(
-                instagram_token
-            )
-            if not self.instagram_token:
-                self.instagram_token = instagram_service.get_long_access_token(instagram_token)
-            if not self.instagram_token:
-                raise serializers.ValidationError(
-                    _("Instagram token is not valid")
-                )
-            return self.instagram_token
-        return ""
-
-    def validate_instagram_id(self, instagram_id):
-        return instagram_id or self.instagram_id
+    # def validate_instagram(self, instagram_token):
+    #     if instagram_token:
+    #         self.instagram_token, self.instagram_id = instagram_service.convert_code_to_long_access_token(
+    #             instagram_token
+    #         )
+    #         if not self.instagram_token:
+    #             self.instagram_token = instagram_service.get_long_access_token(instagram_token)
+    #         if not self.instagram_token:
+    #             raise serializers.ValidationError(
+    #                 _("Instagram token is not valid")
+    #             )
+    #         return self.instagram_token
+    #     return ""
+    #
+    # def validate_instagram_id(self, instagram_id):
+    #     return instagram_id or self.instagram_id
 
     @staticmethod
     def get_is_cover_video(obj):
