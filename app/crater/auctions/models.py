@@ -61,6 +61,8 @@ class Bid(base_models.BaseModel):
     # What time the bid was created.
     bid_time = models.DateTimeField()
 
+    # What is the status of the bid. Accepted status of bid
+    # makes the exchange or coins.
     status = models.PositiveIntegerField(
         choices=BID_STATUS_CHOICES
     )
