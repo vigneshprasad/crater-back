@@ -1,4 +1,8 @@
+import csv
+
 from django.contrib.auth import get_user_model
+from django.db.models import F
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -61,7 +65,6 @@ class CreatorSlugViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
-
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
@@ -375,3 +378,26 @@ class FollowerViewSet(
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+    @action(
+        methods=["GET"],
+        detail=False,
+    )
+    def download_csv(self, request):
+        response = HttpResponse(content_type="text/csv")
+        response['Content-Disposition'] = 'attachment; filename="export.csv"'
+
+        # Get all creator followers
+        followers = models.Follower.objects.filter(
+            creator__user=request.user,
+            unfollowed=False
+        ).values(name=F("user__name"), email=F("user__email"), phone_number=F("user__phone_number"))
+
+        writer = csv.DictWriter(
+            response,
+            fieldnames=["name", "email", "phone_number"]
+        )
+        writer.writeheader()
+        writer.writerows(followers)
+
+        return response
