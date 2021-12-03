@@ -60,6 +60,24 @@ class CreatorViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(
+        methods=["get"],
+        serializer_class=serializers.CreatorSerializer,
+        permission_classes=(user_permissions.IsAuthenticated,),
+        detail=False
+    )
+    def self(self, request):
+        """Returns the creator instance for the requested
+            user if it exists.
+        """
+        try:
+            creator = self.get_queryset().get(user=request.user)
+        except models.Creator.DoesNotExist:
+            creator = None
+
+        serializer = self.get_serializer(creator)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class CreatorSlugViewSet(
     mixins.RetrieveModelMixin,
