@@ -73,7 +73,7 @@ class CreatorViewSet(
         try:
             creator = self.get_queryset().get(user=request.user)
         except models.Creator.DoesNotExist:
-            creator = None
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(creator)
         return Response(serializer.data, status=status.HTTP_200_OK)
