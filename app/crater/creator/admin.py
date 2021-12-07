@@ -14,7 +14,8 @@ class CreatorAdmin(admin.ModelAdmin):
         "type",
         "follower_count",
         "is_active",
-        "slug"
+        "slug",
+        "show_club_members",
     )
     list_filter = ("certified", "is_active")
     search_fields = ("user__name", "user__username")
