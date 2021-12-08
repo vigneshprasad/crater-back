@@ -164,7 +164,7 @@ def create_calendar_event_for_webinar_host(group):
     host = group.host
 
     # TODO(Nishant): This has to change for each environment.
-    stream_link = "https://crater.club/session/{group_id}".format(
+    stream_link = "https://crater.club/livestream/{group_id}".format(
         group_id=group.id
     )
     summary = constants.HOST_SUMMARY_FOR_WEBINARS
@@ -222,7 +222,7 @@ def create_calendar_event_for_webinar_speakers(speakers, group):
         if google_calendar_event:
             continue
  
-        stream_link = "https://crater.club/session/{group_id}".format(
+        stream_link = "https://crater.club/livestream/{group_id}".format(
             group_id=group.id
         )
         summary = constants.HOST_SUMMARY_FOR_WEBINARS
@@ -268,7 +268,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
     host = group.host
 
     # TODO(Nishant): This has to change for each environment.
-    stream_link = "https://crater.club/session/{group_id}".format(
+    stream_link = "https://crater.club/livestream/{group_id}".format(
         group_id=group.id
     )
 
