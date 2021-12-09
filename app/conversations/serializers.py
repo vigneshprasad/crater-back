@@ -434,11 +434,10 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
         instance = super().create(validated_data)
 
-        # Save GroupRTMP instance if RTMP link is provided
         if rtmp_link:
-            models.GroupRtmp.objects.create(
+            _ = services.create_group_rtmp(
                 group=instance,
-                link=rtmp_link
+                rtmp_link=rtmp_link
             )
 
         return instance
