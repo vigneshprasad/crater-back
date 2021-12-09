@@ -76,3 +76,15 @@ def add_attendee_to_creator_followers(sender, group, user, *args, **kwargs):
         return
 
     return private.create_follower_for_creator(user, creator)
+
+
+@receiver(conversation_signals.webinar_created)
+def add_creator(sender, group, *args, **kwargs):
+    """Add a creator object for the group host
+
+    Args:
+        sender(Group): Group class.
+        group(Group): Group model instance
+
+    """
+    return private.get_or_create_creator(user=group.host)
