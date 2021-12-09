@@ -310,7 +310,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     is_past = serializers.SerializerMethodField(read_only=True)
     recording_details = GroupRecordingSerializer(source="recording", read_only=True)
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
-    rtmp_link = serializers.CharField(write_only=True)
+    rtmp_link = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = models.Group
@@ -353,6 +353,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "is_live": {"read_only": True},
             "topic": {"read_only": True},
             "categories": {"required": True},
+            "speakers": {"required": False},
         }
 
     @staticmethod
