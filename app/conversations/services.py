@@ -467,6 +467,21 @@ def get_paginated_group_messages(group):
     return serializer.data
 
 
+def create_group_rtmp(group, rtmp_link):
+    """Create and return a group rtmp instance.
+
+    Args:
+        group(Group): Group model instance
+        rtmp_link(str): RTMP link
+
+    """
+    group_rtmp = models.GroupRtmp.objects.create(
+        group=group,
+        link=rtmp_link
+    )
+
+    return group_rtmp
+
 # def get_paginated_group_messages(group, page):
 #     page_size = 20
 #     cache_key = f"crater_g{group.id}_messages"

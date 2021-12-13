@@ -1,7 +1,6 @@
 import copy
 import datetime
 
-from django.conf import settings
 from django.utils import timezone
 
 from rest_framework import serializers
@@ -311,6 +310,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     is_past = serializers.SerializerMethodField(read_only=True)
     recording_details = GroupRecordingSerializer(source="recording", read_only=True)
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
+    rtmp_link = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = models.Group
@@ -339,7 +339,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "categories_detail_list",
             "recording_details",
             "speakers",
-            "speakers_detail_list"
+            "speakers_detail_list",
+            "rtmp_link",
         )
 
         extra_kwargs = {
@@ -352,6 +353,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "is_live": {"read_only": True},
             "topic": {"read_only": True},
             "categories": {"required": True},
+            "speakers": {"required": False},
         }
 
     @staticmethod
@@ -407,6 +409,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
         title = validated_data.pop("topic_title") if validated_data.get("topic_title") else None
         image = validated_data.pop("topic_image") if validated_data.get("topic_image") else None
+        rtmp_link = validated_data.pop("rtmp_link") if validated_data.get("rtmp_link") else None
+        speakers = validated_data.get("speakers", []) + [user]
 
         topic = services.get_or_create_topic(
             name=title,
@@ -419,7 +423,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         webinar_data = {
             "host": user,
             "topic": topic,
-            "speakers": [user],
+            "speakers": speakers,
             "privacy": constants.GROUP_PRIVACY_PUBLIC_ENUM,
             "medium": constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM,
             "type": constants.GROUP_TYPE_WEBINAR_ENUM,
@@ -428,7 +432,15 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         }
         validated_data.update(webinar_data)
 
-        return super().create(validated_data)
+        instance = super().create(validated_data)
+
+        if rtmp_link:
+            _ = services.create_group_rtmp(
+                group=instance,
+                rtmp_link=rtmp_link
+            )
+
+        return instance
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):
