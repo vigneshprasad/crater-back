@@ -293,6 +293,13 @@ class FreshChatWhatsappService:
                 args=(user.pk, request_id,),
                 countdown=60
             )
+        elif response.status_code == constants.FRESHCHAT_STATUS_BAD_REQUEST:
+            logging.error(
+                "Freshchat Template data incomplete for {}".format(
+                    user.__str__()
+                )
+            )
+            return False
         else:
             logging.error(
                 "FreshChat Post Outbound Message Failed for {}".format(
