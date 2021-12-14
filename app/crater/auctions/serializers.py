@@ -8,15 +8,18 @@ class AuctionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Auction
+        fields = "__all__"
 
 
 class BidSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Bid
+        fields = "__all__"
 
 
 class CoinPriceLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.CoinPriceLog
+        fields = "__all__"

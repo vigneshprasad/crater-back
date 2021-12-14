@@ -139,10 +139,13 @@ class Coin(base_models.BaseModel):
     # max_coins = models.PositiveIntegerField()
 
     # Name of the coin.
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=32, null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     # Contains all the display functionality
     # of the creator coin.
     # TODO(Nishant): Decide fields we need for display of the coin.
     display = JSONField(default=dict)
+
+    def __str__(self):
+        return f'{self.creator.slug} - {self.id}';

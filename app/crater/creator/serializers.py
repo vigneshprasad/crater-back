@@ -152,12 +152,13 @@ class CoinSerializer(serializers.ModelSerializer):
 
     class Meta:
 
-        model = models.CommunityMember
+        model = models.Coin
         fields = (
             "id",
             "name",
             "is_active",
-            "display"
+            "display",
+            "creator_detail"
         )
         extra_kwargs = {
             "is_active": {

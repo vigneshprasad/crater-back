@@ -26,6 +26,17 @@ class CreatorAdmin(admin.ModelAdmin):
         return queryset.select_related("user").order_by("-order")
 
 
+@admin.register(models.Coin)
+class CoinAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "creator",
+        "display"
+    )
+
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
 @admin.register(models.Community)
 class CommunityAdmin(admin.ModelAdmin):
     list_display = (

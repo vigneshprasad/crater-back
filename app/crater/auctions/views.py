@@ -21,7 +21,8 @@ class AuctionViewSet(
 ):
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.AuctionSerializer
-    queryset = models.Auction.objects.filter(is_closed=True)
+    queryset = models.Auction.objects.filter(is_closed=False)
+    filterset_fields = ["coin__creator"]
 
 
 class BidViewSet(
@@ -33,7 +34,7 @@ class BidViewSet(
 ):
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.BidSerializer
-    queryset = models.Bid.objects.all()
+    queryset = models.Bid.objects.all().order_by("bid_time")
     filterset_fields = ["bidder", "auction", "status"]
 
 
