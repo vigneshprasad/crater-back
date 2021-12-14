@@ -5,6 +5,7 @@ from rest_framework.routers import DefaultRouter
 from crater.auth import views as auth_views
 from crater.creator import views as creator_views
 from crater.rewards import views as reward_views
+from crater.auctions import views as auction_views
 
 app_name = "crater"
 
@@ -25,6 +26,8 @@ router.register("coins", creator_views.CoinsViewSet, base_name="creator-coins")
 router.register("reward/type", reward_views.RewardTypeViewSet, base_name="reward-types")
 router.register("reward", reward_views.RewardViewSet, base_name="rewards")
 router.register("redemption", reward_views.RedemptionViewSet, base_name="redemptions")
+router.register("auction", auction_views.AuctionViewSet, basename="auctions")
+router.register("bid", auction_views.BidViewSet, basename="bids")
 
 urlpatterns = [
     path("", include(router.urls)),

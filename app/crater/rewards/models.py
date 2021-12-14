@@ -29,7 +29,8 @@ class Reward(base_models.BaseModel):
     # Creator who is offering this reward.
     creator = models.ForeignKey(
         "creator.Creator",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="rewards"
     )
     # Name of the reward.
     name = models.CharField(max_length=128)
@@ -52,6 +53,7 @@ class Reward(base_models.BaseModel):
     # Display properties.
     photo = models.FileField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
 
 class Redemption(base_models.BaseModel):
