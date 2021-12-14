@@ -6,7 +6,7 @@ from crater.auctions import constants
 
 
 class Auction(base_models.BaseModel):
-    """Creator auction for their Tokens."""
+    """Creator auctions for their Tokens."""
 
     coin = models.ForeignKey(
         "creator.Coin",
@@ -16,14 +16,15 @@ class Auction(base_models.BaseModel):
     # Duration of the auction.
     start = models.DateTimeField()
     end = models.DateTimeField()
-
-    # Should be the same as end. Discuss with Vignesh.
-    expires_at = models.DateTimeField()
     is_closed = models.BooleanField(default=False)
 
+    # This key denotes if bids can be placed on the auction.
+    is_active = models.BooleanField(default=True)
+
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
+
     number_of_coins = models.PositiveIntegerField()
-    coins_sold = models.PositiveIntegerField()
+    coins_sold = models.PositiveIntegerField(default=0)
 
 
 class Bid(base_models.BaseModel):
@@ -31,7 +32,6 @@ class Bid(base_models.BaseModel):
         to another user for number of coins.
 
     """
-    # TODO(Nishant): Think of how a bid from one user to another will work.
 
     BID_STATUS_CHOICES = (
         (constants.BID_STATUS_PENDING_ENUM, constants.BID_STATUS_PENDING),
@@ -67,8 +67,16 @@ class Bid(base_models.BaseModel):
         choices=BID_STATUS_CHOICES
     )
 
+    # This key tells us if the bid has been processed completely.
+    # Note: If this key is false, the bid is invalid.
+    is_processed = models.BooleanField(default=False)
+
     # Attach a payment promise to the Bid.
     # payment = models.ForeignKey()
+
+    @property
+    def amount(self):
+        return self.number_of_coins * self.bid_price
 
 
 class CoinPriceLog(base_models.BaseModel):
@@ -78,12 +86,10 @@ class CoinPriceLog(base_models.BaseModel):
         Ideally it'll always be the last accepted bid price.
 
     """
+
     coin = models.ForeignKey(
         "creator.Coin",
         related_name="log",
         on_delete=models.CASCADE
     )
     price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    # TODO(Nishant): Should we keep a bid object here?
-    bid = models.ForeignKey(Bid, on_delete=models.CASCADE)

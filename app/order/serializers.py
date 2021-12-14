@@ -497,7 +497,7 @@ class PaymentOrdersSerialier(serializers.Serializer):
         if not (token or saved_card):
             raise serializers.ValidationError({
                 'stripe_token': _('This field is required'),
-                'pay_saved_card': _('This field mast be true if stripe toke is empty')
+                'pay_saved_card': _('This field mast be true if stripe token is empty')
             })
         return attrs
 

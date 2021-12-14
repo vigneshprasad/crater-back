@@ -145,7 +145,10 @@ INSTALLED_APPS = [
     "crater.creator",
     "crater.rewards",
     "crater.auctions",
-    "crater.exchange"
+    "crater.exchange",
+    "crater.payments",
+    # "crater.gateways",
+    "crater.gateways.stripe_payments"
 ]
 
 SITE_ID = 1
@@ -477,4 +480,10 @@ DYTE_APP_ID = os.getenv("DYTE_APP_ID", "649454884b7925512fae")
 DYTE_PROD_BASE_URL = "https://api.cluster.dyte.in"
 DYTE_JOIN_MEETING_BASE_URL = "https://worknetwork.dyte.io/"
 
+# -------------- STRIPE ------------- #
+STRIPE_PUBLISHABLE_KEY = "pk_test_51K3b69SEKv2Ym9yYEOeGcEKl0K1o0k5v5BduTtjGT9pqm9pd4Zv2Ap8nwSwhsIMubctc0em5WX4cuTvGLZg1ORjl00AIYT5Rn2"
+STRIPE_SECRET_KEY = "sk_test_51K3b69SEKv2Ym9yY2iHp4gY7IS4fPzhWjMMcrF2RRllNsfCWPyUwtNTCnqoFeJMuCKzljR5y8p7eLATF0lByhd7M00BBpRPjZM"
+
+
+# API safe methods.
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")

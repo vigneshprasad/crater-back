@@ -7,7 +7,7 @@ from crater.creator import services
 
 
 class Creator(base_models.BaseModel):
-    """Creator profile for a user on the platform.
+    """Creator for a user on the platform.
 
     Note: Only gets built when a user wants to create
         a community.
@@ -148,4 +148,4 @@ class Coin(base_models.BaseModel):
     display = JSONField(default=dict)
 
     def __str__(self):
-        return f'{self.creator.slug} - {self.id}';
+        return f"{self.creator.slug} - {self.id}"
