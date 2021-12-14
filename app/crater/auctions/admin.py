@@ -36,7 +36,6 @@ class CoinPriceLogAdmin(admin.ModelAdmin):
         "id",
         "coin",
         "price",
-        "bid",
         "created_at"
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
