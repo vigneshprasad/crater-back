@@ -247,11 +247,12 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "id",
         "group",
         "sender",
-        "message"
+        "get_message_data"
     )
     raw_id_fields = ("sender", )
     search_fields = (
         "message",
+        "sender"
     )
     list_filter = (
         "group",

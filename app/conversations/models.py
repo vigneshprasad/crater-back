@@ -657,16 +657,24 @@ class GroupMessage(base_model.BaseModel):
     def __str__(self):
         return f"{self.pk}-{self.sender}"
 
+    @property
+    def get_message_data(self):
+        """Return message data based on the type"""
+        if self.type == constants.CHAT_MESSAGE_TYPE_REACTION_ENUM:
+            return self.data
+        else:
+            return self.message
+
 
 class ChatReaction(base_model.BaseModel):
     """
     Reactions types that users can send on stream
     """
 
-    image = models.ImageField()
+    image = models.ImageField(upload_to="reactions/icons")
     name = models.CharField(max_length=128)
     is_active = models.BooleanField(default=True)
-    file = models.FileField()
+    file = models.FileField(upload_to="rreactions/gifs")
 
     class Meta:
         ordering = ["-created_at"]
