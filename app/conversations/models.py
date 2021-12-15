@@ -5,6 +5,7 @@ from django.db import models
 from django.core import exceptions
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
@@ -620,7 +621,12 @@ class GroupMessage(base_model.BaseModel):
     """
     Message for the group.
     """
-    message = models.TextField()
+    CHAT_MESSAGE_TYPE_CHOICES = (
+        (constants.CHAT_MESSAGE_TYPE_TEXT_ENUM, constants.CHAT_MESSAGE_TYPE_TEXT),
+        (constants.CHAT_MESSAGE_TYPE_REACTION_ENUM, constants.CHAT_MESSAGE_TYPE_REACTION)
+    )
+    
+    message = models.TextField(null=True, blank=True)
     group = models.ForeignKey(
         Group,
         related_name='group_questions',
@@ -636,9 +642,34 @@ class GroupMessage(base_model.BaseModel):
         null=True,
         blank=True
     )
+    type = models.PositiveIntegerField(
+        default=constants.CHAT_MESSAGE_TYPE_TEXT_ENUM,
+        choices=CHAT_MESSAGE_TYPE_CHOICES,
+    )
+    data = JSONField(
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.pk}-{self.sender}"
+
+
+class ChatReaction(base_model.BaseModel):
+    """
+    Reactions types that users can send on stream
+    """
+
+    image = models.ImageField()
+    name = models.CharField(max_length=128)
+    is_active = models.BooleanField(default=True)
+    file = models.FileField()
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.pk}-{self.name}"

@@ -258,3 +258,13 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "sender"
     )
     exclude = ("updated_at",)
+
+
+@admin.register(models.ChatReaction)
+class ChatReactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+    )
+    exclude = ("deleted_at", "updated_at", "is_deleted")
+

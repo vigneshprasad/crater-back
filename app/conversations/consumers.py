@@ -76,6 +76,27 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+    async def send_group_reaction(self, payload):
+        """Create GroupMessage object of type reaction and send it over channel layer."""
+        reaction_id = payload.get("reaction")
+        group_message = await services.create_group_message_reaction(
+            group=self.group,
+            sender=self.user,
+            reaction_id=reaction_id,
+        )
+
+        if not group_message:
+            return
+
+        json_result = json.loads(JSONRenderer().render(group_message).decode("utf8"))
+        await self.channel_layer.group_send(
+            f"crater_live_{self.group.id}",
+            {
+                "type": "broadcast_new_group_message",
+                "message": json_result
+            }
+        )    
+
     async def broadcast_new_group_message(self, event):
         """Broadcast message on channel group."""
         await self.send(json.dumps({
