@@ -33,6 +33,7 @@ class Creator(base_models.BaseModel):
     participant_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, blank=True)
+    show_club_members = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["follower_count"]

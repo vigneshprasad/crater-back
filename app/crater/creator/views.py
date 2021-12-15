@@ -1,4 +1,8 @@
+import csv
+
 from django.contrib.auth import get_user_model
+from django.db.models import F
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -56,12 +60,29 @@ class CreatorViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(
+        methods=["get"],
+        serializer_class=serializers.CreatorSerializer,
+        permission_classes=(user_permissions.IsAuthenticated,),
+        detail=False
+    )
+    def me(self, request):
+        """Returns the creator instance for the requested
+            user if it exists.
+        """
+        try:
+            creator = self.get_queryset().get(user=request.user)
+        except models.Creator.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(creator)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class CreatorSlugViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
 ):
-
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
@@ -275,7 +296,7 @@ class FollowerViewSet(
     pagination_class = paginators.FollowerPagination
     # All followers of the creator.
     queryset = models.Follower.objects.filter(unfollowed=False)
-    filterset_fields = ["creator"]
+    filterset_fields = ["creator", "creator__user"]
 
     @action(
         methods=["post"],
@@ -375,3 +396,26 @@ class FollowerViewSet(
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+    @action(
+        methods=["GET"],
+        detail=False,
+    )
+    def download_csv(self, request):
+        response = HttpResponse(content_type="text/csv")
+        response['Content-Disposition'] = 'attachment; filename="export.csv"'
+
+        # Get all creator followers
+        followers = models.Follower.objects.filter(
+            creator__user=request.user,
+            unfollowed=False
+        ).values(name=F("user__name"), email=F("user__email"), phone_number=F("user__phone_number"))
+
+        writer = csv.DictWriter(
+            response,
+            fieldnames=["name", "email", "phone_number"]
+        )
+        writer.writeheader()
+        writer.writerows(followers)
+
+        return response

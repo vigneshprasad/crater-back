@@ -140,3 +140,15 @@ def get_follower_count_for_creator(creator):
         creator=creator,
         unfollowed=False
     ).count()
+
+
+def get_or_create_creator(user):
+    """Return a creator for the provided user
+
+    Args:
+        user(User): User model instance
+
+    """
+    creator, _ = models.Creator.objects.get_or_create(user=user)
+
+    return creator

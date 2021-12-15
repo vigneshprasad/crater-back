@@ -26,7 +26,8 @@ class CreatorSerializer(serializers.ModelSerializer):
             "default_community",
             "profile_detail",
             "slug",
-            "is_follower"
+            "is_follower",
+            "show_club_members",
         )
         extra_kwargs = {
             "number_of_subscribers": {
@@ -42,6 +43,9 @@ class CreatorSerializer(serializers.ModelSerializer):
                 "read_only": True
             },
             "slug": {
+                "read_only": True
+            },
+            "show_club_members": {
                 "read_only": True
             }
         }

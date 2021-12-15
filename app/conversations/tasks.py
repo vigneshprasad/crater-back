@@ -135,7 +135,7 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
 
     Note:
         Sends reminder to attendees of webinar which is
-            starting 10 minutes from now.
+            starting 5 minutes from now.
 
     """
     now_time = datetime.datetime.now()

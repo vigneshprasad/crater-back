@@ -14,7 +14,8 @@ class CreatorAdmin(admin.ModelAdmin):
         "type",
         "follower_count",
         "is_active",
-        "slug"
+        "slug",
+        "show_club_members",
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 

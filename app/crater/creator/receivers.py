@@ -48,7 +48,13 @@ def update_follower_count(sender, follower, *args, **kwargs):
     """
     creator = follower.creator
     creator.follower_count = private.get_follower_count_for_creator(creator)
+
+    # Set show_club_members to true if follower count hits 50
+    if creator.follower_count >= 50 and not creator.show_club_members:
+        creator.show_club_members = True
+
     creator.save()
+
     return creator
 
 
@@ -70,3 +76,15 @@ def add_attendee_to_creator_followers(sender, group, user, *args, **kwargs):
         return
 
     return private.create_follower_for_creator(user, creator)
+
+
+@receiver(conversation_signals.webinar_created)
+def add_creator(sender, group, *args, **kwargs):
+    """Add a creator object for the group host
+
+    Args:
+        sender(Group): Group class.
+        group(Group): Group model instance
+
+    """
+    return private.get_or_create_creator(user=group.host)

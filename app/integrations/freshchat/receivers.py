@@ -261,7 +261,7 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
     host_name = host.display_name
     display_start = group.get_display_start()
     topic_name = group.topic.name
-    stream_link = "https://crater.club/session/{group_id}".format(
+    stream_link = "https://crater.club/livestream/{group_id}".format(
         group_id=group.id
     )
     stream_message = "The stream will go live here: {}".format(stream_link)

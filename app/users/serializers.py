@@ -526,6 +526,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         },
         max_length=100
     )
+    email = serializers.CharField(source="user.email", read_only=True)
+    phone_number = serializers.CharField(source="user.phone_number", read_only=True)
     tag_line = serializers.CharField(
         error_messages={
             "max_length": _("Tag line should not be longer than 100 symbols"),
@@ -648,6 +650,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "pk",
             "uuid",
             "name",
+            "email",
+            "phone_number",
             "role",
             "professional_service_provider",
             "tag_line",
@@ -711,7 +715,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "cover_transcoder",
             "cover_file",
             "is_instagram_set",
-            "is_cover_video"
+            "is_cover_video",
         )
 
     def validate_cover(self, cover):
