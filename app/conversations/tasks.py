@@ -154,6 +154,9 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
         freshchat_public.send_whatsapp_reminder_for_webinar_attendees(
             webinar
         )
+        freshchat_public.send_whatsapp_reminder_for_creator_followers(
+            webinar
+        )
 
 
 @periodic_task(run_every=crontab(minute="*/10"))

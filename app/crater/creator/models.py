@@ -124,6 +124,10 @@ class Follower(base_models.BaseModel):
     unfollowed = models.BooleanField(default=False)
     unfollowed_at = models.DateTimeField(null=True, blank=True)
 
+    # This denotes if we should notify the user everytime the
+    # creator goes live.
+    notify = models.BooleanField(default=False)
+
 
 class Coin(base_models.BaseModel):
     """Coin of the creator."""

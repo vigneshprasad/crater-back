@@ -5,10 +5,10 @@ import urllib.parse
 from datetime import datetime
 from django.conf import settings
 
+from crater.creator import public as creator_public
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat import services
-from resources.meetings import services as meeting_services
 from utils.tiny_url_service import tiny_url_service
 from utils.deep_link_service import deep_link_service
 
@@ -365,6 +365,28 @@ def send_whatsapp_reminder_for_webinar_host(group):
     )
 
 
+def send_whatsapp_reminder_for_creator_followers(group):
+    """Send whatsapp reminder to creator follower before
+        the creator goes live.
+
+    Args:
+        group(Group): Creator webinar to whose followers we are sending
+            the reminder.
+
+    """
+    host = group.host
+    if not host:
+        return True
+
+    creator = creator_public.get_creator_for_user(host)
+    followers = creator.followers.filter(notify=True)
+
+    for follower in followers:
+        send_whatsapp_reminder_for_creator_follower(follower.user, group)
+
+    return True
+
+
 def send_whatsapp_reminder_for_webinar_attendees(group):
     """Send whatsapp reminder to webinar attendees before start time.
 
@@ -414,6 +436,51 @@ def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
 
     return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=attendee,
+        template_name=constants.WEBINAR_ATTENDEE_REMINDER_TEMPLATE,
+        template_data=[
+            {"data": attendee_name},
+            {"data": data_2},
+            {"data": data_3}
+        ]
+    )
+
+
+def send_whatsapp_reminder_for_creator_follower(follower, group):
+    """Send whatsapp reminder to creator follower before
+        the creator goes live.
+
+    Args:
+        follower(User): Follower we are sending the reminder to.
+        group(Group): Creator webinar we are sending the reminder for.
+
+    """
+    attendee_name = follower.get_display_first_name()
+    creator_name = group.host.display_name
+
+    if not attendee_name:
+        logging.error(
+            "Follower RSVP message didn't go: {}".format(
+                follower.__str__()
+            )
+        )
+        return False
+
+    topic_name = group.topic.name
+    stream_link = "https://crater.club/livestream/{group_id}".format(
+        group_id=group.id
+    )
+
+    data_2 = constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
+        creator_name=creator_name,
+        topic_name=topic_name
+    )
+    data_3 = constants.DATA_3_FOR_ATTENDEE_REMINDER.format(
+        minutes_remaining=constants.WEBINAR_ATTENDEE_REMINDER_DELAY_STR,
+        stream_link=stream_link
+    )
+
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=follower,
         template_name=constants.WEBINAR_ATTENDEE_REMINDER_TEMPLATE,
         template_data=[
             {"data": attendee_name},
