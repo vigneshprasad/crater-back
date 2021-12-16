@@ -559,4 +559,3 @@ class ChatReactionViewSet(
     serializer_class = serializers.ChatReactionSerializer
     queryset = models.ChatReaction.objects.filter(is_active=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    
