@@ -6,7 +6,7 @@ from crater.creator import models as crater_models
 def run(dry_run=True):
     webinars = conversation_models.Group.objects.filter(type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM)
     for webinar in webinars:
-        print("Start", "*" *10)
+        print("Start", "*" * 10)
         print("Webinar: {}".format(webinar))
 
         host = webinar.host

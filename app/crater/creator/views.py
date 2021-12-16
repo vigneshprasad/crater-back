@@ -407,6 +407,7 @@ class FollowerViewSet(
             livestreams from the creator.
 
         """
+
         user = request.user
         # TODO(Nishant): Discuss if we need webinar id here.
         creator_id = request.data.get("creator")
