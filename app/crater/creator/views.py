@@ -398,6 +398,60 @@ class FollowerViewSet(
         )
 
     @action(
+        methods=["post"],
+        serializer_class=serializers.FollowerSerializer,
+        detail=False
+    )
+    def notify(self, request, *args, **kwargs):
+        """Marks the follower object to notify for further
+            livestreams from the creator.
+
+        """
+        user = request.user
+        # TODO(Nishant): Discuss if we need webinar id here.
+        creator_id = request.data.get("creator")
+
+        # Get follower object for the user and creator.
+        follower = private.get_follower_for_user_and_creator_id(
+            user,
+            creator_id
+        )
+
+        if follower:
+            data = {
+                "notify": True
+            }
+            serializer = self.get_serializer(data=data, instance=follower, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            created = False
+        else:
+            # Create follower object and turn notify on.
+            data = {
+                "user": user.pk,
+                "creator": creator_id,
+                "unfollowed": False,
+                "notify": True,
+                "followed_at": timezone.now()
+            }
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            follower = serializer.save()
+            created = True
+
+        if created:
+            # Send signals that the follower is created.
+            signals.creator_followed.send(
+                sender=follower.__class__,
+                follower=follower
+            )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    @action(
         methods=["GET"],
         detail=False,
     )
