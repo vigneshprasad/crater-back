@@ -6,6 +6,9 @@ def get_creator_for_user(user):
         one exists.
 
     """
+    if not user:
+        return None
+
     try:
         return user.creator
     except models.Creator.DoesNotExist:

@@ -130,12 +130,13 @@ def start_recording_for_webinars(groups=None):
 
 
 @periodic_task(run_every=crontab(minute="*/5"))
-def send_whatsapp_reminder_for_webinar_attendees(groups=None):
-    """Send whatsapp reminder to all attendees for Webinar
+def send_whatsapp_reminder_for_webinar_attendees_and_followers(groups=None):
+    """Send whatsapp reminder to all attendees for webinar
+        and people following the creator.
 
     Note:
-        Sends reminder to attendees of webinar which is
-            starting 5 minutes from now.
+        Sends reminder to attendees and followers of webinar host.
+            which is starting 5 minutes from now.
 
     """
     now_time = datetime.datetime.now()
@@ -150,11 +151,8 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     )
 
     for webinar in webinars:
-        # Send whatsapp reminder for webinar to attendees.
-        freshchat_public.send_whatsapp_reminder_for_webinar_attendees(
-            webinar
-        )
-        freshchat_public.send_whatsapp_reminder_for_creator_followers(
+        # Send whatsapp reminder for webinar to attendees and creator followers.
+        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(
             webinar
         )
 
