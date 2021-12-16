@@ -381,10 +381,12 @@ def send_whatsapp_reminder_for_webinar_attendees_and_followers(group):
 
     if creator:
         # Add users followers if creator is present.
-        followers = creator.followers.filter(notify=True).values_list("user_pk", flat=True)
+        followers = list(creator.followers.filter(
+            notify=True
+        ).values_list("user_id", flat=True))
 
     # Get attendees for the group.
-    attendees = group.attendees.values_list("pk", flat=True)
+    attendees = list(group.attendees.values_list("pk", flat=True))
 
     # Create an exhaustive list of users to send reminder to.
     users_to_remind = list(set(followers + attendees))

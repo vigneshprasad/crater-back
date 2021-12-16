@@ -128,6 +128,9 @@ class Follower(base_models.BaseModel):
     # creator goes live.
     notify = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f"{self.user.__str__()}"
+
 
 class Coin(base_models.BaseModel):
     """Coin of the creator."""

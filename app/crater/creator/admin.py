@@ -62,10 +62,11 @@ class FollowerAdmin(admin.ModelAdmin):
         "id",
         "user",
         "creator",
+        "notify",
         "unfollowed",
-        "followed_at"
     )
     list_filter = ("creator", )
+    list_editable = ("notify", "unfollowed")
     search_fields = (
         "creator__user__username",
         "creator__user__name",
