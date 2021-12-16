@@ -674,7 +674,7 @@ class ChatReaction(base_model.BaseModel):
     image = models.ImageField(upload_to="reactions/icons")
     name = models.CharField(max_length=128)
     is_active = models.BooleanField(default=True)
-    file = models.FileField(upload_to="rreactions/gifs")
+    file = models.FileField(upload_to="reactions/gifs")
 
     class Meta:
         ordering = ["-created_at"]
