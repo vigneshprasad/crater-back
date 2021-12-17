@@ -2,7 +2,6 @@ import datetime
 import logging
 
 import pytz
-from django.utils import timezone
 from django.conf import settings
 from django.dispatch import receiver
 
@@ -254,6 +253,10 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
         return
 
     attendee_name = user.get_display_first_name()
+    # If there is no attendee name, return.
+    if not attendee_name:
+        return
+
     host = group.host
     if not host:
         return

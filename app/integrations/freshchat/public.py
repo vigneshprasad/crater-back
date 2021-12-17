@@ -411,11 +411,8 @@ def send_whatsapp_reminder_for_webinar_attendee_and_follower(user, group):
     creator_name = group.host.display_name
 
     if not attendee_name:
-        logging.error(
-            "Attendee RSVP message didn't go: {}".format(
-                user.__str__()
-            )
-        )
+        # Not throwing error since we can't fix
+        # this without user input.
         return False
 
     topic_name = group.topic.name
