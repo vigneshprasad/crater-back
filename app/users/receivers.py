@@ -26,7 +26,7 @@ def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
 
     """
     # If the model is being created. Return from here.
-    if not instance.pk:
+    if instance._state.adding:
         return
 
     # Get the model state in the DB before update.
