@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
@@ -13,6 +14,40 @@ PROFILE_COMPLETED_POINTS_KEY = 1
 REFERAL_SUCCESS_POINTS_KEY = 13
 
 User = get_user_model()
+
+
+@receiver(pre_save, sender=get_user_model())
+def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
+    """Checks if a user's name is populated for the first time.
+
+    Args:
+        sender(User class): Class representation of user model.
+        instance(User): Instance being saved.
+
+    """
+    # If the model is being created. Return from here.
+    if not instance.pk:
+        return
+
+    # Get the model state in the DB before update.
+    previous = get_user_model().objects.get(pk=instance.pk)
+
+    # Get previous and current name
+    previous_name = None if not previous.name else previous.name.strip()
+    current_name = None if not instance.name else instance.name.strip()
+
+    # If there is a previous name, and no current name throw and error.
+    if not current_name and previous_name:
+        logging.error("Name removed for user: {}".format(previous.__str__()))
+        return
+
+    # If there is no previous name and there is a current name. Send name
+    # populate signal.
+    if not previous_name and current_name:
+        signals.user_name_populated.send(
+            sender=instance.__class__,
+            user=instance
+        )
 
 
 @receiver(signals.user_created)

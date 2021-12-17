@@ -11,7 +11,6 @@ from crater.auth import constants
 from crater.auth import exceptions
 from crater.auth import models
 from crater.auth import serializers
-from crater.auth import tasks
 from users import constants as user_constants
 from users import public as user_public
 from users import permissions as user_permissions
@@ -110,13 +109,6 @@ class PhoneNumberRegisterView(
 
         if crater_club_group not in user.groups.all():
             user.groups.add(crater_club_group)
-
-            # Send welcome crater whatsapp after 5 minutes
-            # on first login/signup on Crater.
-            tasks.send_welcome_crater_whatsapp.apply_async(
-                args=(user.pk, ),
-                countdown=300
-            )
 
         # Getting user detail once the user is verified.
         user_details = user_serializers.UserDetailSerializer(user).data
