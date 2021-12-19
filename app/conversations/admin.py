@@ -247,14 +247,25 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "id",
         "group",
         "sender",
-        "message"
+        "get_message_data"
     )
     raw_id_fields = ("sender", )
     search_fields = (
         "message",
+        "sender"
     )
     list_filter = (
         "group",
         "sender"
     )
     exclude = ("updated_at",)
+
+
+@admin.register(models.ChatReaction)
+class ChatReactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+    )
+    exclude = ("deleted_at", "updated_at", "is_deleted")
+

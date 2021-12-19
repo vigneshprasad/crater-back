@@ -14,7 +14,7 @@ from conversations import constants
 from conversations import exceptions
 from conversations import models
 from conversations import signals
-from conversations.serializers import GroupMessageSerializer
+from conversations import serializers
 
 from crater.creator import models as creator_models
 from rest_framework.exceptions import ValidationError
@@ -448,7 +448,7 @@ def create_group_message(group, sender, message, display_name=None):
     }
 
     try:
-        serializer = GroupMessageSerializer(data=data)
+        serializer = serializers.GroupMessageSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         # Serialized group message.
@@ -458,11 +458,44 @@ def create_group_message(group, sender, message, display_name=None):
 
     return group_message
 
+@database_sync_to_async
+def create_group_message_reaction(group, sender, reaction_id):
+    """Create a group message of reaction type.
+
+    Args:
+        group(Group): Group for which we are creating group
+            messages for.
+        sender(User): User who sent the message.
+        reaction_id(number): ID of the reaction sent by the user.
+    """
+    try:
+        reaction = models.ChatReaction.objects.get(id=reaction_id)
+        reaction_data = serializers.ChatReactionSerializer(reaction).data
+    except models.ChatReaction.DoesNotExist:
+        return None
+
+    data = {
+        "group": group.id,
+        "sender": sender.uuid,
+        "data": reaction_data,
+        "type": constants.CHAT_MESSAGE_TYPE_REACTION_ENUM
+    }
+
+    try:
+        serializer = serializers.GroupMessageSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        # Serialized group message.
+        group_message = serializer.data
+    except ValidationError as e:
+        group_message = None
+
+    return group_message
 
 @database_sync_to_async
 def get_paginated_group_messages(group):
     queryset = models.GroupMessage.objects.filter(group=group)
-    serializer = GroupMessageSerializer(queryset, many=True)
+    serializer = serializers.GroupMessageSerializer(queryset, many=True)
 
     return serializer.data
 
