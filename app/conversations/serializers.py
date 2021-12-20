@@ -472,5 +472,20 @@ class GroupMessageSerializer(serializers.ModelSerializer):
             "message",
             "display_name",
             "created_at",
-            "sender_detail"
+            "sender_detail",
+            "type",
+            "data"
+        )
+
+
+class ChatReactionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ChatReaction
+        fields = (
+            "id",
+            "image",
+            "name",
+            "is_active",
+            "file",
         )

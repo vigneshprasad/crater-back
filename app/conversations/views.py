@@ -549,3 +549,13 @@ class GroupRecodingViewSet(
     serializer_class = serializers.GroupRecordingSerializer
     queryset = models.GroupRecording.objects.filter(is_published=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class ChatReactionViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.ChatReactionSerializer
+    queryset = models.ChatReaction.objects.filter(is_active=True)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]

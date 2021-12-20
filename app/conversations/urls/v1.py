@@ -17,6 +17,7 @@ router.register("conversation/calendar", views.GroupCalendarViewSet, base_name="
 router.register("conversations/webinars/all", views.AllGroupWebinarViewSet, base_name="conversation_webinars_all")
 router.register("conversations/webinars", views.GroupWebinarViewSet, base_name="conversations_webinars")
 router.register("conversations/categories", views.CategoryViewSet, base_name="conversations_categories")
+router.register("conversations/chatreactions", views.ChatReactionViewSet, base_name="chat_reactions")
 
 
 # Public views for conversations.
