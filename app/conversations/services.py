@@ -492,6 +492,7 @@ def create_group_message_reaction(group, sender, reaction_id):
 
     return group_message
 
+
 @database_sync_to_async
 def get_paginated_group_messages(group):
     queryset = models.GroupMessage.objects.filter(group=group)
@@ -515,31 +516,32 @@ def create_group_rtmp(group, rtmp_link):
 
     return group_rtmp
 
-# def get_paginated_group_messages(group, page):
-#     page_size = 20
-#     cache_key = f"crater_g{group.id}_messages"
-#     count = None
 
-#     try:
-#         cached_data = settings.REDIS.get(cache_key)
-#         if not cached_data:
-#             # If group messages are not cached, query from DB and cache it.
-#             queryset = models.GroupMessage.objects.filter(group=group)
-#             serializer = GroupMessageSerializer(queryset, many=True)
-#             group_messages = serializer.data
-#             count = queryset.count()
+def add_previous_attendees_to_groups(groups):
+    """Adds host's previous attendees to group.
 
-#             # Cache group messages
-#             settings.REDIS.set(cache_key, json.dumps({"messages": group_messages, "count": count}))
-#         else:
-#             cached_data_json = json.loads(cached_data)
-#             group_messages = cached_data_json.get("messages")
-#             count = cached_data_json.get("count", 0)
+    Args:
+        groups(queryset): Groups for which attendees are
+            to be updated.
 
-#         # Paginated results
-#         paginated_group_messages = group_messages[page_size * (page - 1):page * page_size]
+    """
+    for group in groups:
+        prev_groups = models.Group.objects.filter(
+            host=group.host,
+            start__lt=group.start
+        )
+        if not prev_groups:
+            continue
 
-#     except Exception:
-#         paginated_group_messages = []
+        # Gather previous groups' attendees
+        prev_attendees_list = []
+        for prev_group in prev_groups:
+            prev_attendees_list += list(prev_group.attendees.all())
 
-#     return paginated_group_messages, math.ceil(count / page_size)
+        prev_attendees_list = list(set(prev_attendees_list))
+        attendees_to_add = list(
+            set(prev_attendees_list) - set(list(group.attendees.all()))
+        )
+
+        group.attendees.add(*attendees_to_add)
+        group.save()
