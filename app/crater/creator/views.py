@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import F
 from django.http import HttpResponse
 from django.utils import timezone
-from rest_framework import mixins
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, filters
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.decorators import action
@@ -29,10 +30,12 @@ class CreatorViewSet(
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
     queryset = models.Creator.objects.filter(is_active=True).order_by("-order")
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
 
     # We can get both certified and non certified creators
     # with the same list call with different filterset fields.
     filterset_fields = ["certified"]
+    search_fields = ["user__phone_number"]
 
     @action(
         methods=["get"],
@@ -409,11 +412,11 @@ class FollowerViewSet(
         followers = models.Follower.objects.filter(
             creator__user=request.user,
             unfollowed=False
-        ).values(name=F("user__name"), email=F("user__email"), phone_number=F("user__phone_number"))
+        ).values(name=F("user__name"), email=F("user__email"))
 
         writer = csv.DictWriter(
             response,
-            fieldnames=["name", "email", "phone_number"]
+            fieldnames=["name", "email"]
         )
         writer.writeheader()
         writer.writerows(followers)
