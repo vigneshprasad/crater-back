@@ -50,6 +50,9 @@ class DyteMeetingParticipant(base_model.BaseModel):
     last_online_at = models.DateTimeField(null=True, blank=True)
     is_online = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ["dyte_meeting", "participant"]
+
     @property
     def joined_group(self):
         """Returns if the user joined the stream."""

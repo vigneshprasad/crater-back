@@ -72,7 +72,7 @@ class DyteParticipantViewSet(
             joining into the call.
 
         Note:
-             This is will create auth token for every user again
+             This will create auth token for every user again
                 regarded of whether it's expired.
 
         """
