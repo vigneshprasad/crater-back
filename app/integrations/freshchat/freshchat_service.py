@@ -289,10 +289,11 @@ class FreshChatWhatsappService:
 
         if response.status_code == constants.FRESHCHAT_STATUS_ACCEPTED:
             # Doing a delayed call for get_outbound_message and creating Message object.
-            _get_and_process_outbound_message_after_delay.apply_async(
-                args=(user.pk, request_id,),
-                countdown=60
-            )
+            # _get_and_process_outbound_message_after_delay.apply_async(
+            #     args=(user.pk, request_id,),
+            #     countdown=60
+            # )
+            return True
         else:
             logging.error(
                 "FreshChat Post Outbound Message Failed for {}".format(
@@ -303,8 +304,6 @@ class FreshChatWhatsappService:
                 }
             )
             return False
-
-        return True
 
 
 # Use this service for sending message through FreshChat to Whatsapp.
