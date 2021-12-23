@@ -405,7 +405,8 @@ def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
 
     data_2 = constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
         creator_name=creator_name,
-        topic_name=topic_name
+        topic_name=topic_name,
+        start_time=group.get_display_start_time()
     )
     data_3 = constants.DATA_3_FOR_ATTENDEE_REMINDER.format(
         minutes_remaining=constants.WEBINAR_ATTENDEE_REMINDER_DELAY_STR,

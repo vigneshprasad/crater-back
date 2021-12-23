@@ -41,7 +41,8 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "last_online_at",
         "dyte_meeting"
     )
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("participant", "dyte_meeting")
+    exclude = ("auth_token", "created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         "is_online",
         "dyte_meeting__group",
