@@ -75,9 +75,9 @@ CONVERSATION_RSVP = "Please RSVP using the calendar invite. Note this meeting wi
 
 # Webinar templates.
 WEBINAR_ATTENDEE_REMINDER_TEMPLATE = "crater_stream_reminder"
-DATA_2_FOR_ATTENDEE_REMINDER = "{creator_name}. Topic: {topic_name}"
+DATA_2_FOR_ATTENDEE_REMINDER = "{creator_name}. Topic: {topic_name} @ {start_time}"
 DATA_3_FOR_ATTENDEE_REMINDER = "{minutes_remaining} here: {stream_link}"
-WEBINAR_ATTENDEE_REMINDER_DELAY_STR = "5 minutes"
+WEBINAR_ATTENDEE_REMINDER_DELAY_STR = "15 minutes"
 
 WEBINAR_HOST_REMINDER_TEMPLATE = "crater_stream_reminder_2"
 DATA_2_FOR_HOST_REMINDER = "{start_time}. Here is the link: {stream_link}. For any assistance you call us on: +919930474469"

@@ -116,6 +116,7 @@ class RequestAdmin(admin.ModelAdmin):
         "group_type",
         "status"
     )
+    raw_id_fields = ("requester", "group", )
     search_fields = ("requester__username", "requester__name")
     list_filter = (
         ("created_at", filter.DateRangeFilter),

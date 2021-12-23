@@ -129,18 +129,18 @@ def start_recording_for_webinars(groups=None):
         )
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+@periodic_task(run_every=crontab(minute="*/15"))
 def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     """Send whatsapp reminder to all attendees for Webinar
 
     Note:
         Sends reminder to attendees of webinar which is
-            starting 5 minutes from now.
+            starting 15 minutes from now.
 
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=5))
+    end_datetime = (now_time + datetime.timedelta(minutes=15))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
