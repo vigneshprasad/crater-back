@@ -34,7 +34,11 @@ class Creator(base_models.BaseModel):
     is_active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, blank=True)
     show_club_members = models.BooleanField(default=False)
-    video = models.FileField(null=True, blank=True)
+    video = models.FileField(
+        upload_to="creator/videos",
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ["follower_count"]
