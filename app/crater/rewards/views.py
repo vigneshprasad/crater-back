@@ -34,7 +34,7 @@ class RewardViewSet(
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.RewardSerializer
     queryset = models.Reward.objects.filter(is_active=True)
-    filterset_fields = ["creator", "creator__user", "type"]
+    filterset_fields = ["creator", "creator__user", "type", "creator__slug"]
 
 
 class RedemptionViewSet(
