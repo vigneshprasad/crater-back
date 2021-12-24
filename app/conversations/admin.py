@@ -1,9 +1,11 @@
 from django.contrib import admin
+from django.contrib import messages
 from django.utils.html import format_html
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
 
 from conversations import models
+from conversations import services
 
 
 @admin.register(models.SuggestedTopic)
@@ -172,6 +174,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "all_dyte_recordings",
         "is_published"
     )
+    actions = ("add_previous_webinar_attendees",)
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
         "group__host__username",
@@ -201,6 +204,18 @@ class GroupRecordingAdmin(admin.ModelAdmin):
                 obj.publish()
 
         return super(GroupRecordingAdmin, self).save_model(request, obj, form, change)
+
+    def add_previous_webinar_attendees(self, request, queryset):
+        services.add_previous_attendees_to_groups(queryset)
+        self.message_user(
+            request,
+            "Past attendees added to groups: {}".format(
+                ", ".join([str(group.id) for group in queryset])
+            ),
+            messages.SUCCESS
+        )
+
+    add_previous_webinar_attendees.short_description = "Add previous attendees"
 
     @staticmethod
     def all_dyte_recordings(obj):

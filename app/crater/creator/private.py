@@ -107,7 +107,7 @@ def create_follower_for_creator(user, creator):
 
     Note:
         Updates the follower to unfollowed=False if the
-            the follower has unfollowed.
+            follower has unfollowed.
 
     """
     follower, created = models.Follower.objects.update_or_create(

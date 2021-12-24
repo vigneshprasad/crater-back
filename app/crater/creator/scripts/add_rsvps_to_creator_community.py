@@ -16,11 +16,10 @@ def run(dry_run=True):
             # Will creator followers for creators and add the user to
             # community of the creator.
             host = request.host
-            try:
-                creator = host.creator
-            except models.Creator.DoesNotExist:
+            if not host:
                 continue
 
+            creator = private.get_or_create_creator(host)
             follower = private.create_follower_for_creator(request.requester, creator)
             signals.creator_followed.send(
                 sender=follower.__class__,
