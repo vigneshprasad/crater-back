@@ -94,6 +94,11 @@ class FreshChatWhatsappService:
             ))
             return False
 
+        # If user doesn't have a name, don't send any whatsapp.
+        # TODO(Nishant): Get Vignesh's approval for this.
+        if not user.display_name:
+            return False
+
         if not user.profile.opted_in_for_whatsapp:
             return False
 

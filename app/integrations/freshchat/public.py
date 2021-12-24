@@ -8,7 +8,6 @@ from django.conf import settings
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
 from integrations.freshchat import services
-from resources.meetings import services as meeting_services
 from utils.tiny_url_service import tiny_url_service
 from utils.deep_link_service import deep_link_service
 
@@ -130,51 +129,6 @@ def send_meeting_time_confirmation(user, start_time, end_time):
             {"data": time},
         ]
     )
-
-# TODO: Update above function to this once we add topics to 1:1 Meetings
-
-# def send_meeting_confirmation_rsvp(user, meeting):
-#     """ Send a message with confirming time and a rsvp link
-
-#     Args:
-#         user(User): User to whom this message will go.
-#         meeting(Meeting): Meeting for which message confirmation goes
-
-#     """
-
-#     local_tz = pytz.timezone(settings.TIME_ZONE)
-
-#     local_start_datetime = meeting.start.replace(tzinfo=pytz.utc).astimezone(local_tz)
-#     local_end_datetime = meeting.end.replace(tzinfo=pytz.utc).astimezone(local_tz)
-
-#     matched_user = meeting.participants.all().exclude(
-#             pk=user.pk
-#         ).first().get_display_first_name()
-
-#     preference = meeting_services.get_latest_meeting_preference(user)
-#     objective = preference.objectives.first()
-#     topic = preference.topic.name
-#     topic_str = topic if topic else objective
-#     topic_str = topic_str if topic_str else constants.MEETING_REGISTRATION_DEFAULT_OBJECTIVE_TEXT
-
-#     date = meeting.start.strftime('%a, %d %b %Y')
-#     start_time = local_start_datetime.strftime('%I:%M %p')
-#     end_time = local_end_datetime.strftime('%I:%M %p')
-#     date_time = "{} - {}, {}".format(start_time, end_time, date)
-#     url = services.create_public_rsvp_url(user, meeting)
-
-#     freshchat_service.freshchat_whatsapp_service.send_outbound_message(
-#         user=user,
-#         template_name=constants.CONVERSATION_CONFIRMATION_11_TEMPLATE,
-#         template_data=[
-#             {"data": topic_str},
-#             {"data": matched_user},
-#             {"data": date_time},
-#             {"data": constants.APPSFLYER_APP_LINK},
-#             {"data": url},
-#             {"data": constants.APPSFLYER_APP_LINK},
-#         ]
-#     )
 
 
 def send_meeting_confirmation_rsvp(user, meeting):
@@ -391,11 +345,8 @@ def send_whatsapp_reminder_for_webinar_attendee(attendee, group):
     creator_name = group.host.display_name
 
     if not attendee_name:
-        logging.error(
-            "Attendee RSVP message didn't go: {}".format(
-                attendee.__str__()
-            )
-        )
+        # Not throwing error since we can't fix
+        # this without user input.
         return False
 
     topic_name = group.topic.name

@@ -13,6 +13,10 @@ user_signed_up = Signal(providing_args=[
     "user",
 ])
 
+user_name_populated = Signal(providing_args=[
+    "user"
+])
+
 objectives_added = Signal(providing_args=[
     "user",
     "objectives",

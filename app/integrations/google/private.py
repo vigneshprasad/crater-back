@@ -162,6 +162,8 @@ def create_calendar_event_for_webinar_host(group):
 
     """
     host = group.host
+    if not host:
+        return False
 
     # TODO(Nishant): This has to change for each environment.
     stream_link = "https://crater.club/livestream/{group_id}".format(
