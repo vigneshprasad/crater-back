@@ -296,3 +296,23 @@ def conversation_joined(sender, user, group, *args, **kwargs):
         event=event,
         analytics_track_properties=analytics_track_properties
     )
+
+
+@receiver(conversation_signals.attendee_added_to_group)
+def rsvp_for_stream(sender, group, user, *args, **kwargs):
+    """Sending event when a user RSVPs for a stream."""
+
+    event = constants.RSVP_FOR_STREAM
+    analytics_track_properties = {
+        "name": user.display_name,
+        "email": user.email or None,
+        "id": group.id,
+        "host": group.host.email if group.host else None,
+        "start_time": group.get_display_start()
+    }
+
+    analytics_track(
+        user=user,
+        event=event,
+        analytics_track_properties=analytics_track_properties
+    )

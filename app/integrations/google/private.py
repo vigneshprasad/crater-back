@@ -162,6 +162,8 @@ def create_calendar_event_for_webinar_host(group):
 
     """
     host = group.host
+    if not host:
+        return False
 
     # TODO(Nishant): This has to change for each environment.
     stream_link = "https://crater.club/livestream/{group_id}".format(
@@ -210,7 +212,7 @@ def create_calendar_event_for_webinar_speakers(speakers, group):
     
     host = group.host
     if not host:
-        return 
+        return False
 
     for speaker in speakers: 
         # TODO(Nishant): This has to change for each environment.
@@ -266,6 +268,8 @@ def create_calendar_event_for_webinar_attendee(user, group):
 
     """
     host = group.host
+    if not host:
+        return False
 
     # TODO(Nishant): This has to change for each environment.
     stream_link = "https://crater.club/livestream/{group_id}".format(

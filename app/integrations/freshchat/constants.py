@@ -2,6 +2,7 @@ from django.conf import settings
 
 APPSFLYER_APP_LINK = "https://worknetwork.onelink.me/KbQv/AppStore"
 LANDING_PAGE = "https://worknetwork.in"
+PLACEHOLDER_NAME_FOR_WHATSAPP = "Crater User"
 
 # Freshchat Whatsapp details.
 FRESHCHAT_BASE_URL = settings.FRESHCHAT_BASE_URL
