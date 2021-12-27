@@ -236,6 +236,26 @@ def get_request_for_user_and_group_id(
     ).last()
 
 
+def check_if_user_if_host(user, group_id):
+    """Checks if the user is the host for the group id provided.
+
+    Args:
+        user(User): User we are checking for host.
+        group_id(int): Group for which we are checking
+            the host.
+
+    """
+    try:
+        group = models.Group.objects.get(id=group_id)
+    except models.Group.DoesNotExist:
+        return False
+
+    if not group.host:
+        return False
+
+    return group.host.pk == user.pk
+
+
 def add_attendee_to_group_for_request(attendee, group_request):
     """Add speaker to group as an attendee and raise exception if conditions not met
 
