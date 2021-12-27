@@ -42,7 +42,6 @@ class User(AbstractUser):
 
     email = models.EmailField(_("Email"), unique=True, null=True, blank=True)
     name = models.CharField(_("Name"), max_length=100, null=True, blank=True)
-
     # TODO(Nishant): If not being used we can remove this.
     city = models.ForeignKey(
         "tags.CityProxy",

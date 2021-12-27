@@ -17,11 +17,24 @@ class CreatorAdmin(admin.ModelAdmin):
         "slug",
         "show_club_members",
     )
+    list_filter = ("certified", "is_active")
+    search_fields = ("user__name", "user__username")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.select_related("user").order_by("-order")
+
+
+@admin.register(models.Coin)
+class CoinAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "creator",
+        "display"
+    )
+
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
 @admin.register(models.Community)

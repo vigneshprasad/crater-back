@@ -88,4 +88,5 @@ class StripeService:
     def retrieve_payment_intent(self, intent_id):
         return self.stripe.PaymentIntent.retrieve(intent_id)
 
-stripe_service = StripeService(api_key=settings.STRIPE_API_KEY)
+
+stripe_service = StripeService(api_key=settings.STRIPE_SECRET_KEY)
