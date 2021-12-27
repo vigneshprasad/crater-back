@@ -18,6 +18,8 @@ RESCHEDULE_UPDATED = "reschedule_updated"
 CONVERSATION_CREATED = "conversation_created"
 CONVERSATION_JOINED = "conversation_joined"
 
+RSVP_FOR_STREAM = "rsvp_for_stream"
+
 # Constants for device population.
 SEGMENT_IDENTIFY = "identify"
 DEVICE_TYPE_IOS = "ios"

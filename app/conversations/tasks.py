@@ -129,36 +129,29 @@ def start_recording_for_webinars(groups=None):
         )
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
-def send_whatsapp_reminder_for_webinar_attendees_and_followers(
-        test_webinars=None
-):
-    """Send whatsapp reminder to all attendees for webinar
-        and people following the creator.
-
-    Args:
-        test_webinars(list/queryset): If we want to test reminder
-            with some test webinars.
+@periodic_task(run_every=crontab(minute="*/15"))
+def send_whatsapp_reminder_for_webinar_attendees(groups=None):
+    """Send whatsapp reminder to all attendees for Webinar
 
     Note:
-        Sends reminder to attendees and followers of webinar host.
-            which is starting 5 minutes from now.
+        Sends reminder to attendees of webinar which is
+            starting 15 minutes from now.
 
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=5))
+    end_datetime = (now_time + datetime.timedelta(minutes=15))
 
-    # Send it only for webinars.
+    # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
-    ) if not test_webinars else test_webinars
+    )
 
     for webinar in webinars:
-        # Send whatsapp reminder for webinar to attendees and creator followers.
-        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(
+        # Send whatsapp reminder for webinar to attendees.
+        freshchat_public.send_whatsapp_reminder_for_webinar_attendees(
             webinar
         )
 

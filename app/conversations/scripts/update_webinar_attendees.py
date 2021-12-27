@@ -32,8 +32,7 @@ def run(group_id=None, dry_run=True):
         print(f"Group {group_id} does not exist.")
         return
 
-    print("Group attendees count before update: ", current_group.attendees.count())
-
+    prev_attendees_list = []
     # Get host's previous groups
     prev_groups = Group.objects.filter(
         host=current_group.host,
@@ -45,20 +44,19 @@ def run(group_id=None, dry_run=True):
 
     print("Current Attendees: {}".format(current_group.attendees.count()))
 
-    # Gather previous groups' attendees
+    # Gather previous groups' attendees.
     prev_attendees_list = []
     for group in prev_groups:
         prev_attendees_list += list(group.attendees.all())
+        prev_attendees_list = list(set(prev_attendees_list))
 
-    prev_attendees_list = list(set(prev_attendees_list))
     attendees_to_add = list(
         set(prev_attendees_list) - set(list(current_group.attendees.all()))
     )
-
     print("Attendees to add: {}".format(len(attendees_to_add)))
 
     if not dry_run:
-        # Update current group attendees.
+        # Update current group attendees
         print(f"Updating group {group_id} attendees")
         current_group.attendees.add(*attendees_to_add)
         current_group.save()
