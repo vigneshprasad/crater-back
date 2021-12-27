@@ -29,6 +29,7 @@ class CreatorSerializer(serializers.ModelSerializer):
             "is_follower",
             "show_club_members",
             "video",
+            "video_poster"
         )
         extra_kwargs = {
             "number_of_subscribers": {

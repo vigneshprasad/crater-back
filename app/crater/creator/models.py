@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
 from crater.creator import services
@@ -39,12 +41,23 @@ class Creator(base_models.BaseModel):
         null=True,
         blank=True
     )
+    video_poster = models.ImageField(
+        upload_to="creator/videos/poster/",
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ["follower_count"]
 
     def __str__(self):
         return "{}".format(self.user.__str__())
+
+    def clean(self):
+        if self.video and not self.video_poster:
+            raise ValidationError({
+                "video_poster": _("Video poster is also required with video.")
+            })
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
