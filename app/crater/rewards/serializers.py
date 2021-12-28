@@ -14,6 +14,7 @@ class RewardTypeSerializer(serializers.ModelSerializer):
 
 class RewardSerializer(serializers.ModelSerializer):
     creator_coin_detail = creator_serializers.CoinSerializer(source="creator.coin", read_only=True)
+    photo_mime_type = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Reward
@@ -29,8 +30,15 @@ class RewardSerializer(serializers.ModelSerializer):
             "number_of_coins",
             "photo",
             "creator_coin_detail",
-            "description"
+            "description",
+            "photo_mime_type",
         )
+
+    @staticmethod
+    def get_photo_mime_type(reward):
+        if not reward.photo:
+            return None
+        return reward.photo.file.obj.content_type
 
 
 class RedemptionSerializer(serializers.ModelSerializer):
