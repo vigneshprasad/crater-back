@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 import requests
 
 from django.conf import settings
@@ -12,27 +14,43 @@ class InstagramService:
 
     def get_short_access_token(self, code):
         data = {
-            'client_id': self.client_id,
-            'client_secret': self.client_secret,
-            'grant_type': 'authorization_code',
-            'redirect_uri': self.redirect_url,
-            'code': code
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "grant_type": "authorization_code",
+            "redirect_uri": self.redirect_url,
+            "code": code
         }
-        resp = requests.post('https://api.instagram.com/oauth/access_token/', data=data)
-        if 'access_token' in resp.json():
-            return resp.json()['access_token'], resp.json()['user_id']
+        resp = requests.post(
+            "https://api.instagram.com/oauth/access_token/",
+            data=data
+        )
+        try:
+            resp_json = resp.json()
+        except JSONDecodeError:
+            return None, None
+
+        if "access_token" in resp_json:
+            return resp_json["access_token"], resp_json["user_id"]
         else:
             return None, None
 
     def get_long_access_token(self, short_access_token):
         data = {
-            'client_secret': self.client_secret,
-            'grant_type': 'ig_exchange_token',
-            'access_token': short_access_token
+            "client_secret": self.client_secret,
+            "grant_type": "ig_exchange_token",
+            "access_token": short_access_token
         }
-        resp = requests.get('https://graph.instagram.com/access_token', params=data)
-        if 'access_token' in resp.json():
-            return resp.json()['access_token']
+        resp = requests.get(
+            "https://graph.instagram.com/access_token",
+            params=data
+        )
+        try:
+            resp_json = resp.json()
+        except JSONDecodeError:
+            return None
+
+        if "access_token" in resp_json:
+            return resp_json["access_token"]
         else:
             return None
 
@@ -45,33 +63,54 @@ class InstagramService:
     @staticmethod
     def refresh_long_access_token(long_access_token):
         data = {
-            'grant_type': 'ig_refresh_token',
-            'access_token': long_access_token
+            "grant_type": "ig_refresh_token",
+            "access_token": long_access_token
         }
-        resp = requests.get('https://graph.instagram.com/refresh_access_token', params=data)
-        if 'access_token' in resp.json():
-            return resp.json()['access_token']
+        resp = requests.get("https://graph.instagram.com/refresh_access_token", params=data)
+        try:
+            resp_json = resp.json()
+        except JSONDecodeError:
+            return None
+
+        if "access_token" in resp_json:
+            return resp_json["access_token"]
         else:
             return None
 
     @staticmethod
     def get_medias(long_access_token, limit=20):
         data = {
-            'fields': 'id,media_url,thumbnail_url,media_type,caption,permalink,timestamp,username',
-            'access_token': long_access_token,
-            'limit': limit
+            "fields": "id,media_url,thumbnail_url,media_type,caption,permalink,timestamp,username",
+            "access_token": long_access_token,
+            "limit": limit
         }
-        resp = requests.get('https://graph.instagram.com/me/media', params=data)
-        return resp.json()['data']
+        resp = requests.get(
+            "https://graph.instagram.com/me/media",
+            params=data
+        )
+        try:
+            resp_json = resp.json()
+        except JSONDecodeError:
+            return None
+
+        return resp_json["data"]
 
     @staticmethod
     def get_user_info(long_access_token):
         data = {
-            'fields': 'id,username,media_count',
-            'access_token': long_access_token
+            "fields": "id,username,media_count",
+            "access_token": long_access_token
         }
-        resp = requests.get('https://graph.instagram.com/me', params=data)
-        return resp.json()
+        resp = requests.get(
+            "https://graph.instagram.com/me",
+            params=data
+        )
+        try:
+            resp_json = resp.json()
+        except JSONDecodeError:
+            return None
+
+        return resp_json
 
 
 instagram_service = InstagramService(
