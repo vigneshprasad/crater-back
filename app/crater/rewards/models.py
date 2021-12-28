@@ -37,6 +37,8 @@ class Reward(base_models.BaseModel):
 
     # Quantity of the reward.
     quantity = models.PositiveIntegerField(default=1)
+    # Order in which the rewards will show up.
+    order = models.PositiveIntegerField(null=True, blank=True)
     # What quantity of the reward is left.
     remaining_quantity = models.IntegerField(null=True, blank=True)
     # Price of the Reward in creator coins.
