@@ -17,6 +17,7 @@ class CreatorAdmin(admin.ModelAdmin):
         "slug",
         "show_club_members",
     )
+    raw_id_fields = ("user", )
     list_filter = ("certified", "is_active")
     search_fields = ("user__name", "user__username")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
