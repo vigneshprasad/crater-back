@@ -23,6 +23,8 @@ class RewardSerializer(serializers.ModelSerializer):
             "creator",
             "is_active",
             "name",
+            "title",
+            "text_color",
             "object_id",
             "type",
             "quantity",
@@ -31,7 +33,7 @@ class RewardSerializer(serializers.ModelSerializer):
             "photo",
             "creator_coin_detail",
             "description",
-            "photo_mime_type",
+            "photo_mime_type"
         )
 
     @staticmethod
