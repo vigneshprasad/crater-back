@@ -76,6 +76,7 @@ AUTH_USER_MODEL = "users.User"
 INSTALLED_APPS = [
     "channels",
     "consumers.chat",
+    # "django.contrib.admin",
     "material.admin",
     "material.admin.default",
     "rangefilter",

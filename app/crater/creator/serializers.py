@@ -18,7 +18,7 @@ class CreatorSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "user",
-            "number_of_subscribers",
+            "subscriber_count",
             "certified",
             "follower_count",
             "type",
@@ -32,7 +32,7 @@ class CreatorSerializer(serializers.ModelSerializer):
             "video_poster"
         )
         extra_kwargs = {
-            "number_of_subscribers": {
+            "subscriber_count": {
                 "read_only": True
             },
             "certified": {

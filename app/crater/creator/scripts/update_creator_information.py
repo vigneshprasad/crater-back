@@ -46,7 +46,7 @@ def run(
         )
 
         if not dry_run:
-            creator.number_of_subscribers = int(subscriber_count)
+            creator.subscriber_count = int(subscriber_count)
             creator.order = int(order)
             creator.certified = certified
             creator.save()

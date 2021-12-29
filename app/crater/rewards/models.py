@@ -1,4 +1,5 @@
 from django.db import models
+from colorfield import fields as color_fields
 
 # Create your models here.
 from base import models as base_models
@@ -32,9 +33,16 @@ class Reward(base_models.BaseModel):
         on_delete=models.CASCADE,
         related_name="rewards"
     )
-    # Name of the reward.
+    # Name and description of the reward.
+    title = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+        help_text="Short Title for the Reward"
+    )
     name = models.CharField(max_length=128)
-
+    text_color = color_fields.ColorField(default="#FFFFFF")
+    description = models.CharField(max_length=255, null=True, blank=True)
     # Quantity of the reward.
     quantity = models.PositiveIntegerField(default=1)
     # Order in which the rewards will show up.
@@ -55,7 +63,6 @@ class Reward(base_models.BaseModel):
     # Display properties.
     photo = models.FileField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    description = models.CharField(max_length=255, null=True, blank=True)
 
 
 class Redemption(base_models.BaseModel):
