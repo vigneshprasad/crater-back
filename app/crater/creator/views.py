@@ -29,10 +29,10 @@ class CreatorViewSet(
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
-    queryset = models.Creator.objects.filter(is_active=True).order_by("-order")
+    queryset = models.Creator.objects.filter(is_active=True).order_by("-order", "created_at")
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
 
-    # We can get both certified and non certified creators
+    # We can get both certified and non-certified creators
     # with the same list call with different filterset fields.
     filterset_fields = ["certified"]
     search_fields = ["user__phone_number"]
@@ -89,6 +89,7 @@ class CreatorViewSet(
         queryset = self.get_queryset().exclude(coin=None)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class CreatorSlugViewSet(
     mixins.RetrieveModelMixin,

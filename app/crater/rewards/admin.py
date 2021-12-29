@@ -19,6 +19,7 @@ class RewardAdmin(admin.ModelAdmin):
         "id",
         "creator",
         "name",
+        "order",
         "quantity",
         "number_of_coins",
         "type",
@@ -45,6 +46,7 @@ class RewardAdmin(admin.ModelAdmin):
     #     }),
     # )
     raw_id_fields = ("creator", )
+    list_editable = ("order", )
     exclude = (
         "created_at",
         "deleted_at",

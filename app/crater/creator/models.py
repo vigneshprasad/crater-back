@@ -30,7 +30,7 @@ class Creator(base_models.BaseModel):
         blank=True
     )
     # Temporary key for showcasing creators.
-    order = models.PositiveIntegerField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0)
     follower_count = models.PositiveIntegerField(null=True, blank=True)
     participant_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -48,7 +48,7 @@ class Creator(base_models.BaseModel):
     )
 
     class Meta:
-        ordering = ["follower_count"]
+        ordering = ["-order"]
 
     def __str__(self):
         return "{}".format(self.user.__str__())
