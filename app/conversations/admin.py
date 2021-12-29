@@ -245,12 +245,12 @@ class GroupRtmpAdmin(admin.ModelAdmin):
         "id",
         "group",
         "link",
-        "linkedin",
-        "facebook",
-        "twitter",
-        "instagram"
+        # "linkedin",
+        # "facebook",
+        # "twitter",
+        # "instagram"
     )
-    list_editable = ("linkedin", "facebook", "twitter", "instagram")
+    # list_editable = ("linkedin", "facebook", "twitter", "instagram")
     search_fields = (
         "group__host__username",
         "group__host__name",
