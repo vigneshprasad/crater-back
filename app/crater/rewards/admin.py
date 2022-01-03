@@ -1,5 +1,4 @@
 from django.contrib import admin
-from adminsortable2.admin import SortableAdminMixin
 
 from crater.rewards import models
 
@@ -15,12 +14,12 @@ class RewardTypeAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Reward)
-class RewardAdmin(SortableAdminMixin, admin.ModelAdmin):
+class RewardAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "creator",
         "name",
-        # "order",
+        "order",
         "quantity",
         "number_of_coins",
         "type",
@@ -47,7 +46,7 @@ class RewardAdmin(SortableAdminMixin, admin.ModelAdmin):
     #     }),
     # )
     raw_id_fields = ("creator", )
-    # list_editable = ("order", )
+    list_editable = ("order", )
     exclude = (
         "created_at",
         "deleted_at",

@@ -1,11 +1,10 @@
 from django.contrib import admin
-from adminsortable2.admin import SortableAdminMixin
 
 from crater.creator import models
 
 
 @admin.register(models.Creator)
-class CreatorAdmin(SortableAdminMixin, admin.ModelAdmin):
+class CreatorAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "user",
