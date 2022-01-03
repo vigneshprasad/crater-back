@@ -55,6 +55,9 @@ class Reward(base_models.BaseModel):
     is_active = models.BooleanField(default=True)
     description = models.CharField(max_length=255, null=True, blank=True)
 
+    class Meta:
+        ordering = ["-order"]
+
 
 class Redemption(base_models.BaseModel):
     user = models.ForeignKey(

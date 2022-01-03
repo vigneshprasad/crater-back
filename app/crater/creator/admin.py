@@ -1,30 +1,31 @@
 from django.contrib import admin
+from adminsortable2.admin import SortableAdminMixin
 
 from crater.creator import models
 
 
 @admin.register(models.Creator)
-class CreatorAdmin(admin.ModelAdmin):
+class CreatorAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "user",
-        "order",
-        "number_of_subscribers",
-        "certified",
-        "type",
-        "follower_count",
-        "is_active",
         "slug",
+        "order",
+        "subscriber_count",
+        "follower_count",
+        "certified",
+        "is_active",
         "show_club_members",
     )
     raw_id_fields = ("user", )
+    list_editable = ("certified", "is_active", "show_club_members")
     list_filter = ("certified", "is_active")
-    search_fields = ("user__name", "user__username")
+    search_fields = ("user__name", "user__username", "slug")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.select_related("user").order_by("-order")
+        return queryset.order_by("-order")
 
 
 @admin.register(models.Coin)
@@ -34,7 +35,7 @@ class CoinAdmin(admin.ModelAdmin):
         "creator",
         "display"
     )
-
+    raw_id_fields = ("creator", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
@@ -47,10 +48,12 @@ class CommunityAdmin(admin.ModelAdmin):
         "is_default",
         "is_active"
     )
+    raw_id_fields = ("creator", )
     list_filter = ("creator",)
     search_fields = (
         "creator__user__username",
-        "creator__user__name"
+        "creator__user__name",
+        "creator__slug"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
@@ -63,6 +66,7 @@ class CommunityMemberAdmin(admin.ModelAdmin):
         "community",
         "joined_at"
     )
+    raw_id_fields = ("user", "community")
     search_fields = (
         "user__username",
         "user__name"
@@ -76,11 +80,11 @@ class FollowerAdmin(admin.ModelAdmin):
         "id",
         "user",
         "creator",
-        "notify",
         "unfollowed",
+        "followed_at"
     )
+    raw_id_fields = ("user", "creator")
     list_filter = ("creator", )
-    list_editable = ("notify", "unfollowed")
     search_fields = (
         "creator__user__username",
         "creator__user__name",

@@ -29,13 +29,15 @@ class GroupWebinarPublicViewSet(
         """Return upcoming webinars."""
         return self.get_queryset().filter(
                 is_live=False,
+                is_closed=False,
                 start__gte=datetime.datetime.now()
             )
 
     def _get_live_webinars(self):
         """Return live webinars."""
         return self.get_queryset().filter(
-            is_live=True
+            is_live=True,
+            is_closed=False
         )
 
     def _get_past_webinars_with_recordings(self):
@@ -67,6 +69,7 @@ class GroupWebinarPublicViewSet(
         return self.get_queryset().filter(
             is_featured=True,
             is_live=False,
+            is_closed=False,
             start__gte=min_start
         )
 
