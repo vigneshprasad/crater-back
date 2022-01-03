@@ -33,8 +33,24 @@ class GroupAlreadyJoined(base_exceptions.BaseAPIException):
         return "{}".format(self.message)
 
 
+class HostRSVPError(base_exceptions.BaseAPIException):
+    """Exception raised when host is trying to RSVP to his own
+        stream.
+
+    """
+
+    def __init__(self):
+        super().__init__(
+            message="You are the host for this group.",
+            error_code="hostRSVPError"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)
+
+
 class InvalidParticipantType(base_exceptions.BaseAPIException):
-    """Exception raised when we given Invalid participant type
+    """Exception raised when we are given Invalid participant type
         to create request API.
 
     """

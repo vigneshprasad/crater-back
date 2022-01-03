@@ -29,10 +29,10 @@ class CreatorViewSet(
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.CreatorSerializer
     pagination_class = paginators.CreatorPagination
-    queryset = models.Creator.objects.filter(is_active=True).order_by("-order")
+    queryset = models.Creator.objects.filter(is_active=True).order_by("-order", "created_at")
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
 
-    # We can get both certified and non certified creators
+    # We can get both certified and non-certified creators
     # with the same list call with different filterset fields.
     filterset_fields = ["certified"]
     search_fields = ["user__phone_number"]
@@ -79,6 +79,15 @@ class CreatorViewSet(
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(creator)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def with_coins(self, request, *args, **kwargs):
+        queryset = self.get_queryset().exclude(coin=None)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -422,3 +431,26 @@ class FollowerViewSet(
         writer.writerows(followers)
 
         return response
+
+
+class CoinsViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.CoinSerializer
+    queryset = models.Coin.objects.filter(is_active=True)
+
+    @action(
+        methods=["GET"],
+        detail=True
+    )
+    def creator(self, request, pk, *args, **kwargs):
+        try:
+            coin_object = models.Coin.objects.get(creator=pk)
+            serializer = self.get_serializer(coin_object)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except (models.Coin.DoesNotExist, models.Coin.MultipleObjectsReturned):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+

@@ -2,6 +2,7 @@ from django.conf import settings
 
 APPSFLYER_APP_LINK = "https://worknetwork.onelink.me/KbQv/AppStore"
 LANDING_PAGE = "https://worknetwork.in"
+PLACEHOLDER_NAME_FOR_WHATSAPP = "Crater User"
 
 # Freshchat Whatsapp details.
 FRESHCHAT_BASE_URL = settings.FRESHCHAT_BASE_URL
@@ -87,6 +88,7 @@ WEBINAR_ATTENDEE_RSVP_CONFIRMATION_TEMPLATE = "crater_stream_rsvp_confirmation"
 FRESHCHAT_STATUS_SUCCESS = 200
 FRESHCHAT_STATUS_CREATED = 201
 FRESHCHAT_STATUS_ACCEPTED = 202
+FRESHCHAT_STATUS_BAD_REQUEST = 400
 
 # Possible message statuses.
 FRESHCHAT_MESSAGE_ACCEPTED = "ACCEPTED"

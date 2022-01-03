@@ -69,12 +69,10 @@ def add_attendee_to_creator_followers(sender, group, user, *args, **kwargs):
 
     """
     host = group.host
+    if not host:
+        return False
 
-    try:
-        creator = host.creator
-    except models.Creator.DoesNotExist:
-        return
-
+    creator = private.get_or_create_creator(host)
     return private.create_follower_for_creator(user, creator)
 
 

@@ -368,6 +368,19 @@ class RequestViewSet(
             constants.REQUEST_PARTICIPANT_SPEAKER_ENUM
         )
 
+        is_host = services.check_if_user_if_host(
+            user,
+            group_id
+        )
+
+        # If the user rsvping is a host, throw and error.
+        if is_host:
+            host_rsvp_error = exceptions.HostRSVPError()
+            return Response(
+                host_rsvp_error.get_error_body(),
+                status=host_rsvp_error.status_code
+            )
+
         # Get request for given params.
         request = services.get_request_for_user_and_group_id(
             user,

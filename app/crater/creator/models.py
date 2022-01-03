@@ -1,13 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
 from crater.creator import services
 
 
 class Creator(base_models.BaseModel):
-    """Creator profile for a user on the platform.
+    """Creator for a user on the platform.
 
     Note: Only gets built when a user wants to create
         a community.
@@ -19,7 +21,7 @@ class Creator(base_models.BaseModel):
     )
 
     # Number of subscribers (off the platform)
-    number_of_subscribers = models.PositiveIntegerField(null=True, blank=True)
+    subscriber_count = models.PositiveIntegerField(null=True, blank=True)
     # Once a creator reaches a certain mark, we can mark them
     # certified.
     certified = models.BooleanField(default=False)
@@ -28,18 +30,34 @@ class Creator(base_models.BaseModel):
         blank=True
     )
     # Temporary key for showcasing creators.
-    order = models.PositiveIntegerField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0)
     follower_count = models.PositiveIntegerField(null=True, blank=True)
     participant_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, blank=True)
     show_club_members = models.BooleanField(default=False)
+    video = models.FileField(
+        upload_to="creator/videos",
+        null=True,
+        blank=True
+    )
+    video_poster = models.ImageField(
+        upload_to="creator/videos/poster/",
+        null=True,
+        blank=True
+    )
 
     class Meta:
-        ordering = ["follower_count"]
+        ordering = ["-order"]
 
     def __str__(self):
         return "{}".format(self.user.__str__())
+
+    def clean(self):
+        if self.video and not self.video_poster:
+            raise ValidationError({
+                "video_poster": _("Video poster is also required with video.")
+            })
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -131,15 +149,21 @@ class Coin(base_models.BaseModel):
         Creator,
         on_delete=models.CASCADE
     )
-    # Coins held by the creator at the current moment.
-    coins_held = models.PositiveIntegerField()
+    # # Coins held by the creator at the current moment.
+    # coins_held = models.PositiveIntegerField()
+    #
+    # price = models.PositiveIntegerField()
+    # # Maximum coins that can be help by the creator.
+    # max_coins = models.PositiveIntegerField()
 
-    price = models.PositiveIntegerField()
-    # Maximum coins that can be help by the creator.
-    max_coins = models.PositiveIntegerField()
-
+    # Name of the coin.
+    name = models.CharField(max_length=32, null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     # Contains all the display functionality
     # of the creator coin.
+    # TODO(Nishant): Decide fields we need for display of the coin.
     display = JSONField(default=dict)
+
+    def __str__(self):
+        return f"{self.creator.slug} - {self.id}"

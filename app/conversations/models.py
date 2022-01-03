@@ -616,6 +616,12 @@ class GroupRtmp(base_model.BaseModel):
     )
     link = models.TextField()
 
+    # Where all the stream is live.
+    # linkedin = models.BooleanField(default=False)
+    # instagram = models.BooleanField(default=False)
+    # facebook = models.BooleanField(default=False)
+    # twitter = models.BooleanField(default=False)
+
 
 class GroupMessage(base_model.BaseModel):
     """
