@@ -49,13 +49,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "approved_at",
         "last_live_at"
     )
-    exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = ("speakers__email", "speakers__name", "speakers__username", )
-    list_editable = ("is_published", "is_featured", "is_live", "closed")
+    list_editable = ("is_published", "is_featured", "is_live", "closed", )
     list_filter = (
         ("start", filter.DateRangeFilter),
         "topic"
     )
+    exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -257,8 +257,13 @@ class GroupRtmpAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "group",
-        "link"
+        "link",
+        # "linkedin",
+        # "facebook",
+        # "twitter",
+        # "instagram"
     )
+    # list_editable = ("linkedin", "facebook", "twitter", "instagram")
     search_fields = (
         "group__host__username",
         "group__host__name",

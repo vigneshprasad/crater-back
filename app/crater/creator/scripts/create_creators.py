@@ -23,7 +23,7 @@ def run(dry_run=True):
         if not dry_run:
             creator = crater_models.Creator.objects.create(
                 user=host,
-                number_of_subscribers=1000,
+                subscriber_count=1000,
                 certified=False,
                 order=0,
             )

@@ -157,6 +157,7 @@ class GroupWebinarPublicViewSet(
 
     @action(
         methods=["GET"],
+        pagination_class=paginators.WebinarPagination,
         detail=False,
         filterset_fields=["host"],
     )
@@ -166,6 +167,12 @@ class GroupWebinarPublicViewSet(
         queryset = self.filter_queryset(
             self._get_past_webinars_with_recordings()
         )
-        serializer = self.get_serializer(queryset, many=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

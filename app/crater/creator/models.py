@@ -21,7 +21,7 @@ class Creator(base_models.BaseModel):
     )
 
     # Number of subscribers (off the platform)
-    number_of_subscribers = models.PositiveIntegerField(null=True, blank=True)
+    subscriber_count = models.PositiveIntegerField(null=True, blank=True)
     # Once a creator reaches a certain mark, we can mark them
     # certified.
     certified = models.BooleanField(default=False)
@@ -30,7 +30,7 @@ class Creator(base_models.BaseModel):
         blank=True
     )
     # Temporary key for showcasing creators.
-    order = models.PositiveIntegerField(null=True, blank=True)
+    order = models.PositiveIntegerField(default=0)
     follower_count = models.PositiveIntegerField(null=True, blank=True)
     participant_count = models.PositiveIntegerField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
@@ -48,7 +48,7 @@ class Creator(base_models.BaseModel):
     )
 
     class Meta:
-        ordering = ["follower_count"]
+        ordering = ["-order"]
 
     def __str__(self):
         return "{}".format(self.user.__str__())

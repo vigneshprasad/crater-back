@@ -362,7 +362,7 @@ def cache_live_webinar(group):
     # Data to be cached to Redis for the group.
     data_to_cache_for_group = {
         "group_id": group.id,
-        "participant": creator.participant_count or creator.number_of_subscribers
+        "participant": creator.participant_count or creator.subscriber_count
     }
 
     cached_live_webinars = settings.REDIS.get("live_webinars")

@@ -33,7 +33,7 @@ class RewardViewSet(
 ):
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.RewardSerializer
-    queryset = models.Reward.objects.filter(is_active=True)
+    queryset = models.Reward.objects.filter(is_active=True).order_by("-order", "created_at")
     filterset_fields = ["creator", "creator__user", "type", "creator__slug"]
 
 

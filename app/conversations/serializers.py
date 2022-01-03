@@ -22,6 +22,21 @@ from crater.creator import serializers as creator_serializers
 from utils import fields
 
 
+class GroupRTMPSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.GroupRtmp
+        fields = (
+            "id",
+            "group",
+            "link",
+            # "linkedin",
+            # "twitter",
+            # "instagram",
+            # "facebook"
+        )
+
+
 class GroupRecordingSerializer(serializers.ModelSerializer):
     dyte_recordings_details = dyte_serializers.DyteMeetingRecordingSerializer(
         source="dyte_recordings",
@@ -180,8 +195,8 @@ class GroupSerializer(serializers.ModelSerializer):
         return now >= group.start
 
     def get_relevancy(self, group):
-        """Returns the relevancy score of a group with
-            regards to the user.
+        """Returns the relevancy score of a group in
+            regard to the user.
 
         """
 
@@ -310,6 +325,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     is_past = serializers.SerializerMethodField(read_only=True)
     recording_details = GroupRecordingSerializer(source="recording", read_only=True)
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
+    # rtmp_detail = GroupRTMPSerializer(source="rtmp", read_only=True)
     rtmp_link = serializers.CharField(required=False, write_only=True)
 
     class Meta:
@@ -340,6 +356,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "recording_details",
             "speakers",
             "speakers_detail_list",
+            # "rtmp_detail",
             "rtmp_link",
         )
 
