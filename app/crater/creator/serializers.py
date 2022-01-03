@@ -96,7 +96,8 @@ class FollowerSerializer(serializers.ModelSerializer):
             "unfollowed",
             "followed_at",
             "unfollowed_at",
-            "profile_detail"
+            "profile_detail",
+            "notify",
         )
         extra_kwargs = {
             "unfollowed": {
