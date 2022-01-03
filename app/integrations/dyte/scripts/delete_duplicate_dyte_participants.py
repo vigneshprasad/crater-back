@@ -7,7 +7,7 @@ unique_fields = ["dyte_meeting", "participant"]
 def run(dry_run=True):
 
     duplicates = (
-        DyteMeetingParticipant.objects.values(*unique_fields)
+        DyteMeetingParticipant.all_objects.values(*unique_fields)
         .order_by()
         .annotate(max_id=Max("id"), count_id=Count("id"))
         .filter(count_id__gt=1)
@@ -16,7 +16,7 @@ def run(dry_run=True):
     for duplicate in duplicates:
         print(duplicate)
 
-        duplicate_dyte_meeting_participants = DyteMeetingParticipant.objects.filter(
+        duplicate_dyte_meeting_participants = DyteMeetingParticipant.all_objects.filter(
             **{x: duplicate[x] for x in unique_fields}
         ).exclude(id=duplicate["max_id"])
 

@@ -28,6 +28,8 @@ class CreatorSerializer(serializers.ModelSerializer):
             "slug",
             "is_follower",
             "show_club_members",
+            "video",
+            "video_poster"
         )
         extra_kwargs = {
             "number_of_subscribers": {
@@ -143,5 +145,26 @@ class CommunityMemberSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "joined_at": {
                 "required": False
+            }
+        }
+
+
+class CoinSerializer(serializers.ModelSerializer):
+
+    creator_detail = CreatorSerializer(source="creator", read_only=True)
+
+    class Meta:
+
+        model = models.Coin
+        fields = (
+            "id",
+            "name",
+            "is_active",
+            "display",
+            "creator_detail"
+        )
+        extra_kwargs = {
+            "is_active": {
+                "read_only": True
             }
         }

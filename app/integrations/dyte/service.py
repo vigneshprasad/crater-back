@@ -235,6 +235,15 @@ class DyteService:
             logging.error("Dyte add participant failed")
             return None
 
+        success = response_json["success"]
+        if not success:
+            logging.error(
+                "Dyte add participant failed: {}".format(
+                    response_json.get("message")
+                )
+            )
+            return None
+
         participant_data = response_json["data"]["authResponse"]
         auth_token = participant_data["authToken"]
 
