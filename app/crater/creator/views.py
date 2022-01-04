@@ -437,7 +437,6 @@ class FollowerViewSet(
             serializer = self.get_serializer(data=data, instance=follower, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            print(serializer.data["notify"])
             created = False
         else:
             # Create follower object and turn notify on.
