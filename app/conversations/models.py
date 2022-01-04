@@ -176,7 +176,7 @@ class Group(base_model.BaseModel):
         blank=True
     )
 
-    # The user who has setup the group.
+    # The user who has set up the group.
     host = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
