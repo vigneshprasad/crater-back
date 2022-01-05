@@ -8,8 +8,8 @@ from wn_analytics.models import UserSource
 
 class PhoneOtpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="phone_number", required=False)
-    utm_source = serializers.CharField(required=False)
-    utm_campaign = serializers.CharField(required=False)
+    utm_source = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    utm_campaign = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
 
