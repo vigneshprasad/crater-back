@@ -102,7 +102,7 @@ class PhoneNumberRegisterView(
         serializer.is_valid(raise_exception=True)
 
         user, created = user_public.get_or_create_user(phone_number=username)
-        serializer.save(user=user)
+        serializer.save(user=user, **{"new_user": created})
 
         # Create a JWT token for the user for upcoming requests.
         token = jwt_encode(user)

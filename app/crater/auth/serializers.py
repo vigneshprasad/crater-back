@@ -73,7 +73,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
         instance = super().update(instance, validated_data)
 
-        if utm_source and utm_campaign:
+        if utm_source and utm_campaign and validated_data.get("new_user"):
             UserSource.objects.create(
                 user=instance.user,
                 utm_source=utm_source,
