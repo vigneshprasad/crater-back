@@ -575,6 +575,7 @@ class GroupWebinarViewSet(
 
         queryset_upcoming = self._get_upcoming_webinars()
 
+        # TODO: Needs query optimization
         # Get creators the user is subscribed to
         creator_ids = list(user.following.filter(
                     notify=True
