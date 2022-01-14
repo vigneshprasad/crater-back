@@ -46,6 +46,7 @@ class Creator(base_models.BaseModel):
         null=True,
         blank=True
     )
+    point_of_contact = models.CharField(max_length=64, null=True, blank=True)
 
     class Meta:
         ordering = ["-order"]
