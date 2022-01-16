@@ -1,7 +1,6 @@
 import datetime
 
 from django.db.models import Q
-from django.db.models.functions import Cast
 
 from rest_framework import mixins
 from rest_framework import serializers
