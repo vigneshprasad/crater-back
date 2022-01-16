@@ -563,7 +563,7 @@ class GroupWebinarViewSet(
         detail=False,
         queryset=models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True).order_by(),
         pagination_class=paginators.WebinarPagination,
-        permission_classes = [permissions.IsAuthenticated]
+        permission_classes = [permissions.IsAuthenticated],
         filterset_fields=["host"],
     )
     def creators(self, request):
