@@ -2,6 +2,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from conversations import signals as conversation_signals
+from conversations import services as conversation_services
+from conversations import constants as conversation_constants
 from integrations.dyte.service import dyte_service
 from integrations.dyte import constants
 from integrations.dyte import models
@@ -138,3 +140,31 @@ def stop_recording_on_group_close(sender, group, *args, **kwargs):
         group,
         active_recording.recording_id
     )
+
+
+@receiver(post_save, sender=models.DyteMeetingParticipant)
+def create_group_request(sender, instance, *args, **kwargs):
+    user = instance.participant
+    group = instance.dyte_meeting.group
+    speakers = group.speakers.all()
+
+    # Check if user is not the host or a speaker
+    if user != group.host and user not in speakers:
+        # Get group request for given params.
+        request = conversation_services.get_request_for_user_and_group_id(
+            user,
+            group.id,
+            participant_type=conversation_constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+        )
+
+        if not request:
+            group_request = conversation_services.create_group_request(
+                user=user,
+                group=group,
+                participant_type=conversation_constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+            )
+
+            conversation_services.add_attendee_to_group_for_request(
+                user,
+                group_request
+            )
