@@ -1,3 +1,82 @@
-from django.shortcuts import render
+from rest_framework.viewsets import GenericViewSet
+from rest_framework import mixins
+from rest_framework import status
 
-# Create your views here.
+from users import permissions
+from rest_framework.response import Response
+
+from crater.gateways.stripe_payments import models
+from crater.gateways.stripe_payments import serializers
+from crater.gateways.stripe_payments import public
+
+from crater.gateways.stripe_payments.service import stripe_service
+
+
+class PaymentIntentViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet
+):
+    queryset = models.PaymentIntent.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.PaymentIntentSerializer
+    lookup_field = "client_secret"
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        data = request.data
+        customer = stripe_service.get_or_create_customer(user)
+        intent = stripe_service.create_payment_intent(
+            amount=data.get("amount"),
+            customer=customer,
+            payment_id=data.get("payment"),
+            product_id=data.get("product_id"),
+            capture_method="manual",
+        )
+        serialized = self.get_serializer(intent)
+        return Response(serialized.data, status=status.HTTP_201_CREATED)
+
+
+class StripeWebhookViewSet(
+    mixins.CreateModelMixin,
+    GenericViewSet
+):
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        event_type = request.data.get("type")
+        if not event_type:
+            return Response({})
+
+        # Payment Intent Events
+        if event_type.find("payment_intent") > -1:
+            intent_id = data["data"]["object"]["id"]
+
+            try:
+                payment_intent = models.PaymentIntent.objects.get(intent_id=intent_id)
+                intent_object = data["data"]["object"]
+                payment_intent.data = intent_object
+                payment_intent.save()
+
+                charges = intent_object["charges"]["data"]
+
+                if len(charges) > 0:
+                    public.create_or_update_charges_list(charges)
+
+            except models.PaymentIntent.DoesNotExist:
+                pass
+
+        # Payment Charge Events
+        if event_type.find("charge") > -1:
+            charge_data = data["data"]["object"]
+            public.create_or_update_charge_object(charge_data)
+
+            if event_type == "charge.succeeded":
+                intent_id = charge_data["payment_intent"]
+                stripe_service.retrieve_and_update_payment_intent(intent_id)
+                public.handle_charge_succeeded(charge_data)
+
+            if event_type == "charge.captured":
+                public.handle_charge_captured(charge_data)
+
+        return Response({})

@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+import datetime
 
 from crater.auctions import models
 from crater.creator import private
@@ -23,6 +24,25 @@ class AuctionViewSet(
     serializer_class = serializers.AuctionSerializer
     queryset = models.Auction.objects.filter(is_closed=False)
     filterset_fields = ["coin__creator"]
+
+    @action(
+        methods=["GET"],
+        detail=True
+    )
+    def active_auction(self, request, pk):
+        creator_id = pk
+        now = datetime.datetime.now()
+        auctions = self.get_queryset().filter(
+            start__lte=now,
+            end__gte=now,
+            coin__creator_id=creator_id
+        ).order_by("-start")
+
+        if not auctions:
+            return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = self.get_serializer(auctions[0])
+        return Response(serialized.data)
 
 
 class BidViewSet(

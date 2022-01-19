@@ -34,6 +34,7 @@ class Bid(base_models.BaseModel):
     """
 
     BID_STATUS_CHOICES = (
+        (constants.BID_STATUS_PAYMENT_PENDING_ENUM, constants.BID_STATUS_PAYMENT_PENDING),
         (constants.BID_STATUS_PENDING_ENUM, constants.BID_STATUS_PENDING),
         (constants.BID_STATUS_ACCEPTED_ENUM, constants.BID_STATUS_ACCEPTED),
         (constants.BID_STATUS_REJECTED_ENUM, constants.BID_STATUS_REJECTED),
@@ -58,9 +59,6 @@ class Bid(base_models.BaseModel):
     bid_price = models.DecimalField(max_digits=10, decimal_places=2)
     number_of_coins = models.PositiveIntegerField()
 
-    # What time the bid was created.
-    bid_time = models.DateTimeField()
-
     # What is the status of the bid. Accepted status of bid
     # makes the exchange or coins.
     status = models.PositiveIntegerField(
@@ -72,7 +70,11 @@ class Bid(base_models.BaseModel):
     is_processed = models.BooleanField(default=False)
 
     # Attach a payment promise to the Bid.
-    # payment = models.ForeignKey()
+    payment = models.ForeignKey(
+        "crater_payments.Payment",
+        related_name="bid",
+        on_delete=models.CASCADE
+    )
 
     @property
     def amount(self):
