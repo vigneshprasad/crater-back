@@ -521,6 +521,21 @@ class GroupWebinarViewSet(
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ["host", "categories"]
 
+    def _get_upcoming_webinars(self):
+        """Return upcoming webinars."""
+        return self.get_queryset().filter(
+            is_live=False,
+            closed=False,
+            start__gte=datetime.datetime.now()
+        )
+
+    def _get_live_webinars(self):
+        """Return live webinars."""
+        return self.get_queryset().filter(
+            is_live=True,
+            closed=False
+        )
+
     @action(
         methods=["GET"],
         detail=False,
@@ -542,6 +557,49 @@ class GroupWebinarViewSet(
 
         serialized = self.get_serializer(page, many=True)
         return self.get_paginated_response(serialized.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        queryset=models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True).order_by(),
+        pagination_class=paginators.WebinarPagination,
+        permission_classes = [permissions.IsAuthenticated],
+        filterset_fields=["host"],
+    )
+    def creators(self, request):
+        """Return a live or upcoming webinar for a creator and exclude if
+        requested user has followed the creator.
+
+        """
+        user = request.user
+
+        queryset_upcoming = self._get_upcoming_webinars()
+
+        # TODO: Needs query optimization
+        # Get creators the user is subscribed to
+        creator_ids = list(user.following.filter(
+                    notify=True
+        ).values_list("creator__user", flat=True))
+
+        queryset = queryset_upcoming.exclude(
+            host__pk__in=creator_ids + [user.pk]
+        ).order_by("start")
+
+        unique_stream_host = {}
+        for stream in queryset:
+            if stream.host not in unique_stream_host.keys():
+                unique_stream_host[stream.host] = stream.id
+
+        queryset = queryset.filter(id__in=unique_stream_host.values())
+
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class CategoryViewSet(

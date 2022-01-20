@@ -565,3 +565,22 @@ def add_previous_attendees_to_groups(groups):
 
         group.attendees.add(*attendees_to_add)
         group.save()
+
+
+def create_group_request(user, group, participant_type):
+    """Create a group request object
+
+    Args:
+        user(User): User who has requested to join the group.
+        group(Group): Group for which we are getting
+            the request for.
+        participant_type(int): Participant type the user requested
+        for.
+    """
+    group_request = models.Request.objects.create(
+        requester=user,
+        group=group,
+        participant_type=participant_type
+    )
+
+    return group_request
