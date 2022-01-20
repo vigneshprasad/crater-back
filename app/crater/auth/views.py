@@ -93,10 +93,14 @@ class PhoneNumberRegisterView(
                 status=login_otp_mismatch_exception.status_code
             )
 
+        # Get the right utm data from the view.
+        utm_source = request_data.get("utm_source").strip() if request_data.get("utm_source") else None
+        utm_campaign = request_data.get("utm_campaign").strip() if request_data.get("utm_campaign") else None
+
         data = {
             "otp": otp,
-            "utm_source": request_data.get("utm_source"),
-            "utm_campaign": request_data.get("utm_campaign")
+            "utm_source": utm_source,
+            "utm_campaign": utm_campaign
         }
         serializer = self.get_serializer(data=data, instance=phone_otp, partial=True)
         serializer.is_valid(raise_exception=True)

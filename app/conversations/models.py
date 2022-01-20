@@ -456,6 +456,7 @@ class Group(base_model.BaseModel):
 
 
 class Invite(base_model.BaseModel):
+
     INVITE_STATUS_CHOICES = (
         (constants.INVITE_STATUS_PENDING_ENUM, constants.INVITE_STATUS_PENDING),
         (constants.INVITE_STATUS_ACCEPTED_ENUM, constants.INVITE_STATUS_ACCEPTED),

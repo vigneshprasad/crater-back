@@ -30,6 +30,7 @@ class IdentifyLog(BaseModel):
 
 
 class UserSource(BaseModel):
+
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,

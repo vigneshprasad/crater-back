@@ -17,10 +17,16 @@ class CreatorAdmin(admin.ModelAdmin):
         "show_club_members",
         "point_of_contact",
     )
-    raw_id_fields = ("user", )
+    raw_id_fields = ("user", "point_of_contact")
     list_editable = ("order", "certified", "is_active", "show_club_members")
     list_filter = ("certified", "is_active")
-    search_fields = ("user__name", "user__username", "slug", "point_of_contact")
+    search_fields = (
+        "user__name",
+        "user__username",
+        "slug",
+        "point_of_contact__name",
+        "point_of_contact__username"
+    )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     def get_queryset(self, request):

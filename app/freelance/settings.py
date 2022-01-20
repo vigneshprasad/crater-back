@@ -8,6 +8,7 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
+
 """
 
 import datetime
@@ -26,8 +27,6 @@ from sentry_sdk.integrations.redis import RedisIntegration
 
 
 # All environment variables.
-from crater import creator
-
 ENVIRONMENT = os.getenv("ENVIRONMENT")
 ENVIRONMENT_PREPROD = "preprod"
 ENVIRONMENT_PROD = "prod"
@@ -355,8 +354,8 @@ OLD_PASSWORD_FIELD_ENABLED = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 MANDRILL_API_KEY = os.getenv("MANDRILL_API_KEY", "pAoVah9eVDu70a2yxajeBg")
-# Using because Mandrill sends error if it can"t send emails because of various
-# user side reasons. We don"t these error since we can"t do anything about them.
+# Using because Mandrill sends error if it can't send emails because of various
+# user side reasons. We don't want these errors since we can't do anything about them.
 MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
@@ -428,7 +427,8 @@ sentry_sdk.init(
     environment=os.getenv("ENVIRONMENT"),
     integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
     attach_stacktrace=True,
-    send_default_pii=True
+    send_default_pii=True,
+    # traces_sample_rate=1
 )
 
 # ----------- FRESHCHAT ---------#
