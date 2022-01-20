@@ -50,7 +50,7 @@ class Creator(base_models.BaseModel):
         get_user_model(),
         null=True,
         blank=True,
-        related_name='point_of_contact',
+        related_name="point_of_contact",
         on_delete=models.CASCADE
     )
 

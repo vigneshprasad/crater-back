@@ -12,6 +12,7 @@ class DyteMeetingAdmin(admin.ModelAdmin):
         "group",
         "meeting",
     )
+    raw_id_fields = ("group", "meeting", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         "group",
@@ -70,6 +71,7 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
         "started_at",
         "stopped_at"
     )
+    raw_id_fields = ("dyte_meeting", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         "dyte_meeting__group",
