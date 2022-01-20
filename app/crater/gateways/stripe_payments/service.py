@@ -36,12 +36,12 @@ class StripePaymentService:
     def retrieve_and_update_payment_intent(self, intent_id: str):
         try:
             obj = models.PaymentIntent.objects.get(intent_id=intent_id)
-            payment_intent = self.stripe.PaymentIntent.retrieve(intent_id)
-            obj.data = payment_intent
-            obj.save()
-
         except models.PaymentIntent.DoesNotExist:
-            pass
+            return
+
+        payment_intent = self.stripe.PaymentIntent.retrieve(intent_id)
+        obj.data = payment_intent
+        obj.save()
 
     def create_payment_intent(
             self,

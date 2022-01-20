@@ -12,11 +12,12 @@ class PaymentIntentAdmin(admin.ModelAdmin):
         "intent_id",
         "product_id",
     )
+    raw_id_fields = ("payment", "customer", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
 @admin.register(models.PaymentCharge)
-class PaymentIntentAdmin(admin.ModelAdmin):
+class PaymentChargeAdmin(admin.ModelAdmin):
     list_display = (
         "payment_intent",
         "charge_id",
@@ -25,4 +26,5 @@ class PaymentIntentAdmin(admin.ModelAdmin):
         "amount_refunded",
         "captured",
     )
+    raw_id_fields = ("payment_intent", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

@@ -29,9 +29,9 @@ class Payment(base_models.BaseModel):
     )
     status = models.PositiveIntegerField(
         choices=STATUS_CHOICES,
-        default=STATUS_CHOICES[0][0]
+        default=constants.PAYMENT_STATUS_PENDING_ENUM
     )
     gateway = models.PositiveIntegerField(
         choices=GATEWAY_CHOICES,
-        default=GATEWAY_CHOICES[0][0]
+        default=constants.PAYMENT_GATEWAY_STRIPE_ENUM
     )

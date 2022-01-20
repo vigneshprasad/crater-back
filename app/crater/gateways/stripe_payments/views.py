@@ -46,7 +46,7 @@ class StripeWebhookViewSet(
         data = request.data
         event_type = request.data.get("type")
         if not event_type:
-            return Response({})
+            return Response(status=status.HTTP_200_OK)
 
         # Payment Intent Events
         if event_type.find("payment_intent") > -1:
@@ -54,17 +54,15 @@ class StripeWebhookViewSet(
 
             try:
                 payment_intent = models.PaymentIntent.objects.get(intent_id=intent_id)
-                intent_object = data["data"]["object"]
-                payment_intent.data = intent_object
-                payment_intent.save()
-
-                charges = intent_object["charges"]["data"]
-
-                if len(charges) > 0:
-                    public.create_or_update_charges_list(charges)
-
             except models.PaymentIntent.DoesNotExist:
-                pass
+                return Response(status=status.HTTP_200_OK)
+
+            intent_object = data["data"]["object"]
+            payment_intent.data = intent_object
+            payment_intent.save()
+
+            charges = intent_object["charges"]["data"]
+            public.create_or_update_charges_list(charges)
 
         # Payment Charge Events
         if event_type.find("charge") > -1:
@@ -79,4 +77,4 @@ class StripeWebhookViewSet(
             if event_type == "charge.captured":
                 public.handle_charge_captured(charge_data)
 
-        return Response({})
+        return Response(status=status.HTTP_200_OK)

@@ -32,16 +32,20 @@ class BidSerializer(serializers.ModelSerializer):
         )
 
     def to_internal_value(self, data):
-        """
-        Initial transform data for serializer, set user as request user
-        :param data: request data
+        """Initial transform data for serializer, set user as request user
+
+        Args:
+            data(dict): Request data passed to the serializer.
+
         """
         try:
             data = copy.deepcopy(data)
         except TypeError:
             pass
-        if self.context.get('request'):
-            data["bidder"] = self.context['request'].user.pk
+
+        if self.context.get("request"):
+            data["bidder"] = self.context["request"].user.pk
+
         return super().to_internal_value(data)
 
 
