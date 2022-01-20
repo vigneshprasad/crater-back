@@ -569,7 +569,11 @@ def get_stream_performed_after_duration(start_date=None, end_date=None, duration
     ).values_list("speakers", flat=True)
 
     for speaker in speakers:
-        groups = models.Group.objects.filter(speakers=speaker).order_by("start")
+        groups = models.Group.objects.filter(
+            speakers=speaker,
+            start__gte=start_date,
+            start__lte=end_date
+        ).order_by("start")
         if groups.count() <= 1:
             continue
 
@@ -613,7 +617,6 @@ def get_average_minutes_on_streams_participants(start_date=None, end_date=None):
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     )
 
-    total_groups = 0
     total_minutes = 0
     total_participants = 0
     total_stream_time = 0
@@ -626,7 +629,6 @@ def get_average_minutes_on_streams_participants(start_date=None, end_date=None):
         total_minutes += avg_time_for_stream
         total_stream_time += total_time_for_stream
         total_participants += participants_joined
-        total_groups += 1
 
     avg_time_spent = (total_stream_time/total_participants) if total_participants else 0
     return total_stream_time, round(avg_time_spent, 2), total_participants
@@ -661,7 +663,6 @@ def get_average_minutes_on_streams_hosts(start_date=None, end_date=None):
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     )
 
-    total_groups = 0
     total_minutes = 0
     total_speakers = 0
     total_stream_time = 0
@@ -674,7 +675,6 @@ def get_average_minutes_on_streams_hosts(start_date=None, end_date=None):
         total_minutes += avg_time_for_stream
         total_stream_time += total_time_for_stream
         total_speakers += speakers_joined
-        total_groups += 1
 
     avg_time_spent = (total_stream_time/total_speakers) if total_speakers else 0
     return total_stream_time, round(avg_time_spent, 2), total_speakers
@@ -772,7 +772,6 @@ def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
     all_attendees = list(set(all_attendees))
 
     total_attendees = 0
-    total_groups_attended = 0
     total_groups_attended_monthly = 0
 
     for attendee in all_attendees:
@@ -784,7 +783,9 @@ def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
         # Total groups attended.
         groups = models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
-            attendees=attendee
+            attendees=attendee,
+            start__gte=start_date,
+            start__lte=end_date
         ).count()
 
         # Either october or user date joined.
@@ -797,7 +798,6 @@ def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
             continue
 
         total_attendees += 1
-        total_groups_attended += groups
         total_groups_attended_monthly += groups/months_difference if months_difference else groups
 
     return round(total_groups_attended_monthly/total_attendees, 2)
@@ -832,7 +832,6 @@ def get_average_streams_attended_per_month(start_date=None, end_date=None):
     all_attendees = list(set(all_attendees))
 
     total_attendees = 0
-    total_groups_attended = 0
     total_groups_attended_monthly = 0
 
     for attendee in all_attendees:
@@ -843,7 +842,9 @@ def get_average_streams_attended_per_month(start_date=None, end_date=None):
 
         groups = models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
-            attendees=attendee
+            attendees=attendee,
+            start__gte=start_date,
+            start__lte=end_date
         )
         attended_groups = 0
         for group in groups:
@@ -861,7 +862,6 @@ def get_average_streams_attended_per_month(start_date=None, end_date=None):
         months_difference = (r.years * 12) + r.months
 
         total_attendees += 1
-        total_groups_attended += attended_groups
         total_groups_attended_monthly += attended_groups/months_difference if months_difference else attended_groups
 
     return round(total_groups_attended_monthly/total_attendees, 2)
@@ -908,7 +908,9 @@ def get_average_streams_streamed_per_month(start_date, end_date=None):
         # Total groups attended.
         groups = models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
-            speakers=speaker
+            speakers=speaker,
+            start__gte=start_date,
+            start__lte=end_date
         ).count()
 
         # Either october or user date joined.
