@@ -144,27 +144,35 @@ def stop_recording_on_group_close(sender, group, *args, **kwargs):
 
 @receiver(post_save, sender=models.DyteMeetingParticipant)
 def create_group_request(sender, instance, *args, **kwargs):
+    """Create group request for Dyte Meeting Participant.
+
+    Args:
+        sender(Class): Dyte Meeting Participant class representation.
+        instance(DyteMeetingParticipant): Dyte Meeting Participant object.
+
+    """
     user = instance.participant
     group = instance.dyte_meeting.group
-    speakers = group.speakers.all()
 
-    # Check if user is not the host or a speaker
-    if user != group.host and user not in speakers:
-        # Get group request for given params.
-        request = conversation_services.get_request_for_user_and_group_id(
-            user,
-            group.id,
-            participant_type=conversation_constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
-        )
+    # If user is the host or a speaker, return.
+    if user in group.get_host_and_speakers():
+        return False
 
-        if not request:
-            group_request = conversation_services.create_group_request(
-                user=user,
-                group=group,
-                participant_type=conversation_constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
-            )
+    # If request is already created return from here.
+    request = conversation_services.get_request_for_user_and_group_id(
+        user,
+        group.id
+    )
+    if request:
+        return False
 
-            conversation_services.add_attendee_to_group_for_request(
-                user,
-                group_request
-            )
+    # Create group request and add to attendees list.
+    group_request = conversation_services.create_group_request(
+        user=user,
+        group=group,
+        participant_type=conversation_constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+    )
+    conversation_services.add_attendee_to_group_for_request(
+        user,
+        group_request
+    )
