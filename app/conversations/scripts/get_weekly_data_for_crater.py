@@ -33,6 +33,7 @@ EMAIL_TO_EXCLUDE = [
     "abhishek@worknetwork.in",
     "nishant@worknetwork.in",
     "vivan@worknetwork.in",
+    "vivan@crater.club",
     "ram@worknetwork.in",
     "sujith@crater.club",
     "shivanivijay2796@gmail.com",

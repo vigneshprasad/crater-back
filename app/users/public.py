@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 
 from users import signals
 
 
+@transaction.atomic
 def get_or_create_user(phone_number):
     """Return user if present or create a new one.
 
