@@ -1,11 +1,14 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin.models import CHANGE
+from django.contrib.admin.models import LogEntry
+from django.contrib.admin.options import get_content_type_for_model
 from django.utils.html import format_html
 from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
 
 from conversations import models
-from conversations import services
+from conversations import tasks
 
 
 @admin.register(models.SuggestedTopic)
@@ -80,7 +83,26 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
     def add_previous_webinar_attendees(self, request, queryset):
-        services.add_previous_attendees_to_groups(queryset)
+        """Adds previous webinar attendees to the provided webinar.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of webinars we want
+                to add previous attendees to.
+
+        """
+        # Delay the task for adding attendees.
+        group_ids = list(queryset.values_list("id", flat=True))
+        tasks.add_previous_attendees_to_groups.delay(group_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["added_previous_attendees"]}}]
+            )
+
         self.message_user(
             request,
             "Past attendees added to groups: {}".format(
@@ -187,6 +209,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "all_dyte_recordings",
         "is_published"
     )
+    list_editable = ("is_published", )
     actions = ("add_previous_webinar_attendees",)
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
@@ -217,18 +240,6 @@ class GroupRecordingAdmin(admin.ModelAdmin):
                 obj.publish()
 
         return super(GroupRecordingAdmin, self).save_model(request, obj, form, change)
-
-    def add_previous_webinar_attendees(self, request, queryset):
-        services.add_previous_attendees_to_groups(queryset)
-        self.message_user(
-            request,
-            "Past attendees added to groups: {}".format(
-                ", ".join([str(group.id) for group in queryset])
-            ),
-            messages.SUCCESS
-        )
-
-    add_previous_webinar_attendees.short_description = "Add previous attendees"
 
     @staticmethod
     def all_dyte_recordings(obj):
