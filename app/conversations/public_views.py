@@ -10,8 +10,6 @@ from conversations import constants
 from conversations import paginators
 from conversations import models
 from conversations import serializers
-from conversations import services
-from conversations import signals
 from users import permissions as user_permissions
 
 
@@ -176,3 +174,14 @@ class GroupWebinarPublicViewSet(
 
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class SeriesPublicViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.SeriesSerializer
+    queryset = models.Series.objects.all()
+    permission_classes = [user_permissions.AllowAny]
+    pagination_class = paginators.WebinarPagination
