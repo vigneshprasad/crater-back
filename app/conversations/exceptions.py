@@ -142,3 +142,16 @@ class GroupStartLessThan24Hours(base_exceptions.BaseAPIException):
 
     def __str__(self):
         return "{}".format(self.message)
+
+
+class SeriesAlreadyRSVPed(base_exceptions.BaseAPIException):
+    """Exception raised when user has already RSVPed to the series."""
+
+    def __init__(self):
+        super().__init__(
+            message="You have already RSVPed to the series.",
+            error_code="seriesAlreadyRSVPed"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)
