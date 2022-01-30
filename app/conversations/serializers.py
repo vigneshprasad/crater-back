@@ -506,3 +506,26 @@ class ChatReactionSerializer(serializers.ModelSerializer):
             "is_active",
             "file",
         )
+
+
+class SeriesSerializer(serializers.ModelSerializer):
+    topic_detail = TopicSerializer(source="topic", read_only=True)
+    groups_detail_list = GroupWebinarSerializer(source="groups", many=True, read_only=True)
+    categories_detail_list = CategorySerializer(source="categories", many=True, read_only=True)
+    host_detail = GroupUserSerializer(source="host", read_only=True)
+
+    class Meta:
+        model = models.Series
+        fields = (
+            "id",
+            "topic",
+            "topic_detail",
+            "groups",
+            "groups_detail_list",
+            "categories",
+            "categories_detail_list",
+            "host",
+            "host_detail",
+            "start",
+            "created_at",
+        )
