@@ -13,7 +13,6 @@ from django.utils.translation import ugettext_lazy as _
 from base import models as base_model
 from conversations import constants
 from conversations import signals
-from model_utils.models import TimeStampedModel
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
 
@@ -688,3 +687,69 @@ class ChatReaction(base_model.BaseModel):
 
     def __str__(self):
         return f"{self.pk}-{self.name}"
+
+
+class Series(base_model.BaseModel):
+    """
+    A series which has set or sequence of related groups
+    """
+    topic = models.ForeignKey(
+        Topic,
+        on_delete=models.CASCADE,
+        related_name="series_topic"
+    )
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name=_("Groups"),
+        related_name="series_groups"
+    )
+    categories = models.ManyToManyField(
+        Category,
+        verbose_name=_("Categories"),
+        blank=True
+    )
+    host = models.ForeignKey(
+        get_user_model(),
+        related_name="series_hosted",
+        on_delete=models.CASCADE
+    )
+    start = models.DateTimeField()
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "Series"
+
+    def __str__(self):
+        return f"{self.pk} - {self.topic} - {self.host}"
+
+    @property
+    def local_start(self):
+        """Return start in the local timezone."""
+        return self.start.astimezone(pytz.timezone(settings.TIME_ZONE))
+
+    def get_display_start_time(self):
+        """Give a displayable start time for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.local_start.strftime("%I:%M %p")
+
+    def get_display_day(self):
+        """Give a displayable date for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.start.strftime("%A, %d %B")
+
+    def get_display_start(self):
+        """This is the display start date time for a Group.
+            ex. "Friday, 31 July - 08:00 PM"
+
+        """
+        display_time = self.get_display_start_time()
+        display_date = self.get_display_day()
+        return "{} @ {}".format(display_date, display_time)
