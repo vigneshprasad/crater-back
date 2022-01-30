@@ -80,3 +80,18 @@ def create_calendar_event_for_webinar_speaker(sender, group, speakers, **kwargs)
 
     """
     return private.create_calendar_event_for_webinar_speakers(speakers, group)
+
+
+@receiver(conversations_signals.attendee_added_to_series)
+def create_calendar_event_for_series_attendee(sender, series_requests, user, **kwargs):
+    """Creates google calendar event when an attendee joins a series.
+
+    Args:
+        sender(Series): Series class representation.
+        series_requests(list(Request)): List of series' requests of user.
+        user(User): User that joined the series.
+
+    """
+
+    for request in series_requests:
+        private.create_calendar_event_for_webinar_attendee(user, request.group)

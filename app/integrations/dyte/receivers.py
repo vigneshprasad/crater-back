@@ -176,3 +176,28 @@ def create_group_request(sender, instance, *args, **kwargs):
         user,
         group_request
     )
+
+
+@receiver(conversation_signals.attendee_added_to_series)
+def add_participant_to_series_dyte_meetings(sender, series_requests, user, *args, **kwargs):
+    """Add participant to dyte meetings once a attendee is added to the series.
+
+    Args:
+        sender(Series): Class object for series.
+        series_requests(list(Request)): Series requests of user
+        user(User): User that got added to the series.
+
+    """
+
+    for request in series_requests:
+        dyte_meeting = request.group.dyte_webinar.first()
+
+        if not dyte_meeting:
+            continue
+
+        # If the user has already been added as a participant for
+        # dyte meeting, don't add again.
+        if private.get_dyte_participant_for_user_and_group(user, request.group):
+            continue
+
+        dyte_service.add_participant_to_meeting(dyte_meeting, user)

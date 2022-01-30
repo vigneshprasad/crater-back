@@ -58,17 +58,26 @@ def update_follower_count(sender, follower, *args, **kwargs):
     return creator
 
 
+@receiver(conversation_signals.attendee_added_to_series)
 @receiver(conversation_signals.attendee_added_to_group)
-def add_attendee_to_creator_followers(sender, group, user, *args, **kwargs):
-    """Creates google calendar event when an attendee joins a live steam.
+def add_attendee_to_creator_followers(sender, user, group=None, series=None, *args, **kwargs):
+    """Add user as a follower to the creator.
 
     Args:
-        sender(Group Class): Group class representation for the group joined.
+        sender(Group/Series): Group or Series class representation.
         group(Group): Group the user joined into.
         user(User): User that joined the group.
+        series(Series): Series the user joined to.
 
     """
-    host = group.host
+
+    if group:
+        host = group.host
+    elif series:
+        host = series.host
+    else:
+        return False
+
     if not host:
         return False
 
