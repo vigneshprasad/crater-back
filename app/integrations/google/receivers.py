@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from integrations.google import private
 from resources.meetings import signals as meeting_signals
 from conversations import signals as conversations_signals
+from integrations.google import tasks
 
 
 @receiver(meeting_signals.meeting_marked_cancelled)
@@ -83,15 +84,16 @@ def create_calendar_event_for_webinar_speaker(sender, group, speakers, **kwargs)
 
 
 @receiver(conversations_signals.attendee_added_to_series)
-def create_calendar_event_for_series_attendee(sender, series_requests, user, **kwargs):
+def create_calendar_event_for_series_attendee(sender, series, user, **kwargs):
     """Creates google calendar event when an attendee joins a series.
 
     Args:
         sender(Series): Series class representation.
-        series_requests(list(Request)): List of series' requests of user.
+        series(Series): Series to which user has joined.
         user(User): User that joined the series.
-
     """
 
-    for request in series_requests:
-        private.create_calendar_event_for_webinar_attendee(user, request.group)
+    tasks.create_calendar_events_for_series_attendee.delay(
+        series_id=series.id,
+        user_id=user.pk
+    )
