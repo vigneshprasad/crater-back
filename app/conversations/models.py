@@ -722,9 +722,7 @@ class ChatReaction(base_model.BaseModel):
 
 
 class Series(base_model.BaseModel):
-    """
-    A series which has set or sequence of related groups
-    """
+    """A series which has set or sequence of related groups"""
     topic = models.ForeignKey(
         Topic,
         on_delete=models.CASCADE,
