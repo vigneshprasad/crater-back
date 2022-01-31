@@ -338,3 +338,20 @@ class ChatReactionAdmin(admin.ModelAdmin):
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
+
+@admin.register(models.Series)
+class SeriesAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "topic",
+        "host",
+        "start",
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    search_fields = (
+        "host__name",
+        "topic__name",
+    )
+    list_filter = (
+        ("start", filter.DateRangeFilter),
+    )

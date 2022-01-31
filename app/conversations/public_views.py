@@ -1,5 +1,6 @@
 import datetime
 
+from django.db.models import Prefetch
 from rest_framework import mixins
 from rest_framework import status
 from rest_framework import viewsets
@@ -10,8 +11,6 @@ from conversations import constants
 from conversations import paginators
 from conversations import models
 from conversations import serializers
-from conversations import services
-from conversations import signals
 from users import permissions as user_permissions
 
 
@@ -176,3 +175,19 @@ class GroupWebinarPublicViewSet(
 
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class SeriesPublicViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.SeriesSerializer
+    queryset = models.Series.objects.prefetch_related(
+        Prefetch(
+            "groups",
+            models.Group.objects.order_by("closed", "is_live", "start")
+        )
+    )
+    permission_classes = [user_permissions.AllowAny]
+    pagination_class = paginators.WebinarPagination

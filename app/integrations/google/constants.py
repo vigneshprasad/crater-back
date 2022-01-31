@@ -41,9 +41,18 @@ DEFAULT_DESCRIPTION_FOR_CONVERSATIONS = "Hi, your conversation has been schedule
 
 DEFAULT_CONFERENCE_NAME_FOR_WEBINAR = "Live Stream"
 ATTENDEE_SUMMARY_FOR_WEBINARS = "Live Stream with {creator_name} | {topic}."
+ATTENDEE_SUMMARY_FOR_SERIES = "Live Stream with {creator_name} | {topic} | Series: {series_name}."
 ATTENDEE_DESCRIPTION_FOR_WEBINARS = "Hi, {creator_name} will go live at: \n\n " \
                                     "Date: {date} \n" \
                                     "Time: {time}. \n\n" \
+                                    "Will be talking about: {topic}.\n\n"\
+                                    "Where: Crater.Club \n\n" \
+                                    "Link to the stream: {stream_link} \n\n" \
+                                    "You can also view it on the mobile app {app_link}"
+ATTENDEE_DESCRIPTION_FOR_SERIES = "Hi, {creator_name} will go live at: \n\n " \
+                                    "Date: {date} \n" \
+                                    "Time: {time}. \n\n" \
+                                    "Series: {series_name}\n" \
                                     "Will be talking about: {topic}.\n\n"\
                                     "Where: Crater.Club \n\n" \
                                     "Link to the stream: {stream_link} \n\n" \

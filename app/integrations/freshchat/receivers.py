@@ -281,3 +281,45 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
             {"data": data_4}
         ]
     )
+
+
+@receiver(conversation_signals.attendee_added_to_series)
+def send_whatsapp_for_series_rsvp_to_attendee(sender, series, user, *args, **kwargs):
+    """Send whatsapp to attendee for RSVPing to the series.
+
+    Args:
+        sender(Series): Class object for series.
+        series(Series): Series to which attendee has RSVPed for.
+        user(User): User who RSVPed to the series.
+
+    """
+
+    attendee_name = user.get_display_first_name()
+    if not attendee_name:
+        attendee_name = constants.PLACEHOLDER_NAME_FOR_WHATSAPP
+
+    host = series.host
+    if not host:
+        return
+
+    groups = series.groups.order_by("closed", "is_live", "start")
+    if not groups:
+        return
+
+    upcoming_stream = groups[0]
+    host_name = host.display_name
+    display_start = upcoming_stream.get_display_start()
+    topic_name = upcoming_stream.topic.name
+    series_topic_name = series.topic.name
+    data_4 = "{} | Series: {}".format(topic_name, series_topic_name)
+
+    return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
+        user=user,
+        template_name=constants.WEBINAR_ATTENDEE_RSVP_CONFIRMATION_TEMPLATE,
+        template_data=[
+            {"data": attendee_name},
+            {"data": host_name},
+            {"data": display_start},
+            {"data": data_4}
+        ]
+    )
