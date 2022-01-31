@@ -302,11 +302,16 @@ def send_whatsapp_for_series_rsvp_to_attendee(sender, series, user, *args, **kwa
     if not host:
         return
 
+    groups = series.groups.order_by("closed", "is_live", "start")
+    if not groups:
+        return
+
+    upcoming_stream = groups[0]
     host_name = host.display_name
-    display_start = series.get_display_start()
-    topic_name = series.topic.name
-    series_link = f"https://crater.club/series/{series.id}"
-    stream_message = f"For more info on this series, visit: {series_link}"
+    display_start = upcoming_stream.get_display_start()
+    topic_name = upcoming_stream.topic.name
+    stream_link = f"https://crater.club/livestream/{upcoming_stream.id}"
+    stream_message = f"The stream will go live here: {stream_link}."
     data_4 = "{}. {}".format(topic_name, stream_message)
 
     return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
