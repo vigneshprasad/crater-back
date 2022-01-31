@@ -1,5 +1,6 @@
 import datetime
 
+from django.db.models import Prefetch
 from rest_framework import mixins
 from rest_framework import status
 from rest_framework import viewsets
@@ -182,6 +183,11 @@ class SeriesPublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.SeriesSerializer
-    queryset = models.Series.objects.all()
+    queryset = models.Series.objects.prefetch_related(
+        Prefetch(
+            "groups",
+            models.Group.objects.order_by("closed", "is_live", "start")
+        )
+    )
     permission_classes = [user_permissions.AllowAny]
     pagination_class = paginators.WebinarPagination
