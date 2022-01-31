@@ -310,9 +310,8 @@ def send_whatsapp_for_series_rsvp_to_attendee(sender, series, user, *args, **kwa
     host_name = host.display_name
     display_start = upcoming_stream.get_display_start()
     topic_name = upcoming_stream.topic.name
-    stream_link = f"https://crater.club/livestream/{upcoming_stream.id}"
-    stream_message = f"The stream will go live here: {stream_link}."
-    data_4 = "{}. {}".format(topic_name, stream_message)
+    series_topic_name = series.topic.name
+    data_4 = "{} | Series: {}".format(topic_name, series_topic_name)
 
     return freshchat_service.freshchat_whatsapp_service.send_outbound_message(
         user=user,
