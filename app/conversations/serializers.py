@@ -327,6 +327,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
     # rtmp_detail = GroupRTMPSerializer(source="rtmp", read_only=True)
     rtmp_link = serializers.CharField(required=False, write_only=True)
+    series = serializers.SerializerMethodField(read_only=True, allow_null=True)
 
     class Meta:
         model = models.Group
@@ -358,6 +359,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "speakers_detail_list",
             # "rtmp_detail",
             "rtmp_link",
+            "series",
         )
 
         extra_kwargs = {
@@ -408,6 +410,13 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             return False
 
         return True
+
+    @staticmethod
+    def get_series(group):
+        series = group.series_groups.first()
+        if not series:
+            return None
+        return series.id
 
     def create(self, validated_data):
         request = self.context.get("request")
