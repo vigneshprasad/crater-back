@@ -596,7 +596,12 @@ def get_series_groups_not_rsvped_by_user(series, user):
         user(User): User who has requested to join the series.
 
     """
-    groups = series.groups.exclude(speakers=user)
+    now = datetime.datetime.now()
+    groups = series.groups.filter(
+        is_live=False,
+        closed=False,
+        start__gte=now
+    ).exclude(speakers=user)
 
     # Filter groups which are RSVPed by user
     groups_rsvped_to = groups.filter(requests__requester=user)
