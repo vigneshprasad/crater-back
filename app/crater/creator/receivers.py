@@ -52,6 +52,9 @@ def update_follower_count(sender, follower, *args, **kwargs):
     # Set show_club_members to true if follower count hits 50
     if creator.follower_count >= 50 and not creator.show_club_members:
         creator.show_club_members = True
+        # Marking certified True for creator's it's not marked
+        # on creation.
+        creator.is_certified = True
 
     creator.save()
 

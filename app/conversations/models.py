@@ -1,6 +1,7 @@
 import boto3
 import datetime
 import pytz
+from celery.task import task
 
 from django.db import models
 from django.core import exceptions
@@ -589,7 +590,6 @@ class GroupRecording(base_model.BaseModel):
         "dyte.DyteMeetingRecording",
         blank=True
     )
-    order = models.PositiveIntegerField(null=True, blank=True)
 
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -608,13 +608,20 @@ class GroupRecording(base_model.BaseModel):
             if not last_recording:
                 raise exceptions.ValidationError("Dyte Recording must be present to publish.")
             # Create recording from dyte recording.
-            self.upload_dyte_recording_to_live_stream()
+            self.upload_dyte_recording_to_live_stream.delay(self.id)
 
         self.is_published = True
         self.published_at = datetime.datetime.now()
         self.save()
 
-    def upload_dyte_recording_to_live_stream(self):
+    @staticmethod
+    @task()
+    def upload_dyte_recording_to_live_stream(group_recording_id):
+        """Uploads dyte recording to media/live_stream/ for
+            a stream.
+
+        """
+        group_recording = GroupRecording.objects.get(id=group_recording_id)
         session = boto3.Session(
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
@@ -624,20 +631,20 @@ class GroupRecording(base_model.BaseModel):
         s3 = session.resource("s3")
         my_bucket = s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME)
 
-        dyte_rec = self.dyte_recordings.last()
-        file_name = dyte_rec.path.split("/")[3]
+        dyte_rec = group_recording.dyte_recordings.last()
+        file_name = dyte_rec.file_name
 
         source = {
             "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
-            "Key": dyte_rec.path[1:]
+            "Key": dyte_rec.storage_key_name
         }
-        destination = recording_storage_path(self, file_name)
+        destination = recording_storage_path(group_recording, file_name)
         # Copy dyte recording to the live_stream folder.
         my_bucket.copy(source, "media/" + destination)
 
         # Update the recording.
-        self.recording.name = destination
-        self.save()
+        group_recording.recording.name = destination
+        group_recording.save()
 
 
 class GroupRtmp(base_model.BaseModel):
@@ -668,12 +675,12 @@ class GroupMessage(base_model.BaseModel):
     message = models.TextField(null=True, blank=True)
     group = models.ForeignKey(
         Group,
-        related_name='group_questions',
+        related_name="group_questions",
         on_delete=models.CASCADE
     )
     sender = models.ForeignKey(
         get_user_model(),
-        related_name='sender_questions',
+        related_name="sender_questions",
         on_delete=models.CASCADE
     )
     display_name = models.CharField(
@@ -694,7 +701,7 @@ class GroupMessage(base_model.BaseModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.pk}-{self.sender}"
+        return f"{self.pk}-{self.sender.__str__()}"
 
     @property
     def get_message_data(self):

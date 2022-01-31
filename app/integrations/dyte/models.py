@@ -157,6 +157,18 @@ class DyteMeetingRecording(base_model.BaseModel):
         )
 
     @property
+    def file_name(self):
+        if not self.path:
+            return None
+        return self.path.split("/")[3]
+
+    @property
+    def storage_key_name(self):
+        if not self.path:
+            return None
+        return self.path[1:]
+
+    @property
     def object_url(self):
         url = settings.AWS_DEFAULT_OBJECT_URL + self.path
         return format_html("<a target='_blank' href='{url}'>{url}</a>", url=url)

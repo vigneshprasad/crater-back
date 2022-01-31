@@ -149,6 +149,9 @@ def get_or_create_creator(user):
         user(User): User model instance
 
     """
-    creator, _ = models.Creator.objects.get_or_create(user=user)
+    creator, _ = models.Creator.objects.get_or_create(
+        user=user,
+        is_certified=True
+    )
 
     return creator

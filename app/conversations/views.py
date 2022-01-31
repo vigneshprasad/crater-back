@@ -618,7 +618,7 @@ class GroupRecodingViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.GroupRecordingSerializer
-    queryset = models.GroupRecording.objects.filter(is_published=True)
+    queryset = models.GroupRecording.objects.filter(is_published=True).order_by("-group__start")
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 

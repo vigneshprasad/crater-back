@@ -52,7 +52,7 @@ class GroupWebinarPublicViewSet(
         published_groups_with_recording = groups_with_recordings.filter(
             recording__recording__isnull=False,
             recording__is_published=True
-        ).order_by("-recording__order")
+        ).order_by("-group__start")
 
         return published_groups_with_recording
 
@@ -61,7 +61,7 @@ class GroupWebinarPublicViewSet(
 
         Note:
             Only featured webinars in the future will
-                show up. Also if a featured webinar is
+                show up. If a featured webinar is
                 live don't show in this list.
 
         """
