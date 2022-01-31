@@ -60,7 +60,7 @@ def run(dry_run=True):
             )
 
             # Add to group attendees.
-            group.attendees.add(request.user)
+            group.attendees.add(user)
 
             # Add attendee to creator followers.
             receivers.add_attendee_to_creator_followers(

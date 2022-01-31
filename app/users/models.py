@@ -57,6 +57,7 @@ class User(AbstractUser):
         "tags.Objective",
         verbose_name=_("Objectives")
     )
+    # TODO(Nishant): Remove this.
     intent = models.CharField(
         verbose_name=_("Intent"),
         max_length=100,
@@ -65,12 +66,14 @@ class User(AbstractUser):
         choices=constants.INTENT_CHOICES,
         default=constants.INTENT_NETWORK
     )
+    # TODO(Nishant): Remove this.
     reason = models.CharField(
         max_length=400,
         verbose_name=_("Reason"),
         null=True,
         blank=True
     )
+    # TODO(Nishant): If not being used we can remove this.
     source = models.CharField(
         max_length=400,
         verbose_name=_("Source"),
@@ -124,6 +127,7 @@ class User(AbstractUser):
             "Banned/Unbanned User."
         ),
     )
+    # TODO(Nishant): Remove this.
     is_approved = models.BooleanField(
         _("Approved"),
         default=False,
@@ -131,6 +135,7 @@ class User(AbstractUser):
             "User Approval."
         ),
     )
+    # TODO(Nishant): Remove this.
     is_service_approved = models.BooleanField(
         _("Service Approved"),
         default=False,
@@ -138,16 +143,19 @@ class User(AbstractUser):
             "User Service Approval."
         ),
     )
+    # TODO(Nishant): Remove this.
     rating = models.FloatField(
         verbose_name=_("Rating"),
         null=True,
         blank=True
     )
+    # TODO(Nishant): Remove this.
     price_start = models.PositiveIntegerField(
         null=True,
         blank=True,
         verbose_name=_("Price start")
     )
+    # TODO(Nishant): Remove this.
     pan_card = models.ImageField(
         null=True,
         blank=True,

@@ -538,36 +538,6 @@ def create_group_rtmp(group, rtmp_link):
     return group_rtmp
 
 
-def add_previous_attendees_to_groups(groups):
-    """Adds host's previous attendees to group.
-
-    Args:
-        groups(queryset): Groups for which attendees are
-            to be updated.
-
-    """
-    for group in groups:
-        prev_groups = models.Group.objects.filter(
-            host=group.host,
-            start__lt=group.start
-        )
-        if not prev_groups:
-            continue
-
-        # Gather previous groups' attendees
-        prev_attendees_list = []
-        for prev_group in prev_groups:
-            prev_attendees_list += list(prev_group.attendees.all())
-
-        prev_attendees_list = list(set(prev_attendees_list))
-        attendees_to_add = list(
-            set(prev_attendees_list) - set(list(group.attendees.all()))
-        )
-
-        group.attendees.add(*attendees_to_add)
-        group.save()
-
-
 def create_group_request(user, group, participant_type):
     """Create a group request object
 

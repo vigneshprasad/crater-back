@@ -1,3 +1,4 @@
+import boto3
 import datetime
 import pytz
 
@@ -576,6 +577,7 @@ class GroupRecording(base_model.BaseModel):
     )
     recording = models.FileField(
         upload_to=recording_storage_path,
+        blank=True,
         null=True,
         validators=[validator_utils.SizeValidator(size=512)]
     )
@@ -600,10 +602,40 @@ class GroupRecording(base_model.BaseModel):
 
         """
         if not self.recording:
-            raise exceptions.ValidationError("Recording must be present to publish.")
+            # If there is not dyte recording also, throw and exception.
+            last_recording = self.dyte_recordings.last()
+            if not last_recording:
+                raise exceptions.ValidationError("Dyte Recording must be present to publish.")
+            # Create recording from dyte recording.
+            self.upload_dyte_recording_to_live_stream()
 
         self.is_published = True
         self.published_at = datetime.datetime.now()
+        self.save()
+
+    def upload_dyte_recording_to_live_stream(self):
+        session = boto3.Session(
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+        )
+
+        # Then use the session to get the resource
+        s3 = session.resource("s3")
+        my_bucket = s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME)
+
+        dyte_rec = self.dyte_recordings.last()
+        file_name = dyte_rec.path.split("/")[3]
+
+        source = {
+            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+            "Key": dyte_rec.path[1:]
+        }
+        destination = recording_storage_path(self, file_name)
+        # Copy dyte recording to the live_stream folder.
+        my_bucket.copy(source, "media/" + destination)
+
+        # Update the recording.
+        self.recording.name = destination
         self.save()
 
 
