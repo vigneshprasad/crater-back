@@ -54,7 +54,7 @@ def update_follower_count(sender, follower, *args, **kwargs):
         creator.show_club_members = True
         # Marking certified True for creator's it's not marked
         # on creation.
-        creator.is_certified = True
+        creator.certified = True
 
     creator.save()
 

@@ -151,7 +151,7 @@ def get_or_create_creator(user):
     """
     creator, _ = models.Creator.objects.get_or_create(
         user=user,
-        is_certified=True
+        certified=True
     )
 
     return creator

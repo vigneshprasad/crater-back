@@ -14,7 +14,7 @@ def run(dry_run=True):
         if not dry_run:
             # Will creator followers for creators and add the user to
             # community of the creator.
-            host = request.host
+            host = request.group.host
             if not host:
                 continue
 
