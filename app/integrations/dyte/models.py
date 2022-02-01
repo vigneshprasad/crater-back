@@ -2,7 +2,6 @@ import datetime
 
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
 from django.utils.html import format_html
 
 from base import models as base_model

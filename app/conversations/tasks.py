@@ -428,8 +428,12 @@ def add_previous_attendees_to_groups(group_ids):
 
 @task()
 def publish_group_recordings(group_recording_ids):
-    """Uploads dyte recording to media/live_stream/ for
-        a streams.
+    """Uploads dyte recording to media/live_stream_recordings/ for
+        a streams. Marks the group recording as published.
+
+    Note:
+        If a group recording is already published, this doesn't change
+            the state.
 
     """
     group_recordings = models.GroupRecording.objects.filter(id__in=group_recording_ids)

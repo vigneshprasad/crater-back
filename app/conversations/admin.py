@@ -249,7 +249,8 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         return ", ".join([dyte_recording.status for dyte_recording in obj.dyte_recordings.all()])
 
     def publish_group_recordings(self, request, queryset):
-        """Adds previous webinar attendees to the provided webinar.
+        """Marks group recordings as published and uploads
+            recordings to live_stream_recording s3 bucket.
 
         Args:
             request(Request): Request build by admin.
