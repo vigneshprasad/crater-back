@@ -1,7 +1,6 @@
 import logging
 import json
 import requests
-from django.contrib.auth import get_user_model
 
 from integrations.dyte import constants
 from integrations.dyte import models
