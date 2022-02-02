@@ -190,7 +190,7 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
         "live_status",
         "created_at"
     )
-    search_fields = ("user",)
+    search_fields = ("user__name", "user__email", "user__username")
     list_filter = ("group",)
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
