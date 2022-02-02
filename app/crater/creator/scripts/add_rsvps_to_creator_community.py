@@ -1,7 +1,6 @@
 from conversations import models as conversation_models
 from conversations import constants as conversation_constants
 from crater.creator import private
-from crater.creator import signals
 
 
 def run(dry_run=True):
@@ -11,18 +10,25 @@ def run(dry_run=True):
     )
 
     for request in all_requests:
+
+        print("----------")
+        user = request.requester
+        host = request.group.host
+        if not host:
+            continue
+
+        creator = private.get_or_create_creator(host)
+        follower = private.get_follower_for_user_and_creator_id(user, creator.id)
+        if follower:
+            print("Follower is already present for {} and {}".format(creator.user.__str__(), user.__str__()))
+            continue
+
+        print("User: ", user)
+        print("Host: ", host)
+        print("Creator ID: ", creator.id)
+
         if not dry_run:
-            # Will creator followers for creators and add the user to
-            # community of the creator.
-            host = request.group.host
-            if not host:
-                continue
+            print("Adding follower for {} and {}".format(creator.user.__str__(), user.__str__()))
+            private.create_follower_for_creator(user, creator)
 
-            creator = private.get_or_create_creator(host)
-            follower = private.create_follower_for_creator(request.requester, creator)
-
-            # Send signal so user get added to community and all.
-            signals.creator_followed.send(
-                sender=follower.__class__,
-                follower=follower
-            )
+        print("----------")

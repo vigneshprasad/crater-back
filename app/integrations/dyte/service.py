@@ -1,6 +1,7 @@
 import logging
 import json
 import requests
+from django.contrib.auth import get_user_model
 
 from integrations.dyte import constants
 from integrations.dyte import models
@@ -15,7 +16,7 @@ class DyteService:
         "create_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meeting",
         "get_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{dyte_meeting_id}",
         "get_all_meetings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings",
-        # Participant addition enpoint.
+        # Participant addition endpoint.
         "add_participant": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/participant",
         # Webhook endpoints.
         "create_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhook",
@@ -28,6 +29,8 @@ class DyteService:
         "stop_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/rooms/{room_name}/recordings/{recording_id}",
         "get_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings/{recording_id}",
         "get_all_recordings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings",
+
+        "get_stats_for_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/analytics",
     }
 
     def __init__(self, org_id, app_id):
@@ -621,6 +624,92 @@ class DyteService:
             recording_data = response_json["data"]["recordings"]
 
         return recording_data
+
+    def get_stats_for_meeting(self, webinar):
+        """Get stats saved on Dyte's end for a webinar.
+
+        Args:
+            webinar(Group): Group object we are getting the data for.
+
+        Sample data:
+            {
+              "success": true,
+              "analytics": [
+                {
+                  "clientSpecificId": "6b74e36c-ba2a-4bb9-b961-40b1adfcbc11",
+                  "events": [
+                        {
+                          "event": "PEER_JOINING",
+                          "time": "2022-01-31T14:43:34.726Z",
+                          "details": {}
+                        }
+                    ],
+                    "totalMinutes": 89.38738333333333
+                },
+                {
+                  "clientSpecificId": "cff364bf-d0fa-4216-8a60-673366477688",
+                   "events": [
+                        {
+                            "event": "PEER_JOINING",
+                            "time": "2022-01-31T14:43:44.925Z",
+                            "details": {}
+                        }
+                    ],
+                    "totalMinutes": 81.43025
+                }
+              ]
+            }
+
+        """
+        dyte_meeting = webinar.dyte_webinar.first()
+        if not dyte_meeting and dyte_meeting.dyte_meeting_id:
+            return False
+
+        url = self.DYTE_API_ENDPOINTS["get_stats_for_meeting"].format(
+            org_id=self.org_id,
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
+
+        response = requests.request(
+            "GET",
+            url,
+            headers=self._get_authorization_headers()
+        )
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            logging.error("Dyte get recordings failed.")
+            return None
+
+        stats = []
+        if response_json.get("success"):
+            stats = response_json.get("analytics")
+
+        # Create a data set with the clientSpecificId and totalMinutes.
+        data = []
+        for stat in stats:
+            user_pk = stat["clientSpecificId"]
+            data.append({
+                "clientSpecificId": user_pk,
+                "totalMinutes": stat["totalMinutes"] if stat["totalMinutes"] < 300 else 0
+            })
+
+        return data
+
+    def get_stats_for_meetings(self, webinars):
+        """Get combined stats for multiple meetings.
+
+        Args:
+            webinars(Queryset/list): Queryset of list of groups.
+
+        """
+        data = []
+        for webinar in webinars:
+            stats = self.get_stats_for_meeting(webinar)
+            data += stats
+
+        return data
 
 
 dyte_service = DyteService(
