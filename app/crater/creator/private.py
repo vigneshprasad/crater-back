@@ -164,10 +164,10 @@ def get_or_create_creator(user):
 
     """
     creator, _ = models.Creator.objects.get_or_create(
-        user=user,
-        defaults={
-            "certified": True
-        }
+        user=user
     )
+    if not creator.certified:
+        creator.certified = True
+        creator.save()
 
     return creator
