@@ -100,3 +100,7 @@ class FollowerAdmin(admin.ModelAdmin):
         "user__name"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)

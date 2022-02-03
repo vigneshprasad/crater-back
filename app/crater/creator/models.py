@@ -159,6 +159,10 @@ class Follower(base_models.BaseModel):
     def __str__(self):
         return f"{self.user.__str__()}"
 
+    def delete(self, soft=True):
+        # Hard deleting Follower obejcts.
+        super(Follower, self).delete(soft=False)
+
 
 class Coin(base_models.BaseModel):
     """Coin of the creator."""
