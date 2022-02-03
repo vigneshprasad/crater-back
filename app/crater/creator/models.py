@@ -153,8 +153,8 @@ class Follower(base_models.BaseModel):
     # creator goes live.
     notify = models.BooleanField(default=False)
 
-    # class Meta:
-    #     unique_together = ["creator", "user"]
+    class Meta:
+        unique_together = ["creator", "user"]
 
     def __str__(self):
         return f"{self.user.__str__()}"
