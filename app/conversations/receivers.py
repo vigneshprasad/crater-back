@@ -1,11 +1,11 @@
 from django.db.models.signals import m2m_changed, post_save
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
+from django.utils import timezone
 
 from conversations import constants
 from conversations import models
 from conversations import signals
-from conversations import services
 from integrations.dyte import public as dyte_public
 from integrations.dyte import signals as dyte_signals
 from matching import private as matching_private
@@ -151,23 +151,6 @@ def create_topic_for_article(sender, article, *args, **kwargs):
     )
 
     return topic
-
-
-@receiver(m2m_changed, sender=models.Group.attendees.through)
-def add_attendees_to_dyte_webinar(sender, instance, *args, **kwargs):
-    """Update group is_full as a user is removed or added to the group."""
-    if kwargs.get("action") not in ["post_add"]:
-        return False
-
-    if not instance.type == constants.GROUP_TYPE_WEBINAR_ENUM:
-        return False
-
-    attendees = instance.attendees.all()
-    signals.attendees_added_to_group.send(
-        sender=instance.__class__,
-        group=instance,
-        users=attendees
-    )
 
 
 @receiver(dyte_signals.new_recording_started)
