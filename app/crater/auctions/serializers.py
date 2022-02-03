@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from crater.auctions import models
 from crater.creator import serializers as creator_serializers
+from base import serializers as base_serializers
 from users import serializers as user_serializers
 
 
@@ -15,6 +16,11 @@ class AuctionSerializer(serializers.ModelSerializer):
 
 class BidSerializer(serializers.ModelSerializer):
     coin_detail = creator_serializers.CoinSerializer(source="auction.coin", read_only=True)
+    status_detail = base_serializers.DisplayChoiceField(
+        choices=models.Bid.BID_STATUS_CHOICES,
+        read_only=True, source="status"
+    )
+    bidder_profile_detail = user_serializers.ProfileSerializer(source="bidder.profile", read_only=True)
 
     class Meta:
         model = models.Bid
@@ -28,7 +34,10 @@ class BidSerializer(serializers.ModelSerializer):
             "is_processed",
             "payment",
             "coin_detail",
-            "amount"
+            "amount",
+            "created_at",
+            "status_detail",
+            "bidder_profile_detail"
         )
 
     def to_internal_value(self, data):
@@ -53,4 +62,9 @@ class CoinPriceLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.CoinPriceLog
-        fields = "__all__"
+        fields = (
+            "id",
+            "coin",
+            "created_at",
+            "price",
+        )

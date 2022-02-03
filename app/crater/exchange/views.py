@@ -26,3 +26,4 @@ class UserCoinHoldingViewSet(
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.UserCoinHoldingSerializer
     queryset = models.UserCoinHolding.objects.all()
+    filterset_fields = ["user", "coin"]

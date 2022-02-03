@@ -6,4 +6,4 @@ class ExchangeConfig(AppConfig):
     label = "crater_exchange"
 
     def ready(self):
-        pass
+        import crater.exchange.receivers

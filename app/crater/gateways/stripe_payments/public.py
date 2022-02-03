@@ -90,3 +90,4 @@ def handle_charge_captured(data: dict):
         sender=bid.__class__,
         bid=bid
     )
+

@@ -8,10 +8,9 @@ from crater.exchange import constants
 class Transaction(base_models.BaseModel):
 
     TRANSACTION_TYPES = (
-        (constants.TRANSACTION_TYPE_CRATER_TO_CREATOR_ENUM, constants.TRANSACTION_TYPE_CRATER_TO_CREATOR),
-        (constants.TRANSACTION_TYPE_CREATOR_TO_USER_ENUM, constants.TRANSACTION_TYPE_CREATOR_TO_USER),
-        (constants.TRANSACTION_TYPE_USER_TO_USER_ENUM, constants.TRANSACTION_TYPE_USER_TO_USER),
-        (constants.TRANSACTION_TYPE_USER_TO_CREATOR_ENUM, constants.TRANSACTION_TYPE_USER_TO_CREATOR)
+        (constants.TRANSACTION_TYPE_BID_ENUM, constants.TRANSACTION_TYPE_BID),
+        (constants.TRANSACTION_TYPE_REDEMPTION_ENUM, constants.TRANSACTION_TYPE_REDEMPTION),
+        (constants.TRANSACTION_TYPE_AUCTION_ENUM, constants.TRANSACTION_TYPE_AUCTION),
     )
 
     # Creator coin/token that is being bought or sold.
@@ -33,22 +32,24 @@ class Transaction(base_models.BaseModel):
         related_name="sell_transactions"
     )
 
-    # What price the coin was bought at. This denotes
-    # total price of the coin price * quantity.
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2
+    payment = models.ForeignKey(
+        "crater_payments.Payment",
+        related_name="transactions",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
 
     # What type of transaction is this, there are multiple transactions
     # that can happen in the system.
 
-    # 1. Crater (market) introducing coins in the market for a creator.
-    # 2. User buying/selling/bidding coins from a creator in exchange for rewards.
-    # 3. User buying/selling/bidding coins among themselves.
-    # 4. User selling coins back to creator/crater/market for rewards.
+    # 1. Bid: Refers Bid Transaction Log. (buyer: User, seller: Creator)
+    # 2. Redemption: Refers to Reward Redemption Log/ (buyer: Creator, seller: User)
+    # 3. Auction: Created when auction is created where coins are assigned to creator.
+    #             (buyer: Creator, seller: Crater/Hum Log)
 
     type = models.PositiveIntegerField(choices=TRANSACTION_TYPES)
+    object_id = models.PositiveIntegerField()
 
 
 class UserCoinHolding(base_models.BaseModel):
@@ -71,3 +72,7 @@ class UserCoinHolding(base_models.BaseModel):
     # Can be positive and negative based on whether
     # coin is being spent or bought.
     number_of_coins = models.IntegerField()
+
+    class Meta:
+        unique_together = ("user", "coin")
+

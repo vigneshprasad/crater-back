@@ -1,8 +1,11 @@
+import logging
 import stripe
+from celery.task import task
 
 from django.conf import settings
 
 from crater.gateways.stripe_payments import models
+from crater.gateways.stripe_payments import signals
 
 
 class StripePaymentService:
@@ -70,6 +73,22 @@ class StripePaymentService:
             intent_id=intent.id,
         )
         return stripe_intent_object
+
+    def capture_payment_intent(self, intent, amount=None):
+        try:
+            updated = self.stripe.PaymentIntent.capture(
+                intent.intent_id,
+                amount_to_capture=amount
+            )
+            intent.data = updated.to_dict()
+            intent.save()
+            return intent
+
+        except Exception as e:
+            logging.error(
+                str(e)
+            )
+            raise e
 
 
 stripe_service = StripePaymentService(api_key=settings.STRIPE_SECRET_KEY)
