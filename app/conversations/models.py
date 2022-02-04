@@ -1,5 +1,7 @@
+import boto3
 import datetime
 import pytz
+from celery.task import task
 
 from django.db import models
 from django.core import exceptions
@@ -13,7 +15,6 @@ from django.utils.translation import ugettext_lazy as _
 from base import models as base_model
 from conversations import constants
 from conversations import signals
-from model_utils.models import TimeStampedModel
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
 
@@ -577,6 +578,7 @@ class GroupRecording(base_model.BaseModel):
     )
     recording = models.FileField(
         upload_to=recording_storage_path,
+        blank=True,
         null=True,
         validators=[validator_utils.SizeValidator(size=512)]
     )
@@ -587,7 +589,6 @@ class GroupRecording(base_model.BaseModel):
         "dyte.DyteMeetingRecording",
         blank=True
     )
-    order = models.PositiveIntegerField(null=True, blank=True)
 
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -601,11 +602,48 @@ class GroupRecording(base_model.BaseModel):
 
         """
         if not self.recording:
-            raise exceptions.ValidationError("Recording must be present to publish.")
+            # If there is not dyte recording also, throw and exception.
+            last_recording = self.dyte_recordings.last()
+            if not last_recording:
+                raise exceptions.ValidationError("Dyte Recording must be present to publish.")
+            # Create recording from dyte recording.
+            self.upload_dyte_recording_to_live_stream.delay(self.id)
 
         self.is_published = True
         self.published_at = datetime.datetime.now()
         self.save()
+
+    @staticmethod
+    @task()
+    def upload_dyte_recording_to_live_stream(group_recording_id):
+        """Uploads dyte recording to media/live_stream/ for
+            a stream.
+
+        """
+        group_recording = GroupRecording.objects.get(id=group_recording_id)
+        session = boto3.Session(
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+        )
+
+        # Then use the session to get the resource
+        s3 = session.resource("s3")
+        my_bucket = s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME)
+
+        dyte_rec = group_recording.dyte_recordings.last()
+        file_name = dyte_rec.file_name
+
+        source = {
+            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+            "Key": dyte_rec.storage_key_name
+        }
+        destination = recording_storage_path(group_recording, file_name)
+        # Copy dyte recording to the live_stream folder.
+        my_bucket.copy(source, "media/" + destination)
+
+        # Update the recording.
+        group_recording.recording.name = destination
+        group_recording.save()
 
 
 class GroupRtmp(base_model.BaseModel):
@@ -636,12 +674,12 @@ class GroupMessage(base_model.BaseModel):
     message = models.TextField(null=True, blank=True)
     group = models.ForeignKey(
         Group,
-        related_name='group_questions',
+        related_name="group_questions",
         on_delete=models.CASCADE
     )
     sender = models.ForeignKey(
         get_user_model(),
-        related_name='sender_questions',
+        related_name="sender_questions",
         on_delete=models.CASCADE
     )
     display_name = models.CharField(
@@ -662,7 +700,7 @@ class GroupMessage(base_model.BaseModel):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.pk}-{self.sender}"
+        return f"{self.pk}-{self.sender.__str__()}"
 
     @property
     def get_message_data(self):
@@ -688,3 +726,67 @@ class ChatReaction(base_model.BaseModel):
 
     def __str__(self):
         return f"{self.pk}-{self.name}"
+
+
+class Series(base_model.BaseModel):
+    """A series which has set or sequence of related groups"""
+    topic = models.ForeignKey(
+        Topic,
+        on_delete=models.CASCADE,
+        related_name="series_topic"
+    )
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name=_("Groups"),
+        related_name="series_groups"
+    )
+    categories = models.ManyToManyField(
+        Category,
+        verbose_name=_("Categories"),
+        blank=True
+    )
+    host = models.ForeignKey(
+        get_user_model(),
+        related_name="series_hosted",
+        on_delete=models.CASCADE
+    )
+    start = models.DateTimeField()
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "Series"
+
+    def __str__(self):
+        return f"{self.pk} - {self.topic} - {self.host}"
+
+    @property
+    def local_start(self):
+        """Return start in the local timezone."""
+        return self.start.astimezone(pytz.timezone(settings.TIME_ZONE))
+
+    def get_display_start_time(self):
+        """Give a displayable start time for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.local_start.strftime("%I:%M %p")
+
+    def get_display_day(self):
+        """Give a displayable date for a Group.
+
+        Note:
+            This is generally used for communication.
+
+        """
+        return self.start.strftime("%A, %d %B")
+
+    def get_display_start(self):
+        """This is the display start date time for a Group.
+            ex. "Friday, 31 July - 08:00 PM"
+
+        """
+        display_time = self.get_display_start_time()
+        display_date = self.get_display_day()
+        return "{} @ {}".format(display_date, display_time)

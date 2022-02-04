@@ -267,6 +267,8 @@ def create_calendar_event_for_webinar_attendee(user, group):
         group(Group): Group the user joined into.
 
     """
+    series = group.series_groups.first()
+
     host = group.host
     if not host:
         return False
@@ -276,19 +278,36 @@ def create_calendar_event_for_webinar_attendee(user, group):
         group_id=group.id
     )
 
-    summary = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
-        creator_name=host.display_name,
-        topic=group.topic.name
-    )
-    description = constants.ATTENDEE_DESCRIPTION_FOR_WEBINARS.format(
-        creator_name=host.display_name,
-        date=group.get_display_day(),
-        time=group.get_display_start_time(),
-        topic=group.topic.name,
-        stream_link=stream_link,
-        # TODO(Nishant): Get app link from Ram/Vivan and add it here.
-        app_link=""
-    )
+    if not series:
+        summary = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
+            creator_name=host.display_name,
+            topic=group.topic.name
+        )
+        description = constants.ATTENDEE_DESCRIPTION_FOR_WEBINARS.format(
+            creator_name=host.display_name,
+            date=group.get_display_day(),
+            time=group.get_display_start_time(),
+            topic=group.topic.name,
+            stream_link=stream_link,
+            # TODO(Nishant): Get app link from Ram/Vivan and add it here.
+            app_link=""
+        )
+    else:
+        summary = constants.ATTENDEE_SUMMARY_FOR_SERIES.format(
+            creator_name=host.display_name,
+            topic=group.topic.name,
+            series_name=series.topic.name
+        )
+        description = constants.ATTENDEE_DESCRIPTION_FOR_SERIES.format(
+            creator_name=host.display_name,
+            date=group.get_display_day(),
+            time=group.get_display_start_time(),
+            series_name=series.topic.name,
+            topic=group.topic.name,
+            stream_link=stream_link,
+            # TODO(Nishant): Get app link from Ram/Vivan and add it here.
+            app_link=""
+        )
 
     event_id, meeting_link = calendar_services.google_calendar_service.create_event(
         start_datetime=group.local_start,

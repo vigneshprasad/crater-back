@@ -48,27 +48,40 @@ def update_follower_count(sender, follower, *args, **kwargs):
     """
     creator = follower.creator
     creator.follower_count = private.get_follower_count_for_creator(creator)
+    creator.subscriber_count = private.get_subscriber_count_for_creator(creator)
 
     # Set show_club_members to true if follower count hits 50
     if creator.follower_count >= 50 and not creator.show_club_members:
         creator.show_club_members = True
+        # Marking certified True for creator's it's not marked
+        # on creation.
+        creator.certified = True
 
     creator.save()
 
     return creator
 
 
+@receiver(conversation_signals.attendee_added_to_series)
 @receiver(conversation_signals.attendee_added_to_group)
-def add_attendee_to_creator_followers(sender, group, user, *args, **kwargs):
-    """Creates google calendar event when an attendee joins a live steam.
+def add_attendee_to_creator_followers(sender, user, group=None, series=None, *args, **kwargs):
+    """Add user as a follower to the creator.
 
     Args:
-        sender(Group Class): Group class representation for the group joined.
+        sender(Group/Series): Group or Series class representation.
         group(Group): Group the user joined into.
         user(User): User that joined the group.
+        series(Series): Series the user joined to.
 
     """
-    host = group.host
+
+    if group:
+        host = group.host
+    elif series:
+        host = series.host
+    else:
+        return False
+
     if not host:
         return False
 

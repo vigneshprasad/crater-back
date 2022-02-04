@@ -316,3 +316,23 @@ def rsvp_for_stream(sender, group, user, *args, **kwargs):
         event=event,
         analytics_track_properties=analytics_track_properties
     )
+
+
+@receiver(conversation_signals.attendee_added_to_series)
+def rsvp_for_series(sender, series, user, *args, **kwargs):
+    """Sending event when a user RSVPs for a series."""
+
+    event = constants.RSVP_FOR_SERIES
+    analytics_track_properties = {
+        "name": user.display_name,
+        "email": user.email or None,
+        "id": series.id,
+        "host": series.host.email if series.host else None,
+        "start_time": series.get_display_start()
+    }
+
+    analytics_track(
+        user=user,
+        event=event,
+        analytics_track_properties=analytics_track_properties
+    )

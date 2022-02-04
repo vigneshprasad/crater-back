@@ -142,6 +142,20 @@ def get_follower_count_for_creator(creator):
     ).count()
 
 
+def get_subscriber_count_for_creator(creator):
+    """Returns count of subscribers a creator has.
+
+    Args:
+        creator(Creator): Creator on the platform.
+
+    """
+    return models.Follower.objects.filter(
+        creator=creator,
+        unfollowed=False,
+        notify=True
+    ).count()
+
+
 def get_or_create_creator(user):
     """Return a creator for the provided user
 
@@ -149,6 +163,11 @@ def get_or_create_creator(user):
         user(User): User model instance
 
     """
-    creator, _ = models.Creator.objects.get_or_create(user=user)
+    creator, _ = models.Creator.objects.get_or_create(
+        user=user
+    )
+    if not creator.certified:
+        creator.certified = True
+        creator.save()
 
     return creator

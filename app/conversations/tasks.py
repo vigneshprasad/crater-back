@@ -2,9 +2,11 @@ import datetime
 import json
 import logging
 
+import boto3
 from asgiref.sync import async_to_sync
 from celery.schedules import crontab
 from celery.task import periodic_task
+from celery.task import task
 from django.conf import settings
 from channels.layers import get_channel_layer
 
@@ -390,3 +392,86 @@ def cache_participant_count():
                 })
             }
         )
+
+
+@task()
+def add_previous_attendees_to_groups(group_ids):
+    """Adds host's previous attendees to group.
+
+    Args:
+        group_ids(list/queryset): Group ID's for which attendees are
+            to be updated.
+
+    """
+    groups = models.Group.objects.filter(id__in=group_ids)
+    for group in groups:
+        prev_groups = models.Group.objects.filter(
+            host=group.host,
+            start__lt=group.start
+        )
+        if not prev_groups:
+            continue
+
+        # Gather previous groups' attendees
+        prev_attendees_list = []
+        for prev_group in prev_groups:
+            prev_attendees_list += list(prev_group.attendees.all())
+
+        prev_attendees_list = list(set(prev_attendees_list))
+        attendees_to_add = list(
+            set(prev_attendees_list) - set(list(group.attendees.all()))
+        )
+
+        group.attendees.add(*attendees_to_add)
+        group.save()
+
+
+@task()
+def publish_group_recordings(group_recording_ids):
+    """Uploads dyte recording to media/live_stream_recordings/ for
+        a streams. Marks the group recording as published.
+
+    Note:
+        If a group recording is already published, this doesn't change
+            the state.
+
+    """
+    group_recordings = models.GroupRecording.objects.filter(id__in=group_recording_ids)
+    session = boto3.Session(
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+    )
+
+    # Then use the session to get the resource
+    s3 = session.resource("s3")
+    my_bucket = s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME)
+
+    for group_recording in group_recordings:
+        # If the recording is published continue.
+        if group_recording.is_published:
+            continue
+
+        dyte_rec = group_recording.dyte_recordings.last()
+        if not dyte_rec:
+            continue
+
+        file_name = dyte_rec.file_name
+
+        source = {
+            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+            "Key": dyte_rec.storage_key_name
+        }
+        destination = models.recording_storage_path(group_recording, file_name)
+
+        # Copy dyte recording to the live_stream folder.
+        try:
+            my_bucket.copy(source, "media/" + destination)
+        except Exception:
+            continue
+
+        # Update the recording.
+        group_recording.recording.name = destination
+        # Update published.
+        group_recording.is_published = True
+        group_recording.published_at = datetime.datetime.now()
+        group_recording.save()

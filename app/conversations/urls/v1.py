@@ -18,6 +18,7 @@ router.register("conversations/webinars/all", views.AllGroupWebinarViewSet, base
 router.register("conversations/webinars", views.GroupWebinarViewSet, base_name="conversations_webinars")
 router.register("conversations/categories", views.CategoryViewSet, base_name="conversations_categories")
 router.register("conversations/chatreactions", views.ChatReactionViewSet, base_name="chat_reactions")
+router.register("conversations/series/requests", views.SeriesRequestViewSet, base_name="series_requests")
 
 
 # Public views for conversations.
@@ -27,6 +28,11 @@ public_router.register(
     "conversations/webinars",
     public_views.GroupWebinarPublicViewSet,
     base_name="conversations_webinars_public"
+)
+public_router.register(
+    "conversations/series",
+    public_views.SeriesPublicViewSet,
+    base_name="conversations_series_public"
 )
 
 urlpatterns = [

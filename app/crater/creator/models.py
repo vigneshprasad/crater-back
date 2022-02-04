@@ -153,8 +153,15 @@ class Follower(base_models.BaseModel):
     # creator goes live.
     notify = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ["creator", "user"]
+
     def __str__(self):
         return f"{self.user.__str__()}"
+
+    def delete(self, soft=True):
+        # Hard deleting Follower obejcts.
+        super(Follower, self).delete(soft=False)
 
 
 class Coin(base_models.BaseModel):

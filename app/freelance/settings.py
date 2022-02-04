@@ -123,6 +123,7 @@ INSTALLED_APPS = [
     "integrations.superpro",
     "integrations.agora",
     "integrations.dyte",
+    "integrations.retool",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
