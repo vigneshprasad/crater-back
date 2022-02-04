@@ -159,18 +159,17 @@ def all_data(start_date, end_date):
     print("RSVP/Online after 30 days (D30)", rsvp_after_30_days)
     print("\n")
 
-    # Calculate this.
+    print("DAUs (some action on platform)", dau)
+    print("WAUs (some action on platform)", wau)
+    print("MAUs (some action on platform)", mau)
+    print("\n")
+
     print("Number of streamers", total_streamers)
     print("Number of organic streamers", organic_creators)
     print("Stream after 24 hours", streams_after_24_hours)
     print("Stream after a week", streams_after_7_days)
     print("Stream after 14 days", streams_after_14_days)
     print("Stream after 30 days", streams_after_30_days)
-    print("\n")
-
-    print("DAUs (some action on platform)", dau)
-    print("WAUs (some action on platform)", wau)
-    print("MAUs (some action on platform)", mau)
     print("\n")
 
     print("Time spent by users", total_participant_minutes)

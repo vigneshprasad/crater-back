@@ -72,6 +72,9 @@ class Creator(base_models.BaseModel):
             self.slug = services.generate_unique_slug_for_creator(self)
         return super(Creator, self).save(force_insert, force_update, using, update_fields)
 
+    def delete(self, soft=True):
+        super(Creator, self).delete(soft=False)
+
 
 class Community(base_models.BaseModel):
     """Communities created by a creator.

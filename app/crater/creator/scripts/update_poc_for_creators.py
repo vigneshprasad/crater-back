@@ -21,7 +21,7 @@ def run(
         creator_number = row.get("Creator").strip()
         poc_email = row.get("POC Email").strip()
 
-        if not creator_number and poc_email:
+        if not (creator_number and poc_email):
             print("Data not present", creator_number, poc_email)
             continue
 
