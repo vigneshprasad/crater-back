@@ -49,7 +49,10 @@ class Transaction(base_models.BaseModel):
     #             (buyer: Creator, seller: Crater/Hum Log)
 
     type = models.PositiveIntegerField(choices=TRANSACTION_TYPES)
-    object_id = models.PositiveIntegerField()
+    object_id = models.PositiveIntegerField(
+        null=True,
+        blank=True
+    )
 
 
 class UserCoinHolding(base_models.BaseModel):
