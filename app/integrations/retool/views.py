@@ -6,11 +6,12 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import mixins, viewsets
+from rest_framework import viewsets
 
 from users import permissions
 from conversations import constants as conversations_constants
 from conversations import models as conversations_models
+from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
 
 
@@ -107,8 +108,20 @@ class RetoolDataViewSet(
 
         """
         duration = int(request.query_params.get("duration", 24))
-        start_date = DEFAULT_START_DATE
-        end_date = timezone.now()
+        start_date_str = request.query_params.get("start_date", "").strip()
+        end_date_str = request.query_params.get("end_date", "").strip()
+        poc_email = request.query_params.get("poc", "").strip()
+        # "2021-09-01T00:00:00.000+0530"
+
+        if not start_date_str:
+            start_date = DEFAULT_START_DATE
+        else:
+            start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+        if not end_date_str:
+            end_date = timezone.now()
+        else:
+            end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%f%z")
 
         number_of_streams_after_duration = []
 
@@ -116,9 +129,20 @@ class RetoolDataViewSet(
             start__gte=start_date,
             start__lte=end_date,
             type=conversations_constants.GROUP_TYPE_WEBINAR_ENUM
-        ).values_list("speakers", flat=True)
+        ).values_list("host", flat=True)
 
         for speaker in speakers:
+
+            # If POC email is present, only creators from that POC
+            # needs to included in the data.
+            if poc_email:
+                creator = creator_models.Creator.objects.filter(
+                    user_id=speaker,
+                    point_of_contact__email=poc_email
+                ).first()
+                if not creator:
+                    continue
+
             groups = conversations_models.Group.objects.filter(
                 speakers=speaker,
                 start__gte=start_date,
@@ -266,8 +290,19 @@ class RetoolDataViewSet(
 
         """
 
-        start_date = DEFAULT_START_DATE
-        end_date = timezone.now()
+        start_date_str = request.query_params.get("start_date", "").strip()
+        end_date_str = request.query_params.get("end_date", "").strip()
+        # "2021-09-01T00:00:00.000+0530"
+
+        if not start_date_str:
+            start_date = DEFAULT_START_DATE
+        else:
+            start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+        if not end_date_str:
+            end_date = timezone.now()
+        else:
+            end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%f%z")
 
         groups = conversations_models.Group.objects.filter(
             start__gte=start_date,
@@ -311,8 +346,19 @@ class RetoolDataViewSet(
 
         """
 
-        start_date = DEFAULT_START_DATE
-        end_date = timezone.now()
+        start_date_str = request.query_params.get("start_date", "").strip()
+        end_date_str = request.query_params.get("end_date", "").strip()
+        # "2021-09-01T00:00:00.000+0530"
+
+        if not start_date_str:
+            start_date = DEFAULT_START_DATE
+        else:
+            start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+        if not end_date_str:
+            end_date = timezone.now()
+        else:
+            end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%f%z")
 
         groups = conversations_models.Group.objects.filter(
             start__gte=start_date,
