@@ -9,7 +9,9 @@ class POCFilter(SimpleListFilter):
     parameter_name = "point_of_contact"
 
     def lookups(self, request, model_admin):
-        pocs = set([creator.point_of_contact for creator in model_admin.model.objects.all()])
+        pocs = set([creator.point_of_contact for creator in model_admin.model.objects.filter(
+            point_of_contact__isnull=False
+        )])
         return [(poc.pk, poc.email) for poc in pocs]
 
     def queryset(self, request, queryset):
