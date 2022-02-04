@@ -482,7 +482,7 @@ class GroupChatUserSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_first_name(user):
-        return user.name.split()[0]
+        return user.get_display_first_name()
 
 
 class GroupMessageSerializer(serializers.ModelSerializer):

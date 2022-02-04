@@ -1,6 +1,22 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 
 from crater.creator import models
+
+
+class POCFilter(SimpleListFilter):
+    title = "POC"
+    parameter_name = "point_of_contact"
+
+    def lookups(self, request, model_admin):
+        pocs = set([creator.point_of_contact for creator in model_admin.model.objects.filter(
+            point_of_contact__isnull=False
+        )])
+        return [(poc.pk, poc.email) for poc in pocs]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(point_of_contact_id=self.value())
 
 
 @admin.register(models.Creator)
@@ -19,19 +35,24 @@ class CreatorAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("user", "point_of_contact")
     list_editable = ("order", "certified", "is_active", "show_club_members")
-    list_filter = ("certified", "is_active")
+    list_filter = ("certified", "is_active", POCFilter)
     search_fields = (
         "user__name",
         "user__username",
         "slug",
         "point_of_contact__name",
-        "point_of_contact__username"
+        "point_of_contact__username",
+        "point_of_contact__email",
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         return queryset.order_by("-order")
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
 
 
 @admin.register(models.Coin)
