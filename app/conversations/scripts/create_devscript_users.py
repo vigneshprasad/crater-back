@@ -1,10 +1,13 @@
 import csv
 from urllib import request as urllib_request
 
+from django.contrib.auth.models import Group
+
 from conversations import constants
 from conversations import models
 from conversations import serializers
 from conversations import services
+from users import constants as user_constants
 from users import public as users_public
 from wn_analytics import models as analytics_models
 
@@ -47,6 +50,14 @@ def run(
                 pass
 
             user.save()
+
+            # Adding user to crater group.
+            crater_club_group, _ = Group.objects.get_or_create(
+                name=user_constants.CRATER_CLUB_GROUP
+            )
+
+            if crater_club_group not in user.groups.all():
+                user.groups.add(crater_club_group)
 
             profile = user.profile
             profile.opted_in_for_whatsapp = False
