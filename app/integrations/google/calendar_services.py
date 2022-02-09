@@ -150,12 +150,15 @@ class GoogleCalendarService:
                 }
             }
 
-        event = self.service.events().insert(
-            calendarId=self.calendar_id,
-            body=request_body,
-            sendUpdates=self.send_updates,
-            conferenceDataVersion=self.conference_data_version
-        ).execute()
+        try:
+            event = self.service.events().insert(
+                calendarId=self.calendar_id,
+                body=request_body,
+                sendUpdates=self.send_updates,
+                conferenceDataVersion=self.conference_data_version
+            ).execute()
+        except Exception as e:
+            return None, meeting_link
 
         hangout_link = meeting_link if meeting_link else event.get("hangoutLink", "")
         event_id = event.get("id", "")

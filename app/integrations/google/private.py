@@ -66,7 +66,7 @@ def delete_calendar_for_meeting(meeting):
 
 
 def update_or_create_calendar_event_for_conversation(group):
-    """Updates the google calendar event for a conversation.
+    """Updates the Google calendar event for a conversation.
 
     Args:
         group(Group): Group for which we have to update the event.
