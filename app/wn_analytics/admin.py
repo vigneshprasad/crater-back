@@ -28,6 +28,13 @@ class UserSourceAdmin(ModelAdmin):
         "user",
         "utm_source",
         "utm_campaign",
+        "utm_medium",
     )
-    search_fields = ("user__name", "user__username", "user__email", "utm_source", "utm_campaign")
+    list_filter = (
+        "utm_source", 
+        "utm_campaign",
+        "utm_medium",
+    )
+    raw_id_fields = ("user",)
+    search_fields = ("user__name", "user__username", "user__email", "utm_source", "utm_campaign", "utm_medium")
     readonly_fields = ["user"]

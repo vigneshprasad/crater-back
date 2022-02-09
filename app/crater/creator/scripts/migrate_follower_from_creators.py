@@ -6,7 +6,7 @@ from crater.creator import signals
 def run(from_creator, to_creator, dry_run=True):
 
     from_followers = models.Follower.all_objects.filter(
-        cretor=from_creator
+        creator=from_creator
     )
 
     for follower in from_followers:
