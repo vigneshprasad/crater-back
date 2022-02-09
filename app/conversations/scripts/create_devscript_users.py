@@ -73,7 +73,7 @@ def run(
 
             data = [
                 {
-                    "requester": user,
+                    "requester": user.pk,
                     "group": group.pk,
                     "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
                 }
