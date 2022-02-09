@@ -6,6 +6,7 @@ from conversations import models
 from conversations import serializers
 from conversations import services
 from users import public as users_public
+from wn_analytics import models as analytics_models
 
 
 def run(
@@ -16,7 +17,7 @@ def run(
     response = urllib_request.urlopen(file_url)
     lines = [line.decode("utf-8") for line in response.readlines()]
     reader = csv.DictReader(lines)
-
+    total_users = 0
     for row in reader:
 
         print("-----")
@@ -37,12 +38,26 @@ def run(
             print("{} for phone number: {}".format(create_or_update_str, phone_number))
             user.email = email
             user.name = name
+            # Add first name and last name.
+            try:
+                name_list = name.split()
+                user.first_name = name_list[0]
+                user.last_name = " ".join(name_list[1:])
+            except KeyError:
+                pass
+
             user.save()
 
             profile = user.profile
             profile.opted_in_for_whatsapp = False
             print("Removed from whatsapp list")
             profile.save()
+
+            if created:
+                analytics_models.UserSource.objects.create(
+                    user=user,
+                    utm_source="Dev Script"
+                )
 
             devscript_series = models.Series.objects.get(id=5)
             if devscript_series.host.pk == user.pk:
@@ -52,7 +67,7 @@ def run(
                 series=devscript_series,
                 user=user
             )
-
+            print("Group to RSVP:", groups_to_rsvp)
             if not groups_to_rsvp:
                 continue
 
@@ -68,7 +83,13 @@ def run(
             serializer = serializers.RequestSerializer(data=data, many=True)
             serializer.is_valid(raise_exception=True)
             series_requests = serializer.save()
+            print("Request for groups created: ", series_requests)
 
             services.add_attendee_to_series(
                 attendee=user, series=devscript_series, series_requests=series_requests
             )
+            print("Added user as attendees")
+
+        total_users += 1
+
+    return total_users
