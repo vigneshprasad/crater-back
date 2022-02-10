@@ -19,6 +19,7 @@ CONVERSATION_CREATED = "conversation_created"
 CONVERSATION_JOINED = "conversation_joined"
 
 RSVP_FOR_STREAM = "rsvp_for_stream"
+RSVP_FOR_SERIES = "rsvp_for_series"
 
 # Constants for device population.
 SEGMENT_IDENTIFY = "identify"

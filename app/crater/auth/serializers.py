@@ -11,6 +11,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="phone_number", required=False)
     utm_source = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     utm_campaign = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    utm_medium = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
 
@@ -20,6 +21,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             "otp",
             "utm_source",
             "utm_campaign",
+            "utm_medium",
             "used",
             "is_expired"
         )
@@ -60,6 +62,11 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         if self.instance and value:
             return value.strip()
 
+    def validate_utm_medium(self, value):
+
+        if self.instance and value:
+            return value.strip()
+
     def create(self, validated_data):
 
         phone_number = validated_data.get("phone_number")
@@ -78,7 +85,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         # Get utm parameters from the validated data.
         utm_source = validated_data.pop("utm_source") if validated_data.get("utm_source") else None
         utm_campaign = validated_data.pop("utm_campaign") if validated_data.get("utm_campaign") else None
-
+        utm_medium = validated_data.pop("utm_medium") if validated_data.get("utm_medium") else None
         instance = super().update(instance, validated_data)
 
         if (utm_source or utm_campaign) and validated_data.get("new_user"):
@@ -86,7 +93,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             analytics_models.UserSource.objects.create(
                 user=instance.user,
                 utm_source=utm_source,
-                utm_campaign=utm_campaign
+                utm_campaign=utm_campaign,
+                utm_medium=utm_medium
             )
 
         return instance

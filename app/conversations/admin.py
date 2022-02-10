@@ -5,7 +5,7 @@ from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
 
 from conversations import models
-from conversations import services
+from conversations import tasks
 
 
 @admin.register(models.SuggestedTopic)
@@ -80,7 +80,26 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
     def add_previous_webinar_attendees(self, request, queryset):
-        services.add_previous_attendees_to_groups(queryset)
+        """Adds previous webinar attendees to the provided webinar.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of webinars we want
+                to add previous attendees to.
+
+        """
+        # Delay the task for adding attendees.
+        group_ids = list(queryset.values_list("id", flat=True))
+        tasks.add_previous_attendees_to_groups.delay(group_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["added_previous_attendees"]}}]
+            )
+
         self.message_user(
             request,
             "Past attendees added to groups: {}".format(
@@ -171,7 +190,7 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
         "live_status",
         "created_at"
     )
-    search_fields = ("user",)
+    search_fields = ("user__name", "user__email", "user__username")
     list_filter = ("group",)
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
@@ -182,12 +201,12 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "id",
         "group",
         "recording",
-        "order",
         "status",
         "all_dyte_recordings",
         "is_published"
     )
-    actions = ("add_previous_webinar_attendees",)
+    list_editable = ("is_published", )
+    actions = ("publish_group_recordings", )
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
         "group__host__username",
@@ -218,18 +237,6 @@ class GroupRecordingAdmin(admin.ModelAdmin):
 
         return super(GroupRecordingAdmin, self).save_model(request, obj, form, change)
 
-    def add_previous_webinar_attendees(self, request, queryset):
-        services.add_previous_attendees_to_groups(queryset)
-        self.message_user(
-            request,
-            "Past attendees added to groups: {}".format(
-                ", ".join([str(group.id) for group in queryset])
-            ),
-            messages.SUCCESS
-        )
-
-    add_previous_webinar_attendees.short_description = "Add previous attendees"
-
     @staticmethod
     def all_dyte_recordings(obj):
         dyte_recordings = [
@@ -240,6 +247,38 @@ class GroupRecordingAdmin(admin.ModelAdmin):
     @staticmethod
     def status(obj):
         return ", ".join([dyte_recording.status for dyte_recording in obj.dyte_recordings.all()])
+
+    def publish_group_recordings(self, request, queryset):
+        """Marks group recordings as published and uploads
+            recordings to live_stream_recording s3 bucket.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of group recording we want
+                to publish.
+
+        """
+        # Delay the task for adding attendees.
+        group_recording_ids = list(queryset.values_list("id", flat=True))
+        tasks.publish_group_recordings.delay(group_recording_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["marked_publish_uploaded_live_stream_recording"]}}]
+            )
+
+        self.message_user(
+            request,
+            "Marked Group Recordings as Published. Uploaded to S3: {}".format(
+                ", ".join([str(group.id) for group in queryset])
+            ),
+            messages.SUCCESS
+        )
+
+    publish_group_recordings.short_description = "Publish Group Recordings"
 
     @staticmethod
     def get_rangefilter_group__start_title(request, field_path="group__start"):
@@ -257,13 +296,8 @@ class GroupRtmpAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "group",
-        "link",
-        # "linkedin",
-        # "facebook",
-        # "twitter",
-        # "instagram"
+        "link"
     )
-    # list_editable = ("linkedin", "facebook", "twitter", "instagram")
     search_fields = (
         "group__host__username",
         "group__host__name",
@@ -281,16 +315,18 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "id",
         "group",
         "sender",
+        "display_name",
         "get_message_data"
     )
-    raw_id_fields = ("sender", )
+    raw_id_fields = ("group", "sender", )
     search_fields = (
         "message",
-        "sender"
+        "sender__name",
+        "sender__email",
+        "sender__username"
     )
     list_filter = (
         "group",
-        "sender"
     )
     exclude = ("updated_at",)
 
@@ -303,3 +339,20 @@ class ChatReactionAdmin(admin.ModelAdmin):
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
+
+@admin.register(models.Series)
+class SeriesAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "topic",
+        "host",
+        "start",
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    search_fields = (
+        "host__name",
+        "topic__name",
+    )
+    list_filter = (
+        ("start", filter.DateRangeFilter),
+    )

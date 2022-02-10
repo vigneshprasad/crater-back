@@ -21,25 +21,27 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         if self.user.is_anonymous:
             await self.send_no_permissions()
 
-        # Get group ID and validate.
-        group_id = self.scope["url_route"]["kwargs"].get("group_id")
-        try:
-            await self.validate_group_id(group_id)
-        except models.Group.DoesNotExist:
-            await self.send_invalid_group_error()
+        else:
+            # Get group ID and validate.
+            group_id = self.scope["url_route"]["kwargs"].get("group_id")
+            try:
+                await self.validate_group_id(group_id)
+            except models.Group.DoesNotExist:
+                await self.send_invalid_group_error()
 
-        # Add channel name to the group.
-        await self.channel_layer.group_add(
-            f"crater_live_{self.group.id}",
-            self.channel_name
-        )
+            # Add channel name to the group.
+            await self.channel_layer.group_add(
+                f"crater_live_{self.group.id}",
+                self.channel_name
+            )
 
-        await self.get_group_messages()
+            await self.get_group_messages()
 
     async def disconnect(self, code):
         """Disconnect from the channel layer."""
+        group_id = self.scope["url_route"]["kwargs"].get("group_id")
         await self.channel_layer.group_discard(
-            f"crater_live_{self.group.id}",
+            f"crater_live_{group_id}",
             self.channel_name
         )
 

@@ -50,7 +50,6 @@ class GroupRecordingSerializer(serializers.ModelSerializer):
             "id",
             "group",
             "recording",
-            "order",
             "dyte_recordings",
             "is_published",
             "published_at",
@@ -327,6 +326,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     speakers_detail_list = GroupUserSerializer(source="speakers", read_only=True, many=True)
     # rtmp_detail = GroupRTMPSerializer(source="rtmp", read_only=True)
     rtmp_link = serializers.CharField(required=False, write_only=True)
+    series = serializers.SerializerMethodField(read_only=True, allow_null=True)
 
     class Meta:
         model = models.Group
@@ -358,6 +358,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "speakers_detail_list",
             # "rtmp_detail",
             "rtmp_link",
+            "series",
         )
 
         extra_kwargs = {
@@ -408,6 +409,13 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             return False
 
         return True
+
+    @staticmethod
+    def get_series(group):
+        series = group.series_groups.first()
+        if not series:
+            return None
+        return series.id
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -474,7 +482,7 @@ class GroupChatUserSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_first_name(user):
-        return user.name.split()[0]
+        return user.get_display_first_name()
 
 
 class GroupMessageSerializer(serializers.ModelSerializer):
@@ -505,4 +513,27 @@ class ChatReactionSerializer(serializers.ModelSerializer):
             "name",
             "is_active",
             "file",
+        )
+
+
+class SeriesSerializer(serializers.ModelSerializer):
+    topic_detail = TopicSerializer(source="topic", read_only=True)
+    groups_detail_list = GroupWebinarSerializer(source="groups", many=True, read_only=True)
+    categories_detail_list = CategorySerializer(source="categories", many=True, read_only=True)
+    host_detail = GroupUserSerializer(source="host", read_only=True)
+
+    class Meta:
+        model = models.Series
+        fields = (
+            "id",
+            "topic",
+            "topic_detail",
+            "groups",
+            "groups_detail_list",
+            "categories",
+            "categories_detail_list",
+            "host",
+            "host_detail",
+            "start",
+            "created_at",
         )

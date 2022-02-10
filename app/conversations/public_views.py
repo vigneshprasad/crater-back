@@ -1,5 +1,6 @@
 import datetime
 
+from django.db.models import Prefetch
 from rest_framework import mixins
 from rest_framework import status
 from rest_framework import viewsets
@@ -10,8 +11,6 @@ from conversations import constants
 from conversations import paginators
 from conversations import models
 from conversations import serializers
-from conversations import services
-from conversations import signals
 from users import permissions as user_permissions
 
 
@@ -52,7 +51,7 @@ class GroupWebinarPublicViewSet(
         published_groups_with_recording = groups_with_recordings.filter(
             recording__recording__isnull=False,
             recording__is_published=True
-        ).order_by("-recording__order")
+        ).order_by("-start")
 
         return published_groups_with_recording
 
@@ -61,7 +60,7 @@ class GroupWebinarPublicViewSet(
 
         Note:
             Only featured webinars in the future will
-                show up. Also if a featured webinar is
+                show up. If a featured webinar is
                 live don't show in this list.
 
         """
@@ -176,3 +175,19 @@ class GroupWebinarPublicViewSet(
 
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+
+class SeriesPublicViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.SeriesSerializer
+    queryset = models.Series.objects.prefetch_related(
+        Prefetch(
+            "groups",
+            models.Group.objects.order_by("closed", "is_live", "start")
+        )
+    )
+    permission_classes = [user_permissions.AllowAny]
+    pagination_class = paginators.WebinarPagination

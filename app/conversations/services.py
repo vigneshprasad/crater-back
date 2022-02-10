@@ -478,6 +478,7 @@ def create_group_message(group, sender, message, display_name=None):
 
     return group_message
 
+
 @database_sync_to_async
 def create_group_message_reaction(group, sender, reaction_id):
     """Create a group message of reaction type.
@@ -537,36 +538,6 @@ def create_group_rtmp(group, rtmp_link):
     return group_rtmp
 
 
-def add_previous_attendees_to_groups(groups):
-    """Adds host's previous attendees to group.
-
-    Args:
-        groups(queryset): Groups for which attendees are
-            to be updated.
-
-    """
-    for group in groups:
-        prev_groups = models.Group.objects.filter(
-            host=group.host,
-            start__lt=group.start
-        )
-        if not prev_groups:
-            continue
-
-        # Gather previous groups' attendees
-        prev_attendees_list = []
-        for prev_group in prev_groups:
-            prev_attendees_list += list(prev_group.attendees.all())
-
-        prev_attendees_list = list(set(prev_attendees_list))
-        attendees_to_add = list(
-            set(prev_attendees_list) - set(list(group.attendees.all()))
-        )
-
-        group.attendees.add(*attendees_to_add)
-        group.save()
-
-
 def create_group_request(user, group, participant_type):
     """Create a group request object
 
@@ -584,3 +555,58 @@ def create_group_request(user, group, participant_type):
     )
 
     return group_request
+
+
+def get_series_groups_not_rsvped_by_user(series, user):
+    """Returns all the series' groups for which the user
+        has not RSVPed.
+
+    Args:
+        series(Series): Series for which we are getting request to.
+        user(User): User who has requested to join the series.
+
+    """
+    now = datetime.datetime.now()
+    groups = series.groups.filter(
+        is_live=False,
+        closed=False,
+        start__gte=now
+    ).exclude(speakers=user)
+
+    # Filter groups which are RSVPed by user
+    groups_rsvped_to = groups.filter(requests__requester=user)
+
+    # Get the groups which are not RSVPed by user
+    groups_not_rsvped = groups.difference(groups_rsvped_to)
+
+    return groups_not_rsvped
+
+
+def add_attendee_to_series(attendee, series_requests, series):
+    """Add user to series as an attendee
+
+    Args:
+        attendee(User): Attendee to be added to group
+        series_requests(list(Request)): Series requests by user
+        series(Series): Series to which attendee needs to be added
+
+    Returns:
+        series_requests(list(Request)): Series requests by user
+
+    """
+
+    # Update request status and add attendee to request group
+    for request in series_requests:
+        request.status = constants.REQUEST_STATUS_ACCEPTED_ENUM
+        request.group.attendees.add(attendee)
+        request.save()
+
+    # Send a signal once user is added to the series.
+    signals.attendee_added_to_series.send(
+        sender=series.__class__,
+        series=series,
+        series_requests=series_requests,
+        user=attendee
+    )
+
+    return series_requests

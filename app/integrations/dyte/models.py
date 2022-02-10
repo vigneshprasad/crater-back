@@ -2,7 +2,6 @@ import datetime
 
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
 from django.utils.html import format_html
 
 from base import models as base_model
@@ -155,6 +154,18 @@ class DyteMeetingRecording(base_model.BaseModel):
             self.pk,
             self.recording_id
         )
+
+    @property
+    def file_name(self):
+        if not self.path:
+            return None
+        return self.path.split("/")[3]
+
+    @property
+    def storage_key_name(self):
+        if not self.path:
+            return None
+        return self.path[1:]
 
     @property
     def object_url(self):

@@ -618,7 +618,7 @@ class GroupRecodingViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.GroupRecordingSerializer
-    queryset = models.GroupRecording.objects.filter(is_published=True)
+    queryset = models.GroupRecording.objects.filter(is_published=True).order_by("-group__start")
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
@@ -630,3 +630,67 @@ class ChatReactionViewSet(
     serializer_class = serializers.ChatReactionSerializer
     queryset = models.ChatReaction.objects.filter(is_active=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class SeriesRequestViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = serializers.RequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.Request.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        data = request.data
+        series_id = data.get("series_id")
+
+        # Get series by id
+        try:
+            series = models.Series.objects.get(id=series_id)
+        except models.Series.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # If the user rsvping is a host, throw an error.
+        if series.host.pk == user.pk:
+            host_rsvp_error = exceptions.HostRSVPError()
+            return Response(
+                host_rsvp_error.get_error_body(),
+                status=host_rsvp_error.status_code
+            )
+
+        # Get all series' groups for which the user has not RSVPed to
+        groups_to_rsvp = services.get_series_groups_not_rsvped_by_user(
+            series=series,
+            user=user
+        )
+
+        # If user has already RSVPed to the series, throw an error.
+        if not groups_to_rsvp:
+            series_already_rsvped_exception = exceptions.SeriesAlreadyRSVPed()
+            return Response(
+                series_already_rsvped_exception.get_error_body(),
+                status=series_already_rsvped_exception.status_code
+            )
+
+        # Create request objects for the groups
+        requests_data = [
+            {
+                "requester": user,
+                "group": group.pk,
+                "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+            }
+            for group in groups_to_rsvp
+        ]
+
+        serializer = self.get_serializer(data=requests_data, many=True)
+        serializer.is_valid(raise_exception=True)
+        series_requests = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+
+        series_requests_updated = services.add_attendee_to_series(
+            attendee=user, series=series, series_requests=series_requests
+        )
+
+        serializer = self.get_serializer(series_requests_updated, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
