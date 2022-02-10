@@ -26,7 +26,6 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
 
-
 # All environment variables.
 ENVIRONMENT = os.getenv("ENVIRONMENT")
 ENVIRONMENT_PREPROD = "preprod"
@@ -434,8 +433,7 @@ sentry_sdk.init(
 )
 
 # ----------- FRESHCHAT ---------#
-# ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
-ALLOW_WHATSAPP_SENDING = True
+ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
 FRESHCHAT_BASE_URL = "https://api.in.freshchat.com/v2"
 FRESHCHAT_USER_CREATION_ALLOWED = False if os.getenv("FRESHCHAT_USER_CREATION_ALLOWED", True) == "False" else True
 FRESHCHAT_APP_ID = os.getenv("FRESHCHAT_APP_ID")

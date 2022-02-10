@@ -215,30 +215,8 @@ class User(AbstractUser):
         return status
 
     @property
-    def has_bank_details(self):
-        return bool(hasattr(self, "bank_details") and self.bank_details)
-
-    @property
-    def has_introduction(self):
-        status = (
-            self.has_profile
-            and 
-            hasattr(self.profile, "introduction")
-            and 
-            self.profile.introduction
-        )
-        return bool(status)
-
-    @property
     def has_active_subscription(self):
         return self.subscriptions.filter(is_active=True).exists()
-
-    @property
-    def active_subscription_membership(self):
-        active_subscription = self.subscriptions.filter(is_active=True).first()
-        if active_subscription:
-            return active_subscription.membership
-        return None
 
     @staticmethod
     def _send_sms(phone_number, message):
@@ -288,10 +266,6 @@ class User(AbstractUser):
         self.sms_code = code
         if commit:
             self.save()
-
-    @property
-    def rating_count(self):
-        return self.seller_orders.filter(status="complete", rate__isnull=False).count()
 
     def recalculate_rating(self):
         rates = list(self.seller_orders.filter(status="complete", rate__isnull=False).values_list("rate", flat=True))
