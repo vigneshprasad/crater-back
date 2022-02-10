@@ -125,8 +125,6 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             "message": {"status_code": 400},
             "group": "invalid"
         }))
-        print("triggered close")
-        print(self.group.id)
         await self.close()
 
     async def send_no_permissions(self, *args, **kwargs):
