@@ -120,30 +120,19 @@ class AdminPasswordResetForm(PasswordResetForm):
 class ProfileForm(forms.ModelForm):
 
     photo = forms.ImageField(widget=CachedMaterialAdminFileWidget, required=False)
-    interests = forms.ModelMultipleChoiceField(
-        queryset=tags_models.Interests.objects.all(),
-        required=False
-    )
-    name = forms.CharField(max_length=100, required=False)
     primary_url = forms.URLField(required=False)
 
     class Meta:
         model = Profile
         fields = (
-            "name",
             "photo",
             "photo_url",
             "cover",
             "introduction",
-            "generated_introduction",
             "linkedin_url",
             "primary_url",
             "allow_meeting_request",
             "opted_in_for_whatsapp",
-            "instagram",
-            "instagram_id",
-            "instagram_username",
-            "twitter",
             "new_tag",
             "education_level",
             "years_of_experience",

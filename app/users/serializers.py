@@ -295,20 +295,11 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
 
 class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
 
-    city = serializers.PrimaryKeyRelatedField(queryset=tag_models.CityProxy.objects.all(), required=False)
-    pan_card_base64 = fields.Base64FileField(required=False, write_only=True, allow_null=True)
-    pan_card_size = serializers.SerializerMethodField()
     photo = serializers.SerializerMethodField()
-    objectives_items = serializers.SerializerMethodField()
-    unread_notifications = serializers.SerializerMethodField()
-    social_account = serializers.SerializerMethodField()
-    linkedin_url = serializers.URLField(source="profile.linkedin_url", read_only=True, default=None)
-    tag_list = tag_serializers.TagSerializer(
-        source="profile.tags",
-        many=True,
+    linkedin_url = serializers.URLField(
+        source="profile.linkedin_url",
         read_only=True,
-        allow_null=True,
-        required=False
+        default=None
     )
 
     class Meta:
@@ -317,99 +308,20 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             "pk",
             "photo",
             "email",
-            "email_verified",
             "name",
-            "city",
-            "reason",
             "phone_number",
-            "phone_number_verified",
-            "role",
-            "full_registered",
-            "has_profile",
-            "has_bank_details",
-            "has_services",
-            "has_active_subscription",
-            "intent",
-            "linkedin_url",
-            "active_subscription_membership",
-            "pan_card",
-            "pan_card_base64",
-            "pan_card_size",
-            "unread_notifications",
-            "is_approved",
-            "objectives",
-            "objectives_items",
-            "social_account",
-            "tag_list",
+            "linkedin_url"
         )
-        read_only_fields = (
-            "full_registered",
-            "has_profile",
-            "has_bank_details",
-            "has_services",
-            "phone_number_verified",
-            "email_verified",
-            "phone_number",
-            "objectives_items",
-            "role",
-            "intent",
-            "has_active_subscription",
-            "active_subscription_membership",
-            "pan_card_size",
-            "is_approved",
-            "objectives"
-        )
-
-    def validate(self, attrs):
-        if "pan_card_base64" in attrs:
-            pan_card = attrs.pop("pan_card_base64", None)
-            attrs["pan_card"] = pan_card
-        return attrs
-
-    @staticmethod
-    def get_pan_card_size(obj):
-        if obj.pan_card:
-            return obj.pan_card.size
-        return None
-
-    @staticmethod
-    def get_unread_notifications(obj):
-        return obj.notifications.filter(is_read=False).count()
-
     @staticmethod
     def get_photo(obj):
         if not hasattr(obj, "profile"):
             return None
         return obj.profile.photo.url if obj.profile.photo else obj.profile.photo_url
 
-    @staticmethod
-    def get_objectives_items(obj):
-        objectives = {}
-        for objective in obj.objectives.all():
-            objectives[objective.pk] = objective.redirect_url
-        return objectives
-
-    @staticmethod
-    def get_social_account(obj):
-        social_account = obj.socialaccount_set.first()
-        return services.get_social_account_info(social_account)
-
     def update(self, instance, validated_data):
         old_email = instance.email
-        old_city = instance.city
         super().update(instance, validated_data)
         new_email = instance.email
-        new_city = instance.city
-        if validated_data.get("objectives") and (len(validated_data.get("objectives")) > 0):
-            objectives=[]
-            for objective in validated_data["objectives"]:
-                objectives.append(objective.name)
-
-            signals.objectives_added.send(
-                sender=self.__class__,
-                user=instance,
-                objectives=objectives
-            )
         if old_email != new_email:
             instance.refresh_auth_secret_key()
 
@@ -417,7 +329,6 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
         name = validated_data.get("name")
         instance.set_name(name)
         instance.save()
-
         return instance
 
 
@@ -512,12 +423,6 @@ class ProfileChoiceSerializer(serializers.ChoiceField):
 class ProfileSerializer(serializers.ModelSerializer):
 
     uuid = serializers.UUIDField(source="user.uuid", required=False)
-    role = serializers.CharField(source="user.role", required=False, read_only=True)
-    professional_service_provider = serializers.BooleanField(
-        source="user.user_services_info.professional_service_provider",
-        required=False,
-        read_only=True
-    )
     name = serializers.CharField(
         source="user.name",
         required=False,
@@ -528,15 +433,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     )
     email = serializers.CharField(source="user.email", read_only=True)
     phone_number = serializers.CharField(source="user.phone_number", read_only=True)
-    tag_line = serializers.CharField(
-        error_messages={
-            "max_length": _("Tag line should not be longer than 100 symbols"),
-        },
-        max_length=100,
-        allow_blank=True,
-        allow_null=True,
-        required=False
-    )
     introduction = serializers.CharField(
         max_length=800,
         error_messages={
@@ -544,33 +440,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         },
         allow_blank=True,
         allow_null=True,
-        required=False
-    )
-    focus = serializers.CharField(
-        max_length=800,
-        error_messages={
-            "max_length": _("Max symbols exceeded"),
-        },
-        allow_blank=True,
-        allow_null=True,
-        required=False
-    )
-    additional_information = serializers.CharField(
-        max_length=800,
-        error_messages={
-            "max_length": _("Max symbols exceeded"),
-        },
-        allow_blank=True,
-        allow_null=True,
-        required=False
-    )
-    public_introduction = serializers.CharField(
-        max_length=1024, 
-        error_messages={
-            "max_length": _("Max symbols exceeded"),
-        },
-        allow_null=True, 
-        allow_blank=True, 
         required=False
     )
     photo = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
@@ -585,7 +454,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
-    work_city_name = serializers.CharField(source="work_city.name", read_only=True, allow_null=True, required=False)
     cover_transcoder = serializers.CharField(source="cover.cover_transcoder", read_only=True, allow_null=True)
     cover_file = serializers.FileField(source="cover.file", read_only=True, allow_null=True)
     is_cover_video = serializers.SerializerMethodField()
@@ -641,9 +509,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     )
     groups = UserGroupSerializer(source="user.groups", read_only=True, many=True)
 
-    instagram_id = ""
-    instagram_token = None
-
     class Meta:
         model = models.Profile
         fields = (
@@ -652,41 +517,25 @@ class ProfileSerializer(serializers.ModelSerializer):
             "name",
             "email",
             "phone_number",
-            "role",
-            "professional_service_provider",
-            "tag_line",
             "photo",
             "photo_url",
             "cover",
             "cover_file",
             "introduction",
             "linkedin_url",
-            "focus",
-            "additional_information",
-            "instagram",
-            "instagram_id",
-            "instagram_username",
-            "is_instagram_set",
-            "twitter",
-            "work_city",
-            "work_city_name",
-            "tags",
             "tag_list",
-            "public_profile",
-            "public_introduction",
             "cover_thumbnail",
             "cover_transcoder",
             "is_cover_video",
+
             "education_level",
             "years_of_experience",
             "company_type",
             "sector",
-            "generated_introduction",
             "number_of_employees",
             "project_type",
             "stage_of_company",
             "aspiration",
-            "profile_intro_updated",
             "company_type_advised",
             "companies_invested",
             "other_tag",
@@ -709,12 +558,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             "tags": {"write_only": True, "allow_null": True, "required": False}
         }
         read_only_fields = (
-            "role",
-            "professional_service_provider",
             "cover_thumbnail",
             "cover_transcoder",
             "cover_file",
-            "is_instagram_set",
             "is_cover_video",
         )
 
@@ -724,23 +570,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             if cover not in user.cover_files.all():
                 raise serializers.ValidationError(_("Please use your cover file"))
         return cover
-
-    # def validate_instagram(self, instagram_token):
-    #     if instagram_token:
-    #         self.instagram_token, self.instagram_id = instagram_service.convert_code_to_long_access_token(
-    #             instagram_token
-    #         )
-    #         if not self.instagram_token:
-    #             self.instagram_token = instagram_service.get_long_access_token(instagram_token)
-    #         if not self.instagram_token:
-    #             raise serializers.ValidationError(
-    #                 _("Instagram token is not valid")
-    #             )
-    #         return self.instagram_token
-    #     return ""
-    #
-    # def validate_instagram_id(self, instagram_id):
-    #     return instagram_id or self.instagram_id
 
     @staticmethod
     def get_is_cover_video(obj):
@@ -800,6 +629,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         # Adding user group to investor if investor tag is selected.
         user_tags = validated_data.get("tags") if validated_data.get("tags") else []
+        print("VALIDATED DATA")
+        print(validated_data)
         if len(user_tags) > 0:
             instance.new_tag.clear()
             instance.new_tag.add(user_tags[0])

@@ -63,13 +63,6 @@ def create_push_and_rent(sender, instance, *args, **kwargs):
     return instance
 
 
-@receiver(post_save, sender=get_user_model())
-def set_referrer_relation(sender, instance, *args, **kwargs):
-    if not instance.referer:
-        return
-    models.Referral.objects.get_or_create(user=instance)
-
-
 @receiver(post_save, sender=User)
 def send_profile_completed_points_signal(sender, instance, created, *args, **kwargs):
     signals.user_updated.send(
