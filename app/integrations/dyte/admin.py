@@ -19,8 +19,6 @@ class DyteMeetingAdmin(admin.ModelAdmin):
         "group__start"
     )
     search_fields = (
-        "meeting_id",
-        "group_id",
         "meeting__participants__name",
         "meeting__participants__username",
         "group__host__name",

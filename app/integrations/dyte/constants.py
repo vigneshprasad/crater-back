@@ -11,7 +11,7 @@ DYTE_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 # Dyte present constants.
 DEFAULT_PRESET_NAME = "participant"
 DEFAULT_WEBINAR_PRESET_NAME = "webinar_view_preset"
-DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME = "default_webinar_participant_preset"
+DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME = "webinar_participant"
 DEFAULT_WEBINAR_HOST_PRESET_NAME = "default_webinar_host_preset"
 
 # Dyte meeting constants.

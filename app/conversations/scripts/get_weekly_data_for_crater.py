@@ -10,6 +10,7 @@ from conversations import constants
 from conversations import models
 from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
+from integrations.dyte.service import dyte_service
 from wn_analytics import models as analytics_models
 from users import constants as user_constants
 
@@ -56,6 +57,7 @@ def all_data(start_date, end_date):
 
     # Total users.
     total_users = get_total_number_of_users(start_date=start_date, end_date=end_date)
+    total_user_since_organic = get_total_users_since_organic(end_date=end_date)
     organic_users = get_organic_users_for_duration(start_date=start_date, end_date=end_date)
 
     # Get first RSVP.
@@ -83,6 +85,8 @@ def all_data(start_date, end_date):
 
     # Get total steamers.
     total_streamers = get_total_streamers(start_date=start_date, end_date=end_date)
+    # Get organic creators.
+    organic_creators = get_organic_creators(start_date=start_date, end_date=end_date)
     # Get stream performed after 24 hours.
     streams_after_24_hours = get_stream_performed_after_duration(start_date=start_date, end_date=end_date)
     # Get stream performed after 7 days.
@@ -135,6 +139,7 @@ def all_data(start_date, end_date):
     total_subscribers = get_total_subscribers(start_date=start_date, end_date=end_date)
 
     print("Total no. of users",  total_users)
+    print("Total no. of users since organic",  total_user_since_organic)
     print("Organic users",  organic_users)
     print("\n")
 
@@ -154,17 +159,17 @@ def all_data(start_date, end_date):
     print("RSVP/Online after 30 days (D30)", rsvp_after_30_days)
     print("\n")
 
-    # Calculate this.
+    print("DAUs (some action on platform)", dau)
+    print("WAUs (some action on platform)", wau)
+    print("MAUs (some action on platform)", mau)
+    print("\n")
+
     print("Number of streamers", total_streamers)
+    print("Number of organic streamers", organic_creators)
     print("Stream after 24 hours", streams_after_24_hours)
     print("Stream after a week", streams_after_7_days)
     print("Stream after 14 days", streams_after_14_days)
     print("Stream after 30 days", streams_after_30_days)
-    print("\n")
-
-    print("DAUs (some action on platform)", dau)
-    print("WAUs (some action on platform)", wau)
-    print("MAUs (some action on platform)", mau)
     print("\n")
 
     print("Time spent by users", total_participant_minutes)
@@ -273,6 +278,12 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
         for category in categories:
             categories_str += category.name + ", "
 
+        dyte_data = dyte_service.get_stats_for_meeting(group)
+        dyte_online = len(dyte_data)
+        dyte_time_spent = 0
+        for d in dyte_data:
+            dyte_time_spent += d["totalMinutes"]
+
         print(
             group.pk, "#",
             group.host, "#",
@@ -283,7 +294,9 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
             organic_rsvp, "#",
             online_count, "#",
             completion, "#",
-            organic_online
+            organic_online, "#",
+            dyte_online, "#",
+            dyte_time_spent, "#"
         )
 
 
@@ -309,14 +322,14 @@ def get_organic_users_for_duration(start_date=None, end_date=None):
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
     start = start_datetime if \
-        start_datetime > DEFAULT_ORGANIC_USERS_START_DATE.date() else \
-        DEFAULT_ORGANIC_USERS_START_DATE.date()
+        start_datetime > DEFAULT_ORGANIC_USERS_START_DATE.date() else DEFAULT_ORGANIC_USERS_START_DATE.date()
 
     return get_user_model().objects.filter(
         date_joined__gte=start,
         date_joined__lte=end_datetime,
         groups__name=user_constants.CRATER_CLUB_GROUP,
-        user_source__isnull=True
+        user_source__isnull=True,
+        creator__isnull=True
     ).count()
 
 
@@ -347,7 +360,7 @@ def get_total_streamers(start_date=None, end_date=None):
         start__gte=start_datetime,
         start__lte=end_datetime,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
-    ).values("speakers").distinct().count()
+    ).values("host").distinct().count()
 
 
 def get_total_followers(start_date=None, end_date=None):
@@ -538,6 +551,66 @@ def get_dau_for_duration(start_date=None, end_date=None):
     return round(all_rsvps/days, 2)
 
 
+def get_organic_creators(start_date=None, end_date=None):
+    """Get organic creators for duration.
+
+    Data Point:
+        Organic creators
+
+    """
+    start_datetime = None
+    end_datetime = None
+
+    if not start_date:
+        start_date = DEFAULT_START_DATE
+        start_datetime = start_date.date()
+
+    if not end_date:
+        end_date = timezone.now()
+        end_datetime = end_date.date()
+
+    start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    return creator_models.Creator.objects.filter(
+        created_at__gte=start_date,
+        created_at__lte=end_date,
+        point_of_contact__isnull=True
+    ).count()
+
+
+def get_total_users_since_organic(start_date=None, end_date=None):
+    """Get total number since organic of Crater users on the platform.
+
+    Data Point:
+        Total no. of users since organic
+
+    """
+
+    start_datetime = None
+    end_datetime = None
+
+    if not start_date:
+        start_date = DEFAULT_ORGANIC_USERS_START_DATE
+        start_datetime = start_date.date()
+
+    if not end_date:
+        end_date = timezone.now()
+        end_datetime = end_date.date()
+
+    start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    start = start_datetime if \
+        start_datetime > DEFAULT_ORGANIC_USERS_START_DATE.date() else DEFAULT_ORGANIC_USERS_START_DATE.date()
+
+    return get_user_model().objects.filter(
+            date_joined__gte=start,
+            date_joined__lte=end_datetime,
+            groups__name=user_constants.CRATER_CLUB_GROUP
+        ).count()
+
+
 def get_total_number_of_users(start_date=None, end_date=None):
     """Get total number of Crater users on the platform.
 
@@ -699,7 +772,7 @@ def get_stream_performed_after_duration(start_date=None, end_date=None, duration
         start__gte=start_date,
         start__lte=end_date,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
-    ).values_list("speakers", flat=True)
+    ).values_list("host", flat=True)
 
     for speaker in speakers:
         groups = models.Group.objects.filter(
@@ -1024,7 +1097,7 @@ def get_average_streams_streamed_per_month(start_date, end_date=None):
     all_speakers = models.Group.objects.filter(
         start__gte=start_date,
         start__lte=end_date
-    ).values_list("speakers", flat=True)
+    ).values_list("host", flat=True)
     # Make speakers distinct.
     all_speakers = list(set(all_speakers))
 
@@ -1213,34 +1286,33 @@ def _get_minutes_spent_by_participants_on_stream(group):
 
 def _get_minutes_spent_by_hosts_on_stream(group):
 
-    speaker_ids = group.speakers.values_list("pk", flat=True)
-    speakers = dyte_models.DyteMeetingParticipant.objects.filter(
+    hosts = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group_id=group.id,
-        participant_id__in=speaker_ids
+        participant_id=group.host.pk
     )
 
     total_minutes = 0
-    speakers_joined = 0
+    hosts_joined = 0
 
-    for speaker in speakers:
+    for host in hosts:
         # If the speaker never joined the call, return.
-        if not speaker.last_online_at:
+        if not host.last_online_at:
             continue
 
         # If the speaker joined the call before call start.
-        if speaker.last_online_at < group.start:
+        if host.last_online_at < group.start:
             continue
 
         # Get total time spent on the call.
-        time_spent = speaker.last_online_at - group.start
+        time_spent = host.last_online_at - group.start
         minutes = time_spent.seconds // 60 % 60
 
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:
             continue
 
-        speakers_joined += 1
+        hosts_joined += 1
         total_minutes += minutes
 
-    avg_time_spent = (total_minutes/speakers_joined) if speakers_joined else 0
-    return total_minutes, round(avg_time_spent, 2), speakers_joined
+    avg_time_spent = (total_minutes/hosts_joined) if hosts_joined else 0
+    return total_minutes, round(avg_time_spent, 2), hosts_joined
