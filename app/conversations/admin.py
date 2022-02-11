@@ -52,8 +52,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     search_fields = ("speakers__email", "speakers__name", "speakers__username", )
     list_editable = ("is_published", "is_featured", "is_live", "closed", )
     list_filter = (
+        "closed",
+        "is_published",
         ("start", filter.DateRangeFilter),
-        "topic"
     )
     exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
 
@@ -213,12 +214,6 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         ("group__start", filter.DateRangeFilter),
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.prefetch_related(
-            "dyte_recordings"
-        )
 
     def save_model(self, request, obj, form, change):
         if not change:
