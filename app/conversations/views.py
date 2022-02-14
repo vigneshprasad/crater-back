@@ -647,7 +647,10 @@ class SeriesRequestViewSet(
 
         # Get series by id
         try:
-            series = models.Series.objects.get(id=series_id)
+            series = models.Series.objects.get(
+                id=series_id,
+                is_published=True
+            )
         except models.Series.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
