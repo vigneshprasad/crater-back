@@ -751,6 +751,7 @@ class Series(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     start = models.DateTimeField()
+    is_published = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

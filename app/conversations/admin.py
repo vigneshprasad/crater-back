@@ -347,6 +347,7 @@ class SeriesAdmin(admin.ModelAdmin):
         "topic",
         "host",
         "start",
+        "is_published",
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = (
@@ -356,3 +357,4 @@ class SeriesAdmin(admin.ModelAdmin):
     list_filter = (
         ("start", filter.DateRangeFilter),
     )
+    list_editable = ("is_published",)
