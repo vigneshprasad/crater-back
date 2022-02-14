@@ -183,7 +183,7 @@ class SeriesPublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.SeriesSerializer
-    queryset = models.Series.objects.prefetch_related(
+    queryset = models.Series.objects.filter(is_published=True).prefetch_related(
         Prefetch(
             "groups",
             models.Group.objects.order_by("closed", "is_live", "start")
