@@ -2,7 +2,7 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.db.models import Count, F, Value
-from django.db.models.functions import Coalesce, Concat
+from django.db.models.functions import Coalesce, Concat, TruncDate
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -53,6 +53,9 @@ class AnalyticsDashboardViewSet(
             followed_at__month=prev_month_date.month,
             followed_at__year=prev_month_date.year
         ).count()
+
+        if not follower_count_prev_month:
+            return Response({"percentage": 0}, status=status.HTTP_200_OK)
 
         follower_count_current_month = creator_models.Follower.objects.filter(
             creator__user=user,
@@ -136,7 +139,7 @@ class AnalyticsDashboardViewSet(
         methods=["get"],
         detail=False
     )
-    def club_member_growth(self, request):
+    def club_members_growth(self, request):
         user = request.user
         now = datetime.datetime.now()
         last_week = now - datetime.timedelta(weeks=1)
@@ -144,11 +147,11 @@ class AnalyticsDashboardViewSet(
         follower_count_data = creator_models.Follower.objects.filter(
             creator__user=user,
             unfollowed=False,
-            followed_at__gte=last_week
+            followed_at__date__gte=last_week
         ).values(
-            followed_at_date=F("followed_at__date")
+            followed_at_date=TruncDate(F("followed_at__date"))
         ).annotate(
-            follower_count=Count("id", distinct=True)
+            follower_count=Count("followed_at_date")
         )
 
         return Response(follower_count_data, status=status.HTTP_200_OK)
