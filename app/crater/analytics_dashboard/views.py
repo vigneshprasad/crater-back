@@ -12,6 +12,7 @@ from users import permissions as user_permissions
 from crater.creator import models as creator_models
 from conversations import models as conversation_models
 from conversations import constants as conversation_constants
+from crater.analytics_dashboard import serializers
 from django.conf import settings
 
 
@@ -105,7 +106,8 @@ class AnalyticsDashboardViewSet(
 
     @action(
         methods=["get"],
-        detail=False
+        detail=False,
+        serializer_class=serializers.TopStreamsSerializer
     )
     def top_streams(self, request):
         user = request.user
@@ -133,7 +135,9 @@ class AnalyticsDashboardViewSet(
             "-rsvp_count", "-messages_count"
         )[:3]
 
-        return Response(groups, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(groups, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=["get"],
@@ -188,11 +192,20 @@ class AnalyticsDashboardViewSet(
             notify=True
         ).count()
 
-        response = {
-            "rsvp_count": rsvp_count,
-            "subscriber_count": subscriber_count,
-            "recurring_user_count": recurring_user_count
-        }
+        response = [
+            {
+                "name": "Total RSVPs",
+                "count": rsvp_count
+            },
+            {
+                "name": "Total Subscribers",
+                "count": subscriber_count
+            },
+            {
+                "name": "Total Recurring Users",
+                "count": recurring_user_count
+            }
+        ]
 
         return Response(response, status=status.HTTP_200_OK)
 
