@@ -629,8 +629,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         # Adding user group to investor if investor tag is selected.
         user_tags = validated_data.get("tags") if validated_data.get("tags") else []
-        print("VALIDATED DATA")
-        print(validated_data)
         if len(user_tags) > 0:
             instance.new_tag.clear()
             instance.new_tag.add(user_tags[0])
