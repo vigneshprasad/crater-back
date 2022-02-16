@@ -636,6 +636,8 @@ def get_total_users_since_organic(start_date=None, end_date=None):
         date_joined__gte=start,
         date_joined__lte=end_datetime,
         groups__name=user_constants.CRATER_CLUB_GROUP
+    ).exclude(
+        user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
 
 
@@ -1325,10 +1327,6 @@ def get_number_of_users_who_messaged(start_date, end_date=None):
     ).exclude(
         sender__email__in=EMAIL_TO_EXCLUDE
     ).values("sender").distinct().count()
-
-
-def get_number_of_users_who_message_per_stream(start_date=None, end_date=None):
-    pass
 
 
 # -------- PRIVATE FUNCTIONS -------- #
