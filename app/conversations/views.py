@@ -17,7 +17,6 @@ from conversations import exceptions
 from conversations import signals
 from conversations import constants
 from conversations import paginators
-from crater.creator import public as creator_public
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
 
@@ -528,7 +527,7 @@ class GroupWebinarViewSet(
             is_live=False,
             closed=False,
             start__gte=datetime.datetime.now()
-        ).order_by("start")
+        )
 
     def _get_live_webinars(self):
         """Return live webinars."""
@@ -585,7 +584,7 @@ class GroupWebinarViewSet(
             user.following.filter(
                 notify=True
             ).values_list("creator__user", flat=True)
-            )
+        )
 
         queryset = queryset_upcoming.exclude(
             host__pk__in=creator_ids + [user.pk]
