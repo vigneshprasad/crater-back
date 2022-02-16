@@ -69,7 +69,7 @@ class DyteService:
         """
         create_meeting_endpoint = self.DYTE_API_ENDPOINTS["create_meeting"].format(org_id=self.org_id)
 
-        # Adding this check so we don't update meeting links.
+        # Adding this check so that we don't update meeting links.
         if meeting.link:
             logging.error("Meeting already has a meeting link:{}, {}".format(meeting.id, meeting.link))
             return None
