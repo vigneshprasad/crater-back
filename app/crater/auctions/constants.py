@@ -1,3 +1,4 @@
+
 BID_STATUS_PENDING_ENUM = 1
 BID_STATUS_ACCEPTED_ENUM = 2
 BID_STATUS_REJECTED_ENUM = 3
@@ -9,3 +10,6 @@ BID_STATUS_PENDING = "Pending"
 BID_STATUS_ACCEPTED = "Accepted"
 BID_STATUS_REJECTED = "Rejected"
 BID_STATUS_CANCELLED = "Cancelled"
+
+def MINIMUM_BID_MULTIPLIER(price):
+  return float(price) + (float(price) * 0.1)
