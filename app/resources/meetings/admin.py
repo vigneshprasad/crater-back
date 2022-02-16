@@ -44,8 +44,7 @@ class MeetingPreferenceAdmin(ModelAdmin):
         "topic",
         "user_objectives",
         "user_interests",
-        "user_time_slots",
-        "user_campaign",
+        "user_time_slots"
     )
     search_fields = ("user__email", )
     list_filter = ("meeting", )
