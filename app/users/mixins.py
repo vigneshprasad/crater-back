@@ -47,17 +47,6 @@ class CheckEmailMixin:
             self.user.email = email
             self.user.save()
 
-class SetIntentMixin:
-    serializer = None
-
-    def set_intent(self):
-        if self.user.intent:
-            return
-
-        intent = self.serializer.validated_data.get('intent', constants.INTENT_NETWORK)
-        self.user.intent = intent
-        self.user.save()
-
 
 class SetSourceMixin:
     serializer = None

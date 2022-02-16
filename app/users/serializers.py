@@ -224,8 +224,6 @@ class RegisterSerializer(register_serializers.RegisterSerializer):
     def save(self, request):
         adapter = get_adapter()
         user = adapter.new_user(request)
-        user.referer = self._get_referer()
-        user.intent = self._get_intent()
         self.cleaned_data = self.get_cleaned_data()
         adapter.save_user(request, user, self, commit=False)
         self.custom_signup(request, user)
@@ -312,6 +310,7 @@ class UserDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
             "phone_number",
             "linkedin_url"
         )
+
     @staticmethod
     def get_photo(obj):
         if not hasattr(obj, "profile"):

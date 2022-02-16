@@ -65,10 +65,9 @@ def analytics_identify(sender, user, **kwargs):
 def user_signed_up_track(sender, user, **kwargs):
     event = constants.USER_CREATED
     analytics_track_properties = {
-        "email": user.email, 
-        "role": user.role,
+        "phone_number": user.get_phone_number() or "",
+        "email": user.email,
         "name": user.name,
-        "source": user.source
     }
     analytics_track(user, event, analytics_track_properties)
 
@@ -78,8 +77,7 @@ def email_verified_track(sender, email_address, **kwargs):
     event = constants.EMAIL_VERIFIED
     user = user_models.User.objects.get(email=email_address.email)
     analytics_track_properties = {
-        "email": email_address.email, 
-        "role": user.role,
+        "email": email_address.email
     }
     analytics_track(user, event, analytics_track_properties)
 
@@ -90,7 +88,6 @@ def objectives_added_track(sender, user, objectives, **kwargs):
     analytics_track_properties={
         "objectives": objectives,
         "email": user.email,
-        "intent": user.intent
     }
     analytics_track(user, event, analytics_track_properties)
 
@@ -121,7 +118,7 @@ def basic_profile_track(sender, user, request, response, **kwargs):
 @receiver(user_signals.service_created)
 def service_created_track(sender, user, request, response, **kwargs):
     event = constants.SERVICES_CREATION
-    analytics_track_properties=response.data
+    analytics_track_properties = response.data
     analytics_track(user, event, analytics_track_properties)
 
 

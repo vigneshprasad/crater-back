@@ -52,10 +52,6 @@ class MeetingPreferenceAdmin(ModelAdmin):
     exclude = ("deleted_at", "updated_at", "is_deleted", "created_at")
 
     @staticmethod
-    def user_campaign(obj):
-        return obj.user.source
-
-    @staticmethod
     def monthly_meetings(obj):
         return obj.number_of_meetings_per_month
 
