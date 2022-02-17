@@ -76,23 +76,6 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
             user=instance
         )
 
-    if instance.profile_completed:
-        points_log = instance.points_log
-        if not points_log.filter(action__key=PROFILE_COMPLETED_POINTS_KEY).exists():
-            signals.profile_completed.send(
-                sender=instance.__class__,
-                rule_key=PROFILE_COMPLETED_POINTS_KEY,
-                user=instance
-            )
-        if instance.referer:
-            referer_points_log = instance.referer.points_log
-            if not referer_points_log.filter(action__key=REFERAL_SUCCESS_POINTS_KEY).exists():
-                signals.referal_success_points_signal.send(
-                    sender=instance.referer.__class__,
-                    user=instance.referer,
-                    rule_key=REFERAL_SUCCESS_POINTS_KEY
-                )
-
 
 @receiver(signals.profile_requested)
 def update_user_activity(sender, profile, **kwargs):
