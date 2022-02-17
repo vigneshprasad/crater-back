@@ -412,7 +412,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_series(group):
-        series = group.series_groups.first()
+        series = group.get_series()
         if not series:
             return None
         return series.id
