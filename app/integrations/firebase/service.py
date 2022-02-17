@@ -4,6 +4,8 @@ from firebase_admin import credentials, auth, firestore
 
 from integrations.firebase.constants import FIREBASE_CONFIG
 
+from freelance import settings
+
 class Firebase():
   app = None
   db = None
@@ -25,7 +27,8 @@ class Firebase():
     return custom_token
   
   def set_document(self, document_id, collection, data):
-    
+    if settings.ENVIRONMENT != settings.ENVIRONMENT_PROD:
+        document_id = settings.ENVIRONMENT + "_" + document_id
     ref = self.db.collection(collection).document(document_id)
     print(ref)
     updated = ref.set(data, merge=True)
