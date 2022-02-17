@@ -130,6 +130,8 @@ class ProfileForm(forms.ModelForm):
             "cover",
             "introduction",
             "linkedin_url",
+            "instagram",
+            "twitter",
             "primary_url",
             "allow_meeting_request",
             "opted_in_for_whatsapp",

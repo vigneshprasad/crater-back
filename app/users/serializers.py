@@ -522,6 +522,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "cover_file",
             "introduction",
             "linkedin_url",
+            "twitter",
+            "instagram",
             "tag_list",
             "cover_thumbnail",
             "cover_transcoder",
