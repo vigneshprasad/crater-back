@@ -27,6 +27,8 @@ class FirebaseService:
             "username": user.username,
         }
         uuid = str(user.pk)
+        if settings.ENVIRONMENT != settings.ENVIRONMENT_PROD:
+            uuid = settings.ENVIRONMENT + "_" + uuid
         token = auth.create_custom_token(
           uuid,
           additional_claims
