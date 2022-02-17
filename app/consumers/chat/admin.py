@@ -8,7 +8,6 @@ from django.templatetags.static import static as staticfiles
 from rest_framework_jwt.utils import jwt_payload_handler, jwt_encode_handler
 
 from consumers.chat.models import Chat, Message, LastSeen
-from consumers.chat.tasks import read_admin_messages_for_user
 
 
 @register(Chat)
@@ -16,28 +15,10 @@ class ChatAdmin(ModelAdmin):
     icon_name = 'chat'
     page_chat_template = 'chat/chat_page.html'
 
-    def get_urls(self):
-        info = self.model._meta.app_label, self.model._meta.model_name
-        return [
-            path('', self.page_view, name='%s_%s_changelist' % info),
-            path('<str:uuid>', self.page_detail_view, name='%s_%s_result' % info),
-        ]
-
     def page_view(self, request):
         self._check_permissions(request)
         context = self._get_context(request)
         context['users'] = self._get_users(request)
-        return TemplateResponse(request, self.page_chat_template, context)
-
-    def page_detail_view(self, request, uuid):
-        self._check_permissions(request)
-        context = self._get_context(request)
-        context['users'] = self._get_users(request, uuid)
-        context['active_user'] = self._get_active_user(request, uuid)
-        context['messages'] = Message.objects.select_related('sender').filter(is_support=True).filter(Q(sender=uuid) | Q(receiver=uuid))
-        context['uuid'] = uuid
-        context['token'] = jwt_encode_handler(jwt_payload_handler(request.user))
-        read_admin_messages_for_user.delay(uuid)
         return TemplateResponse(request, self.page_chat_template, context)
 
     def _check_permissions(self, request):

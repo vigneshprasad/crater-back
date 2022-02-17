@@ -362,10 +362,6 @@ class AuthTestCase(TestCase):
         self.assertFalse(self.user.has_profile)
         self.assertFalse(self.user.full_registered)
 
-    def test_has_bank_details(self):
-        self.assertFalse(self.user.has_bank_details)
-        self.assertFalse(self.user.full_registered)
-
     def test_has_services(self):
         self.assertFalse(self.user.has_services)
         self.assertFalse(self.user.full_registered)

@@ -8,21 +8,6 @@ from freelance.celery import app
 from freelance.settings import FRONT_URL
 from celery import shared_task
 
-
-@app.task
-def read_admin_messages_for_user(uuid):
-    messages = Message.objects.filter(sender=uuid, is_support=True, is_read=False)
-    if messages:
-        messages_ids = list(messages.values_list('pk', flat=True))
-        messages.update(is_read=True)
-        layer = get_channel_layer()
-        async_to_sync(layer.group_send)(uuid, {
-            'type': 'admin_read_messages_to_user',
-            'messages': messages_ids,
-            'user_id': uuid
-        })
-
-
 # @shared_task(bind=True, name='send_email_for_unread_messages')
 # def send_email_for_unread_messages(self):
 #     notifications = MessageEmailNotification.objects.filter(state=MESSAGE_EMAIL_NOTIFICATION_STATE[0])

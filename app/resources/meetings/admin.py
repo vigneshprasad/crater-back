@@ -44,16 +44,11 @@ class MeetingPreferenceAdmin(ModelAdmin):
         "topic",
         "user_objectives",
         "user_interests",
-        "user_time_slots",
-        "user_campaign",
+        "user_time_slots"
     )
     search_fields = ("user__email", )
     list_filter = ("meeting", )
     exclude = ("deleted_at", "updated_at", "is_deleted", "created_at")
-
-    @staticmethod
-    def user_campaign(obj):
-        return obj.user.source
 
     @staticmethod
     def monthly_meetings(obj):

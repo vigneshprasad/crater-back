@@ -40,7 +40,7 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
 #     services.remove_cached_live_webinar(group=group)
 
 
-@receiver(m2m_changed, sender=models.Group.speakers.through)
+# @receiver(m2m_changed, sender=models.Group.speakers.through)
 def update_group_score(sender, instance, *args, **kwargs):
     """Update group score as a user is removed or added to the group."""
     if kwargs.get("action") not in ["post_add", "post_remove"]:

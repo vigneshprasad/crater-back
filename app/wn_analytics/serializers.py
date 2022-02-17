@@ -10,13 +10,7 @@ from resources.meetings import services as meeting_services
 
 class UserTraitsSerializer(serializers.ModelSerializer):
     """These parameters are sent to segment for tracking."""
-    work_city = serializers.SerializerMethodField()
-    social_auth = serializers.SerializerMethodField()
-    user_tags = serializers.SerializerMethodField()
-    twitter = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
-    city = serializers.SerializerMethodField()
-    user_objectives = serializers.SerializerMethodField(read_only=True)
     utm_source = serializers.SerializerMethodField(read_only=True)
     utm_campaign = serializers.SerializerMethodField(read_only=True)
     linkedin = serializers.CharField(
@@ -40,19 +34,7 @@ class UserTraitsSerializer(serializers.ModelSerializer):
         fields = (
             "name",
             "email",
-            "role",
-            "city",
-            "work_city",
             "phone",
-            "intent",
-            "email_verified",
-            "phone_number_verified",
-            "social_auth",
-            "referer",
-            "user_tags",
-            "twitter",
-            "source",
-            "user_objectives",
             "linkedin",
             "utm_source",
             "utm_campaign",
@@ -72,24 +54,6 @@ class UserTraitsSerializer(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def get_city(user):
-        if not user.city:
-            return None
-        return user.city.name
-
-    @staticmethod
-    def get_social_auth(user):
-        if not user.socialaccount_set.all():
-            return None
-        return user.socialaccount_set.first().provider
-
-    @staticmethod
-    def get_work_city(user):
-        if not (user.has_profile and user.profile.work_city):
-            return None
-        return user.profile.work_city.name
-
-    @staticmethod
     def get_utm_source(user):
         source = models.UserSource.objects.filter(user=user).last()
         if not source:
@@ -104,33 +68,8 @@ class UserTraitsSerializer(serializers.ModelSerializer):
         return source.utm_campaign
 
     @staticmethod
-    def get_user_tags(user):
-        if not user.has_profile:
-            return None
-        user_tags = tag_serializers.TagSerializer(
-            user.profile.tags,
-            many=True,
-            read_only=True
-        ).data
-        return ", ".join([tag["name"] for tag in user_tags])
-
-    @staticmethod
-    def get_twitter(user):
-        if not user.has_profile:
-            return None
-        return user.profile.twitter
-
-    @staticmethod
     def get_phone(user):
         return str(user.phone_number)
-
-    @staticmethod
-    def get_user_objectives(user):
-        if not user.objectives.all():
-            return None
-        return ", ".join(
-            [objective.name for objective in user.objectives.all()]
-        )
 
     @staticmethod
     def get_years_of_experience(user):
