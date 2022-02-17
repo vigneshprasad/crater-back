@@ -67,4 +67,4 @@ nltk~=3.5
 django-colorfield==0.3.2
 firebase-admin==5.2.0
 google-cloud-firestore==2.3.4
-grpcio=1.43.0
+grpcio==1.43.0
