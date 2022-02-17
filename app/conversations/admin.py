@@ -336,6 +336,7 @@ class SeriesAdmin(admin.ModelAdmin):
         "topic",
         "host",
         "start",
+        "is_published",
     )
     raw_id_fields = ("host", "groups")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
@@ -346,3 +347,4 @@ class SeriesAdmin(admin.ModelAdmin):
     list_filter = (
         ("start", filter.DateRangeFilter),
     )
+    list_editable = ("is_published",)
