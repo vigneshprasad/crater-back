@@ -267,7 +267,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
         group(Group): Group the user joined into.
 
     """
-    series = group.series_groups.first()
+    series = group.get_series()
 
     host = group.host
     if not host:
