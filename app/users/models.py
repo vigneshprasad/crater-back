@@ -447,6 +447,18 @@ class Profile(models.Model):
         null=True,
         max_length=800
     )
+    twitter = models.CharField(
+        verbose_name=_("Twitter"),
+        blank=True,
+        null=True,
+        max_length=255
+    )
+    instagram = models.CharField(
+        verbose_name=_("Instagram"),
+        null=True,
+        blank=True,
+        max_length=800
+    )
 
     # This is the url people want to showcase on their profile.
     primary_url = models.URLField(
