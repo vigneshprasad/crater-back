@@ -145,7 +145,7 @@ class AnalyticsDashboardViewSet(
     )
     def club_members_growth(self, request):
         user = request.user
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().date()
         last_week = now - datetime.timedelta(weeks=1)
 
         follower_count_data = creator_models.Follower.objects.filter(
@@ -158,7 +158,24 @@ class AnalyticsDashboardViewSet(
             follower_count=Count("followed_at_date")
         )
 
-        return Response(follower_count_data, status=status.HTTP_200_OK)
+        response = list(follower_count_data)
+
+        # Dates present in DB
+        present_dates = follower_count_data.values_list("followed_at_date", flat=True)
+
+        delta = now - last_week
+        for i in range(delta.days + 1):
+            date = last_week + datetime.timedelta(days=i)
+            if date not in present_dates:
+                response.append({
+                    "followed_at_date": date,
+                    "follower_count": 0
+                })
+
+        # Sort by followed_at_date
+        response.sort(key=lambda x: x["followed_at_date"])
+
+        return Response(response, status=status.HTTP_200_OK)
 
     @action(
         methods=["get"],
@@ -194,15 +211,15 @@ class AnalyticsDashboardViewSet(
 
         response = [
             {
-                "name": "Total RSVPs",
+                "name": "RSVP",
                 "count": rsvp_count
             },
             {
-                "name": "Total Subscribers",
+                "name": "Subscribers",
                 "count": subscriber_count
             },
             {
-                "name": "Total Recurring Users",
+                "name": "Recurring Users",
                 "count": recurring_user_count
             }
         ]
