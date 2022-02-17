@@ -1,8 +1,8 @@
 import datetime
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import Count, F, Value
-from django.db.models.functions import Coalesce, Concat, TruncDate
+from django.db.models import Count, F, Value, Window
+from django.db.models.functions import Coalesce, Concat, TruncDate, RowNumber
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -285,6 +285,7 @@ class AnalyticsDashboardViewSet(
         detail=False
     )
     def comparative_ranking(self, request):
+        user = request.user
         now = datetime.datetime.now()
 
         # Filter top 5 creators with large follower count for current month
@@ -302,7 +303,17 @@ class AnalyticsDashboardViewSet(
             follower_count=Count("id", distinct=True)
         ).order_by(
             "-follower_count"
-        )[:3]
+        ).annotate(
+            rank=Window(expression=RowNumber())
+        )
+
+        # Get requested creator's rank
+        creator_ranking_data = ranking_data.filter(creator_user_pk=user.pk)
+        my_rank = None
+        if creator_ranking_data:
+            my_rank = creator_ranking_data.first().get("rank")
+
+        ranking_data = ranking_data[:3]
 
         # Filter creator's best stream based on number of RSVPs and messages
         for data in ranking_data:
@@ -325,7 +336,12 @@ class AnalyticsDashboardViewSet(
             else:
                 data["stream_topic"] = ""
 
-        return Response(ranking_data, status=status.HTTP_200_OK)
+        response = {
+            "rank": my_rank,
+            "creator_ranking": ranking_data
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
 
     @action(
         methods=["get"],
