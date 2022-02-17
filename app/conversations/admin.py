@@ -43,7 +43,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_published"
     )
     actions = ("add_previous_webinar_attendees", )
-    raw_id_fields = ("speakers", "attendees", "host", )
+    raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
         "closed_at",
         "approved_at",
@@ -52,8 +52,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     search_fields = ("speakers__email", "speakers__name", "speakers__username", )
     list_editable = ("is_published", "is_featured", "is_live", "closed", )
     list_filter = (
+        "closed",
+        "is_published",
         ("start", filter.DateRangeFilter),
-        "topic"
     )
     exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
 
@@ -153,17 +154,11 @@ class RequestAdmin(admin.ModelAdmin):
     raw_id_fields = ("requester", "group", )
     search_fields = ("requester__username", "requester__name")
     list_filter = (
+        "group",
         ("created_at", filter.DateRangeFilter),
-        ("group__start", filter.DateRangeFilter),
-        "group"
+        ("group__start", filter.DateRangeFilter)
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.select_related(
-            "group"
-        )
 
     @staticmethod
     def group_type(obj):
@@ -190,8 +185,9 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
         "live_status",
         "created_at"
     )
+    raw_id_fields = ("group", "user")
     search_fields = ("user__name", "user__email", "user__username")
-    list_filter = ("group",)
+    list_filter = ("group", )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
 
@@ -213,17 +209,11 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "group__host__name",
     )
     list_filter = (
+        "group",
         ("created_at", filter.DateRangeFilter),
         ("group__start", filter.DateRangeFilter),
-        "group"
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.prefetch_related(
-            "dyte_recordings"
-        )
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -298,13 +288,14 @@ class GroupRtmpAdmin(admin.ModelAdmin):
         "group",
         "link"
     )
+    raw_id_fields = ("group", )
     search_fields = (
         "group__host__username",
         "group__host__name",
     )
     list_filter = (
-        ("group__start", filter.DateRangeFilter),
         "group",
+        ("group__start", filter.DateRangeFilter),
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
@@ -325,9 +316,7 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "sender__email",
         "sender__username"
     )
-    list_filter = (
-        "group",
-    )
+    list_filter = ("group", )
     exclude = ("updated_at",)
 
 
@@ -349,6 +338,7 @@ class SeriesAdmin(admin.ModelAdmin):
         "start",
         "is_published",
     )
+    raw_id_fields = ("host", "groups")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     search_fields = (
         "host__name",

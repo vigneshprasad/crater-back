@@ -561,7 +561,10 @@ class GroupWebinarViewSet(
     @action(
         methods=["GET"],
         detail=False,
-        queryset=models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True).order_by(),
+        queryset=models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True
+        ),
         pagination_class=paginators.WebinarPagination,
         permission_classes=[permissions.IsAuthenticated],
         filterset_fields=["host"],
@@ -577,9 +580,11 @@ class GroupWebinarViewSet(
 
         # TODO: Needs query optimization
         # Get creators the user is subscribed to
-        creator_ids = list(user.following.filter(
-                    notify=True
-        ).values_list("creator__user", flat=True))
+        creator_ids = list(
+            user.following.filter(
+                notify=True
+            ).values_list("creator__user", flat=True)
+        )
 
         queryset = queryset_upcoming.exclude(
             host__pk__in=creator_ids + [user.pk]
