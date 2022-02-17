@@ -46,6 +46,9 @@ EMAIL_TO_EXCLUDE = [
     "sanjeevraichur29@gmail.com"
 ]
 
+DEVSCRIPT_SOURCE = "Dev Script"
+DEVSCRIPT_HOST_CREATOR = "+917350560609"
+
 
 def run(start_date, end_date):
     with warnings.catch_warnings():
@@ -134,6 +137,10 @@ def all_data(start_date, end_date):
         start_date=start_date,
         end_date=end_date
     )
+    users_with_chat_message = get_number_of_users_who_messaged(
+        start_date=start_date,
+        end_date=end_date
+    )
 
     total_followers = get_total_followers(start_date=start_date, end_date=end_date)
     total_subscribers = get_total_subscribers(start_date=start_date, end_date=end_date)
@@ -191,6 +198,7 @@ def all_data(start_date, end_date):
 
     print("No. of chat messages on stream", total_messages)
     print("Chat messages per stream", avg_messages_per_stream)
+    print("Total users with chat message", users_with_chat_message)
     print("\n")
 
     print("Total Followers", total_followers)
@@ -223,6 +231,8 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
         start__gte=start_datetime,
         start__lte=end_datetime,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     )
 
     for group in groups:
@@ -246,11 +256,15 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
         dmps = dyte_models.DyteMeetingParticipant.objects.filter(
             dyte_meeting=dyte_meeting,
             last_online_at__isnull=False
+        ).exclude(
+            participant__user_source__utm_source=DEVSCRIPT_SOURCE
         )
 
         host_dmp = dyte_models.DyteMeetingParticipant.objects.filter(
             dyte_meeting=dyte_meeting, participant=group.host, last_online_at__isnull=False
-            )
+        ).exclude(
+            participant__username=DEVSCRIPT_HOST_CREATOR
+        )
         if not len(host_dmp) == 1:
             host_end = group.start
         else:
@@ -360,6 +374,8 @@ def get_total_streamers(start_date=None, end_date=None):
         start__gte=start_datetime,
         start__lte=end_datetime,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     ).values("host").distinct().count()
 
 
@@ -387,6 +403,8 @@ def get_total_followers(start_date=None, end_date=None):
     return creator_models.Follower.objects.filter(
         created_at__gte=start_datetime,
         created_at__lte=end_datetime
+    ).exclude(
+        user__user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
 
 
@@ -416,6 +434,8 @@ def get_total_subscribers(start_date=None, end_date=None):
         updated_at__gte=start_datetime,
         updated_at__lte=end_datetime,
         notify=True
+    ).exclude(
+        user__user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
 
 
@@ -455,6 +475,8 @@ def get_mau_for_duration(start_date=None, end_date=None):
         unique_rsvps = models.Request.objects.filter(
             created_at__gte=start,
             created_at__lte=end
+        ).exclude(
+            requester__user_source__utm_source=DEVSCRIPT_SOURCE
         ).values("requester_id").distinct()
 
         all_rsvps += unique_rsvps.count()
@@ -500,6 +522,8 @@ def get_wau_for_duration(start_date=None, end_date=None):
         unique_rsvps = models.Request.objects.filter(
             created_at__gte=start,
             created_at__lte=end
+        ).exclude(
+            requester__user_source__utm_source=DEVSCRIPT_SOURCE
         ).values("requester_id").distinct()
 
         all_rsvps += unique_rsvps.count()
@@ -543,6 +567,8 @@ def get_dau_for_duration(start_date=None, end_date=None):
         unique_rsvps = models.Request.objects.filter(
             created_at__gte=start,
             created_at__lte=end
+        ).exclude(
+            requester__user_source__utm_source=DEVSCRIPT_SOURCE
         ).values("requester_id").distinct()
 
         all_rsvps += unique_rsvps.count()
@@ -576,6 +602,8 @@ def get_organic_creators(start_date=None, end_date=None):
         created_at__gte=start_date,
         created_at__lte=end_date,
         point_of_contact__isnull=True
+    ).exclude(
+        user__user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
 
 
@@ -605,10 +633,12 @@ def get_total_users_since_organic(start_date=None, end_date=None):
         start_datetime > DEFAULT_ORGANIC_USERS_START_DATE.date() else DEFAULT_ORGANIC_USERS_START_DATE.date()
 
     return get_user_model().objects.filter(
-            date_joined__gte=start,
-            date_joined__lte=end_datetime,
-            groups__name=user_constants.CRATER_CLUB_GROUP
-        ).count()
+        date_joined__gte=start,
+        date_joined__lte=end_datetime,
+        groups__name=user_constants.CRATER_CLUB_GROUP
+    ).exclude(
+        user_source__utm_source=DEVSCRIPT_SOURCE
+    ).count()
 
 
 def get_total_number_of_users(start_date=None, end_date=None):
@@ -634,10 +664,12 @@ def get_total_number_of_users(start_date=None, end_date=None):
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
     return get_user_model().objects.filter(
-            date_joined__gte=start_datetime,
-            date_joined__lte=end_datetime,
-            groups__name=user_constants.CRATER_CLUB_GROUP
-        ).count()
+        date_joined__gte=start_datetime,
+        date_joined__lte=end_datetime,
+        groups__name=user_constants.CRATER_CLUB_GROUP
+    ).exclude(
+        user_source__utm_source=DEVSCRIPT_SOURCE
+    ).count()
 
 
 def get_number_of_rsvp_for_duration(start_date=DEFAULT_START_DATE, end_date=None, rsvp_count=1):
@@ -656,6 +688,8 @@ def get_number_of_rsvp_for_duration(start_date=DEFAULT_START_DATE, end_date=None
     unique_rsvps = models.Request.objects.filter(
         created_at__gte=start_date,
         created_at__lte=end_date
+    ).exclude(
+        requester__user_source__utm_source=DEVSCRIPT_SOURCE
     ).values("requester_id").annotate(
         requester_count=Count("requester_id")
     ).filter(requester_count__gte=rsvp_count)
@@ -690,6 +724,8 @@ def get_number_of_streams_watched_by_participant(start_date=None, end_date=None,
             updated_at__gte=start_date,
             updated_at__lte=end_date,
             last_online_at__isnull=False
+        ).exclude(
+            participant__user_source__utm_source=DEVSCRIPT_SOURCE
         ).values("participant_id").annotate(
             participant_count=Count("participant_id")
         ).filter(participant_count__gte=online_count)
@@ -726,6 +762,8 @@ def get_rsvp_after_date_joined_duration(start_date=None, end_date=None, duration
     all_rsvps = models.Request.objects.filter(
         created_at__gte=start_date,
         created_at__lte=end_date
+    ).exclude(
+        requester__user_source__utm_source=DEVSCRIPT_SOURCE
     ).order_by("created_at").values(
         "requester_id",
         "requester__date_joined",
@@ -821,6 +859,8 @@ def get_average_minutes_on_streams_participants(start_date=None, end_date=None):
         start__gte=start_date,
         start__lte=end_date,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     )
 
     total_minutes = 0
@@ -867,6 +907,8 @@ def get_average_minutes_on_streams_hosts(start_date=None, end_date=None):
         start__gte=start_date,
         start__lte=end_date,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     )
 
     total_minutes = 0
@@ -911,6 +953,8 @@ def total_number_of_streams(start_date=None, end_date=None):
         start__gte=start_date,
         start__lte=end_date,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     ).count()
 
 
@@ -943,6 +987,8 @@ def get_average_streams_per_day(start_date=None, end_date=None):
         start__gte=start_date,
         start__lte=end_date,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     ).count()
 
     return streams, round(streams/days, 2)
@@ -992,6 +1038,8 @@ def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
             attendees=attendee,
             start__gte=start_date,
             start__lte=end_date
+        ).exclude(
+            host__username=DEVSCRIPT_HOST_CREATOR
         ).count()
 
         # Either october or user date joined.
@@ -1033,6 +1081,8 @@ def get_average_streams_attended_per_month(start_date=None, end_date=None):
     all_attendees = models.Group.objects.filter(
         start__gte=start_date,
         start__lte=end_date
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     ).values_list("attendees", flat=True)
     # Make attendees distinct.
     all_attendees = list(set(all_attendees))
@@ -1097,6 +1147,8 @@ def get_average_streams_streamed_per_month(start_date, end_date=None):
     all_speakers = models.Group.objects.filter(
         start__gte=start_date,
         start__lte=end_date
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     ).values_list("host", flat=True)
     # Make speakers distinct.
     all_speakers = list(set(all_speakers))
@@ -1160,6 +1212,8 @@ def get_average_rsvps_per_stream(start_date=None, end_date=None):
         created_at__gte=start_date,
         created_at__lte=end_date,
         participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+    ).exclude(
+        requester__user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
 
     total_groups = models.Request.objects.filter(
@@ -1167,6 +1221,8 @@ def get_average_rsvps_per_stream(start_date=None, end_date=None):
         created_at__lte=end_date,
         participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
         group__type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        requester__user_source__utm_source=DEVSCRIPT_SOURCE
     ).values("group").distinct().count()
 
     return round(total_requests/total_groups, 2)
@@ -1197,6 +1253,8 @@ def get_average_attendees_per_stream(start_date=None, end_date=None):
         start__gte=start_date,
         start__lte=end_date,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
     )
 
     total_groups = 0
@@ -1230,6 +1288,8 @@ def get_chat_messages_for_streams(start_date, end_date=None):
     groups = models.GroupMessage.objects.filter(
         created_at__gte=start_date,
         created_at__lte=end_date
+    ).exclude(
+        sender__user_source__utm_source=DEVSCRIPT_SOURCE
     ).values_list("group", flat=True)
     # Get distinct groups.
     groups = list(set(groups))
@@ -1247,6 +1307,26 @@ def get_chat_messages_for_streams(start_date, end_date=None):
         total_message_count += message_count
 
     return total_message_count, total_groups, round(total_message_count/total_groups, 2)
+
+
+def get_number_of_users_who_messaged(start_date, end_date=None):
+    """Get total number of users who sent a chat message.
+
+    Data Points:
+        Total users with chat message
+
+    """
+    if not end_date:
+        end_date = timezone.now()
+
+    return models.GroupMessage.objects.filter(
+        created_at__gte=start_date,
+        created_at__lte=end_date
+    ).exclude(
+        sender__user_source__utm_source=DEVSCRIPT_SOURCE
+    ).exclude(
+        sender__email__in=EMAIL_TO_EXCLUDE
+    ).values("sender").distinct().count()
 
 
 # -------- PRIVATE FUNCTIONS -------- #
