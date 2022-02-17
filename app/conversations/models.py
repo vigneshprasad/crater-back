@@ -455,6 +455,12 @@ class Group(base_model.BaseModel):
             users.append(speaker)
         return users
 
+    def get_series(self):
+        """Return series of the group"""
+        series = self.series_groups.filter(is_published=True).first()
+
+        return series
+
 
 class Invite(base_model.BaseModel):
 
