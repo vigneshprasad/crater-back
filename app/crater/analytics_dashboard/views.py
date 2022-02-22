@@ -207,7 +207,6 @@ class AnalyticsDashboardViewSet(
     def traffic_source_types(self, request):
         user = request.user
 
-        # Filter followers by user sources for current month
         traffic_source_data = creator_private.get_traffic_sources_for_creator(
             user=user
         )
