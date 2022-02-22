@@ -7,7 +7,7 @@ from matching import models
 from users import models as user_models
 
 
-@receiver(post_save, sender=user_models.Profile)
+# @receiver(post_save, sender=user_models.Profile)
 def update_or_create_user_score_on_profile_update(sender, instance, *args, **kwargs):
     """Update or create user score if the user model gets updated"""
     user = instance.user

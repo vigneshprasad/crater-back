@@ -1,5 +1,3 @@
-import nltk
-
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,9 +8,6 @@ from matching import constants
 from matching import public
 from matching import models
 from matching import serializers
-
-nltk.download('punkt')
-nltk.download('wordnet')
 
 
 class TopMatchesPublicViewSet(
@@ -82,4 +77,3 @@ class TopMatchesPublicViewSet(
         user_info = public.get_user_info(user)
 
         return Response(user_info)
-

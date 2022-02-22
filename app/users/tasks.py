@@ -98,14 +98,3 @@ def auto_remove_not_used_cover_files(self):
         created__lte=one_day_ago
     )
     files.delete()
-
-
-@shared_task(bind=True, name='auto_refresh_instagram_long_access_token')
-def auto_refresh_instagram_long_access_token(self):
-    from .models import Profile
-    profiles = Profile.objects.filter(instagram__isnull=False)
-    for profile in profiles:
-        new_token = instagram_service.refresh_long_access_token(profile.instagram)
-        if new_token:
-            profile.instagram = new_token
-            profile.save()

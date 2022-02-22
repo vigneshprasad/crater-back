@@ -124,6 +124,7 @@ INSTALLED_APPS = [
     "integrations.agora",
     "integrations.dyte",
     "integrations.retool",
+    "integrations.firebase",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -453,6 +454,13 @@ GOOGLE_API_AUTH_URI = os.getenv("GOOGLE_API_AUTH_URI", "")
 GOOGLE_API_TOKEN_URI = os.getenv("GOOGLE_API_TOKEN_URI", "")
 GOOGLE_API_AUTH_PROVIDER_CERT_URL = os.getenv("GOOGLE_API_AUTH_PROVIDER_CERT_URL", "")
 GOOGLE_API_CLIENT_CERT_URL = os.getenv("GOOGLE_API_CLIENT_CERT_URL", "")
+
+# -------------- FIREBASE ------------ #
+FIREBASE_ACCOUNT_PRIVATE_KEY_ID = os.getenv("FIREBASE_ACCOUNT_PRIVATE_KEY_ID", "")
+FIREBASE_ACCOUNT_PRIVATE_KEY = os.getenv("FIREBASE_ACCOUNT_PRIVATE_KEY", "").replace("\\n", "\n")
+FIREBASE_AUTH_PROVIDER_CERT_URL = os.getenv("FIREBASE_AUTH_PROVIDER_CERT_URL", "")
+FIREBASE_CLIENT_CERT_URL = os.getenv("FIREBASE_CLIENT_CERT_URL", "")
+FIREBASE_CLIENT_ID = os.getenv("FIREBASE_CLIENT_ID", "")
 
 # Google credentials to access API.
 GOOGLE_API_CREDENTIALS = {

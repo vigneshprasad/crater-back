@@ -302,7 +302,7 @@ def send_whatsapp_reminder_for_webinar_host(group):
     host = group.host
     start_time = group.get_display_start_time()
     topic_name = group.topic.name
-    stream_link = "https://crater.club/livestream/{group_id}".format(
+    stream_link = "https://crater.club/session/{group_id}".format(
         group_id=group.id
     )
 
@@ -371,7 +371,7 @@ def send_whatsapp_reminder_for_webinar_attendee_and_follower(user, group):
         return False
 
     topic_name = group.topic.name
-    stream_link = "https://crater.club/livestream/{group_id}".format(
+    stream_link = "https://crater.club/session/{group_id}".format(
         group_id=group.id
     )
 

@@ -29,7 +29,6 @@ class SourceAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.StackedInline):
     model = Profile
     form = ProfileForm
-    autocomplete_fields = ["work_city"]
 
 
 @admin.register(get_user_model())
@@ -43,45 +42,26 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     list_display_links = ("action", "username")
     edit_icon = "launch"
     icon_name = "person"
-    list_display = ("username", "name", "email", "group", "score", "date_joined", "status", "is_active", "is_approved", "action")
-    list_editable = ["is_active", "is_approved"]
+    list_display = ("username", "name", "email", "group", "score", "date_joined", "is_active", "action")
+    list_editable = ["is_active", ]
     search_fields = ("username", "name", "email", "phone_number")
-    list_filter = ("is_active", GroupNameUserFilter, "is_approved")
+    list_filter = ("is_active", GroupNameUserFilter, )
     form = UserForm
     fieldsets = (
         ("Approvals", {
             "fields": (
                 ("is_active", "groups"),
-                ("is_approved", "is_service_approved"),
             ),
         }),
         ("User Data", {
             "fields": (
                 ("name", "email"),
                 ("username", "phone_number"),
-                ("referer", "phone_number_verified"),
-                ("rating", "intent"),
-                "objectives",
-                "source",
-                "new_source",
-                "score",
-                "city"
+                "score"
             ),
         }),
     )
-    autocomplete_fields = ["city"]
-    readonly_fields = ["referer", "rating"]
     inlines = [ProfileAdmin]
-    actions = ["approve_users"]
-
-    @staticmethod
-    def status(user):
-        if not user.is_active:
-            return _("Banned")
-
-        if user.is_approved:
-            return _("Approved")
-        return _("Pending")
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("groups").filter(is_superuser=False, is_staff=False)
@@ -91,11 +71,6 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
         if not user.groups.exists():
             return mark_safe("<i class='material-icons red-color medium-icon'>highlight_off</i>")
         return ", ".join([group.name for group in user.groups.all()])
-
-    def approve_users(modeladmin, request, queryset):
-        queryset.update(is_approved=True)
-    approve_users.short_description = _("Approve users")
-
 
 @admin.register(Admin)
 class AdminAdmin(ViewActionMixin, admin.ModelAdmin):

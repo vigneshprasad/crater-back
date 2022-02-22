@@ -63,13 +63,6 @@ def create_push_and_rent(sender, instance, *args, **kwargs):
     return instance
 
 
-@receiver(post_save, sender=get_user_model())
-def set_referrer_relation(sender, instance, *args, **kwargs):
-    if not instance.referer:
-        return
-    models.Referral.objects.get_or_create(user=instance)
-
-
 @receiver(post_save, sender=User)
 def send_profile_completed_points_signal(sender, instance, created, *args, **kwargs):
     signals.user_updated.send(
@@ -82,23 +75,6 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
             sender=instance.__class__,
             user=instance
         )
-
-    if instance.profile_completed:
-        points_log = instance.points_log
-        if not points_log.filter(action__key=PROFILE_COMPLETED_POINTS_KEY).exists():
-            signals.profile_completed.send(
-                sender=instance.__class__,
-                rule_key=PROFILE_COMPLETED_POINTS_KEY,
-                user=instance
-            )
-        if instance.referer:
-            referer_points_log = instance.referer.points_log
-            if not referer_points_log.filter(action__key=REFERAL_SUCCESS_POINTS_KEY).exists():
-                signals.referal_success_points_signal.send(
-                    sender=instance.referer.__class__,
-                    user=instance.referer,
-                    rule_key=REFERAL_SUCCESS_POINTS_KEY
-                )
 
 
 @receiver(signals.profile_requested)

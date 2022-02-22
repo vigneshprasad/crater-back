@@ -1,6 +1,7 @@
 import csv
 from urllib import request as urllib_request
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
 from conversations import constants
@@ -36,6 +37,14 @@ def run(
         print("Name: ", name)
 
         if not dry_run:
+            username_match = get_user_model().objects.filter(username=phone_number)
+            email_match = get_user_model().objects.filter(email=email)
+            if username_match:
+                print("Username exists")
+                continue
+            if email_match:
+                print("Email exists")
+                continue
             user, created = users_public.get_or_create_user(phone_number)
             create_or_update_str = "Created" if created else "Updated"
             print("{} for phone number: {}".format(create_or_update_str, phone_number))
