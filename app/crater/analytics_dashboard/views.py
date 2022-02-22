@@ -210,24 +210,10 @@ class AnalyticsDashboardViewSet(
     )
     def traffic_source_types(self, request):
         user = request.user
-        now = datetime.datetime.now()
 
         # Filter followers by user sources for current month
-        traffic_source_data = creator_models.Follower.objects.filter(
-            creator__user=user,
-            unfollowed=False,
-            followed_at__month=now.month,
-            followed_at__year=now.year
-        ).values(
-            source_name=Case(
-                When(
-                    user__user_source__utm_medium=user.pk,
-                    then=F("user__user_source__utm_source")
-                ),
-                default=Value("Crater")
-            )
-        ).annotate(
-            count=Count("id", distinct=True)
+        traffic_source_data = creator_private.get_traffic_sources_for_creator(
+            user=user
         )
 
         return Response(traffic_source_data, status=status.HTTP_200_OK)
@@ -239,22 +225,9 @@ class AnalyticsDashboardViewSet(
     def users_by_crater(self, request):
         user = request.user
 
-        # Filter followers by user
-        creator_followers = creator_models.Follower.objects.filter(
-            creator__user=user,
-            unfollowed=False
+        percentage = creator_private.get_percentage_creator_followers_from_crater(
+            user=user
         )
-
-        total_rsvps = creator_followers.count()
-
-        if not total_rsvps:
-            return Response({"percentage: ", 0}, status=status.HTTP_200_OK)
-
-        users_by_crater_count = creator_followers.exclude(
-            user__user_source__utm_medium=user.pk
-        ).count()
-
-        percentage = round((users_by_crater_count / total_rsvps) * 100, 2)
 
         response = {"percentage": percentage}
 

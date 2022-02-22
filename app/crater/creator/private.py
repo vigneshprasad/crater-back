@@ -4,7 +4,7 @@ from crater.creator import models
 from crater.creator import signals
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import F, Count, Value, Window
+from django.db.models import F, Count, Value, Window, Case, When
 from django.db.models.functions import TruncDate, Coalesce, Concat, RowNumber
 
 
@@ -341,3 +341,63 @@ def get_top_creators_by_month(followed_at_date, count=5, user=None):
     top_creators = top_creators[:count]
 
     return top_creators, requested_creator_rank
+
+
+def get_traffic_sources_for_creator(user):
+    """Returns creator followers count by various
+        traffic sources for current month.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    now = datetime.datetime.now()
+
+    traffic_source_data = models.Follower.objects.filter(
+        creator__user=user,
+        unfollowed=False,
+        followed_at__month=now.month,
+        followed_at__year=now.year
+    ).values(
+        source_name=Case(
+            When(
+                user__user_source__utm_medium=user.pk,
+                then=F("user__user_source__utm_source")
+            ),
+            default=Value("Crater")
+        )
+    ).annotate(
+        count=Count("id", distinct=True)
+    )
+
+    return traffic_source_data
+
+
+def get_percentage_creator_followers_from_crater(user):
+    """Returns percentage of creator's followers from Crater.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    # Filter creator's followers
+    creator_followers = models.Follower.objects.filter(
+        creator__user=user,
+        unfollowed=False
+    )
+
+    total_rsvps = creator_followers.count()
+
+    if not total_rsvps:
+        return None
+
+    users_by_crater_count = creator_followers.exclude(
+        user__user_source__utm_medium=user.pk
+    ).count()
+
+    percentage_creator_followers_from_crater = round(
+        (users_by_crater_count / total_rsvps) * 100,
+        2
+    )
+
+    return percentage_creator_followers_from_crater
