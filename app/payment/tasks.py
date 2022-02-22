@@ -42,39 +42,3 @@ def charge_subscription_payment(user_pk):
                     )
     except User.DoesNotExist:
         pass
-
-
-@shared_task(name="check_subscription")
-def check_subscription():
-    date = timezone.now().date()
-    subs = Subscription.objects.filter(date_end__lt=date, is_active=True)
-    subs.update(is_active=False)
-    for sub in subs:
-        sub.is_active = False
-        trial_sub = sub.user.subscriptions.filter(is_trial=True)
-        if not trial_sub.exists():
-            Subscription.objects.create(
-                user=sub.user,
-                is_trial=True,
-                membership='premium',
-                date_start=date,
-                date_end=date + relativedelta(months=31)
-            )
-        else:
-            charge_subscription_payment.delay(sub.user.pk)
-
-
-@shared_task(name="send_subs_warning_email")
-def send_subs_email():
-    month_date = timezone.now() + relativedelta(months=1)
-    two_weeks_date = timezone.now() + relativedelta(weeks=2)
-    month_subs = Subscription.objects.filter(
-        date_end=month_date.date(), is_active=True, date_end__gt=datetime.date(2020, 12, 1)
-    )
-    two_weeks_subs = Subscription.objects.filter(
-        date_end=two_weeks_date.date(), is_active=True, date_end__gt=datetime.date(2020, 12, 1)
-    )
-    for sub in month_subs:
-        sub.send_month_warning()
-    for sub in two_weeks_subs:
-        sub.send_two_weeks_warning()

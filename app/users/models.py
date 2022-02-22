@@ -662,8 +662,13 @@ class Source(base_models.BaseModel):
 
 
 class UserActivity(base_models.BaseModel):
-    """This model stores users last active time."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    """This model stores users last active time.
+
+    Note:
+        One user will have only one UserActivity.
+
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     last_active = models.DateTimeField()
 
 

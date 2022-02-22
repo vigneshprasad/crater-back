@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from users import signals
 from users import models
@@ -52,8 +53,29 @@ def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
 
 @receiver(signals.user_created)
 def create_profile_on_user_creation(sender, user, *args, **kwargs):
-    profile, created = models.Profile.objects.get_or_create(user=user)
-    return profile
+    """Create profile on user creation.
+
+    Args:
+        sender(class): User class representation.
+        user(User): User object that got created.
+
+    """
+    models.Profile.objects.get_or_create(user=user)
+
+
+@receiver(signals.user_created)
+def create_user_activity_on_user_creator(sender, user, *args, **kwargs):
+    """Create user activity entry on user creation
+
+    Args:
+        sender(class): User class representation.
+        user(User): User object that got created.
+
+    """
+    user_activity = models.UserActivity.objects.get_or_create(user=user)
+    # Update last active.
+    user_activity.last_active = timezone.now()
+    user_activity.save()
 
 
 @receiver(pre_save, sender=get_user_model())
@@ -87,11 +109,13 @@ def update_user_activity(sender, profile, **kwargs):
             request.
 
     """
-    user_activity, created = models.UserActivity.objects.update_or_create(
-        user=profile.user,
-        defaults={
-            "last_active": datetime.datetime.now()
-        }
-    )
 
-    return created
+    user_activity = models.UserActivity.objects.filter(user=profile.user).last()
+    if not user_activity:
+        return False
+
+    # Update last active for the user.
+    user_activity.last_active = timezone.now()
+    user_activity.save()
+
+    return True
