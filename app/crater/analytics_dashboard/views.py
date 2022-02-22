@@ -169,35 +169,15 @@ class AnalyticsDashboardViewSet(
         user = request.user
         now = datetime.datetime.now()
 
-        # Filter top 5 creators with large follower count for current month
-        ranking_data = creator_models.Follower.objects.filter(
-            followed_at__month=now.month,
-            followed_at__year=now.year
-        ).values(
-            creator_user_pk=F("creator__user"),
-            creator_name=F("creator__user__name"),
-            creator_image=Coalesce(Concat(
-                Value(f"{settings.MEDIA_URL}"),
-                F("creator__user__profile__photo")
-            ), Value(None))
-        ).annotate(
-            follower_count=Count("id", distinct=True)
-        ).order_by(
-            "-follower_count"
-        ).annotate(
-            rank=Window(expression=RowNumber())
+        top_creators, my_rank = creator_private.get_top_creators_by_month(
+            followed_at_date=now,
+            count=3,
+            user=user
         )
 
-        # Get requested creator's rank
-        creator_ranking_data = ranking_data.filter(creator_user_pk=user.pk)
-        my_rank = None
-        if creator_ranking_data:
-            my_rank = creator_ranking_data.first().get("rank")
-
-        ranking_data = ranking_data[:3]
-
-        # Filter creator's best stream based on number of RSVPs and messages
-        for data in ranking_data:
+        # Filter creator's best stream based on number of number of
+        # RSVPs and messages
+        for data in top_creators:
             best_stream = conversations_models.Group.objects.filter(
                 is_live=False,
                 closed=True,
@@ -219,7 +199,7 @@ class AnalyticsDashboardViewSet(
 
         response = {
             "rank": my_rank,
-            "creator_ranking": ranking_data
+            "creator_ranking": top_creators
         }
 
         return Response(response, status=status.HTTP_200_OK)

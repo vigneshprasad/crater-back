@@ -301,7 +301,7 @@ def get_follower_count_by_date(user, start_datetime, end_datetime):
 
 
 def get_top_creators_by_month(followed_at_date, count=5, user=None):
-    """Returns top creators by month.
+    """Returns top creators by month and rank of requested creator.
 
     Args:
         followed_at_date(DateTime): Followed at datetime
@@ -332,7 +332,7 @@ def get_top_creators_by_month(followed_at_date, count=5, user=None):
         rank=Window(expression=RowNumber())
     )
 
-    # Return rank of given creator
+    # Return rank of requested creator
     if user:
         requested_creator_ranking_data = top_creators.filter(creator_user_pk=user.pk)
         if requested_creator_ranking_data:
