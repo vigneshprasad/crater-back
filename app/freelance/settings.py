@@ -33,6 +33,10 @@ ENVIRONMENT_PROD = "prod"
 ENVIRONMENT_STAGE = "stage"
 ENVIRONMENT_DEV = "dev"
 
+CRATER_FRONT_URL = "https://crater.club/" if \
+    ENVIRONMENT == ENVIRONMENT_PROD else "https://penitence-pre-prod.vercel.app/"
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(BASE_DIR)
@@ -434,7 +438,8 @@ sentry_sdk.init(
 )
 
 # ----------- FRESHCHAT ---------#
-ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
+# ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
+ALLOW_WHATSAPP_SENDING = True
 FRESHCHAT_BASE_URL = "https://api.in.freshchat.com/v2"
 FRESHCHAT_USER_CREATION_ALLOWED = False if os.getenv("FRESHCHAT_USER_CREATION_ALLOWED", True) == "False" else True
 FRESHCHAT_APP_ID = os.getenv("FRESHCHAT_APP_ID")

@@ -1,4 +1,5 @@
 from conversations import models
+from conversations import public
 from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import freshchat_service
 from wn_analytics import models as analytics_models
@@ -40,7 +41,7 @@ def run(group_id, link, users=None, dry_run=True):
         if not attendee_name:
             # Not throwing error since we can't fix
             # this without user input.
-            continue
+            attendee_name = freshchat_constants.PLACEHOLDER_NAME_FOR_WHATSAPP
 
         topic_name = group.topic.name
         stream_link = link
@@ -107,7 +108,7 @@ def run_for_only_devscript(group_id, link, users=None, dry_run=True):
         if not attendee_name:
             # Not throwing error since we can't fix
             # this without user input.
-            continue
+            attendee_name = freshchat_constants.PLACEHOLDER_NAME_FOR_WHATSAPP
 
         source = analytics_models.UserSource.objects.filter(
             user=user
@@ -119,9 +120,7 @@ def run_for_only_devscript(group_id, link, users=None, dry_run=True):
             continue
 
         topic_name = group.topic.name
-        stream_link = link if link else "https://crater.club/livestream/{group_id}".format(
-            group_id=group.id
-        )
+        stream_link = link if link else public.get_link_for_webinar(group)
 
         data_2 = freshchat_constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
             creator_name=creator_name,
