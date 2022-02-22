@@ -1,5 +1,10 @@
+import datetime
+
 from crater.creator import models
 from crater.creator import signals
+from dateutil.relativedelta import relativedelta
+from django.db.models import F, Count
+from django.db.models.functions import TruncDate
 
 
 def create_default_community_for_creator(creator):
@@ -156,6 +161,20 @@ def get_subscriber_count_for_creator(creator):
     ).count()
 
 
+def get_subscriber_count(user):
+    """Returns count of subscribers a user has.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    return models.Follower.objects.filter(
+        creator__user=user,
+        unfollowed=False,
+        notify=True
+    ).count()
+
+
 def get_or_create_creator(user):
     """Return a creator for the provided user
 
@@ -171,3 +190,110 @@ def get_or_create_creator(user):
         creator.save()
 
     return creator
+
+
+def get_follower_count(user):
+    """Returns count of follower a user has.
+
+    Args:
+        user(User): User on the platform.
+
+    """
+    return models.Follower.objects.filter(
+        creator__user=user,
+        unfollowed=False
+    ).count()
+
+
+def get_follower_count_by_month(user, followed_at):
+    """Returns count of follower a user has by given month and year
+
+    Args:
+        user(User): User on the platform
+        followed_at(DateTime): Followed at datetime
+
+    """
+    return models.Follower.objects.filter(
+        creator__user=user,
+        unfollowed=False,
+        followed_at__month=followed_at.month,
+        followed_at__year=followed_at.year
+    ).count()
+
+
+def get_follower_growth_over_month(user, followed_at):
+    """Returns follower growth percentage change over
+        previous month.
+
+    Args:
+        user(User): User on the platform
+        followed_at(DateTime): Followed at datetime
+
+    """
+    # Get datetime of previous month
+    followed_at_prev_month = followed_at - relativedelta(months=1)
+
+    # Get follower count for previous month
+    follower_count_prev_month = get_follower_count_by_month(
+        user=user,
+        followed_at=followed_at_prev_month
+    )
+
+    if not follower_count_prev_month:
+        return None
+
+    # Get follower count for given month
+    follower_count_given_month = get_follower_count_by_month(
+        user=user,
+        followed_at=followed_at
+    )
+
+    percentage_growth = round(
+        (
+                (follower_count_given_month - follower_count_prev_month) / follower_count_prev_month
+        ) * 100,
+        2
+    )
+
+    return percentage_growth
+
+
+def get_follower_count_by_date(user, start_datetime, end_datetime):
+    """Returns follower count by date till current date, given
+        the followed_at start date.
+
+    Args:
+        user(User): User instance of creator
+        start_datetime(DateTime): Followed at start datetime
+        end_datetime(DateTime): Followed at end datetime
+
+    """
+    follower_count_data = models.Follower.objects.filter(
+        creator__user=user,
+        unfollowed=False,
+        followed_at__date__gte=start_datetime
+    ).values(
+        followed_at_date=TruncDate(F("followed_at__date"))
+    ).annotate(
+        follower_count=Count("followed_at_date")
+    )
+
+    follower_count_by_date = list(follower_count_data)
+
+    # Followed at dates which has follower count
+    present_dates = follower_count_data.values_list("followed_at_date", flat=True)
+
+    # Add missing dates to response
+    delta = end_datetime - start_datetime
+    for i in range(delta.days + 1):
+        date = start_datetime + datetime.timedelta(days=i)
+        if date not in present_dates:
+            follower_count_by_date.append({
+                "followed_at_date": date,
+                "follower_count": 0
+            })
+
+    # Sort by followed_at_date
+    follower_count_by_date.sort(key=lambda x: x["followed_at_date"])
+
+    return follower_count_by_date
