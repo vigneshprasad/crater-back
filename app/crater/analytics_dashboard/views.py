@@ -1,20 +1,16 @@
 import datetime
 
-from django.db.models import Count, F, Value, Window, When, Case
-from django.db.models.functions import Coalesce, Concat, TruncDate, RowNumber
+from django.db.models import Count, F
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from users import permissions as user_permissions
-from crater.creator import models as creator_models
 from conversations import models as conversations_models
-from conversations import constants as conversations_constants
 from conversations import services as conversations_services
 from crater.creator import private as creator_private
 from crater.analytics_dashboard import serializers
-from django.conf import settings
 
 
 class AnalyticsDashboardViewSet(
