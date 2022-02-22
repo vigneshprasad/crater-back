@@ -3,8 +3,9 @@ import datetime
 from crater.creator import models
 from crater.creator import signals
 from dateutil.relativedelta import relativedelta
-from django.db.models import F, Count
-from django.db.models.functions import TruncDate
+from django.conf import settings
+from django.db.models import F, Count, Value, Window
+from django.db.models.functions import TruncDate, Coalesce, Concat, RowNumber
 
 
 def create_default_community_for_creator(creator):
@@ -297,3 +298,46 @@ def get_follower_count_by_date(user, start_datetime, end_datetime):
     follower_count_by_date.sort(key=lambda x: x["followed_at_date"])
 
     return follower_count_by_date
+
+
+def get_top_creators_by_month(followed_at_date, count=5, user=None):
+    """Returns top creators by month.
+
+    Args:
+        followed_at_date(DateTime): Followed at datetime
+        count(int): Number of top creators to be returned
+        user(User): User instance of a creator
+
+    """
+    requested_creator_rank = None
+
+    top_creators = models.Follower.objects.filter(
+        followed_at__month=followed_at_date.month,
+        followed_at__year=followed_at_date.year
+    ).values(
+        creator_user_pk=F("creator__user"),
+        creator_name=F("creator__user__name"),
+        creator_image=Coalesce(
+            Concat(
+                Value(f"{settings.MEDIA_URL}"),
+                F("creator__user__profile__photo")
+            ),
+            Value(None)
+        )
+    ).annotate(
+        follower_count=Count("id", distinct=True)
+    ).order_by(
+        "-follower_count"
+    ).annotate(
+        rank=Window(expression=RowNumber())
+    )
+
+    # Return rank of given creator
+    if user:
+        requested_creator_ranking_data = top_creators.filter(creator_user_pk=user.pk)
+        if requested_creator_ranking_data:
+            requested_creator_rank = requested_creator_ranking_data.first().get("rank")
+
+    top_creators = top_creators[:count]
+
+    return top_creators, requested_creator_rank

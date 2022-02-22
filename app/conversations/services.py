@@ -707,7 +707,7 @@ def get_top_streams_of_creator(user, count=5):
 
     Args:
         user(User): User instance of a creator
-        count(number): Number of top streams to return
+        count(int): Number of top streams to return
 
     """
     now = datetime.datetime.now()
