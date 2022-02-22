@@ -64,7 +64,7 @@ def create_profile_on_user_creation(sender, user, *args, **kwargs):
 
 
 @receiver(signals.user_created)
-def create_user_activity_on_user_creator(sender, user, *args, **kwargs):
+def create_user_activity_on_user_creation(sender, user, *args, **kwargs):
     """Create user activity entry on user creation
 
     Args:
@@ -72,10 +72,12 @@ def create_user_activity_on_user_creator(sender, user, *args, **kwargs):
         user(User): User object that got created.
 
     """
-    user_activity = models.UserActivity.objects.get_or_create(user=user)
-    # Update last active.
-    user_activity.last_active = timezone.now()
-    user_activity.save()
+    user_activity, _ = models.UserActivity.objects.get_or_create(
+        user=user,
+        defaults={
+            "last_active": timezone.now()
+        }
+    )
 
 
 @receiver(pre_save, sender=get_user_model())
