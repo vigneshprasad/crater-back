@@ -667,6 +667,9 @@ class GroupRtmp(base_model.BaseModel):
     # facebook = models.BooleanField(default=False)
     # twitter = models.BooleanField(default=False)
 
+    def delete(self, soft=True):
+        super(GroupRtmp, self).delete(soft=False)
+
 
 class GroupMessage(base_model.BaseModel):
     """
@@ -701,12 +704,22 @@ class GroupMessage(base_model.BaseModel):
         null=True,
         blank=True
     )
+    # Temporary field so that we can identify firebase messages
+    # from our backend messages.
+    firebase_message_id = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.pk}-{self.sender.__str__()}"
+
+    def delete(self, soft=True):
+        super(GroupMessage, self).delete(soft=False)
 
     @property
     def get_message_data(self):
