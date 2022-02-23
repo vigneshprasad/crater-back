@@ -43,6 +43,15 @@ def run(date, groups=None, dry_run=True):
                 firebase_message_id = message_data.id
                 message_type = message_dict.get("type")
 
+                # Check if group message exists for firebase_message_id.
+                group_message_exists = conversation_models.GroupMessage.objects.filter(
+                    firebase_message_id=firebase_message_id
+                ).exists()
+
+                # If group_message has been created before continue from there.
+                if group_message_exists:
+                    continue
+
                 user = get_user_model().objects.get(pk=user_pk)
 
                 print("Firebase message ID: ", firebase_message_id)
