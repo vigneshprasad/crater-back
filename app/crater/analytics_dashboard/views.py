@@ -179,6 +179,7 @@ class AnalyticsDashboardViewSet(
                 closed=True,
                 host=data["creator_user_pk"]
             ).values(
+                "id",
                 topic_title=F("topic__name")
             ).annotate(
                 rsvp_count=Count("requests", distinct=True)
@@ -189,8 +190,10 @@ class AnalyticsDashboardViewSet(
             ).first()
 
             if best_stream:
+                data["stream_id"] = best_stream.get("id")
                 data["stream_topic"] = best_stream.get("topic_title")
             else:
+                data["stream_id"] = ""
                 data["stream_topic"] = ""
 
         response = {

@@ -316,6 +316,7 @@ def get_top_creators_by_month(followed_at_date, count=5, user=None):
         followed_at__year=followed_at_date.year
     ).values(
         creator_user_pk=F("creator__user"),
+        creator_slug=F("creator__slug"),
         creator_name=F("creator__user__name"),
         creator_image=Coalesce(
             Concat(
@@ -351,13 +352,9 @@ def get_traffic_sources_for_creator(user):
         user(User): User instance of a creator
 
     """
-    now = datetime.datetime.now()
-
     traffic_source_data = models.Follower.objects.filter(
         creator__user=user,
-        unfollowed=False,
-        followed_at__month=now.month,
-        followed_at__year=now.year
+        unfollowed=False
     ).values(
         source_name=Case(
             When(
