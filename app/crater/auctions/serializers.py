@@ -6,26 +6,25 @@ from crater.auctions import constants, models
 from crater.creator import serializers as creator_serializers
 from base import serializers as base_serializers
 from users import serializers as user_serializers
+from crater.rewards import serializers as reward_serializers
 
 
-class AuctionSerializer(serializers.ModelSerializer):
+class RewardAuctionBaseSerializer(serializers.ModelSerializer):
     minimum_bid = serializers.SerializerMethodField(read_only=True)    
-    last_bid = serializers.SerializerMethodField(read_only=True)    
+    last_bid = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = models.Auction
+        model = models.RewardAuction
         fields = (
             "id",
-            "coin",
+            "reward",
             "start",
             "end",
             "is_closed",
             "is_active",
             "base_price",
-            "number_of_coins",
-            "coins_sold",
             "minimum_bid",
-            "last_bid"
+            "last_bid",
         )
     
     @staticmethod
@@ -34,7 +33,6 @@ class AuctionSerializer(serializers.ModelSerializer):
         if not highest_bid:
             return obj.base_price
         return constants.MINIMUM_BID_MULTIPLIER(highest_bid.bid_price)
-
 
     @staticmethod
     def get_last_bid(obj):
@@ -45,29 +43,35 @@ class AuctionSerializer(serializers.ModelSerializer):
 
 
 class BidSerializer(serializers.ModelSerializer):
-    coin_detail = creator_serializers.CoinSerializer(source="auction.coin", read_only=True)
     status_detail = base_serializers.DisplayChoiceField(
         choices=models.Bid.BID_STATUS_CHOICES,
-        read_only=True, source="status"
+        read_only=True,
+        source="status"
     )
     bidder_profile_detail = user_serializers.ProfileSerializer(source="bidder.profile", read_only=True)
+    creator_detail = creator_serializers.CreatorSerializer(source="creator", read_only=True)
+    auction_detail = RewardAuctionBaseSerializer(source="auction", read_only=True)
+    reward_detail = reward_serializers.RewardSerializer(source="auction.reward", read_only=True)
 
     class Meta:
         model = models.Bid
         fields = (
             "id",
+            "creator",
             "bidder",
             "auction",
             "bid_price",
-            "number_of_coins",
+            "quantity",
             "status",
             "is_processed",
             "payment",
-            "coin_detail",
             "amount",
             "created_at",
             "status_detail",
-            "bidder_profile_detail"
+            "bidder_profile_detail",
+            "creator_detail",
+            "auction_detail",
+            "reward_detail"
         )
 
     def to_internal_value(self, data):

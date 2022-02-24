@@ -26,19 +26,18 @@ class AuctionViewSet(
     viewsets.GenericViewSet
 ):
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
-    serializer_class = serializers.AuctionSerializer
-    queryset = models.Auction.objects.filter(is_closed=False)
-    filterset_fields = ["coin__creator"]
+    serializer_class = serializers.RewardAuctionBaseSerializer
+    queryset = models.RewardAuction.objects.filter(is_closed=False)
+    filterset_fields = ["reward"]
 
-    def _get_active_auction(self, creator):
+    def _get_active_auction(self, reward):
         now = timezone.now()
         auctions = self.get_queryset().filter(
             start__lte=now,
             end__gte=now,
-            coin__creator_id=creator
+            reward_id=reward
         ).order_by("-start")
         return auctions
-
 
     @action(
         methods=["GET"],
@@ -49,7 +48,7 @@ class AuctionViewSet(
 
         Args:
             request(Request): Request object.
-            pk(str): Creator ID we are getting the active
+            pk(str): Reward ID we are getting the active
                 auctions for.
 
         """
@@ -73,7 +72,7 @@ class AuctionViewSet(
 
         """
         try:
-            auctions = self.get_queryset().filter(coin=pk)
+            auctions = self.get_queryset().filter(reward=pk)
             total_coins = 0
             for auction in auctions:
                 total_coins += auction.number_of_coins
@@ -86,7 +85,7 @@ class AuctionViewSet(
                 "tokens_circulation": holding.number_of_coins
             }, status=status.HTTP_200_OK)
 
-        except (models.Auction.DoesNotExist, exchange_models.UserCoinHolding.DoesNotExist):
+        except (models.RewardAuction.DoesNotExist, exchange_models.UserCoinHolding.DoesNotExist):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 

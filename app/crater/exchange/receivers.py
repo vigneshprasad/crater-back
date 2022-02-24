@@ -13,4 +13,5 @@ def create_transaction_log_for_capture_success(sender, bid, bidder, intent, *arg
 
 @receiver(signals.auction_created_or_updated)
 def create_transaction_log_for_auction(sender, auction, *args, **kwargs):
-    private.update_or_create_transaction_log_for_auction(auction)
+    # private.update_or_create_transaction_log_for_auction(auction)
+    pass

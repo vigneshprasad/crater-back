@@ -19,7 +19,7 @@ def send_bid_created(sender, instance, *args, **kwargs):
     )
 
 
-@receiver(post_save, sender=models.Auction)
+@receiver(post_save, sender=models.RewardAuction)
 def send_auction_created_or_updated_signal(sender, instance, *args, **kwargs):
     now = timezone.now()
     if instance.end < now and not instance.is_active:

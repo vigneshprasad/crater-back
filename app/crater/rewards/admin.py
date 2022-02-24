@@ -20,8 +20,6 @@ class RewardAdmin(admin.ModelAdmin):
         "creator",
         "name",
         "order",
-        "quantity",
-        "number_of_coins",
         "type",
         "is_active"
     )
