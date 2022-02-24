@@ -59,7 +59,8 @@ class Bid(base_models.BaseModel):
     creator = models.ForeignKey(
         "creator.Creator",
         related_name="bids",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
 
     bidder = models.ForeignKey(
@@ -94,7 +95,8 @@ class Bid(base_models.BaseModel):
     payment = models.ForeignKey(
         "crater_payments.Payment",
         related_name="bid",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True
     )
 
     @property

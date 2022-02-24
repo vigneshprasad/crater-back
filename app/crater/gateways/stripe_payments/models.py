@@ -23,7 +23,8 @@ class PaymentIntent(base_models.BaseModel):
     payment = models.ForeignKey(
         "crater_payments.Payment",
         related_name="stripe_payment_intent",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True,
     )
     customer = models.ForeignKey(
         "stripe_payments.Customer",
@@ -34,10 +35,10 @@ class PaymentIntent(base_models.BaseModel):
         max_digits=10,
         decimal_places=2,
     )
-    intent_id = models.CharField(max_length=128)
-    client_secret = models.CharField(max_length=255)
+    intent_id = models.CharField(max_length=128, null=True,)
+    client_secret = models.CharField(max_length=255, null=True,)
     product_id = models.IntegerField()
-    data = JSONField()
+    data = JSONField(default=dict)
 
 
 class PaymentCharge(base_models.BaseModel):
