@@ -315,16 +315,10 @@ def get_top_creators_by_month(followed_at_date, count=5, user=None):
         followed_at__month=followed_at_date.month,
         followed_at__year=followed_at_date.year
     ).values(
-        creator_user_pk=F("creator__user"),
-        creator_slug=F("creator__slug"),
-        creator_name=F("creator__user__name"),
-        creator_image=Coalesce(
-            Concat(
-                Value(f"{settings.MEDIA_URL}"),
-                F("creator__user__profile__photo")
-            ),
-            Value(None)
-        )
+        pk=F("creator__user"),
+        slug=F("creator__slug"),
+        name=F("creator__user__name"),
+        image=F("creator__user__profile__photo")
     ).annotate(
         follower_count=Count("id", distinct=True)
     ).order_by(
@@ -335,7 +329,7 @@ def get_top_creators_by_month(followed_at_date, count=5, user=None):
 
     # Return rank of requested creator
     if user:
-        requested_creator_ranking_data = top_creators.filter(creator_user_pk=user.pk)
+        requested_creator_ranking_data = top_creators.filter(pk=user.pk)
         if requested_creator_ranking_data:
             requested_creator_rank = requested_creator_ranking_data.first().get("rank")
 

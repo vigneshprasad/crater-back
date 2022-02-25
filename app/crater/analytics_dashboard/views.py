@@ -81,6 +81,7 @@ class AnalyticsDashboardViewSet(
         )
 
         serializer = self.get_serializer(top_streams, many=True)
+        print(serializer.data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -159,7 +160,8 @@ class AnalyticsDashboardViewSet(
 
     @action(
         methods=["get"],
-        detail=False
+        detail=False,
+        serializer_class=serializers.ComparativeRankingSerializer
     )
     def comparative_ranking(self, request):
         user = request.user
@@ -177,7 +179,7 @@ class AnalyticsDashboardViewSet(
             best_stream = conversations_models.Group.objects.filter(
                 is_live=False,
                 closed=True,
-                host=data["creator_user_pk"]
+                host=data["pk"]
             ).values(
                 "id",
                 topic_title=F("topic__name")
@@ -192,14 +194,15 @@ class AnalyticsDashboardViewSet(
             if best_stream:
                 data["stream_id"] = best_stream.get("id")
                 data["stream_topic"] = best_stream.get("topic_title")
-            else:
-                data["stream_id"] = ""
-                data["stream_topic"] = ""
+
+        serializer = self.get_serializer(top_creators, many=True)
 
         response = {
             "rank": my_rank,
-            "creator_ranking": top_creators
+            "creator_ranking": serializer.data
         }
+
+        print(response)
 
         return Response(response, status=status.HTTP_200_OK)
 

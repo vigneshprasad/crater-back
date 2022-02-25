@@ -722,13 +722,7 @@ def get_top_streams_of_creator(user, count=5):
         "id",
         "start",
         topic_title=F("topic__name"),
-        topic_image=Coalesce(
-            Concat(
-                Value(f"{settings.MEDIA_URL}"),
-                F("topic__image")
-            ),
-            Value(None)
-        ),
+        topic_image=F("topic__image")
     ).annotate(
         rsvp_count=Count("requests", distinct=True)
     ).annotate(
