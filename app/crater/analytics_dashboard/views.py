@@ -81,7 +81,6 @@ class AnalyticsDashboardViewSet(
         )
 
         serializer = self.get_serializer(top_streams, many=True)
-        print(serializer.data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -201,8 +200,6 @@ class AnalyticsDashboardViewSet(
             "rank": my_rank,
             "creator_ranking": serializer.data
         }
-
-        print(response)
 
         return Response(response, status=status.HTTP_200_OK)
 
