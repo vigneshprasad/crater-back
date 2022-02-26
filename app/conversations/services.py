@@ -619,6 +619,8 @@ def get_all_past_streams():
 
     # Filter creator's past streams
     past_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
         is_live=False,
         closed=True,
         start__lt=now
@@ -638,6 +640,8 @@ def get_past_streams_of_creator(user):
 
     # Filter creator's past streams
     past_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
         is_live=False,
         closed=True,
         start__lt=now,
@@ -658,6 +662,8 @@ def get_messages_count(user=None, group_ids=None):
     now = datetime.datetime.now()
 
     group_messages = models.GroupMessage.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
         group__is_live=False,
         group__closed=True,
         group__start__lt=now
@@ -714,6 +720,8 @@ def get_top_streams_of_creator(user, count=5):
 
     # Filter top streams for given creator
     top_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
         is_live=False,
         closed=True,
         start__lt=now,
@@ -744,6 +752,8 @@ def get_rsvps_for_creator_streams(user):
     now = datetime.datetime.now()
 
     requests = models.Request.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
         group__host=user,
         group__is_live=False,
         group__closed=True,
