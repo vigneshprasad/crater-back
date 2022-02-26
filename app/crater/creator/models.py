@@ -53,6 +53,7 @@ class Creator(base_models.BaseModel):
         related_name="point_of_contact",
         on_delete=models.CASCADE
     )
+    show_analytics = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-order"]
