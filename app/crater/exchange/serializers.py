@@ -11,6 +11,20 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = models.Transaction
 
 
+class UserRewardSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserReward
+        fields = (
+            "id",
+            "user",
+            "reward",
+            "quantity",
+            "is_redeemed",
+            "quantity_redeemed"
+        )
+
+
 class UserCoinHoldingSerializer(serializers.ModelSerializer):
     coin_detail = creator_serializers.CoinSerializer(source="coin", read_only=True)
     coin_price_log_detail = serializers.SerializerMethodField()

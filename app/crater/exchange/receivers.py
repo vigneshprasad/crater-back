@@ -8,7 +8,8 @@ from crater.exchange import private
 
 @receiver(stripe_payment_signals.capture_payment_intent_success)
 def create_transaction_log_for_capture_success(sender, bid, bidder, intent, *args, **kwargs):
-    private.create_transaction_log_for_bid_payment_success(bid, bidder, intent)
+    # private.update_or_create_user_reward(bid)
+    pass
 
 
 @receiver(signals.auction_created_or_updated)

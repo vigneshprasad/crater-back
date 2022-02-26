@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from crater.auctions import models
 from crater.auctions import signals
 from crater.auctions import constants
+from crater.gateways.stripe_payments import signals as stripe_payment_signals
 
 
 @receiver(post_save, sender=models.Bid)
@@ -43,9 +44,8 @@ def bid_payment_charge_catured(sender, bid, *args, **kwargs):
     bid.save()
 
 
-@receiver(signals.bid_accepted)
-def create_coin_log_for_accepted_bid(sender, bid, *args, **kwargs):
-    models.CoinPriceLog.objects.create(
-        coin=bid.auction.coin,
-        price=bid.bid_price
-    )
+@receiver(stripe_payment_signals.capture_payment_intent_success)
+def update_auction_quantity_on_capture_success(sender, bid, *args, **kwargs):
+    auction = bid.auction
+    auction.quantity_sold += bid.quantity
+    auction.save()

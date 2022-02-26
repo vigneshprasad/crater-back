@@ -27,6 +27,7 @@ router.register("coins", creator_views.CoinsViewSet, base_name="creator-coins")
 
 # Exchange endpoints
 router.register("exchange/coin_holding", exchange_views.UserCoinHoldingViewSet, basename="coin-holdings")
+router.register("exchange/user_reward", exchange_views.UserRewardViewSet, basename="user-rewards")
 
 # Rewards/Redemption endpoints.
 router.register("reward/type", reward_views.RewardTypeViewSet, base_name="reward-types")

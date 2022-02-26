@@ -59,34 +59,6 @@ class AuctionViewSet(
 
         serialized = self.get_serializer(auctions[0])
         return Response(serialized.data)
-    
-    @action(
-        methods=["GET"],
-        detail=True
-    )
-    def summary(self, request, pk, *args, **kwargs):
-        """Returns auction summary for a creator coin
-
-        Args:
-            pk (string): Creator Coin ID
-
-        """
-        try:
-            auctions = self.get_queryset().filter(reward=pk)
-            total_coins = 0
-            for auction in auctions:
-                total_coins += auction.number_of_coins
-            holding = exchange_models.UserCoinHolding.objects.get(
-                user=request.user,
-                coin=pk
-            )
-            return Response({
-                "total_coins": total_coins,
-                "tokens_circulation": holding.number_of_coins
-            }, status=status.HTTP_200_OK)
-
-        except (models.RewardAuction.DoesNotExist, exchange_models.UserCoinHolding.DoesNotExist):
-            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class BidViewSet(
@@ -111,10 +83,10 @@ class BidViewSet(
 
         try:
             bid = self.get_queryset().get(pk=pk)
-            if bid.auction.coin.creator.user != request.user:
+            if bid.creator.user != request.user:
                 # TODO(Abhishek): Create valid Exception
                 raise Exception
-            bid.status = models.Bid.BID_STATUS_CHOICES[2][0]
+            bid.status = constants.BID_STATUS_ACCEPTED_ENUM
             bid.save()
             signals.bid_accepted.send(sender=bid.__class__, bid=bid)
             # Update accepted status
@@ -134,7 +106,16 @@ class BidViewSet(
         permission_classes=[user_permissions.IsAuthenticated]
     )
     def summary(self, request, pk, *args, **kwargs):
-        bids = self.get_queryset().filter(auction__coin=pk)
+        """Returns summary of bids for a creator id.
+
+        Args:
+            request:
+            pk: CreatorId: for getting summery of creatos bid
+            *args:
+            **kwargs:
+
+        """
+        bids = self.get_queryset().filter(creator=pk)
         bids_accepted = bids.filter(status=constants.BID_STATUS_ACCEPTED_ENUM)
         total_recieved = 0
         net_worth = 0

@@ -27,3 +27,14 @@ class UserCoinHoldingViewSet(
     serializer_class = serializers.UserCoinHoldingSerializer
     queryset = models.UserCoinHolding.objects.all()
     filterset_fields = ["user", "coin"]
+
+
+class UserRewardViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.UserRewardSerializer
+    queryset = models.UserReward.objects.all()
+    filterset_fields = ["user", "reward"]

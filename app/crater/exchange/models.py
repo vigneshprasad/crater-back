@@ -55,6 +55,32 @@ class Transaction(base_models.BaseModel):
     )
 
 
+class UserReward(base_models.BaseModel):
+    """This is a log for all users rewards bought and redeemed.
+
+        This is a single source of truth for the rewards a user is
+        holding at any given point.
+
+        """
+
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="reward_holding"
+    )
+    reward = models.ForeignKey(
+        "crater_rewards.Reward",
+        on_delete=models.CASCADE,
+        related_name="reward_holding"
+    )
+    quantity = models.PositiveIntegerField(default=0)
+    redeemed_quantity = models.PositiveIntegerField(default=0)
+    is_redeemed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("user", "reward")
+
+
 class UserCoinHolding(base_models.BaseModel):
     """This is a log for all users coin bought and redeemed.
 

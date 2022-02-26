@@ -42,7 +42,7 @@ class Reward(base_models.BaseModel):
     )
     name = models.CharField(max_length=128)
     text_color = color_fields.ColorField(default="#FFFFFF")
-    description = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
     # Order in which the rewards will show up.
     order = models.PositiveIntegerField(default=0)
