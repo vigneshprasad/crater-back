@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED 1
 
 COPY app /app
 COPY requirements.txt /app/requirements.txt
-COPY docker/start.sh /app/start.sh 
+COPY docker/start_preprod.sh /app/start_preprod.sh 
 
 WORKDIR /app
 
