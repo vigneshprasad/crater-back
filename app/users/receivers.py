@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from users import signals
 from users import models
@@ -52,8 +53,31 @@ def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
 
 @receiver(signals.user_created)
 def create_profile_on_user_creation(sender, user, *args, **kwargs):
-    profile, created = models.Profile.objects.get_or_create(user=user)
-    return profile
+    """Create profile on user creation.
+
+    Args:
+        sender(class): User class representation.
+        user(User): User object that got created.
+
+    """
+    models.Profile.objects.get_or_create(user=user)
+
+
+@receiver(signals.user_created)
+def create_user_activity_on_user_creation(sender, user, *args, **kwargs):
+    """Create user activity entry on user creation
+
+    Args:
+        sender(class): User class representation.
+        user(User): User object that got created.
+
+    """
+    user_activity, _ = models.UserActivity.objects.get_or_create(
+        user=user,
+        defaults={
+            "last_active": timezone.now()
+        }
+    )
 
 
 @receiver(pre_save, sender=get_user_model())
@@ -61,13 +85,6 @@ def create_push_and_rent(sender, instance, *args, **kwargs):
     if not instance.name:
         instance.name = f"{instance.first_name} {instance.last_name}"
     return instance
-
-
-@receiver(post_save, sender=get_user_model())
-def set_referrer_relation(sender, instance, *args, **kwargs):
-    if not instance.referer:
-        return
-    models.Referral.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=User)
@@ -83,23 +100,6 @@ def send_profile_completed_points_signal(sender, instance, created, *args, **kwa
             user=instance
         )
 
-    if instance.profile_completed:
-        points_log = instance.points_log
-        if not points_log.filter(action__key=PROFILE_COMPLETED_POINTS_KEY).exists():
-            signals.profile_completed.send(
-                sender=instance.__class__,
-                rule_key=PROFILE_COMPLETED_POINTS_KEY,
-                user=instance
-            )
-        if instance.referer:
-            referer_points_log = instance.referer.points_log
-            if not referer_points_log.filter(action__key=REFERAL_SUCCESS_POINTS_KEY).exists():
-                signals.referal_success_points_signal.send(
-                    sender=instance.referer.__class__,
-                    user=instance.referer,
-                    rule_key=REFERAL_SUCCESS_POINTS_KEY
-                )
-
 
 @receiver(signals.profile_requested)
 def update_user_activity(sender, profile, **kwargs):
@@ -111,11 +111,13 @@ def update_user_activity(sender, profile, **kwargs):
             request.
 
     """
-    user_activity, created = models.UserActivity.objects.update_or_create(
-        user=profile.user,
-        defaults={
-            "last_active": datetime.datetime.now()
-        }
-    )
 
-    return created
+    user_activity = models.UserActivity.objects.filter(user=profile.user).last()
+    if not user_activity:
+        return False
+
+    # Update last active for the user.
+    user_activity.last_active = timezone.now()
+    user_activity.save()
+
+    return True

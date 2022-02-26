@@ -5,6 +5,7 @@ import pytz
 from django.conf import settings
 from django.dispatch import receiver
 
+from conversations import public as conversation_public
 from users import signals as user_signals
 from users import constants as user_constants
 from integrations.freshchat import constants
@@ -265,9 +266,7 @@ def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwa
     host_name = host.display_name
     display_start = group.get_display_start()
     topic_name = group.topic.name
-    stream_link = "https://crater.club/livestream/{group_id}".format(
-        group_id=group.id
-    )
+    stream_link = conversation_public.get_link_for_webinar(group)
     stream_message = "The stream will go live here: {}".format(stream_link)
     data_4 = "{}. {}".format(topic_name, stream_message)
 

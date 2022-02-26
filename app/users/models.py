@@ -42,51 +42,7 @@ class User(AbstractUser):
 
     email = models.EmailField(_("Email"), unique=True, null=True, blank=True)
     name = models.CharField(_("Name"), max_length=100, null=True, blank=True)
-    # TODO(Nishant): If not being used we can remove this.
-    city = models.ForeignKey(
-        "tags.CityProxy",
-        verbose_name=_("City"),
-        null=True,
-        blank=True,
-        related_name="users",
-        on_delete=models.SET_NULL
-    )
 
-    # TODO(Nishant): No being used remove.
-    objectives = models.ManyToManyField(
-        "tags.Objective",
-        verbose_name=_("Objectives")
-    )
-    # TODO(Nishant): Remove this.
-    intent = models.CharField(
-        verbose_name=_("Intent"),
-        max_length=100,
-        null=True, 
-        blank=True,
-        choices=constants.INTENT_CHOICES,
-        default=constants.INTENT_NETWORK
-    )
-    # TODO(Nishant): Remove this.
-    reason = models.CharField(
-        max_length=400,
-        verbose_name=_("Reason"),
-        null=True,
-        blank=True
-    )
-    # TODO(Nishant): If not being used we can remove this.
-    source = models.CharField(
-        max_length=400,
-        verbose_name=_("Source"),
-        null=True,
-        blank=True
-    )
-    new_source = models.ForeignKey(
-        "users.Source",
-        related_name="users",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
     phone_number = PhoneNumberField(
         blank=True,
         null=True,
@@ -96,25 +52,8 @@ class User(AbstractUser):
         default=False,
         verbose_name=_("Phone Number Verified")
     )
-    new_phone_number = PhoneNumberField(
-        blank=True,
-        null=True,
-        verbose_name=_("Phone number")
-    )
-    sms_code = models.CharField(
-        null=True,
-        blank=True,
-        verbose_name=_("Sms code"),
-        max_length=4
-    )
-    referer = models.ForeignKey(
-        "users.User",
-        verbose_name=_("Referer"),
-        related_name="referrals",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
+
+    # This is used for permission to users.
     is_staff = models.BooleanField(
         _("Admin"),
         default=False,
@@ -127,47 +66,13 @@ class User(AbstractUser):
             "Banned/Unbanned User."
         ),
     )
-    # TODO(Nishant): Remove this.
-    is_approved = models.BooleanField(
-        _("Approved"),
-        default=False,
-        help_text=_(
-            "User Approval."
-        ),
-    )
-    # TODO(Nishant): Remove this.
-    is_service_approved = models.BooleanField(
-        _("Service Approved"),
-        default=False,
-        help_text=_(
-            "User Service Approval."
-        ),
-    )
-    # TODO(Nishant): Remove this.
-    rating = models.FloatField(
-        verbose_name=_("Rating"),
-        null=True,
-        blank=True
-    )
-    # TODO(Nishant): Remove this.
-    price_start = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        verbose_name=_("Price start")
-    )
-    # TODO(Nishant): Remove this.
-    pan_card = models.ImageField(
-        null=True,
-        blank=True,
-        verbose_name=_("Pan card"),
-        upload_to="user/pan_card/%Y/%m/%d"
-    )
     auth_secret_key = models.CharField(
         max_length=255,
         verbose_name=_("Secret key"),
         null=True,
         blank=True
     )
+    # TODO(Nishant): Remove this once mobile app is pushed.
     score = models.PositiveIntegerField(default=0)
 
     # TODO(Nishant): Change this to username once we can make it unique.
@@ -227,8 +132,6 @@ class User(AbstractUser):
 
         """
         self.phone_number_verified = True
-        self.is_approved = True
-        self.is_service_approved = True
         self.save()
 
     @staticmethod
@@ -304,63 +207,12 @@ class User(AbstractUser):
             self.phone_number_verified
             and
             self.email_verified
-            and
-            self.is_approved
         )
         return status
-
-    @property
-    def has_bank_details(self):
-        return bool(hasattr(self, "bank_details") and self.bank_details)
-
-    @property
-    def has_introduction(self):
-        status = (
-            self.has_profile
-            and 
-            hasattr(self.profile, "introduction")
-            and 
-            self.profile.introduction
-        )
-        return bool(status)
-
-    @property
-    def full_registered(self):
-        status = (
-            self.has_profile
-            and
-            self.has_bank_detais
-            and
-            self.has_services
-        )
-        return status
-
-    @property
-    def has_services(self):
-        if self.role == "user":
-            return bool(hasattr(self, "user_services_info") and self.user_services_info)
-        elif self.role == "investor":
-            return bool(hasattr(self, "investor_services_info") and self.investor_services_info)
-        return None
 
     @property
     def has_active_subscription(self):
         return self.subscriptions.filter(is_active=True).exists()
-
-    @property
-    def active_subscription_membership(self):
-        active_subscription = self.subscriptions.filter(is_active=True).first()
-        if active_subscription:
-            return active_subscription.membership
-        return None
-
-    @property
-    def role(self):
-        if self.groups.filter(name="Investor").exists():
-            return "investor"
-        if self.groups.filter(name="User").exists():
-            return "user"
-        return None
 
     @staticmethod
     def _send_sms(phone_number, message):
@@ -410,10 +262,6 @@ class User(AbstractUser):
         self.sms_code = code
         if commit:
             self.save()
-
-    @property
-    def rating_count(self):
-        return self.seller_orders.filter(status="complete", rate__isnull=False).count()
 
     def recalculate_rating(self):
         rates = list(self.seller_orders.filter(status="complete", rate__isnull=False).values_list("rate", flat=True))
@@ -563,18 +411,6 @@ class Profile(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("User")
     )
-    name = models.CharField(
-        max_length=100,
-        verbose_name=_("Company Name"),
-        null=True,
-        blank=True
-    )
-    tag_line = models.CharField(
-        verbose_name=_("Tag line"),
-        max_length=100,
-        blank=True,
-        null=True
-    )
     photo = models.ImageField(
         upload_to="profile/photo/%Y/%m/%d",
         verbose_name=_("Photo"),
@@ -596,22 +432,8 @@ class Profile(models.Model):
         related_name="profiles",
         on_delete=models.SET_NULL
     )
-
-    # TODO(Nishant): Make it text field and push.
     introduction = models.TextField(
         verbose_name=_("Introduction"),
-        blank=True,
-        null=True
-    )
-    focus = models.CharField(
-        max_length=800,
-        verbose_name=_("Focus"),
-        blank=True,
-        null=True
-    )
-    additional_information = models.CharField(
-        max_length=800,
-        verbose_name=_("Additional Information"),
         blank=True,
         null=True
     )
@@ -621,12 +443,11 @@ class Profile(models.Model):
         null=True,
         max_length=800
     )
-
-    # This is the url people want to showcase on their profile.
-    primary_url = models.URLField(
-        verbose_name=_("Showcase URL"),
+    twitter = models.CharField(
+        verbose_name=_("Twitter"),
+        blank=True,
         null=True,
-        blank=True
+        max_length=255
     )
     instagram = models.CharField(
         verbose_name=_("Instagram"),
@@ -634,60 +455,27 @@ class Profile(models.Model):
         blank=True,
         max_length=800
     )
-    instagram_id = models.CharField(
-        verbose_name=_("Instagram Id"),
+
+    # This is the url people want to showcase on their profile.
+    primary_url = models.URLField(
+        verbose_name=_("Showcase URL"),
         null=True,
-        blank=True,
-        max_length=32
+        blank=True
     )
-    instagram_username = models.CharField(
-        blank=True,
-        null=True,
-        max_length=400,
-        verbose_name=_("Instagram username")
-    )
-    twitter = models.CharField(
-        verbose_name=_("Twitter"),
-        blank=True,
-        null=True,
-        max_length=255
-    )
-    work_city = models.ForeignKey(
-        "tags.WorkCityProxy",
-        null=True,
-        blank=True,
-        verbose_name=_("Work city"),
-        on_delete=models.CASCADE
-    )
-    tags = models.ManyToManyField(
-        "tags.Tag",
-        verbose_name=_("Tags"),
-        related_name="profiles"
-    )
-    # TODO(Nishant): Remove the old tags once new_tag is filled for all users.
     new_tag = models.ManyToManyField(
         "tags.Tag",
         verbose_name=_("New Tag"),
         blank=True
     )
-    public_profile = models.BooleanField(
-        default=True,
-        verbose_name=_("Public Profile")
-    )
-    generated_introduction = models.TextField(
-        max_length=1024,
-        verbose_name=_("Auto Generated Introduction"),
-        blank=True,
-        null=True
-    )
     opted_in_for_whatsapp = models.BooleanField(
         default=True,
         verbose_name=_("Whatsapp Messaging Enabled")
     )
-    interests = models.ManyToManyField(
-        "tags.Interests",
-        verbose_name=_("Interests")
+    # TODO(Nishant): Remove after mobile app push.
+    allow_meeting_request = models.BooleanField(
+        default=False
     )
+
     education_level = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -740,9 +528,6 @@ class Profile(models.Model):
         null=True,
         blank=True,
     )
-    profile_intro_updated = models.BooleanField(
-        default=False,
-    )
     companies_invested = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -752,9 +537,6 @@ class Profile(models.Model):
         blank=True,
         null=True,
         max_length=255,
-    )
-    allow_meeting_request = models.BooleanField(
-        default=False
     )
 
     class Meta:
@@ -768,12 +550,8 @@ class Profile(models.Model):
     def is_creator(self):
         return bool(hasattr(self.user, "creator") and self.user.creator)
 
-    @property
-    def is_instagram_set(self):
-        return bool(self.instagram)
-
     def get_introduction(self):
-        return self.introduction if self.introduction else self.generated_introduction
+        return self.introduction
 
     def get_photo_url(self):
         return self.photo.url if self.photo else self.photo_url
@@ -806,7 +584,6 @@ class Referral(TimeStampedModel):
     class Meta:
         verbose_name = _("Referral")
         verbose_name_plural = _("Referrals")
-        ordering = ["user__referer__name"]
 
 
 class Admin(User):
@@ -858,6 +635,7 @@ class CoverFile(TimeStampedModel):
         return self.file.name if self.file else "-"
 
 
+# TODO(Nishant): Remove this.
 class BaseSource(base_models.BaseModel):
     name = models.CharField(max_length=32)
     score = models.PositiveIntegerField()
@@ -866,6 +644,7 @@ class BaseSource(base_models.BaseModel):
         return "{} - {}".format(self.name, self.score)
 
 
+# TODO(Nishant): Remove this.
 class Source(base_models.BaseModel):
     """This is the possible sources for user to come onto the platform."""
     name = models.CharField(max_length=128)
@@ -883,17 +662,24 @@ class Source(base_models.BaseModel):
 
 
 class UserActivity(base_models.BaseModel):
-    """This model stores users last active time."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    """This model stores users last active time.
+
+    Note:
+        One user will have only one UserActivity.
+
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     last_active = models.DateTimeField()
 
 
+# TODO(Nishant): Remove this.
 @receiver(post_save, sender=CoverFile)
 def profile_post_save(sender, instance, created,  *args, **kwargs):
     if created:
         transaction.on_commit(lambda: start_transcoding_for_cover_file.delay(instance.pk))
 
 
+# TODO(Nishant): Remove this.
 @receiver(post_save, sender=User)
 def user_post_save(sender, instance, created,  *args, **kwargs):
     if not (hasattr(instance, "notification_settings") and instance.notification_settings):

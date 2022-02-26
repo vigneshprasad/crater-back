@@ -299,6 +299,10 @@ class GroupRtmpAdmin(admin.ModelAdmin):
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
+
 
 @admin.register(models.GroupMessage)
 class GroupMessageAdmin(admin.ModelAdmin):
@@ -318,6 +322,10 @@ class GroupMessageAdmin(admin.ModelAdmin):
     )
     list_filter = ("group", )
     exclude = ("updated_at",)
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
 
 
 @admin.register(models.ChatReaction)

@@ -12,16 +12,12 @@ register_router.register("profile/cover_file", views.CoverFileViewSet, base_name
 register_router.register("profile", views.ProfileViewSet, base_name="profile")
 register_router.register("bank_details", views.BankDetailViewSet, base_name="bank-details")
 register_router.register("verify", views.VerificationView, base_name="verify")
-register_router.register("user_services", views.UserServicesViewSet, base_name="services")
-register_router.register("investor_services", views.InvestorServicesViewSet, base_name="investor-services")
 register_router.register("users", views.UserViewSet, base_name="users-view")
 
 router = routers.SimpleRouter()
-router.register("investors", views.InvestorsViewSet, base_name="investors")
 
 # Router for Public API"s.
 public_router = routers.SimpleRouter()
-public_router.register("investors", public_views.InvestorsViewSet, base_name="public-investors")
 public_router.register("typeform_add_user", public_views.TypeFormViewSet, base_name="public-type-form-user")
 
 public_urls_patterns = [

@@ -93,3 +93,6 @@ INSTANT_CONVERSATION_TIME_SLOTS = [
     time(18, 00, 00),
     time(20, 00, 00),
 ]
+
+SESSION_URL_WITH_GROUP = "session/{group_id}"
+LIVESTREAM_URL_WITH_GROUP = "livestream/{group_id}"

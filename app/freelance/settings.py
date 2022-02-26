@@ -33,6 +33,10 @@ ENVIRONMENT_PROD = "prod"
 ENVIRONMENT_STAGE = "stage"
 ENVIRONMENT_DEV = "dev"
 
+CRATER_FRONT_URL = "https://crater.club/" if \
+    ENVIRONMENT == ENVIRONMENT_PROD else "https://penitence-pre-prod.vercel.app/"
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_DIR = os.path.dirname(BASE_DIR)
@@ -124,6 +128,7 @@ INSTALLED_APPS = [
     "integrations.agora",
     "integrations.dyte",
     "integrations.retool",
+    "integrations.firebase",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -452,6 +457,13 @@ GOOGLE_API_AUTH_URI = os.getenv("GOOGLE_API_AUTH_URI", "")
 GOOGLE_API_TOKEN_URI = os.getenv("GOOGLE_API_TOKEN_URI", "")
 GOOGLE_API_AUTH_PROVIDER_CERT_URL = os.getenv("GOOGLE_API_AUTH_PROVIDER_CERT_URL", "")
 GOOGLE_API_CLIENT_CERT_URL = os.getenv("GOOGLE_API_CLIENT_CERT_URL", "")
+
+# -------------- FIREBASE ------------ #
+FIREBASE_ACCOUNT_PRIVATE_KEY_ID = os.getenv("FIREBASE_ACCOUNT_PRIVATE_KEY_ID", "")
+FIREBASE_ACCOUNT_PRIVATE_KEY = os.getenv("FIREBASE_ACCOUNT_PRIVATE_KEY", "").replace("\\n", "\n")
+FIREBASE_AUTH_PROVIDER_CERT_URL = os.getenv("FIREBASE_AUTH_PROVIDER_CERT_URL", "")
+FIREBASE_CLIENT_CERT_URL = os.getenv("FIREBASE_CLIENT_CERT_URL", "")
+FIREBASE_CLIENT_ID = os.getenv("FIREBASE_CLIENT_ID", "")
 
 # Google credentials to access API.
 GOOGLE_API_CREDENTIALS = {

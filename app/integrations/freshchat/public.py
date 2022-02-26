@@ -6,6 +6,7 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
+from conversations import public as conversation_public
 from crater.creator import public as creator_public
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
@@ -302,9 +303,7 @@ def send_whatsapp_reminder_for_webinar_host(group):
     host = group.host
     start_time = group.get_display_start_time()
     topic_name = group.topic.name
-    stream_link = "https://crater.club/livestream/{group_id}".format(
-        group_id=group.id
-    )
+    stream_link = conversation_public.get_link_for_webinar(group)
 
     data_2 = constants.DATA_2_FOR_HOST_REMINDER.format(
         start_time=start_time,
@@ -368,12 +367,10 @@ def send_whatsapp_reminder_for_webinar_attendee_and_follower(user, group):
     if not attendee_name:
         # Not throwing error since we can't fix
         # this without user input.
-        return False
+        attendee_name = constants.PLACEHOLDER_NAME_FOR_WHATSAPP
 
     topic_name = group.topic.name
-    stream_link = "https://crater.club/livestream/{group_id}".format(
-        group_id=group.id
-    )
+    stream_link = conversation_public.get_link_for_webinar(group)
 
     data_2 = constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
         creator_name=creator_name,

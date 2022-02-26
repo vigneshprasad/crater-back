@@ -32,7 +32,6 @@ class RequestFilter(filters.FilterSet):
             'days_to',
             'category',
             'extended_price',
-            'user__city',
             'budget_from',
             'budget_to',
             'city'

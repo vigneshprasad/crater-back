@@ -2,7 +2,7 @@ from django.conf import settings
 
 APPSFLYER_APP_LINK = "https://worknetwork.onelink.me/KbQv/AppStore"
 LANDING_PAGE = "https://worknetwork.in"
-PLACEHOLDER_NAME_FOR_WHATSAPP = "Crater User"
+PLACEHOLDER_NAME_FOR_WHATSAPP = ", "
 
 # Freshchat Whatsapp details.
 FRESHCHAT_BASE_URL = settings.FRESHCHAT_BASE_URL
@@ -78,7 +78,7 @@ CONVERSATION_RSVP = "Please RSVP using the calendar invite. Note this meeting wi
 WEBINAR_ATTENDEE_REMINDER_TEMPLATE = "crater_stream_reminder"
 DATA_2_FOR_ATTENDEE_REMINDER = "{creator_name}. Topic: {topic_name} @ {start_time}"
 DATA_3_FOR_ATTENDEE_REMINDER = "{minutes_remaining} here: {stream_link}"
-WEBINAR_ATTENDEE_REMINDER_DELAY_STR = "15 minutes"
+WEBINAR_ATTENDEE_REMINDER_DELAY_STR = "10 minutes"
 
 WEBINAR_HOST_REMINDER_TEMPLATE = "crater_stream_reminder_2"
 DATA_2_FOR_HOST_REMINDER = "{start_time}. Here is the link: {stream_link}. For any assistance you call us on: +919930474469"
