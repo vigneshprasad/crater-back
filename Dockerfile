@@ -11,4 +11,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD ["/docker/start.sh"]
+CMD ["./start.sh"]
