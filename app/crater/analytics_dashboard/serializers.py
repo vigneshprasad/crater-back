@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 
 class TopStreamsSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
     rsvp_count = serializers.IntegerField(read_only=True)
     messages_count = serializers.IntegerField(read_only=True)
     start = serializers.DateTimeField(read_only=True)
