@@ -2,10 +2,8 @@ import datetime
 
 from crater.creator import models
 from crater.creator import signals
-from dateutil.relativedelta import relativedelta
-from django.conf import settings
 from django.db.models import F, Count, Value, Window, Case, When
-from django.db.models.functions import TruncDate, Coalesce, Concat, RowNumber
+from django.db.models.functions import TruncDate, Rank
 
 
 def create_default_community_for_creator(creator):
@@ -206,59 +204,6 @@ def get_follower_count(user):
     ).count()
 
 
-def get_follower_count_by_month(user, followed_at):
-    """Returns count of follower a user has by given month and year
-
-    Args:
-        user(User): User on the platform
-        followed_at(DateTime): Followed at datetime
-
-    """
-    return models.Follower.objects.filter(
-        creator__user=user,
-        unfollowed=False,
-        followed_at__month=followed_at.month,
-        followed_at__year=followed_at.year
-    ).count()
-
-
-def get_follower_growth_over_month(user, followed_at):
-    """Returns follower growth percentage change over
-        previous month.
-
-    Args:
-        user(User): User on the platform
-        followed_at(DateTime): Followed at datetime
-
-    """
-    # Get datetime of previous month
-    followed_at_prev_month = followed_at - relativedelta(months=1)
-
-    # Get follower count for previous month
-    follower_count_prev_month = get_follower_count_by_month(
-        user=user,
-        followed_at=followed_at_prev_month
-    )
-
-    if not follower_count_prev_month:
-        return None
-
-    # Get follower count for given month
-    follower_count_given_month = get_follower_count_by_month(
-        user=user,
-        followed_at=followed_at
-    )
-
-    percentage_growth = round(
-        (
-                (follower_count_given_month - follower_count_prev_month) / follower_count_prev_month
-        ) * 100,
-        2
-    )
-
-    return percentage_growth
-
-
 def get_follower_count_by_date(user, start_datetime, end_datetime):
     """Returns follower count by date till current date, given
         the followed_at start date.
@@ -300,11 +245,11 @@ def get_follower_count_by_date(user, start_datetime, end_datetime):
     return follower_count_by_date
 
 
-def get_top_creators_by_month(followed_at_date, count=5, user=None):
+def get_top_creators_by_month(followed_at, count=5, user=None):
     """Returns top creators by month and rank of requested creator.
 
     Args:
-        followed_at_date(DateTime): Followed at datetime
+        followed_at(DateTime): Followed at datetime
         count(int): Number of top creators to be returned
         user(User): User instance of a creator
 
@@ -312,8 +257,9 @@ def get_top_creators_by_month(followed_at_date, count=5, user=None):
     requested_creator_rank = None
 
     top_creators = models.Follower.objects.filter(
-        followed_at__month=followed_at_date.month,
-        followed_at__year=followed_at_date.year
+        creator__certified=True,
+        followed_at__month=followed_at.month,
+        followed_at__year=followed_at.year
     ).values(
         pk=F("creator__user"),
         slug=F("creator__slug"),
@@ -321,10 +267,11 @@ def get_top_creators_by_month(followed_at_date, count=5, user=None):
         image=F("creator__user__profile__photo")
     ).annotate(
         follower_count=Count("id", distinct=True)
-    ).order_by(
-        "-follower_count"
     ).annotate(
-        rank=Window(expression=RowNumber())
+        rank=Window(
+            expression=Rank(),
+            order_by=F("follower_count").desc()
+        )
     )
 
     # Return rank of requested creator
