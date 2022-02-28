@@ -12,6 +12,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
     utm_source = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     utm_campaign = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     utm_medium = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    referrer_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
 
@@ -23,7 +24,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             "utm_campaign",
             "utm_medium",
             "used",
-            "is_expired"
+            "is_expired",
+            "referrer_id"
         )
         extra_kwargs = {
             "otp": {
@@ -58,11 +60,15 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             return value.strip()
 
     def validate_utm_campaign(self, value):
-
         if self.instance and value:
             return value.strip()
 
     def validate_utm_medium(self, value):
+
+        if self.instance and value:
+            return value.strip()
+
+    def validate_referrer_id(self, value):
 
         if self.instance and value:
             return value.strip()
@@ -83,9 +89,16 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         validated_data["used"] = True
 
         # Get utm parameters from the validated data.
-        utm_source = validated_data.pop("utm_source") if validated_data.get("utm_source") else None
-        utm_campaign = validated_data.pop("utm_campaign") if validated_data.get("utm_campaign") else None
-        utm_medium = validated_data.pop("utm_medium") if validated_data.get("utm_medium") else None
+        # utm_source = validated_data.pop("utm_source") if validated_data.get("utm_source") else None
+        # utm_campaign = validated_data.pop("utm_campaign") if validated_data.get("utm_campaign") else None
+        # utm_medium = validated_data.pop("utm_medium") if validated_data.get("utm_medium") else None
+        # referrer_id = validated_data.pop("referrer_id") if validated_data.get("referrer_id") else None
+
+        utm_source = validated_data.pop("utm_source")
+        utm_campaign = validated_data.pop("utm_campaign")
+        utm_medium = validated_data.pop("utm_medium")
+        referrer_id = validated_data.pop("referrer_id")
+
         instance = super().update(instance, validated_data)
 
         if (utm_source or utm_campaign) and validated_data.get("new_user"):
@@ -94,7 +107,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 user=instance.user,
                 utm_source=utm_source,
                 utm_campaign=utm_campaign,
-                utm_medium=utm_medium
+                utm_medium=utm_medium,
+                referrer_id=referrer_id
             )
 
         return instance

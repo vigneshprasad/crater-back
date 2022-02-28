@@ -94,15 +94,17 @@ class PhoneNumberRegisterView(
             )
 
         # Get the right utm data from the view.
-        utm_source = request_data.get("utm_source").strip() if request_data.get("utm_source") else None
-        utm_campaign = request_data.get("utm_campaign").strip() if request_data.get("utm_campaign") else None
-        utm_medium = request_data.get("utm_medium").strip() if request_data.get("utm_medium") else None
+        # utm_source = request_data.get("utm_source").strip() if request_data.get("utm_source") else None
+        # utm_campaign = request_data.get("utm_campaign").strip() if request_data.get("utm_campaign") else None
+        # utm_medium = request_data.get("utm_medium").strip() if request_data.get("utm_medium") else None
+        # referrer_id = request_data.get("referrer_id").strip() if request_data.get("referrer_id") else None
 
         data = {
             "otp": otp,
-            "utm_source": utm_source,
-            "utm_campaign": utm_campaign,
-            "utm_medium": utm_medium
+            "utm_source": request_data.get("utm_source"),
+            "utm_campaign": request_data.get("utm_campaign"),
+            "utm_medium": request_data.get("utm_medium"),
+            "referrer_id": request_data.get("referrer_id")
         }
         serializer = self.get_serializer(data=data, instance=phone_otp, partial=True)
         serializer.is_valid(raise_exception=True)
