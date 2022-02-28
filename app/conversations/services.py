@@ -7,7 +7,8 @@ from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, F, Value, Count
+from django.db.models.functions import Coalesce, Concat
 from django.utils import timezone
 
 from conversations import constants
@@ -610,3 +611,229 @@ def add_attendee_to_series(attendee, series_requests, series):
     )
 
     return series_requests
+
+
+def get_all_past_streams():
+    """Returns all past streams."""
+    now = datetime.datetime.now()
+
+    # Filter creator's past streams
+    past_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
+        is_live=False,
+        closed=True,
+        start__lt=now
+    )
+
+    return past_streams
+
+
+def get_past_streams_of_creator(user):
+    """Returns past streams of given creator.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    now = datetime.datetime.now()
+
+    # Filter creator's past streams
+    past_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
+        is_live=False,
+        closed=True,
+        start__lt=now,
+        host=user
+    )
+
+    return past_streams
+
+
+def get_messages_count(user=None, group_ids=None):
+    """Returns total number of messages.
+
+    Args:
+        user(User): User instance of a creator
+        group_ids(list(int)): List of group ids
+
+    """
+    now = datetime.datetime.now()
+
+    group_messages = models.GroupMessage.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__is_live=False,
+        group__closed=True,
+        group__start__lt=now
+    )
+
+    if user:
+        group_messages = group_messages.filter(
+            group__host=user
+        )
+
+    if group_ids:
+        group_messages = group_messages.filter(
+            group__in=group_ids
+        )
+
+    return group_messages.count()
+
+
+def get_average_engagement_for_creator_streams(user):
+    """Return average engagement(number of messages) for creator's past
+        streams.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    past_streams = get_past_streams_of_creator(
+        user=user
+    )
+
+    if not past_streams:
+        return None
+
+    # Total count of messages from creator's past streams
+    total_messages = get_messages_count(
+        user=user
+    )
+
+    average_engagement = round(total_messages / past_streams.count())
+
+    return average_engagement
+
+
+def get_top_streams_of_creator(user, count=5):
+    """Return top streams of given creator by number of RSVPs and
+        messages.
+
+    Args:
+        user(User): User instance of a creator
+        count(int): Number of top streams to return
+
+    """
+    now = datetime.datetime.now()
+
+    # Filter top streams for given creator
+    top_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
+        is_live=False,
+        closed=True,
+        start__lt=now,
+        host=user
+    ).values(
+        "id",
+        "start",
+        topic_title=F("topic__name"),
+        topic_image=F("topic__image")
+    ).annotate(
+        rsvp_count=Count("requests", distinct=True)
+    ).annotate(
+        messages_count=Count("group_questions", distinct=True)
+    ).order_by(
+        "-rsvp_count", "-messages_count"
+    )[:count]
+
+    return top_streams
+
+
+def get_rsvps_for_creator_streams(user):
+    """Return all RSVPs (Request) for given creator's past streams.
+
+    Args:
+        user(User): User instance of creator
+
+    """
+    now = datetime.datetime.now()
+
+    requests = models.Request.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__host=user,
+        group__is_live=False,
+        group__closed=True,
+        group__start__lt=now,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+        status=constants.REQUEST_STATUS_ACCEPTED_ENUM
+    )
+
+    return requests
+
+
+def get_recurring_user_count_from_requests(requests):
+    """Return recurring user count from given request
+        objects
+
+    Args:
+        requests(list(Request)): List of Request model objects
+
+    """
+    return requests.values(
+        "requester"
+    ).annotate(
+        requester_count=Count("requester")
+    ).exclude(
+        requester_count=1
+    ).count()
+
+
+def get_comparative_engagement_of_creator(user):
+    """Returns percentage of comparative engagement for
+        given creator.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    past_streams = get_all_past_streams()
+
+    if not past_streams:
+        return None
+
+    past_streams_ids = past_streams.values_list("id", flat=True)
+
+    total_messages_from_past_streams = get_messages_count(
+        group_ids=past_streams_ids
+    )
+
+    if not total_messages_from_past_streams:
+        return None
+
+    average_engagement_past_streams = round(
+        total_messages_from_past_streams / past_streams.count()
+    )
+
+    # Filter creator's past streams
+    creator_past_streams = past_streams.filter(
+        host=user
+    )
+
+    if not creator_past_streams:
+        return None
+
+    creator_past_streams_ids = creator_past_streams.values_list("id", flat=True)
+
+    total_messages_from_creator_past_streams = get_messages_count(
+        user=user,
+        group_ids=creator_past_streams_ids
+    )
+
+    average_engagement_creator_past_streams = round(
+        total_messages_from_creator_past_streams / creator_past_streams.count()
+    )
+
+    comparative_engagement = round(
+        (
+                (
+                 average_engagement_creator_past_streams - average_engagement_past_streams
+                ) / average_engagement_past_streams
+        ) * 100,
+        2
+    )
+
+    return comparative_engagement

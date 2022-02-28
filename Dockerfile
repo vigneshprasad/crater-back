@@ -5,9 +5,10 @@ ENV PYTHONUNBUFFERED 1
 
 COPY app /app
 COPY requirements.txt /app/requirements.txt
+COPY docker/start.sh /app/start.sh
 
 WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD ["/docker/start.sh"]
+CMD ["./start.sh"]

@@ -6,6 +6,7 @@ from crater.auth import views as auth_views
 from crater.creator import views as creator_views
 from crater.rewards import views as reward_views
 from crater.auctions import views as auction_views
+from crater.analytics_dashboard import views as analytics_dashboard_views
 
 app_name = "crater"
 
@@ -28,6 +29,9 @@ router.register("reward", reward_views.RewardViewSet, base_name="rewards")
 router.register("redemption", reward_views.RedemptionViewSet, base_name="redemptions")
 router.register("auction", auction_views.AuctionViewSet, basename="auctions")
 router.register("bid", auction_views.BidViewSet, basename="bids")
+
+# Analytics Dashboard endpoints
+router.register("analytics", analytics_dashboard_views.AnalyticsDashboardViewSet, basename="analytics-dashboard")
 
 urlpatterns = [
     path("", include(router.urls)),
