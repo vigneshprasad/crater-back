@@ -118,13 +118,13 @@ class AnalyticsDashboardViewSet(
         rsvp_count = rsvps.count()
 
         # Get total recurring users for creator's streams
-        recurring_user_count = conversations_services.get_recurring_user_count_from_requests(
+        recurring_user_count = conversations_services.get_users_by_number_of_rsvps(
             requests=rsvps,
             num=2
         )
 
         # Get total follower count for creator
-        follower_count = conversations_services.get_recurring_user_count_from_requests(
+        follower_count = conversations_services.get_users_by_number_of_rsvps(
             requests=rsvps,
             num=1
         )
