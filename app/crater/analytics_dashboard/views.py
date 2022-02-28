@@ -9,6 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 from users import permissions as user_permissions
 from conversations import models as conversations_models
 from conversations import services as conversations_services
+from conversations import constants as conversations_constants
 from crater.creator import private as creator_private
 from crater.analytics_dashboard import serializers
 
@@ -176,6 +177,8 @@ class AnalyticsDashboardViewSet(
         # RSVPs and messages
         for data in top_creators:
             best_stream = conversations_models.Group.objects.filter(
+                type=conversations_constants.GROUP_TYPE_WEBINAR_ENUM,
+                is_published=True,
                 is_live=False,
                 closed=True,
                 host=data["pk"]
