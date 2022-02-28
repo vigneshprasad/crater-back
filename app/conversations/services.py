@@ -1,14 +1,14 @@
 import datetime
 import json
-import math
 
 import numpy as np
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Q, F, Value, Count
-from django.db.models.functions import Coalesce, Concat
+from django.db.models import Q, F, Count, DateField
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from conversations import constants
@@ -613,8 +613,12 @@ def add_attendee_to_series(attendee, series_requests, series):
     return series_requests
 
 
-def get_all_past_streams():
-    """Returns all past streams."""
+def get_past_streams(user=None):
+    """Returns all past streams with optional host filter.
+
+    Args:
+        user(User): User instance of a creator
+    """
     now = datetime.datetime.now()
 
     # Filter creator's past streams
@@ -626,80 +630,46 @@ def get_all_past_streams():
         start__lt=now
     )
 
-    return past_streams
-
-
-def get_past_streams_of_creator(user):
-    """Returns past streams of given creator.
-
-    Args:
-        user(User): User instance of a creator
-
-    """
-    now = datetime.datetime.now()
-
-    # Filter creator's past streams
-    past_streams = models.Group.objects.filter(
-        type=constants.GROUP_TYPE_WEBINAR_ENUM,
-        is_published=True,
-        is_live=False,
-        closed=True,
-        start__lt=now,
-        host=user
-    )
+    if user:
+        past_streams = past_streams.filter(
+            host=user
+        )
 
     return past_streams
 
 
-def get_messages_count(user=None, group_ids=None):
-    """Returns total number of messages.
+def get_messages_count_from_groups(group_ids=None):
+    """Returns total number of messages from the given group ids.
 
     Args:
-        user(User): User instance of a creator
         group_ids(list(int)): List of group ids
 
     """
-    now = datetime.datetime.now()
 
-    group_messages = models.GroupMessage.objects.filter(
-        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
-        group__is_published=True,
-        group__is_live=False,
-        group__closed=True,
-        group__start__lt=now
-    )
-
-    if user:
-        group_messages = group_messages.filter(
-            group__host=user
-        )
-
-    if group_ids:
-        group_messages = group_messages.filter(
-            group__in=group_ids
-        )
-
-    return group_messages.count()
+    return models.GroupMessage.objects.filter(
+        group__in=group_ids
+    ).count()
 
 
-def get_average_engagement_for_creator_streams(user):
-    """Return average engagement(number of messages) for creator's past
-        streams.
+def get_average_engagement(user=None):
+    """Return average engagement(number of messages) for streams.
 
     Args:
         user(User): User instance of a creator
 
     """
-    past_streams = get_past_streams_of_creator(
+    past_streams = get_past_streams(
         user=user
     )
 
     if not past_streams:
         return None
 
-    # Total count of messages from creator's past streams
-    total_messages = get_messages_count(
-        user=user
+    past_stream_ids = past_streams.values_list("id", flat=True)
+
+    # Total count of messages from past streams
+    total_messages = get_messages_count_from_groups(
+        group_ids=past_stream_ids
     )
 
     average_engagement = round(total_messages / past_streams.count())
@@ -790,50 +760,126 @@ def get_comparative_engagement_of_creator(user):
         user(User): User instance of a creator
 
     """
-    past_streams = get_all_past_streams()
-
-    if not past_streams:
+    # Get average engagement for all past streams
+    average_engagement_total = get_average_engagement()
+    if not average_engagement_total:
         return None
 
-    past_streams_ids = past_streams.values_list("id", flat=True)
-
-    total_messages_from_past_streams = get_messages_count(
-        group_ids=past_streams_ids
-    )
-
-    if not total_messages_from_past_streams:
-        return None
-
-    average_engagement_past_streams = round(
-        total_messages_from_past_streams / past_streams.count()
-    )
-
-    # Filter creator's past streams
-    creator_past_streams = past_streams.filter(
-        host=user
-    )
-
-    if not creator_past_streams:
-        return None
-
-    creator_past_streams_ids = creator_past_streams.values_list("id", flat=True)
-
-    total_messages_from_creator_past_streams = get_messages_count(
-        user=user,
-        group_ids=creator_past_streams_ids
-    )
-
-    average_engagement_creator_past_streams = round(
-        total_messages_from_creator_past_streams / creator_past_streams.count()
-    )
+    # Get average engagement for creator's past streams
+    average_engagement_creator = get_average_engagement(user=user)
 
     comparative_engagement = round(
-        (
-                (
-                 average_engagement_creator_past_streams - average_engagement_past_streams
-                ) / average_engagement_past_streams
-        ) * 100,
+        average_engagement_creator / average_engagement_total * 100,
         2
     )
 
     return comparative_engagement
+
+
+def get_rsvp_count_by_month(user, created_at):
+    """Returns count of RSVPs a user has by given month and year.
+
+    Args:
+        user(User): User on the platform
+        created_at(DateTime): Created at datetime
+
+    """
+    return models.Request.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__host=user,
+        group__is_live=False,
+        group__closed=True,
+        status=constants.REQUEST_STATUS_ACCEPTED_ENUM,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+        created_at__month=created_at.month,
+        created_at__year=created_at.year
+    ).count()
+
+
+def get_rsvp_growth_over_month(user, created_at):
+    """Returns rsvp growth percentage change over
+        previous month.
+
+    Args:
+        user(User): User on the platform
+        created_at(DateTime): Created at datetime
+
+    """
+    # Get datetime of previous month
+    created_at_prev_month = created_at - relativedelta(months=1)
+
+    # Get RSVP count for previous month
+    rsvp_count_prev_month = get_rsvp_count_by_month(
+        user=user,
+        created_at=created_at_prev_month
+    )
+
+    if not rsvp_count_prev_month:
+        return None
+
+    # Get RSVP count for given month
+    rsvp_count_given_month = get_rsvp_count_by_month(
+        user=user,
+        created_at=created_at
+    )
+
+    percentage_growth = round(
+        (
+                (rsvp_count_given_month - rsvp_count_prev_month) / rsvp_count_prev_month
+        ) * 100,
+        2
+    )
+
+    return percentage_growth
+
+
+def get_rsvp_count_by_month_and_year(user, start_datetime, end_datetime):
+    """Returns RSVP count by month and year.
+
+    Args:
+        user(User): User instance of creator
+        start_datetime(DateTime): Followed at start datetime
+        end_datetime(DateTime): Followed at end datetime
+
+    """
+    rsvp_count_data = models.Request.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__host=user,
+        group__is_live=False,
+        group__closed=True,
+        status=constants.REQUEST_STATUS_ACCEPTED_ENUM,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+        created_at__date__gte=start_datetime
+    ).values(
+        rsvp_at=TruncMonth(
+            F("created_at"),
+            output_field=DateField()
+        )
+    ).annotate(
+        rsvp_count=Count("rsvp_at")
+    )
+
+    rsvp_count_by_month = list(rsvp_count_data)
+
+    # Followed at dates which has follower count
+    present_dates = rsvp_count_data.values_list("rsvp_at", flat=True)
+
+    delta = (end_datetime.year - start_datetime.year) * 12 + (end_datetime.month - start_datetime.month)
+
+    for i in range(1, delta + 1):
+        date = (start_datetime + relativedelta(months=i)).date()
+        if date not in present_dates:
+            rsvp_count_by_month.append({
+                "rsvp_at": date,
+                "rsvp_count": 0
+            })
+
+    # Sort by rsvp_at date
+    rsvp_count_by_month.sort(key=lambda x: x["rsvp_at"])
+
+    # Format rsvp_at date
+    [x.update({"rsvp_at": x["rsvp_at"].strftime("%b %Y")}) for x in rsvp_count_by_month]
+
+    return rsvp_count_by_month
