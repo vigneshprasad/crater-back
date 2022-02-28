@@ -257,7 +257,7 @@ def get_traffic_sources_for_creator(user):
     ).values(
         source_name=Case(
             When(
-                user__user_source__referrer_id=user.pk,
+                user__user_source__referrer__pk=user.pk,
                 then=F("user__user_source__utm_source")
             ),
             default=Value("Crater")
@@ -288,7 +288,7 @@ def get_percentage_creator_followers_from_crater(user):
         return None
 
     users_by_crater_count = creator_followers.exclude(
-        user__user_source__referrer_id=user.pk
+        user__user_source__referrer__pk=user.pk
     ).count()
 
     percentage_creator_followers_from_crater = round(
