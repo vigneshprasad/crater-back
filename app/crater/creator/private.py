@@ -1,9 +1,8 @@
-import datetime
-
 from crater.creator import models
 from crater.creator import signals
+
 from django.db.models import F, Count, Value, Window, Case, When
-from django.db.models.functions import TruncDate, Rank
+from django.db.models.functions import Rank
 
 
 def create_default_community_for_creator(creator):
@@ -202,47 +201,6 @@ def get_follower_count(user):
         creator__user=user,
         unfollowed=False
     ).count()
-
-
-def get_follower_count_by_date(user, start_datetime, end_datetime):
-    """Returns follower count by date till current date, given
-        the followed_at start date.
-
-    Args:
-        user(User): User instance of creator
-        start_datetime(DateTime): Followed at start datetime
-        end_datetime(DateTime): Followed at end datetime
-
-    """
-    follower_count_data = models.Follower.objects.filter(
-        creator__user=user,
-        unfollowed=False,
-        followed_at__date__gte=start_datetime
-    ).values(
-        followed_at_date=TruncDate(F("followed_at__date"))
-    ).annotate(
-        follower_count=Count("followed_at_date")
-    )
-
-    follower_count_by_date = list(follower_count_data)
-
-    # Followed at dates which has follower count
-    present_dates = follower_count_data.values_list("followed_at_date", flat=True)
-
-    # Add missing dates to response
-    delta = end_datetime - start_datetime
-    for i in range(delta.days + 1):
-        date = start_datetime + datetime.timedelta(days=i)
-        if date not in present_dates:
-            follower_count_by_date.append({
-                "followed_at_date": date,
-                "follower_count": 0
-            })
-
-    # Sort by followed_at_date
-    follower_count_by_date.sort(key=lambda x: x["followed_at_date"])
-
-    return follower_count_by_date
 
 
 def get_top_creators_by_month(followed_at, count=5, user=None):
