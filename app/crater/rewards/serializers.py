@@ -10,7 +10,11 @@ class RewardTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.RewardType
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "is_active"
+        )
 
 
 class RewardSerializer(serializers.ModelSerializer):
@@ -19,6 +23,7 @@ class RewardSerializer(serializers.ModelSerializer):
     quantity_sold = serializers.SerializerMethodField(read_only=True)
     active_auction = serializers.SerializerMethodField(read_only=True)
     creator_detail = creator_serializers.CreatorSerializer(source="creator", read_only=True)
+    type_detail = RewardTypeSerializer(source="type", read_only=True)
 
     class Meta:
         model = models.Reward
@@ -37,7 +42,8 @@ class RewardSerializer(serializers.ModelSerializer):
             "quantity",
             "quantity_sold",
             "active_auction",
-            "creator_detail"
+            "creator_detail",
+            "type_detail",
         )
 
     @staticmethod
