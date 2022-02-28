@@ -54,14 +54,16 @@ class StripePaymentService:
             product_id,
             capture_method,
             currency="inr",
-            payment_method_types=["card"]
+            payment_method_types=["card"],
+            confirm=True
     ):
         intent = self.stripe.PaymentIntent.create(
             amount=amount,
             currency=currency,
             customer=customer.customer_id,
             payment_method_types=payment_method_types,
-            capture_method=capture_method
+            capture_method=capture_method,
+            confirm=confirm
         )
         stripe_intent_object = models.PaymentIntent.objects.create(
             payment_id=payment_id,
