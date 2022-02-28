@@ -141,15 +141,15 @@ class AnalyticsDashboardViewSet(
         response = [
             {
                 "name": "RSVP",
-                "count": rsvp_count
+                "value": rsvp_count
             },
             {
                 "name": "Subscribers",
-                "count": subscriber_percentage
+                "value": subscriber_percentage
             },
             {
                 "name": "Recurring Users",
-                "count": recurring_user_percentage
+                "value": recurring_user_percentage
             }
         ]
 
