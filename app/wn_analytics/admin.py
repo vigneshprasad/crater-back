@@ -36,7 +36,7 @@ class UserSourceAdmin(ModelAdmin):
         "utm_campaign",
         "utm_medium",
     )
-    raw_id_fields = ("user",)
+    raw_id_fields = ("user", "referrer")
     search_fields = (
         "user__name",
         "user__username",
