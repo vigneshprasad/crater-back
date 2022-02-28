@@ -861,7 +861,7 @@ def get_rsvp_count_by_month_and_year(user, start_datetime, end_datetime):
         rsvp_count=Count("rsvp_at")
     )
 
-    rsvp_count_by_month = list(rsvp_count_data)
+    rsvp_count_by_month_and_year = list(rsvp_count_data)
 
     # Followed at dates which has follower count
     present_dates = rsvp_count_data.values_list("rsvp_at", flat=True)
@@ -871,15 +871,15 @@ def get_rsvp_count_by_month_and_year(user, start_datetime, end_datetime):
     for i in range(1, delta + 1):
         date = (start_datetime + relativedelta(months=i)).date()
         if date not in present_dates:
-            rsvp_count_by_month.append({
+            rsvp_count_by_month_and_year.append({
                 "rsvp_at": date,
                 "rsvp_count": 0
             })
 
     # Sort by rsvp_at date
-    rsvp_count_by_month.sort(key=lambda x: x["rsvp_at"])
+    rsvp_count_by_month_and_year.sort(key=lambda x: x["rsvp_at"])
 
     # Format rsvp_at date
-    [x.update({"rsvp_at": x["rsvp_at"].strftime("%b %Y")}) for x in rsvp_count_by_month]
+    [x.update({"rsvp_at": x["rsvp_at"].strftime("%b %Y")}) for x in rsvp_count_by_month_and_year]
 
-    return rsvp_count_by_month
+    return rsvp_count_by_month_and_year
