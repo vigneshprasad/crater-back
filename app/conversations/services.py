@@ -776,25 +776,31 @@ def get_comparative_engagement_of_creator(user):
     return comparative_engagement
 
 
-def get_rsvp_count_by_month(user, created_at):
-    """Returns count of RSVPs a user has by given month and year.
+def get_rsvp_count(user, created_at=None):
+    """Returns count of RSVPs by user.
 
     Args:
-        user(User): User on the platform
+        user(User): User instance of a creator
         created_at(DateTime): Created at datetime
 
     """
-    return models.Request.objects.filter(
+    requests = models.Request.objects.filter(
         group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
         group__is_published=True,
         group__host=user,
         group__is_live=False,
         group__closed=True,
         status=constants.REQUEST_STATUS_ACCEPTED_ENUM,
-        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
-        created_at__month=created_at.month,
-        created_at__year=created_at.year
-    ).count()
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+    )
+
+    if created_at:
+        requests = requests.filter(
+            created_at__month=created_at.month,
+            created_at__year=created_at.year
+        )
+
+    return requests.count()
 
 
 def get_rsvp_growth_over_month(user, created_at):
@@ -810,7 +816,7 @@ def get_rsvp_growth_over_month(user, created_at):
     created_at_prev_month = created_at - relativedelta(months=1)
 
     # Get RSVP count for previous month
-    rsvp_count_prev_month = get_rsvp_count_by_month(
+    rsvp_count_prev_month = get_rsvp_count(
         user=user,
         created_at=created_at_prev_month
     )
@@ -819,7 +825,7 @@ def get_rsvp_growth_over_month(user, created_at):
         return None
 
     # Get RSVP count for given month
-    rsvp_count_given_month = get_rsvp_count_by_month(
+    rsvp_count_given_month = get_rsvp_count(
         user=user,
         created_at=created_at
     )
