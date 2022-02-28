@@ -735,20 +735,20 @@ def get_rsvps_for_creator_streams(user):
     return requests
 
 
-def get_recurring_user_count_from_requests(requests):
-    """Return recurring user count from given request
-        objects
+def get_users_by_number_of_rsvps(requests, num):
+    """Return user count by number of RSVPs
 
     Args:
         requests(list(Request)): List of Request model objects
+        num(int): Number of RSVPs
 
     """
     return requests.values(
         "requester"
     ).annotate(
         requester_count=Count("requester")
-    ).exclude(
-        requester_count=1
+    ).filter(
+        requester_count__gte=num
     ).count()
 
 
