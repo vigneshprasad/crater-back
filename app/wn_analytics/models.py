@@ -39,6 +39,12 @@ class UserSource(BaseModel):
     utm_source = models.CharField(max_length=120, null=True, blank=True)
     utm_campaign = models.CharField(max_length=120, null=True, blank=True)
     utm_medium = models.CharField(max_length=120, null=True, blank=True)
+    referrer = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.user.name} ({self.utm_source}) ({self.utm_campaign})"

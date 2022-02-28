@@ -1,5 +1,6 @@
 import datetime
 
+from dateutil.relativedelta import relativedelta
 from django.db.models import Count, F
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -44,9 +45,9 @@ class AnalyticsDashboardViewSet(
         user = request.user
         now = datetime.datetime.now()
 
-        percentage_growth = creator_private.get_follower_growth_over_month(
+        percentage_growth = conversations_services.get_rsvp_growth_over_month(
             user=user,
-            followed_at=now
+            created_at=now
         )
 
         response = {"percentage": percentage_growth}
@@ -60,7 +61,7 @@ class AnalyticsDashboardViewSet(
     def average_engagement(self, request):
         user = request.user
 
-        average_engagement = conversations_services.get_average_engagement_for_creator_streams(
+        average_engagement = conversations_services.get_average_engagement(
             user=user
         )
 
@@ -91,16 +92,16 @@ class AnalyticsDashboardViewSet(
     )
     def club_members_growth(self, request):
         user = request.user
-        now = datetime.datetime.now().date()
-        last_week = now - datetime.timedelta(weeks=1)
+        now = datetime.datetime.now()
+        last_year = now.replace(day=1) - relativedelta(years=1)
 
-        follower_count_by_date = creator_private.get_follower_count_by_date(
+        rsvp_count_by_month_and_year = conversations_services.get_rsvp_count_by_month_and_year(
             user=user,
-            start_datetime=last_week,
+            start_datetime=last_year,
             end_datetime=now
         )
 
-        return Response(follower_count_by_date, status=status.HTTP_200_OK)
+        return Response(rsvp_count_by_month_and_year, status=status.HTTP_200_OK)
 
     @action(
         methods=["get"],
@@ -117,27 +118,38 @@ class AnalyticsDashboardViewSet(
         rsvp_count = rsvps.count()
 
         # Get total recurring users for creator's streams
-        recurring_user_count = conversations_services.get_recurring_user_count_from_requests(
-            requests=rsvps
+        recurring_user_count = conversations_services.get_users_by_number_of_rsvps(
+            requests=rsvps,
+            num=2
         )
+
+        # Get total follower count for creator
+        follower_count = conversations_services.get_users_by_number_of_rsvps(
+            requests=rsvps,
+            num=1
+        )
+
+        recurring_user_percentage = round(recurring_user_count / follower_count * 100, 2)
 
         # Get total subscribers for creator
         subscriber_count = creator_private.get_subscriber_count(
             user=user
         )
 
+        subscriber_percentage = round(subscriber_count / follower_count * 100, 2)
+
         response = [
             {
                 "name": "RSVP",
-                "count": rsvp_count
+                "value": rsvp_count
             },
             {
                 "name": "Subscribers",
-                "count": subscriber_count
+                "value": subscriber_percentage
             },
             {
                 "name": "Recurring Users",
-                "count": recurring_user_count
+                "value": recurring_user_percentage
             }
         ]
 
@@ -168,7 +180,7 @@ class AnalyticsDashboardViewSet(
         now = datetime.datetime.now()
 
         top_creators, my_rank = creator_private.get_top_creators_by_month(
-            followed_at_date=now,
+            followed_at=now,
             count=3,
             user=user
         )

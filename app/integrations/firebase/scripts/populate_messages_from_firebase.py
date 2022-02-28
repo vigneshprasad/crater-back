@@ -52,7 +52,11 @@ def run(date, groups=None, dry_run=True):
                 if group_message_exists:
                     continue
 
-                user = get_user_model().objects.get(pk=user_pk)
+                try:
+                    user = get_user_model().objects.get(pk=user_pk)
+                except get_user_model().DoesNotExist:
+                    print("User Pk doesn't exist: {}".format(user_pk))
+                    continue
 
                 print("Firebase message ID: ", firebase_message_id)
                 print("Group ID: ", group_id)

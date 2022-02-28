@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
 
+    "silk",
     "debug_toolbar",
     "allauth",
     "allauth.account",
@@ -232,6 +233,7 @@ MATERIAL_ADMIN_SITE = {
 
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "silk.middleware.SilkyMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -502,3 +504,30 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_AwTUfAFu61uxi8uGLm5F
 
 # API safe methods.
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
+
+
+# --------------- SILK -------------- #
+
+def silk_permissions(user):
+    """Return True/False based on if user is a super user."""
+    return user.is_superuser
+
+
+def clear_silk_logs():
+    """Returns the command for clearing request logs."""
+    return "python manage.py silk_clear_request_log"
+
+
+# Tells silk to user python cProfiler.
+SILKY_PYTHON_PROFILER = True
+
+# Permission to access silk.
+SILKY_AUTHENTICATION = True
+SILKY_AUTHORISATION = True
+SILKY_PERMISSIONS = silk_permissions
+
+# Enables overhead added by silk processes.
+SILKY_META = True
+
+# Removes these keys from being accessible on /silk
+# SILKY_SENSITIVE_KEYS = {'username', 'api', "token", 'key', 'secret', 'password', 'signature'}

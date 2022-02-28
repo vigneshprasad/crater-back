@@ -298,6 +298,12 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
         for d in dyte_data:
             dyte_time_spent += d["totalMinutes"]
 
+        users_who_messaged = models.GroupMessage.objects.filter(
+            group=group
+        ).exclude(
+            sender__email__in=EMAIL_TO_EXCLUDE
+        ).values("sender").distinct().count()
+
         print(
             group.pk, "#",
             group.host, "#",
@@ -310,7 +316,8 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
             completion, "#",
             organic_online, "#",
             dyte_online, "#",
-            dyte_time_spent, "#"
+            dyte_time_spent, "#",
+            users_who_messaged, "#"
         )
 
 

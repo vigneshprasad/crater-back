@@ -290,12 +290,10 @@ class GroupRtmpAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("group", )
     search_fields = (
-        "group__host__username",
-        "group__host__name",
+        "group__id",
     )
     list_filter = (
         "group",
-        ("group__start", filter.DateRangeFilter),
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
