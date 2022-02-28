@@ -29,7 +29,7 @@ class UserSourceAdmin(ModelAdmin):
         "utm_source",
         "utm_campaign",
         "utm_medium",
-        "referrer_id",
+        "referrer",
     )
     list_filter = (
         "utm_source", 
@@ -44,6 +44,8 @@ class UserSourceAdmin(ModelAdmin):
         "utm_source",
         "utm_campaign",
         "utm_medium",
-        "referrer_id",
+        "referrer__name",
+        "referrer__username",
+        "referrer__email",
     )
     readonly_fields = ["user"]
