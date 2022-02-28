@@ -8,7 +8,6 @@ from crater.gateways.stripe_payments.service import stripe_service
 from crater.gateways.stripe_payments import signals
 
 
-@task()
 def capture_payment_intent_charge(intent_id, bid_id):
     try:
         bid = auction_models.Bid.objects.get(id=bid_id)

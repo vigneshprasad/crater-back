@@ -10,4 +10,4 @@ def capture_payment_intent_for_bid_accepted(sender, bid, *args, **kwargs):
     if not intent:
         return
 
-    tasks.capture_payment_intent_charge.delay(intent_id=intent.intent_id, bid_id=bid.id)
+    tasks.capture_payment_intent_charge(intent_id=intent.intent_id, bid_id=bid.id)

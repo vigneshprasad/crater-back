@@ -74,14 +74,14 @@ def update_or_create_transaction_log_for_auction(auction):
 def update_or_create_user_reward(bid):
     user_reward, created = models.UserReward.objects.get_or_create(
         user=bid.bidder,
-        reward=bid.reward,
-        defaults={
-            "quantity": 0,
-        }
+        reward=bid.auction.reward,
     )
+
+    if created:
+        user_reward.quantity = bid.quantity
 
     if not created:
         user_reward.quantity += bid.quantity
-        user_reward.save()
 
+    user_reward.save()
     return user_reward

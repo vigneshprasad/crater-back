@@ -10,8 +10,7 @@ from crater.rewards import serializers as reward_serializers
 
 
 class RewardAuctionBaseSerializer(serializers.ModelSerializer):
-    minimum_bid = serializers.SerializerMethodField(read_only=True)    
-    last_bid = serializers.SerializerMethodField(read_only=True)
+    minimum_bid = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.RewardAuction
@@ -24,7 +23,6 @@ class RewardAuctionBaseSerializer(serializers.ModelSerializer):
             "is_active",
             "base_price",
             "minimum_bid",
-            "last_bid",
         )
     
     @staticmethod
@@ -33,13 +31,6 @@ class RewardAuctionBaseSerializer(serializers.ModelSerializer):
         if not highest_bid:
             return obj.base_price
         return constants.MINIMUM_BID_MULTIPLIER(highest_bid.bid_price)
-
-    @staticmethod
-    def get_last_bid(obj):
-        bid = obj.bids.filter(status=constants.BID_STATUS_ACCEPTED_ENUM).order_by("-created_at").first()
-        if not bid:
-            return None
-        return BidSerializer(bid).data
 
 
 class BidSerializer(serializers.ModelSerializer):

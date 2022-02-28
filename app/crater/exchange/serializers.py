@@ -3,6 +3,7 @@ from rest_framework import serializers
 from crater.exchange import models
 from crater.creator import serializers as creator_serializers
 from crater.auctions import serializers as auction_serializers
+from crater.rewards import  serializers as reward_serializers
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -12,6 +13,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class UserRewardSerializer(serializers.ModelSerializer):
+    reward_detail = reward_serializers.RewardSerializer(source="reward", read_only=True)
 
     class Meta:
         model = models.UserReward
@@ -21,7 +23,8 @@ class UserRewardSerializer(serializers.ModelSerializer):
             "reward",
             "quantity",
             "is_redeemed",
-            "quantity_redeemed"
+            "redeemed_quantity",
+            "reward_detail"
         )
 
 
