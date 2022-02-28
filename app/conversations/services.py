@@ -638,7 +638,7 @@ def get_past_streams(user=None):
     return past_streams
 
 
-def get_messages_count_from_groups(group_ids=None):
+def get_messages_count_for_groups(group_ids=None):
     """Returns total number of messages from the given group ids.
 
     Args:
@@ -668,7 +668,7 @@ def get_average_engagement(user=None):
     past_stream_ids = past_streams.values_list("id", flat=True)
 
     # Total count of messages from past streams
-    total_messages = get_messages_count_from_groups(
+    total_messages = get_messages_count_for_groups(
         group_ids=past_stream_ids
     )
 
@@ -740,7 +740,7 @@ def get_users_by_number_of_rsvps(requests, num):
 
     Args:
         requests(list(Request)): List of Request model objects
-        num(int): Number of RSVPs
+        num(int): Minimum number of RSVPs
 
     """
     return requests.values(
