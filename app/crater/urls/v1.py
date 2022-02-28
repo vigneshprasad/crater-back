@@ -9,6 +9,7 @@ from crater.auctions import views as auction_views
 from crater.payments import views as payment_views
 from crater.exchange import views as exchange_views
 from crater.gateways.stripe_payments import views as stripe_payment_views
+from crater.analytics_dashboard import views as analytics_dashboard_views
 
 app_name = "crater"
 
@@ -41,6 +42,9 @@ router.register("coin_log", auction_views.CoinPriceLogViewSet, basename="coin-pr
 router.register("payment", payment_views.PaymentViewSet, basename="crater-payments")
 router.register("gateways/stripe/webhook", stripe_payment_views.StripeWebhookViewSet, basename="strip-webhook")
 router.register("gateways/stripe", stripe_payment_views.PaymentIntentViewSet, basename="crater-gateways-stripe")
+
+# Analytics Dashboard endpoints
+router.register("analytics", analytics_dashboard_views.AnalyticsDashboardViewSet, basename="analytics-dashboard")
 
 urlpatterns = [
     path("", include(router.urls)),

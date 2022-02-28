@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 
+from conversations import public as conversation_public
 from integrations.google import calendar_services
 from integrations.google import constants
 from integrations.google import models
@@ -166,9 +167,8 @@ def create_calendar_event_for_webinar_host(group):
         return False
 
     # TODO(Nishant): This has to change for each environment.
-    stream_link = "https://crater.club/livestream/{group_id}".format(
-        group_id=group.id
-    )
+    stream_link = conversation_public.get_link_for_webinar(group)
+
     summary = constants.HOST_SUMMARY_FOR_WEBINARS
     description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
         creator_name=host.display_name,
@@ -224,9 +224,7 @@ def create_calendar_event_for_webinar_speakers(speakers, group):
         if google_calendar_event:
             continue
  
-        stream_link = "https://crater.club/livestream/{group_id}".format(
-            group_id=group.id
-        )
+        stream_link = conversation_public.get_link_for_webinar(group)
         summary = constants.HOST_SUMMARY_FOR_WEBINARS
         description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
             creator_name=speaker.name.title(),
@@ -274,9 +272,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
         return False
 
     # TODO(Nishant): This has to change for each environment.
-    stream_link = "https://crater.club/livestream/{group_id}".format(
-        group_id=group.id
-    )
+    stream_link = conversation_public.get_link_for_webinar(group)
 
     if not series:
         summary = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(
