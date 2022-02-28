@@ -257,7 +257,7 @@ def get_traffic_sources_for_creator(user):
     ).values(
         source_name=Case(
             When(
-                user__user_source__utm_medium=user.pk,
+                user__user_source__referrer_id=user.pk,
                 then=F("user__user_source__utm_source")
             ),
             default=Value("Crater")
@@ -276,23 +276,23 @@ def get_percentage_creator_followers_from_crater(user):
         user(User): User instance of a creator
 
     """
-    # Filter creator's followers
+    # Filter creator's RSVPs
     creator_followers = models.Follower.objects.filter(
         creator__user=user,
         unfollowed=False
     )
 
-    total_rsvps = creator_followers.count()
+    total_followers = creator_followers.count()
 
-    if not total_rsvps:
+    if not total_followers:
         return None
 
     users_by_crater_count = creator_followers.exclude(
-        user__user_source__utm_medium=user.pk
+        user__user_source__referrer_id=user.pk
     ).count()
 
     percentage_creator_followers_from_crater = round(
-        (users_by_crater_count / total_rsvps) * 100,
+        (users_by_crater_count / total_followers) * 100,
         2
     )
 
