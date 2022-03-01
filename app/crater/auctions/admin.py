@@ -27,7 +27,8 @@ class BidAdmin(admin.ModelAdmin):
         "quantity",
         "status"
     )
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("bidder", "creator")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted", "payment")
 
 
 @admin.register(models.CoinPriceLog)
