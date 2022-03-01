@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from crater.auth import models
@@ -96,9 +97,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 referrer = user_models.User.objects.get(pk=referrer_pk)
             except user_models.User.DoesNotExist:
                 referrer = None
-            except Exception as e:
+            except ValidationError:
                 referrer = None
-                print(e)
 
             # Only create if the user is a new user.
             analytics_models.UserSource.objects.create(
