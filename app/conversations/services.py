@@ -796,8 +796,8 @@ def get_rsvp_count(user, created_at=None):
 
     if created_at:
         requests = requests.filter(
-            created_at__month=created_at.month,
-            created_at__year=created_at.year
+            created_at__month__lte=created_at.month,
+            created_at__year__lte=created_at.year
         )
 
     return requests.count()
@@ -805,7 +805,7 @@ def get_rsvp_count(user, created_at=None):
 
 def get_rsvp_growth_over_month(user, created_at):
     """Returns rsvp growth percentage change over
-        previous month.
+        previous months.
 
     Args:
         user(User): User on the platform
@@ -815,7 +815,7 @@ def get_rsvp_growth_over_month(user, created_at):
     # Get datetime of previous month
     created_at_prev_month = created_at - relativedelta(months=1)
 
-    # Get RSVP count for previous month
+    # Get RSVP count for previous months
     rsvp_count_prev_month = get_rsvp_count(
         user=user,
         created_at=created_at_prev_month
