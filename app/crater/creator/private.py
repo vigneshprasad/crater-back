@@ -1,8 +1,10 @@
+import datetime
+
 from crater.creator import models
 from crater.creator import signals
 
 from django.db.models import F, Count, Value, Window, Case, When
-from django.db.models.functions import Rank
+from django.db.models.functions import DenseRank
 
 
 def create_default_community_for_creator(creator):
@@ -214,10 +216,18 @@ def get_top_creators_by_month(followed_at, count=5, user=None):
     """
     requested_creator_rank = None
 
+    # Get date from last 30 days
+    end_date = followed_at.date()
+    start_date = end_date - datetime.timedelta(days=30)
+
+    rank_by_follower_count = Window(
+        expression=DenseRank(),
+        order_by=F("follower_count").desc()
+    )
+
     top_creators = models.Follower.objects.filter(
         creator__certified=True,
-        followed_at__month=followed_at.month,
-        followed_at__year=followed_at.year
+        followed_at__date__range=[start_date, end_date]
     ).values(
         pk=F("creator__user"),
         slug=F("creator__slug"),
@@ -226,17 +236,15 @@ def get_top_creators_by_month(followed_at, count=5, user=None):
     ).annotate(
         follower_count=Count("id", distinct=True)
     ).annotate(
-        rank=Window(
-            expression=Rank(),
-            order_by=F("follower_count").desc()
-        )
+        rank=rank_by_follower_count
     )
 
     # Return rank of requested creator
     if user:
-        requested_creator_ranking_data = top_creators.filter(pk=user.pk)
-        if requested_creator_ranking_data:
-            requested_creator_rank = requested_creator_ranking_data.first().get("rank")
+        for creator in top_creators:
+            if creator.get("pk") == user.pk:
+                requested_creator_rank = creator.get("rank")
+                break
 
     top_creators = top_creators[:count]
 
