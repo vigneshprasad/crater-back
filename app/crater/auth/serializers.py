@@ -97,6 +97,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             except user_models.User.DoesNotExist:
                 referrer = None
             except Exception as e:
+                referrer = None
                 print(e)
 
             # Only create if the user is a new user.
