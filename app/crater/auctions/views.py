@@ -115,20 +115,32 @@ class BidViewSet(
             **kwargs:
 
         """
-        bids = self.get_queryset().filter(creator=pk)
+        bids = self.get_queryset().filter(
+            creator=pk,
+            status__in=[
+                constants.BID_STATUS_ACCEPTED_ENUM,
+                constants.BID_STATUS_PENDING_ENUM,
+                constants.BID_STATUS_CANCELLED_ENUM,
+                constants.BID_STATUS_REJECTED_ENUM
+            ]
+        )
         bids_accepted = bids.filter(status=constants.BID_STATUS_ACCEPTED_ENUM)
-        total_recieved = 0
+        total_received = 0
+        total_bids = bids.count()
+        total_accepted = bids_accepted.count()
         net_worth = 0
 
         for bid in bids:
-            total_recieved += bid.amount
+            total_received += bid.amount
 
         for bid in bids_accepted:
             net_worth += bid.amount
         
         return Response({
-            "total_recieved": total_recieved,
-            "net_worth": net_worth
+            "total_net_worth": total_received,
+            "accepted_net_worth": net_worth,
+            "total_bids": total_bids,
+            "total_accepted": total_accepted
         }, status=status.HTTP_200_OK)
 
 

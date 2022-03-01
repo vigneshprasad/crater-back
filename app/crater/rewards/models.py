@@ -59,12 +59,7 @@ class Reward(base_models.BaseModel):
     photo = models.FileField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
-    # TODO(Abhishek): Remove later
-    quantity = models.PositiveIntegerField(default=1)
-    # What quantity of the reward is left.
-    remaining_quantity = models.IntegerField(null=True, blank=True)
-    # Price of the Reward in creator coins.
-    number_of_coins = models.PositiveIntegerField()
+    card_background = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         ordering = ["-order"]

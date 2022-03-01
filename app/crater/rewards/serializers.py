@@ -44,6 +44,7 @@ class RewardSerializer(serializers.ModelSerializer):
             "active_auction",
             "creator_detail",
             "type_detail",
+            "card_background"
         )
 
     @staticmethod
