@@ -51,7 +51,14 @@ class Creator(base_models.BaseModel):
         null=True,
         blank=True,
         related_name="point_of_contact",
-        on_delete=models.CASCADE
+        on_delete=models.SET_NULL
+    )
+    prospector = models.ForeignKey(
+        get_user_model(),
+        null=True,
+        blank=True,
+        related_name="creator_prospector",
+        on_delete=models.SET_NULL
     )
     show_analytics = models.BooleanField(default=False)
 
