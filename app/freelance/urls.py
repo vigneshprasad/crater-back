@@ -58,7 +58,7 @@ urlpatterns = [
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc-ui")
 ] + i18n_patterns(
     path("admin/", admin.site.urls, name="admin"),
-    path("silk/", include("silk.urls", namespace="silk")),
+    # path("silk/", include("silk.urls", namespace="silk")),
     path("admin/password_reset/", AdminPasswordResetView.as_view(), name="admin_password_reset"),
     path("admin/password_reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
     path("admin/reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(),
