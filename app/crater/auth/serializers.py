@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from crater.auth import models
@@ -73,7 +74,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             # Check if referrer exists
             try:
                 user = user_models.User.objects.get(pk=value)
-            except user_models.User.DoesNotExist:
+            except (user_models.User.DoesNotExist, ValidationError):
                 user = None
 
             return user
