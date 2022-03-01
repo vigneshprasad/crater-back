@@ -68,15 +68,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
     def validate_referrer(self, value):
         if self.instance and value:
-            value = value.strip()
-
-            # Check if referrer exists
-            try:
-                user = user_models.User.objects.get(pk=value)
-            except user_models.User.DoesNotExist:
-                user = None
-
-            return user
+            return value.strip()
 
     def create(self, validated_data):
         phone_number = validated_data.get("phone_number")
@@ -94,11 +86,19 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         utm_source = validated_data.pop("utm_source")
         utm_campaign = validated_data.pop("utm_campaign")
         utm_medium = validated_data.pop("utm_medium")
-        referrer = validated_data.pop("referrer")
+        referrer_pk = validated_data.pop("referrer")
 
         instance = super().update(instance, validated_data)
 
         if (utm_source or utm_campaign) and validated_data.get("new_user"):
+            # Check if referrer exists
+            try:
+                referrer = user_models.User.objects.get(pk=referrer_pk)
+            except user_models.User.DoesNotExist:
+                referrer = None
+            except Exception as e:
+                print(e)
+
             # Only create if the user is a new user.
             analytics_models.UserSource.objects.create(
                 user=instance.user,
