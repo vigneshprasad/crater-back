@@ -205,20 +205,17 @@ def get_follower_count(user):
     ).count()
 
 
-def get_top_creators_by_month(followed_at, count=5, user=None):
-    """Returns top creators by month and rank of requested creator.
+def get_top_creators_by_date_range(start_date, end_date, count=5, user=None):
+    """Returns top creators by date range and rank of requested creator.
 
     Args:
-        followed_at(DateTime): Followed at datetime
+        start_date(DateTime): Start date
+        end_date(DateTime): End date
         count(int): Number of top creators to be returned
         user(User): User instance of a creator
 
     """
     requested_creator_rank = None
-
-    # Get date from last 30 days
-    end_date = followed_at.date()
-    start_date = end_date - datetime.timedelta(days=30)
 
     rank_by_follower_count = Window(
         expression=DenseRank(),

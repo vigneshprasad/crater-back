@@ -177,10 +177,12 @@ class AnalyticsDashboardViewSet(
     )
     def comparative_ranking(self, request):
         user = request.user
-        now = datetime.datetime.now()
+        end_date = datetime.datetime.now().date()
+        start_date = end_date - datetime.timedelta(days=30)
 
-        top_creators, my_rank = creator_private.get_top_creators_by_month(
-            followed_at=now,
+        top_creators, my_rank = creator_private.get_top_creators_by_date_range(
+            start_date=start_date,
+            end_date=end_date,
             count=3,
             user=user
         )
@@ -193,10 +195,13 @@ class AnalyticsDashboardViewSet(
                 is_published=True,
                 is_live=False,
                 closed=True,
-                host=data["pk"]
+                host=data["pk"],
+                start__range=[start_date, end_date]
             ).values(
                 "id",
-                topic_title=F("topic__name")
+                "start",
+                topic_title=F("topic__name"),
+                topic_image=F("topic__image")
             ).annotate(
                 rsvp_count=Count("requests", distinct=True)
             ).annotate(
@@ -208,6 +213,8 @@ class AnalyticsDashboardViewSet(
             if best_stream:
                 data["stream_id"] = best_stream.get("id")
                 data["stream_topic"] = best_stream.get("topic_title")
+                data["stream_image"] = best_stream.get("topic_image")
+                data["stream_date"] = best_stream.get("start")
 
         serializer = self.get_serializer(top_creators, many=True)
 
