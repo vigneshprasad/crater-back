@@ -10,7 +10,7 @@ class RewardTypeAdmin(admin.ModelAdmin):
         "name",
         "is_active"
     )
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted", "created_by")
 
 
 @admin.register(models.Reward)
@@ -20,8 +20,6 @@ class RewardAdmin(admin.ModelAdmin):
         "creator",
         "name",
         "order",
-        "quantity",
-        "number_of_coins",
         "type",
         "is_active"
     )

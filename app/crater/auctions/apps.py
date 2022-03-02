@@ -6,4 +6,5 @@ class AuctionsConfig(AppConfig):
     label = "auctions"
 
     def ready(self):
-        pass
+        import crater.auctions.signals
+        import crater.auctions.receivers

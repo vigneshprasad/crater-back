@@ -183,6 +183,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DATETIME_FORMAT": DEFAULT_DATETIME_FORMAT,
+    "COERCE_DECIMAL_TO_STRING": False
 }
 
 JWT_AUTH = {
@@ -497,8 +498,8 @@ DYTE_PROD_BASE_URL = "https://api.cluster.dyte.in"
 DYTE_JOIN_MEETING_BASE_URL = "https://worknetwork.dyte.io/"
 
 # -------------- STRIPE ------------- #
-STRIPE_PUBLISHABLE_KEY = "pk_test_51K3b69SEKv2Ym9yYEOeGcEKl0K1o0k5v5BduTtjGT9pqm9pd4Zv2Ap8nwSwhsIMubctc0em5WX4cuTvGLZg1ORjl00AIYT5Rn2"
-STRIPE_SECRET_KEY = "sk_test_51K3b69SEKv2Ym9yY2iHp4gY7IS4fPzhWjMMcrF2RRllNsfCWPyUwtNTCnqoFeJMuCKzljR5y8p7eLATF0lByhd7M00BBpRPjZM"
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_DKSj9kP6A7BFdGNAn6Ynh38y00Az6UhWv4")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_AwTUfAFu61uxi8uGLm5FSEJE00idcE0OEk")
 
 
 # API safe methods.

@@ -10,9 +10,13 @@ from crater.payments import constants
 class Payment(base_models.BaseModel):
 
     STATUS_CHOICES = (
-        (constants.PAYMENT_STATUS_PENDING, constants.PAYMENT_STATUS_PENDING.title()),
-        (constants.PAYMENT_STATUS_SUCCESS, constants.PAYMENT_STATUS_SUCCESS.title()),
-        (constants.PAYMENT_STATUS_FAILED, constants.PAYMENT_STATUS_FAILED.title())
+        (constants.PAYMENT_STATUS_PENDING_ENUM, constants.PAYMENT_STATUS_PENDING),
+        (constants.PAYMENT_STATUS_SUCCESS_ENUM, constants.PAYMENT_STATUS_SUCCESS),
+        (constants.PAYMENT_STATUS_FAILED_ENUM, constants.PAYMENT_STATUS_FAILED)
+    )
+
+    GATEWAY_CHOICES = (
+        (constants.PAYMENT_GATEWAY_STRIPE_ENUM, constants.PAYMENT_GATEWAY_STRIPE),
     )
 
     user = models.ForeignKey(
@@ -23,9 +27,11 @@ class Payment(base_models.BaseModel):
         max_digits=10,
         decimal_places=2
     )
-    status = models.CharField(
-        max_length=16,
+    status = models.PositiveIntegerField(
         choices=STATUS_CHOICES,
-        default=constants.PAYMENT_STATUS_PENDING
+        default=constants.PAYMENT_STATUS_PENDING_ENUM
     )
-    gateway = models.CharField(max_length=16, null=True, blank=True)
+    gateway = models.PositiveIntegerField(
+        choices=GATEWAY_CHOICES,
+        default=constants.PAYMENT_GATEWAY_STRIPE_ENUM
+    )

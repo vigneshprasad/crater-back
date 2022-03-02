@@ -3,16 +3,16 @@ from django.contrib import admin
 from crater.auctions import models
 
 
-@admin.register(models.Auction)
-class AuctionsAdmin(admin.ModelAdmin):
+@admin.register(models.RewardAuction)
+class RewardAuctionsAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "coin",
+        "reward",
         "start",
         "is_closed",
         "base_price",
-        "number_of_coins",
-        "coins_sold",
+        "quantity",
+        "quantity_sold"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
@@ -24,10 +24,11 @@ class BidAdmin(admin.ModelAdmin):
         "bidder",
         "auction",
         "bid_price",
-        "number_of_coins",
+        "quantity",
         "status"
     )
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("bidder", "creator")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted", "payment")
 
 
 @admin.register(models.CoinPriceLog)

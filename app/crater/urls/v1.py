@@ -6,6 +6,9 @@ from crater.auth import views as auth_views
 from crater.creator import views as creator_views
 from crater.rewards import views as reward_views
 from crater.auctions import views as auction_views
+from crater.payments import views as payment_views
+from crater.exchange import views as exchange_views
+from crater.gateways.stripe_payments import views as stripe_payment_views
 from crater.analytics_dashboard import views as analytics_dashboard_views
 
 app_name = "crater"
@@ -23,12 +26,22 @@ router.register("community", creator_views.CommunityViewSet, base_name="crater-c
 router.register("followers", creator_views.FollowerViewSet, base_name="crater-followers")
 router.register("coins", creator_views.CoinsViewSet, base_name="creator-coins")
 
+# Exchange endpoints
+router.register("exchange/coin_holding", exchange_views.UserCoinHoldingViewSet, basename="coin-holdings")
+router.register("exchange/user_reward", exchange_views.UserRewardViewSet, basename="user-rewards")
+
 # Rewards/Redemption endpoints.
 router.register("reward/type", reward_views.RewardTypeViewSet, base_name="reward-types")
 router.register("reward", reward_views.RewardViewSet, base_name="rewards")
 router.register("redemption", reward_views.RedemptionViewSet, base_name="redemptions")
 router.register("auction", auction_views.AuctionViewSet, basename="auctions")
 router.register("bid", auction_views.BidViewSet, basename="bids")
+router.register("coin_log", auction_views.CoinPriceLogViewSet, basename="coin-price-logs")
+
+# Payment endpoints
+router.register("payment", payment_views.PaymentViewSet, basename="crater-payments")
+router.register("gateways/stripe/webhook", stripe_payment_views.StripeWebhookViewSet, basename="strip-webhook")
+router.register("gateways/stripe", stripe_payment_views.PaymentIntentViewSet, basename="crater-gateways-stripe")
 
 # Analytics Dashboard endpoints
 router.register("analytics", analytics_dashboard_views.AnalyticsDashboardViewSet, basename="analytics-dashboard")

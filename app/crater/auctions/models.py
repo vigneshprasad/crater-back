@@ -1,18 +1,17 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
 from crater.auctions import constants
 
 
 class Auction(base_models.BaseModel):
-    """Creator auctions for their Tokens."""
+    """Base Auction Proxy model"""
+    class Meta:
+        abstract = True
 
-    coin = models.ForeignKey(
-        "creator.Coin",
-        related_name="auctions",
-        on_delete=models.CASCADE
-    )
     # Duration of the auction.
     start = models.DateTimeField()
     end = models.DateTimeField()
@@ -23,8 +22,24 @@ class Auction(base_models.BaseModel):
 
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
 
-    number_of_coins = models.PositiveIntegerField()
-    coins_sold = models.PositiveIntegerField(default=0)
+    quantity = models.PositiveIntegerField()
+    quantity_sold = models.PositiveIntegerField(default=0)
+
+    def clean(self):
+        if self.quantity_sold > self.quantity:
+            raise ValidationError({
+                "quantity_sold": _("Quantity exceeds remaining quantity..")
+            })
+
+
+class RewardAuction(Auction):
+    """Creator auctions for their Tokens."""
+
+    reward = models.ForeignKey(
+        "crater_rewards.Reward",
+        related_name="auctions",
+        on_delete=models.CASCADE
+    )
 
 
 class Bid(base_models.BaseModel):
@@ -34,10 +49,18 @@ class Bid(base_models.BaseModel):
     """
 
     BID_STATUS_CHOICES = (
+        (constants.BID_STATUS_PAYMENT_PENDING_ENUM, constants.BID_STATUS_PAYMENT_PENDING),
         (constants.BID_STATUS_PENDING_ENUM, constants.BID_STATUS_PENDING),
         (constants.BID_STATUS_ACCEPTED_ENUM, constants.BID_STATUS_ACCEPTED),
         (constants.BID_STATUS_REJECTED_ENUM, constants.BID_STATUS_REJECTED),
         (constants.BID_STATUS_CANCELLED_ENUM, constants.BID_STATUS_CANCELLED)
+    )
+
+    creator = models.ForeignKey(
+        "creator.Creator",
+        related_name="bids",
+        on_delete=models.CASCADE,
+        null=True
     )
 
     bidder = models.ForeignKey(
@@ -47,7 +70,7 @@ class Bid(base_models.BaseModel):
 
     # What auction is the bid made for.
     auction = models.ForeignKey(
-        Auction,
+        RewardAuction,
         null=True,
         blank=True,
         related_name="bids",
@@ -56,10 +79,7 @@ class Bid(base_models.BaseModel):
 
     # Single coin price.
     bid_price = models.DecimalField(max_digits=10, decimal_places=2)
-    number_of_coins = models.PositiveIntegerField()
-
-    # What time the bid was created.
-    bid_time = models.DateTimeField()
+    quantity = models.PositiveIntegerField()
 
     # What is the status of the bid. Accepted status of bid
     # makes the exchange or coins.
@@ -72,11 +92,16 @@ class Bid(base_models.BaseModel):
     is_processed = models.BooleanField(default=False)
 
     # Attach a payment promise to the Bid.
-    # payment = models.ForeignKey()
+    payment = models.ForeignKey(
+        "crater_payments.Payment",
+        related_name="bid",
+        on_delete=models.CASCADE,
+        null=True
+    )
 
     @property
     def amount(self):
-        return self.number_of_coins * self.bid_price
+        return self.quantity * self.bid_price
 
 
 class CoinPriceLog(base_models.BaseModel):

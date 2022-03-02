@@ -42,15 +42,10 @@ class Reward(base_models.BaseModel):
     )
     name = models.CharField(max_length=128)
     text_color = color_fields.ColorField(default="#FFFFFF")
-    description = models.CharField(max_length=255, null=True, blank=True)
-    # Quantity of the reward.
-    quantity = models.PositiveIntegerField(default=1)
+    description = models.TextField(null=True, blank=True)
+
     # Order in which the rewards will show up.
     order = models.PositiveIntegerField(default=0)
-    # What quantity of the reward is left.
-    remaining_quantity = models.IntegerField(null=True, blank=True)
-    # Price of the Reward in creator coins.
-    number_of_coins = models.PositiveIntegerField()
 
     # Type of rewards, 1:1, newsletter, AMA etc.
     type = models.ForeignKey(
@@ -64,8 +59,13 @@ class Reward(base_models.BaseModel):
     photo = models.FileField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
+    card_background = models.CharField(max_length=255, null=True, blank=True)
+
     class Meta:
         ordering = ["-order"]
+
+    def get_active_auction(self):
+        return self.auctions.filter(is_closed=False).last()
 
 
 class Redemption(base_models.BaseModel):
