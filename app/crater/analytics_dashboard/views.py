@@ -129,14 +129,14 @@ class AnalyticsDashboardViewSet(
             num=1
         )
 
-        recurring_user_percentage = round(recurring_user_count / follower_count * 100, 2)
+        recurring_user_percentage = round(recurring_user_count / follower_count * 100, 2) if follower_count > 0 else None
 
         # Get total subscribers for creator
         subscriber_count = creator_private.get_subscriber_count(
             user=user
         )
 
-        subscriber_percentage = round(subscriber_count / follower_count * 100, 2)
+        subscriber_percentage = round(subscriber_count / follower_count * 100, 2) if follower_count > 0 else None
 
         response = [
             {
