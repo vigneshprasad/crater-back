@@ -48,6 +48,9 @@ class RewardAuction(Auction):
         on_delete=models.CASCADE
     )
 
+    def __str__(self):
+        return "{}: {}".format(self.reward.name, self.quantity)
+
 
 class Bid(base_models.BaseModel):
     """Represents a bid placed on an auction or a bid from a user
