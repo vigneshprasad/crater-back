@@ -18,6 +18,7 @@ urlpatterns = [
     path("rewards/", include("rewards.urls.v1", namespace="rewards")),
     path("matching/", include("matching.urls.v1", namespace="matching")),
     path("groups/", include("conversations.urls.v1", namespace="groups")),
+    path("conversations/dashboard/", include("conversations.dashboard.urls.v1", namespace="conversations_dashboard")),
     path("integrations/", include("integrations.urls.v1")),
     path("analytics/", include("wn_analytics.urls.v1")),
     path("crater/", include("crater.urls.v1", namespace="crater"))

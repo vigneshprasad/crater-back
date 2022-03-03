@@ -142,6 +142,7 @@ INSTALLED_APPS = [
     "matching",
     "matching.validation",
     "conversations",
+    "conversations.dashboard",
     "communications.notifications",
     "devices",
 

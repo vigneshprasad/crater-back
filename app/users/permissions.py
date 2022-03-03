@@ -8,6 +8,8 @@ from django.conf import settings
 from rest_framework import permissions, exceptions
 from rest_framework.exceptions import AuthenticationFailed
 
+from conversations.dashboard import constants as dashboard_constants
+
 
 class IsAuthenticated(permissions.BasePermission):
     """Allows access only to authenticated users."""
@@ -72,3 +74,17 @@ class SegmentRequest(permissions.BasePermission):
 
         return True
 
+
+class ConversationDashboardPermission(permissions.BasePermission):
+    """Allow permission to only members of a group."""
+
+    def has_permission(self, request, view):
+        # Check if the user is authenticated first.
+        if not bool(request.user and request.user.is_authenticated):
+            raise AuthenticationFailed
+
+        user = request.user
+        if not user.groups.filter(name=dashboard_constants.CONVERSATION_DASHBOARD_GROUP).exists():
+            raise exceptions.PermissionDenied
+
+        return True

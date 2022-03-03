@@ -1,6 +1,8 @@
+from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+from users import constants
 from users import signals
 
 
@@ -37,3 +39,54 @@ def get_or_create_user(phone_number):
         )
 
     return user, created
+
+
+def get_user(phone_number):
+    """Return user if present.
+
+    Args:
+        phone_number(str): String representation of the user's
+            phone number.
+
+    """
+    try:
+        user = get_user_model().objects.get(
+            username=phone_number,
+            phone_number=phone_number
+        )
+    except get_user_model().DoesNotExist:
+        return None
+    except get_user_model().MutipleObjectsReturned:
+        raise Exception
+
+    return user
+
+
+def create_user(phone_number, email, name):
+    """Create a user.
+
+    Args:
+        phone_number(str): Phone number of the user we are adding.
+        email(str): Email ID of the user.
+        name(str): User's name
+
+    """
+    try:
+        user = get_user_model().objects.create(
+            username=phone_number,
+            phone_number=phone_number,
+            email=email
+        )
+    except Exception as e:
+        raise e
+
+    # Set user's name.
+    user.set_name(name)
+
+    # Add user to crater club group.
+    crater_club_group, _ = Group.objects.get_or_create(
+        name=constants.CRATER_CLUB_GROUP
+    )
+    user.groups.add(crater_club_group)
+
+    return user
