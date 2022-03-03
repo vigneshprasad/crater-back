@@ -26,7 +26,7 @@ class GroupModelChoiceField(forms.ModelChoiceField):
 
 class AdminCreationForm(GroupMixin, UserCreationForm):
 
-    groups = GroupModelChoiceField(queryset=Group.objects.filter(name__in=['Admin', 'Support']))
+    groups = GroupModelChoiceField(queryset=Group.objects.all())
     is_staff = forms.BooleanField(initial=True)
 
     class Meta:

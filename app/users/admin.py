@@ -72,6 +72,7 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
             return mark_safe("<i class='material-icons red-color medium-icon'>highlight_off</i>")
         return ", ".join([group.name for group in user.groups.all()])
 
+
 @admin.register(Admin)
 class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
     list_action_text = _("View profile")

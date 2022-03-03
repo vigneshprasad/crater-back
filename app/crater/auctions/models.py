@@ -5,12 +5,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
 from crater.auctions import constants
+from crater.auctions import signals
 
 
 class Auction(base_models.BaseModel):
-    """Base Auction Proxy model"""
-    class Meta:
-        abstract = True
+    """Base Auction Abstract model class"""
 
     # Duration of the auction.
     start = models.DateTimeField()
@@ -25,11 +24,19 @@ class Auction(base_models.BaseModel):
     quantity = models.PositiveIntegerField()
     quantity_sold = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        abstract = True
+
     def clean(self):
         if self.quantity_sold > self.quantity:
             raise ValidationError({
                 "quantity_sold": _("Quantity exceeds remaining quantity..")
             })
+
+    def update_quantity(self, quantity):
+        """Update the quantity sold for an Auction."""
+        self.quantity_sold += quantity
+        self.save()
 
 
 class RewardAuction(Auction):
@@ -102,6 +109,21 @@ class Bid(base_models.BaseModel):
     @property
     def amount(self):
         return self.quantity * self.bid_price
+
+    def mark_pending(self):
+        """Mark the bid pending."""
+        self.status = constants.BID_STATUS_ACCEPTED_ENUM
+        self.save()
+
+    def mark_accepted(self):
+        """Mark the bid accepted."""
+        self.status = constants.BID_STATUS_ACCEPTED_ENUM
+        self.save()
+        # Send bid accepted signal.
+        signals.bid_accepted.send(
+            sender=self.__class__,
+            bid=self
+        )
 
 
 class CoinPriceLog(base_models.BaseModel):

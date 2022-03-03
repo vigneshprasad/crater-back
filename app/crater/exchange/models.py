@@ -45,10 +45,11 @@ class Transaction(base_models.BaseModel):
 
     # 1. Bid: Refers Bid Transaction Log. (buyer: User, seller: Creator)
     # 2. Redemption: Refers to Reward Redemption Log/ (buyer: Creator, seller: User)
-    # 3. Auction: Created when auction is created where coins are assigned to creator.
-    #             (buyer: Creator, seller: Crater/Hum Log)
-
+    # 3. Auction: Created when auction is created where coins are
+    # assigned to creator. (buyer: Creator, seller: Crater)
     type = models.PositiveIntegerField(choices=TRANSACTION_TYPES)
+
+    # Object ID of what is created in this Transaction. Based on the type.
     object_id = models.PositiveIntegerField(
         null=True,
         blank=True
@@ -56,13 +57,15 @@ class Transaction(base_models.BaseModel):
 
 
 class UserReward(base_models.BaseModel):
-    """This is a log for all users rewards bought and redeemed.
+    """This is a log for all user rewards bought and redeemed.
 
+    Note:
         This is a single source of truth for the rewards a user is
-        holding at any given point.
+            holding at any given point.
 
-        """
+    """
 
+    # TODO(Nishant): Change related names.
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -73,8 +76,12 @@ class UserReward(base_models.BaseModel):
         on_delete=models.CASCADE,
         related_name="reward_holding"
     )
+
+    # What is the total quantity of reward bought by the user.
     quantity = models.PositiveIntegerField(default=0)
+    # What amount of rewards have to redeemed.
     redeemed_quantity = models.PositiveIntegerField(default=0)
+    # Mark is redeemed when redeemed_quantity == quantity.
     is_redeemed = models.BooleanField(default=False)
 
     class Meta:
@@ -84,8 +91,9 @@ class UserReward(base_models.BaseModel):
 class UserCoinHolding(base_models.BaseModel):
     """This is a log for all users coin bought and redeemed.
 
-    This is a single source of truth for the coins user is
-    holding at any given point.
+    Note:
+        This is a single source of truth for coins user is
+            holding at any given point.
 
     """
 
@@ -104,4 +112,3 @@ class UserCoinHolding(base_models.BaseModel):
 
     class Meta:
         unique_together = ("user", "coin")
-

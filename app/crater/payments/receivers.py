@@ -22,7 +22,8 @@ def create_payment_on_bid_placed(sender, bid, *args, **kwargs):
 
 
 @receiver(stripe_signal.capture_payment_intent_success)
-def update_payment_status_on_charge_sucess(sender, bid, *args, **kwargs):
+def update_payment_status_on_charge_success(sender, bid, *args, **kwargs):
+    """Update payment status to success once Charge creation is success."""
     payment = bid.payment
     if not payment:
         return

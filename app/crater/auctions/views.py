@@ -1,5 +1,3 @@
-import datetime
-
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from rest_framework import mixins
@@ -9,12 +7,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 
-from crater.auctions import constants, models
-from crater.creator import private
+from crater.auctions import constants
+from crater.auctions import exceptions
+from crater.auctions import models
 from crater.auctions import serializers
 from crater.auctions import signals
 from crater.auctions import filters
-from crater.exchange import models as exchange_models
 from users import permissions as user_permissions
 
 
@@ -29,14 +27,20 @@ class AuctionViewSet(
     queryset = models.RewardAuction.objects.filter(is_closed=False)
     filterset_fields = ["reward"]
 
-    def _get_active_auction(self, reward):
+    def _get_active_auction(self, reward_id):
+        """Get active auctions for a reward.
+
+        Args:
+            reward_id(int): Reward ID for which we are getting active
+                auctions.
+
+        """
         now = timezone.now()
-        auctions = self.get_queryset().filter(
+        return self.get_queryset().filter(
             start__lte=now,
             end__gte=now,
-            reward_id=reward
+            reward_id=reward_id
         ).order_by("-start")
-        return auctions
 
     @action(
         methods=["GET"],
@@ -47,7 +51,7 @@ class AuctionViewSet(
 
         Args:
             request(Request): Request object.
-            pk(str): Reward ID we are getting the active
+            pk(int): Reward ID we are getting the active
                 auctions for.
 
         """
@@ -79,26 +83,25 @@ class BidViewSet(
         permission_classes=[user_permissions.IsAuthenticated]
     )
     def accept(self, request, *args, pk, **kwargs):
-
+        """Accept a bid."""
         try:
             bid = self.get_queryset().get(pk=pk)
-            if bid.creator.user != request.user:
-                # TODO(Abhishek): Create valid Exception
-                raise Exception
-            bid.status = constants.BID_STATUS_ACCEPTED_ENUM
-            bid.save()
-            signals.bid_accepted.send(sender=bid.__class__, bid=bid)
-            # Update accepted status
-
-            # Create Coin Price Log
-            # Charge signal
-            # -> Update is_processed after charge, Create Transaction Log
-            # -> Assign coins in CoinHolding to User
-            serialized = self.get_serializer(bid)
-            return Response(serialized.data, status=status.HTTP_200_OK)
         except models.Bid.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-    
+
+        if bid.creator.user != request.user:
+            user_not_following_creator_exception = exceptions.BidActionNotAllowed()
+            return Response(
+                user_not_following_creator_exception.get_error_body(),
+                status=user_not_following_creator_exception.status_code
+            )
+
+        # Mark bid as accepted.
+        bid.mark_accepted()
+
+        serialized = self.get_serializer(bid)
+        return Response(serialized.data, status=status.HTTP_200_OK)
+
     @action(
         methods=["GET"],
         detail=True,
@@ -124,22 +127,24 @@ class BidViewSet(
             ]
         )
         bids_accepted = bids.filter(status=constants.BID_STATUS_ACCEPTED_ENUM)
-        total_received = 0
+        total_net_worth = 0
+        accepted_net_worth = 0
         total_bids = bids.count()
-        total_accepted = bids_accepted.count()
-        net_worth = 0
+        total_bids_accepted = bids_accepted.count()
 
+        # Calculate total amount bid.
         for bid in bids:
-            total_received += bid.amount
+            total_net_worth += bid.amount
 
+        # Calculate total amount accepted.
         for bid in bids_accepted:
-            net_worth += bid.amount
-        
+            accepted_net_worth += bid.amount
+
         return Response({
-            "total_net_worth": total_received,
-            "accepted_net_worth": net_worth,
+            "total_net_worth": total_net_worth,
+            "accepted_net_worth": accepted_net_worth,
             "total_bids": total_bids,
-            "total_accepted": total_accepted
+            "total_accepted": total_bids_accepted
         }, status=status.HTTP_200_OK)
 
 
