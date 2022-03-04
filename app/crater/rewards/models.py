@@ -19,7 +19,11 @@ class RewardType(base_models.BaseModel):
         blank=True,
         on_delete=models.CASCADE
     )
+    order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-order"]
 
     def __str__(self):
         return self.name
