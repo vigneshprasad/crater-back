@@ -24,7 +24,7 @@ variables:
   before_script:
     - cd app
   only:
-    - migration
+    - main
     - merge_requests
   needs:
     - Build base runner
@@ -44,12 +44,11 @@ variables:
     - export CONTAINER_NAME=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'DjangoContainerName' infrastructure/output.json)
     - export CONTAINER_PORT=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'DjangoContainerPort' infrastructure/output.json)
     - export CI_ENVIRONMENT_URL=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'DjangoServiceURL' infrastructure/output.json)
-    - export CELERY_ENABLED=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'CeleryEnabled' infrastructure/output.json)
     - cat infrastructure/appspec.template.yaml | envsubst > appspec.yaml
     - aws deploy create-deployment --application-name $APPLICATION_NAME --deployment-group-name $DEPLOYMENT_GROUP --revision revisionType=AppSpecContent,appSpecContent={content="$(cat appspec.yaml)"}
   only:
     refs:
-      - migration
+      - main
       - /^hotfix.*$/
     variables:
       - $AWS_ACCOUNT_ID
@@ -70,10 +69,9 @@ variables:
     - aws ecs update-service --cluster $CLUSTER --service $SERVICE --task-definition ${TASK_DEFINITION_ARN##*/}
   only:
     refs:
-      - migration
+      - main
       - /^hotfix.*$/
     variables:
-      - $CELERY_ENABLED == "true"
       - $AWS_ACCOUNT_ID
 
 .deploy-infrastructure:
@@ -87,7 +85,7 @@ variables:
     - Build base runner
   only:
     refs:
-      - migration
+      - main
       - /^hotfix.*$/
     variables:
       - $AWS_ACCOUNT_ID
@@ -119,7 +117,7 @@ Build base app:
     reports:
       dotenv: app.env
   only:
-    - migration
+    - main
     - merge_requests
 
 Build app runner:
@@ -136,7 +134,7 @@ Build app runner:
     reports:
       dotenv: app.env
   only:
-    - migration
+    - main
     - merge_requests
 
 Build base runner:
@@ -153,7 +151,7 @@ Build base runner:
     reports:
       dotenv: runner.env
   only:
-    - migration
+    - main
     - merge_requests
 
 Build app image:
@@ -166,7 +164,7 @@ Build app image:
     - docker push $AWS_ECR:$CI_COMMIT_SHORT_SHA;
   only:
     refs:
-      - migration
+      - main
       - /^hotfix.*$/
     variables:
       - $AWS_ECR
