@@ -9,6 +9,7 @@ from users import permissions as user_permissions
 
 
 class PaymentViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+
     queryset = models.Payment.objects.all()
     permission_classes = [user_permissions.IsAuthenticated]
     serializer_class = serializers.PaymentSerializer

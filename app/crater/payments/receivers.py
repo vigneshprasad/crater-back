@@ -1,4 +1,3 @@
-from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from crater.auctions import signals as auction_signals
@@ -9,14 +8,16 @@ from crater.payments import constants
 
 @receiver(auction_signals.bid_placed)
 def create_payment_on_bid_placed(sender, bid, *args, **kwargs):
-
+    # TODO(Nishant): Should we do this? Check with Abhishek is payment
+    # is getting created with the bid.
     payment = models.Payment.objects.create(
         user=bid.bidder,
         amount=bid.amount
     )
     # Append the payment to the bid object.
-    # bid.payment = payment
-    # bid.save()
+    if not bid.payment:
+        bid.payment = payment
+        bid.save()
 
     return payment
 

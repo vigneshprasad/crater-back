@@ -23,26 +23,6 @@ class RewardAdmin(admin.ModelAdmin):
         "type",
         "is_active"
     )
-    # fieldsets = (
-    #     ("Display", {
-    #         "fields": (
-    #             ("name",),
-    #             ("title",),
-    #             ("text_color",),
-    #             ("photo", ),
-    #             ("description", ),
-    #             ("order", )
-    #         ),
-    #     }),
-    #     ("Purchase Data", {
-    #         "fields": (
-    #             ("number_of_coins", ),
-    #             ("quantity", "remaining_quantity", ),
-    #             ("type",),
-    #             ("object_id", )
-    #         ),
-    #     }),
-    # )
     raw_id_fields = ("creator", )
     list_editable = ("order", )
     exclude = (

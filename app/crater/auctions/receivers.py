@@ -16,7 +16,7 @@ def send_bid_created(sender, instance, *args, **kwargs):
 
     signals.bid_placed.send(
         sender=instance.__class__,
-        instance=instance
+        bid=instance
     )
 
 

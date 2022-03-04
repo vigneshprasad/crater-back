@@ -49,7 +49,7 @@ class RewardAuction(Auction):
     )
 
     def __str__(self):
-        return "{}: {}".format(self.reward.name, self.quantity)
+        return "{}: {}".format(self.reward.name, self.reward.type)
 
 
 class Bid(base_models.BaseModel):
@@ -108,6 +108,9 @@ class Bid(base_models.BaseModel):
         on_delete=models.CASCADE,
         null=True
     )
+
+    def __str__(self):
+        return "{} - {}".format(self.bidder, self.auction.reward)
 
     @property
     def amount(self):

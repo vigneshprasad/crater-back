@@ -72,6 +72,7 @@ class Reward(base_models.BaseModel):
 
 
 class Redemption(base_models.BaseModel):
+
     user = models.ForeignKey(
         "users.User",
         models.CASCADE
