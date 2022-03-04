@@ -58,7 +58,7 @@ pip install -r infrastructure/requirements.txt
 
 ![deploy](infrastructure.png)
 
-[Link to edit]( https://lucid.app/lucidchart/13b27697-50f0-4b6d-b987-96bccc140160/edit?page=YGcM5DNywbTK#).
+[Link to edit]( https://lucid.app/lucidchart/902bc797-1bf9-416d-a671-f8e92649ffc9/edit?invitationId=inv_f6767c0d-1cbc-4248-b896-40c275cabecb).
 
 ### VPC
 
