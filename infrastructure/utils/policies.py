@@ -85,13 +85,6 @@ def ses_statement(resources: Optional[List[str]] = None) -> PolicyStatement:
         resources=resources or ["*"]
     )
 
-def xray_statement(resources: Optional[List[str]] = None) -> PolicyStatement:
-    return iam.PolicyStatement(
-        actions=[
-            "xray:*"
-        ],
-        resources=resources or ["*"])
-
 
 class ExecutionRole(iam.Role):
 

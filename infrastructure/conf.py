@@ -51,7 +51,8 @@ class Env(Environment):
     db_instance_type: InstanceType = T3_MEDIUM
     db_multi_az: bool = False
     db_instance_count: Optional[int] = 2
-
+    # s3
+    media_bucket_arn: Optional[str] = ""
 
     def __post_init__(self):
         if int(self.django_cpu) * 2 > int(self.django_memory):
@@ -89,5 +90,6 @@ PROD_ENV = Env(
     environment_prefix="api",
     # use_cluster=True,
     db_instance_type=T3_MEDIUM,
+    media_bucket_arn="arn:aws:s3:::1worknetwork-prod",
     peering_vpc_ids=["vpc-057431677ae96e918"]
 )

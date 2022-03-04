@@ -57,10 +57,6 @@ class FargateApiServiceStack(NestedStack):
             max_capacity=autoscaling_max_capacity,
 
         )
-        scaling.scale_on_cpu_utilization(
-            f"{construct_id}-cpu-scaling",
-            target_utilization_percent=70
-        )
 
         self.execution_role = ExecutionRole(self, construct_id)
         for policy_statement in ssm_policies():
@@ -141,7 +137,8 @@ class FargateApiServiceStack(NestedStack):
             "DYTE_ORG_ID",
             "DYTE_APP_ID",
             "STRIPE_PUBLISHABLE_KEY",
-            "STRIPE_SECRET_KEY"
+            "STRIPE_SECRET_KEY",
+            "DEFAULT_FROM_EMAIL"
         ]
 
         params = {
@@ -190,12 +187,10 @@ class FargateApiServiceStack(NestedStack):
             "DJANGO_SETTINGS_MODULE": "freelance.settings_aws",
             "ENVIRONMENT": environment_name,
             "ROOT_DOMAIN": scope.alb.domain,
-            "DEFAULT_FROM_EMAIL": os.environ.get("DEFAULT_FROM_EMAIL", ""),
             "AWS_DEFAULT_REGION": os.environ.get("AWS_DEFAULT_REGION", REGION),
             "BUILD_VERSION": BUILD_VERSION,
             "LOCAL_CURRENCY": "inr",
             "LOCAL_COUNTRY": "IN",
-            # TODO Change in PROD
             "AWS_STORAGE_BUCKET_NAME": scope.media_bucket.bucket_name,
             "STATIC_BUCKET_NAME": scope.static_bucket.bucket_name,
             "DD_ENV": environment_name,
@@ -217,34 +212,28 @@ class FargateApiServiceStack(NestedStack):
             secret_name="DD_API_KEY",
         )
         dd_api_secret.grant_read(self.execution_role)
-        if datadog_logging:
-            logging = aws_ecs.FireLensLogDriver(
-                options={
-                    "Name": "datadog",
-                    "dd_service": construct_id,
-                    "dd_source": "httpd",
-                    "dd_version": BUILD_VERSION,
-                    "dd_env": environment_name,
-                    "provider": "ecs",
-                    "apikey": dd_api_secret.secret_value.to_string(),
-                    "Host": "http-intake.logs.datadoghq.com",
-                    "dd_message_key": "log",
-                    "TLS": "on",
-                }
-            )
-        else:
-            self.log_group = aws_logs.LogGroup(
-                self,
-                f"{construct_id}-logs",
-                log_group_name=f"ecs/{construct_id}",
-                removal_policy=RemovalPolicy.DESTROY,
-                retention=log_retention,
-            )
-            self.log_group.grant_write(self.task_definition.task_role)
-            logging = aws_ecs.LogDriver.aws_logs(
-                stream_prefix="ecs",
-                log_group=self.log_group
-            )
+        logging = aws_ecs.FireLensLogDriver(
+            options={
+                "Name": "datadog",
+                "dd_service": construct_id,
+                "dd_source": "httpd",
+                "dd_version": BUILD_VERSION,
+                "dd_env": environment_name,
+                "provider": "ecs",
+                "apikey": dd_api_secret.secret_value.to_string(),
+                "Host": "http-intake.logs.datadoghq.com",
+                "dd_message_key": "log",
+                "TLS": "on",
+            }
+        )
+        self.log_group = aws_logs.LogGroup(
+            self,
+            f"{construct_id}-logs",
+            log_group_name=f"ecs/{construct_id}",
+            removal_policy=RemovalPolicy.DESTROY,
+            retention=log_retention,
+        )
+        self.log_group.grant_write(self.task_definition.task_role)
 
         self.task_definition.add_container(
             f"{construct_id}-django",
@@ -268,7 +257,10 @@ class FargateApiServiceStack(NestedStack):
         self.task_definition.add_container(
             f"{construct_id}-datadog",
             container_name="datadog-agent",
-            logging=logging,
+            logging=aws_ecs.LogDriver.aws_logs(
+                stream_prefix="ecs",
+                log_group=self.log_group
+            ),
             image=aws_ecs.ContainerImage.from_registry("gcr.io/datadoghq/agent:latest"),
             port_mappings=[aws_ecs.PortMapping(container_port=8126, host_port=8126)],
             environment={
@@ -319,6 +311,12 @@ class FargateApiServiceStack(NestedStack):
             port=APP_PORT,
             health_check=HealthCheck(path="/api/build-version/", unhealthy_threshold_count=5),
             targets=[self.service]
+        )
+
+        scaling.scale_on_request_count(
+            f"{construct_id}-cpu-scaling",
+            requests_per_target=20,
+            target_group=target_group_blue
         )
 
         # Create Blue Green Deployment Application
@@ -405,34 +403,14 @@ class FargateServiceStack(NestedStack):
             self, f"{construct_id}-DD_API_KEY",
             secret_name="DD_API_KEY",
         )
-        if datadog_logging:
-            logging = aws_ecs.FireLensLogDriver(
-                options={
-                    "Name": "datadog",
-                    "dd_service": construct_id,
-                    "dd_source": "httpd",
-                    "dd_version": BUILD_VERSION,
-                    "dd_env": environment_name,
-                    "provider": "ecs",
-                    "apikey": dd_api_secret.secret_value.to_string(),
-                    "Host": "http-intake.logs.datadoghq.com",
-                    "dd_message_key": "log",
-                    "TLS": "on",
-                }
-            )
-        else:
-            self.log_group = aws_logs.LogGroup(
-                self,
-                f"{construct_id}-logs",
-                log_group_name=f"ecs/{construct_id}",
-                removal_policy=RemovalPolicy.DESTROY,
-                retention=log_retention,
-            )
-            # self.log_group.grant_write(self.task_definition.task_role)
-            logging = aws_ecs.LogDriver.aws_logs(
-                stream_prefix="ecs",
-                log_group=self.log_group
-            )
+
+        self.log_group = aws_logs.LogGroup(
+            self,
+            f"{construct_id}-logs",
+            log_group_name=f"ecs/{construct_id}",
+            removal_policy=RemovalPolicy.DESTROY,
+            retention=log_retention,
+        )
 
         environment_vars = copy(scope.service.container_environment)
         environment_vars["DD_SERVICE"] = construct_id
@@ -442,7 +420,20 @@ class FargateServiceStack(NestedStack):
                 repository=self.repository,
                 tag=BUILD_VERSION
             ),
-            logging=logging,
+            logging=aws_ecs.FireLensLogDriver(
+                options={
+                    "Name": "datadog",
+                    "dd_service": construct_id,
+                    "dd_source": "httpd",
+                    "dd_version": BUILD_VERSION,
+                    "dd_env": environment_name,
+                    "provider": "ecs",
+                    "apikey": dd_api_secret.secret_value.to_string(),
+                    "Host": "http-intake.logs.datadoghq.eu",
+                    "dd_message_key": "log",
+                    "TLS": "on",
+                }
+            ),
             secrets=scope.service.secrets,
             environment=environment_vars,
             entry_point=entry_point,
@@ -456,6 +447,10 @@ class FargateServiceStack(NestedStack):
         self.task_definition.add_container(
             f"{construct_id}-datadog",
             container_name="datadog-agent",
+            logging=aws_ecs.LogDriver.aws_logs(
+                stream_prefix="ecs",
+                log_group=self.log_group
+            ),
             image=aws_ecs.ContainerImage.from_registry("gcr.io/datadoghq/agent:latest"),
             port_mappings=[aws_ecs.PortMapping(container_port=8126, host_port=8126)],
             environment={
@@ -480,7 +475,7 @@ class FargateServiceStack(NestedStack):
                     )
                 ),
                 image=aws_ecs.ContainerImage.from_registry(
-                    name="amazon/aws-for-fluent-bit:stable"
+                    name="906394416424.dkr.ecr.ap-south-1.amazonaws.com/aws-for-fluent-bit:2.21.3"
                 )
             )
 

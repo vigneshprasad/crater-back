@@ -124,13 +124,20 @@ class BackendStack(Stack):
                 )
             ],
         )
-        self.media_bucket = aws_s3.Bucket(
-            self,
-            f"{construct_id}-media-bucket",
-            bucket_name=f"{construct_id}-media",
-            block_public_access=aws_s3.BlockPublicAccess(restrict_public_buckets=True),
-            removal_policy=RemovalPolicy.DESTROY
-        )
+        if env.media_bucket_arn:
+            self.media_bucket = aws_s3.Bucket.from_bucket_arn(
+                self,
+                f"{construct_id}-media-bucket",
+                bucket_arn=env.media_bucket_arn
+            )
+        else:
+            self.media_bucket = aws_s3.Bucket(
+                self,
+                f"{construct_id}-media-bucket",
+                bucket_name=f"{construct_id}-media",
+                block_public_access=aws_s3.BlockPublicAccess(restrict_public_buckets=True),
+                removal_policy=RemovalPolicy.DESTROY
+            )
         self.service = FargateApiServiceStack(
             self,
             f"{construct_id}-django-service",
