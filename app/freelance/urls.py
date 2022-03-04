@@ -30,6 +30,7 @@ from allauth.socialaccount import views as socialaccount_views
 
 from rest_framework import permissions
 
+from base.views import BuildVersionView
 from users.auth_views import AdminPasswordResetView
 from users.forms import FreelanceAdminAuthenticationForm
 from users.views import PasswordResetConfirmView
@@ -54,6 +55,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("chat/", include(("consumers.chat.urls", "chat"), namespace="chat")),
+    path("api/build-version/", BuildVersionView.as_view(), name="build-versions"),
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc-ui")
 ] + i18n_patterns(

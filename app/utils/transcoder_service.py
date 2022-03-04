@@ -6,12 +6,12 @@ from django.conf import settings
 
 
 class TranscoderService:
-    def __init__(self, pipeline_id, aws_access_key_id, aws_secret_access_key, region_name='eu-west-1'):
+    def __init__(self, pipeline_id, aws_access_key_id=None, aws_secret_access_key=None, region_name='eu-west-1'):
         self.etc_client = boto3.client(
             'elastictranscoder',
             region_name=region_name,
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
+            **{"aws_access_key_id":aws_access_key_id, aws_secret_access_key:aws_secret_access_key}
+            if aws_access_key_id else {}
         )
         self.pipeline_id = pipeline_id
         self.presets = {
@@ -112,9 +112,15 @@ class TranscoderService:
         return False
 
 
-transcoder_service = TranscoderService(
-    pipeline_id=settings.MP4_PIPELINE_ID,
-    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    region_name=settings.AWS_TRANSCODER_REGION_NAME
-)
+if getattr(settings, "AWS_ACCESS_KEY_ID"):
+    transcoder_service = TranscoderService(
+        pipeline_id=settings.MP4_PIPELINE_ID,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_TRANSCODER_REGION_NAME
+    )
+else:
+    transcoder_service = TranscoderService(
+        pipeline_id=settings.MP4_PIPELINE_ID,
+        region_name=settings.AWS_TRANSCODER_REGION_NAME
+    )

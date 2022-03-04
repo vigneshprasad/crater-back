@@ -1,0 +1,39 @@
+{
+  "availability-zones:account=682452685130:region=ap-south-1": [
+    "ap-south-1a",
+    "ap-south-1b",
+    "ap-south-1c"
+  ],
+  "ami:account=682452685130:filters.image-type.0=machine:filters.name.0=amzn-ami-vpc-nat-*:filters.state.0=available:owners.0=amazon:region=ap-south-1": "ami-046cf65ade0bddc8b",
+  "vpc-provider:account=682452685130:filter.vpc-id=vpc-057431677ae96e918:region=ap-south-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-057431677ae96e918",
+    "vpcCidrBlock": "172.1.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0c970a8fc79742d15",
+            "cidr": "172.1.0.0/20",
+            "availabilityZone": "ap-south-1a",
+            "routeTableId": "rtb-0a1daaf54f9a27af8"
+          },
+          {
+            "subnetId": "subnet-045bc126b42f671b8",
+            "cidr": "172.1.16.0/20",
+            "availabilityZone": "ap-south-1b",
+            "routeTableId": "rtb-0a1daaf54f9a27af8"
+          },
+          {
+            "subnetId": "subnet-0a832cd5500f2ead1",
+            "cidr": "172.1.32.0/20",
+            "availabilityZone": "ap-south-1c",
+            "routeTableId": "rtb-0a1daaf54f9a27af8"
+          }
+        ]
+      }
+    ]
+  }
+}

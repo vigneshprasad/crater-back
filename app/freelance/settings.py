@@ -16,15 +16,11 @@ import os
 
 import redis
 import sentry_sdk
-
-import django.core.mail.backends.smtp
 from corsheaders.defaults import default_headers
-
 from django.utils.translation import ugettext_lazy as _
-from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
-
 
 # All environment variables.
 ENVIRONMENT = os.getenv("ENVIRONMENT")
@@ -35,7 +31,6 @@ ENVIRONMENT_DEV = "dev"
 
 CRATER_FRONT_URL = "https://crater.club/" if \
     ENVIRONMENT == ENVIRONMENT_PROD else "https://penitence-pre-prod.vercel.app/"
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -50,7 +45,6 @@ FERNET_KEY = b"TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8="
 
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = True
-
 
 ALLOWED_HOSTS = ["*"]
 
@@ -207,15 +201,15 @@ CHANNEL_LAYERS = {
 REDIS = redis.Redis(host="redis", port=6379)
 
 MATERIAL_ADMIN_SITE = {
-    "HEADER":  _("Administration"),
-    "TITLE":  _("Marketplace"),
-    "FAVICON":  "admin/favicon.ico",
-    "MAIN_BG_COLOR":  "#41adda",
-    "MAIN_HOVER_COLOR":  "#747777",
-    "PROFILE_PICTURE":  "admin/logo.jpg",
-    "PROFILE_BG":  "admin/profile_bg.png",
-    "LOGIN_LOGO":  "admin/logo.jpg",
-    "LOGOUT_BG":  "admin/logout_bg.png",
+    "HEADER": _("Administration"),
+    "TITLE": _("Marketplace"),
+    "FAVICON": "admin/favicon.ico",
+    "MAIN_BG_COLOR": "#41adda",
+    "MAIN_HOVER_COLOR": "#747777",
+    "PROFILE_PICTURE": "admin/logo.jpg",
+    "PROFILE_BG": "admin/profile_bg.png",
+    "LOGIN_LOGO": "admin/logo.jpg",
+    "LOGOUT_BG": "admin/logout_bg.png",
     "REVERSE_TRAY": True,
     "APP_ICONS": {
         "authtoken": "vpn_key",
@@ -368,7 +362,6 @@ MANDRILL_API_KEY = os.getenv("MANDRILL_API_KEY", "pAoVah9eVDu70a2yxajeBg")
 MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
-
 ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
 DEFAULT_SMS_PHONE_NUMBER = os.getenv("DEFAULT_SMS_PHONE_NUMBER", "")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "example")
@@ -391,19 +384,18 @@ WEBSITE_URL = "https://{}".format(FRONT_URL)
 MP4_PIPELINE_ID = os.getenv("MP4_PIPELINE_ID", "1577369677921-qwavil")
 MP4_TRANSCODER_PRESET_ID = os.getenv("MP4_TRANSCODER_PRESET_ID", "1351620000001-000010")
 
-
 SOCIAL_AUTH_APPLE_KEY_ID = os.getenv("SOCIAL_AUTH_APPLE_KEY_ID", "76MWF8X6M3")
 SOCIAL_AUTH_APPLE_TEAM_ID = os.getenv("SOCIAL_AUTH_APPLE_TEAM_ID", "L6D4MNLA5U")
 SOCIAL_AUTH_APPLE_CLIENT_ID = os.getenv("SOCIAL_AUTH_APPLE_CLIENT_ID", "com.wurknet.mobile")
 SOCIAL_AUTH_WEB_APPLE_CLIENT_ID = os.getenv("SOCIAL_AUTH_APPLE_CLIENT_ID", "com.wurknet.mobile.service")
-SOCIAL_AUTH_APPLE_PRIVATE_KEY = """
+SOCIAL_AUTH_APPLE_PRIVATE_KEY = os.environ.get("SOCIAL_AUTH_APPLE_PRIVATE_KEY", """"
 -----BEGIN PRIVATE KEY-----
 MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQg0vQkK/b6cf5nwqZw
 ACAswvR1Sgui7AKE1ymOGHHc1vugCgYIKoZIzj0DAQehRANCAAStW189CQYstrrt
 wdH/sif3Kt4HcXwFgcJ69HnA/aqLEqusx8giLfXuKBuOM99FsBXlo3hCyb/YjK2M
 5ua1DTH5
 -----END PRIVATE KEY-----
-"""
+""")
 
 GOOGLE_BUNDLE_ID = os.getenv("GOOGLE_BUNDLE_ID", "example.bundle")
 GOOGLE_SERVICE_ACCOUNT_KEY_FILE = os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY_FILE", "example.bundle")
@@ -422,7 +414,8 @@ INSTAGRAM_REDIRECT_URL = os.getenv("INSTAGRAM_REDIRECT_URL", "https://dev.1workn
 TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN", "756173937130766336-CiFVnyxmQFddis6mjW1SYrh3DFCzv5z")
 TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET", "DLCdTtph7eZ1UVd5O4JfbkyMQv67hOWwD591ZyrngiPTR")
 TWITTER_CUSTOMER_API_KEY = os.getenv("TWITTER_ACCESS_TOKEN", "llqApN9vKJz2Rn4moGa3CChUw")
-TWITTER_CUSTOMER_API_SECRET_KEY = os.getenv("TWITTER_ACCESS_TOKEN", "B2OYrFneHnIBvB03M8vLrfKj7ENEKgrJzT3rTDsG2R2KY3Hqzk")
+TWITTER_CUSTOMER_API_SECRET_KEY = os.getenv("TWITTER_ACCESS_TOKEN",
+                                            "B2OYrFneHnIBvB03M8vLrfKj7ENEKgrJzT3rTDsG2R2KY3Hqzk")
 
 LOCAL_CURRENCY = os.getenv("LOCAL_CURRENCY", "inr")
 LOCAL_COUNTRY = os.getenv("LOCAL_COUNTRY", "IN")
@@ -470,16 +463,16 @@ FIREBASE_CLIENT_ID = os.getenv("FIREBASE_CLIENT_ID", "")
 
 # Google credentials to access API.
 GOOGLE_API_CREDENTIALS = {
-  "type": GOOGLE_API_ACCOUNT_TYPE,
-  "project_id": GOOGLE_API_PROJECT_ID,
-  "private_key_id": GOOGLE_API_PRIVATE_KEY_ID,
-  "private_key": GOOGLE_API_PRIVATE_KEY,
-  "client_email": GOOGLE_API_CLIENT_EMAIL,
-  "client_id": GOOGLE_API_CLIENT_ID,
-  "auth_uri": GOOGLE_API_AUTH_URI,
-  "token_uri": GOOGLE_API_TOKEN_URI,
-  "auth_provider_x509_cert_url": GOOGLE_API_AUTH_PROVIDER_CERT_URL,
-  "client_x509_cert_url": GOOGLE_API_CLIENT_CERT_URL
+    "type": GOOGLE_API_ACCOUNT_TYPE,
+    "project_id": GOOGLE_API_PROJECT_ID,
+    "private_key_id": GOOGLE_API_PRIVATE_KEY_ID,
+    "private_key": GOOGLE_API_PRIVATE_KEY,
+    "client_email": GOOGLE_API_CLIENT_EMAIL,
+    "client_id": GOOGLE_API_CLIENT_ID,
+    "auth_uri": GOOGLE_API_AUTH_URI,
+    "token_uri": GOOGLE_API_TOKEN_URI,
+    "auth_provider_x509_cert_url": GOOGLE_API_AUTH_PROVIDER_CERT_URL,
+    "client_x509_cert_url": GOOGLE_API_CLIENT_CERT_URL
 }
 
 # -------------- SUPERPRO ------------ #
@@ -498,13 +491,23 @@ DYTE_PROD_BASE_URL = "https://api.cluster.dyte.in"
 DYTE_JOIN_MEETING_BASE_URL = "https://worknetwork.dyte.io/"
 
 # -------------- STRIPE ------------- #
-STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_DKSj9kP6A7BFdGNAn6Ynh38y00Az6UhWv4")
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_AwTUfAFu61uxi8uGLm5FSEJE00idcE0OEk")
-
+STRIPE_PUBLISHABLE_KEY = os.environ.get(
+    "STRIPE_PUBLISHABLE_KEY",
+    "pk_test_51K3b69SEKv2Ym9yYEOeGcEKl0K1o0k5v5BduTtjGT9pqm9pd4Zv2Ap8nwSwhsIMubctc0em5WX4cuTvGLZg1ORjl00AIYT5Rn2"
+)
+STRIPE_SECRET_KEY = os.environ.get(
+    "STRIPE_SECRET_KEY",
+    "sk_test_51K3b69SEKv2Ym9yY2iHp4gY7IS4fPzhWjMMcrF2RRllNsfCWPyUwtNTCnqoFeJMuCKzljR5y8p7eLATF0lByhd7M00BBpRPjZM"
+)
 
 # API safe methods.
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
+DATADOG_TRACE = {
+    'DEFAULT_SERVICE': 'worknetwork-backend',
+    'AGENT_HOSTNAME': '127.0.0.1',
+    'ENABLED': 'True'
+}
 
 # --------------- SILK -------------- #
 

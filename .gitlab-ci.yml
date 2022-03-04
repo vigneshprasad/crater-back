@@ -1,0 +1,242 @@
+variables:
+  VERSION_PATH: "api/build-version/"
+  DOCKER_BUILDKIT: 1
+  MAX_DB_RETRIES: 5
+
+.docker:
+  image: docker:latest
+  interruptible: true
+  variables:
+    DOCKER_CLI_EXPERIMENTAL: enabled
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - name: docker:stable-dind
+      alias: docker
+  before_script:
+    - docker info || unset DOCKER_HOST && docker info
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
+.test:
+  stage: Testing
+  image: $CI_RUNNER
+  interruptible: true
+  before_script:
+    - cd app
+  only:
+    - migration
+    - merge_requests
+  needs:
+    - Build base runner
+
+
+.deploy-django-aws:
+  image: $CI_RUNNER
+  stage: Deploy Django app
+  script:
+    - cat infrastructure/output.json
+    - export ESCAPED_STACK_NAME=${STACK_NAME//-/}
+    - echo $STACK_NAME
+    - echo $ESCAPED_STACK_NAME
+    - export APPLICATION_NAME=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'ApplicationName' infrastructure/output.json)
+    - export DEPLOYMENT_GROUP=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'DeploymentGroupName' infrastructure/output.json)
+    - export TASK_DEFINITION=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'TaskDefinitionTemplateArn' infrastructure/output.json)
+    - export CONTAINER_NAME=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'DjangoContainerName' infrastructure/output.json)
+    - export CONTAINER_PORT=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'DjangoContainerPort' infrastructure/output.json)
+    - export CI_ENVIRONMENT_URL=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'DjangoServiceURL' infrastructure/output.json)
+    - export CELERY_ENABLED=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'CeleryEnabled' infrastructure/output.json)
+    - cat infrastructure/appspec.template.yaml | envsubst > appspec.yaml
+    - aws deploy create-deployment --application-name $APPLICATION_NAME --deployment-group-name $DEPLOYMENT_GROUP --revision revisionType=AppSpecContent,appSpecContent={content="$(cat appspec.yaml)"}
+  only:
+    refs:
+      - migration
+      - /^hotfix.*$/
+    variables:
+      - $AWS_ACCOUNT_ID
+
+
+.deploy-celery-aws:
+  image: $CI_RUNNER
+  stage: Deploy Celery app
+  script:
+    - export ESCAPED_STACK_NAME=${STACK_NAME//-/}
+    - cat infrastructure/output.json
+    - export SERVICE=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'CeleryService' infrastructure/output.json)
+    - export CLUSTER=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'ClusterName' infrastructure/output.json)
+    - export TASK_DEFINITION_ARN=$(jq -r '.["'${STACK_NAME}'"].'${ESCAPED_STACK_NAME}'CeleryTaskDefinitionTemplateArn' infrastructure/output.json)
+    - echo $SERVICE
+    - echo $CLUSTER
+    - echo $TASK_DEFINITION_ARN
+    - aws ecs update-service --cluster $CLUSTER --service $SERVICE --task-definition ${TASK_DEFINITION_ARN##*/}
+  only:
+    refs:
+      - migration
+      - /^hotfix.*$/
+    variables:
+      - $CELERY_ENABLED == "true"
+      - $AWS_ACCOUNT_ID
+
+.deploy-infrastructure:
+  image: $CI_RUNNER
+  stage: Deploy infrastructure
+  before_script:
+    - cd infrastructure
+  script:
+    - cdk deploy $STACK_NAME --outputs-file output.json --require-approval never --progress bar
+  needs:
+    - Build base runner
+  only:
+    refs:
+      - migration
+      - /^hotfix.*$/
+    variables:
+      - $AWS_ACCOUNT_ID
+  artifacts:
+    paths:
+      - infrastructure/
+
+stages:
+  - Requirements check
+  - Building
+  - Testing
+  - Quality assurance
+  - Deploy infrastructure
+  - Deploy Django app
+  - Deploy Celery app
+
+
+Build base app:
+  stage: Requirements check
+  extends: .docker
+  script:
+    - export IMAGE=$CI_REGISTRY_IMAGE/base:$(md5sum app/requirements.txt | awk '{print $1}')$(md5sum app/Dockerfile | awk '{print $1}')
+    - echo $IMAGE
+    - docker manifest inspect $IMAGE || export REBUILD=true
+    - if ${REBUILD:=false}; then docker build --tag $IMAGE --no-cache --target=builder app/; fi
+    - if ${REBUILD:=false}; then docker push $IMAGE; fi
+    - echo "CI_APP=$IMAGE" >> app.env
+  artifacts:
+    reports:
+      dotenv: app.env
+  only:
+    - migration
+    - merge_requests
+
+Build app runner:
+  stage: Requirements check
+  extends: .docker
+  script:
+    - export IMAGE=$CI_REGISTRY_IMAGE/app-runner:$(md5sum app/Dockerfile | awk '{print $1}')
+    - echo $IMAGE
+    - docker manifest inspect $IMAGE || export REBUILD=true
+    - if ${REBUILD:=false}; then docker build --tag $IMAGE --no-cache --target=runner app/; fi
+    - if ${REBUILD:=false}; then docker push $IMAGE; fi
+    - echo "CI_APP_RUNNER=$IMAGE" >> app.env
+  artifacts:
+    reports:
+      dotenv: app.env
+  only:
+    - migration
+    - merge_requests
+
+Build base runner:
+  stage: Requirements check
+  extends: .docker
+  script:
+    - export IMAGE=$CI_REGISTRY_IMAGE/runner:$(md5sum requirements.txt | awk '{print $1}')$(md5sum Dockerfile | awk '{print $1}')
+    - echo $IMAGE
+    - docker manifest inspect $IMAGE || export REBUILD=true
+    - if ${REBUILD:=false}; then docker build --tag $IMAGE --no-cache .; fi
+    - if ${REBUILD:=false}; then docker push $IMAGE; fi
+    - echo "CI_RUNNER=$IMAGE" >> runner.env
+  artifacts:
+    reports:
+      dotenv: runner.env
+  only:
+    - migration
+    - merge_requests
+
+Build app image:
+  stage: Building
+  extends: .docker
+  image: $CI_RUNNER
+  script:
+    - docker build --tag $AWS_ECR:$CI_COMMIT_SHORT_SHA --no-cache --build-arg builder_image=$CI_APP --build-arg runner_image=$CI_APP_RUNNER --target final app/
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com;
+    - docker push $AWS_ECR:$CI_COMMIT_SHORT_SHA;
+  only:
+    refs:
+      - migration
+      - /^hotfix.*$/
+    variables:
+      - $AWS_ECR
+  needs:
+    - Build base runner
+    - Build app runner
+    - Build base app
+
+
+CDK Validation:
+  stage: Testing
+  extends: .docker
+  image: $CI_RUNNER
+  before_script:
+    - cd infrastructure
+  script:
+    - cdk synth
+    - cdk diff
+  only:
+    refs:
+      - merge_requests
+      - /^hotfix.*$/
+    variables:
+      - $AWS_ACCOUNT_ID
+  needs:
+    - Build base runner
+
+Deploy Development infrastructure:
+  extends: .deploy-infrastructure
+  environment: Development
+  needs:
+    - Build base runner
+    - Build app image
+
+
+Deploy Production infrastructure:
+  extends: .deploy-infrastructure
+  environment: Production
+  needs:
+    - Build base runner
+  when: manual
+
+Deploy Development app:
+  extends: .deploy-django-aws
+  environment: Development
+  needs:
+    - Build base runner
+    - Deploy Development infrastructure
+
+Deploy Production app:
+  extends: .deploy-django-aws
+  environment: Production
+  when: manual
+  needs:
+    - Build base runner
+    - Deploy Production infrastructure
+
+Deploy Development celery app:
+  extends: .deploy-celery-aws
+  environment: Development
+  needs:
+    - Deploy Development app
+    - Deploy Development infrastructure
+    - Build base runner
+
+Deploy Production celery app:
+  extends: .deploy-celery-aws
+  environment: Production
+  when: manual
+  needs:
+    - Build base runner
+    - Deploy Production infrastructure
+    - Deploy Production app

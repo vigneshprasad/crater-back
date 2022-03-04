@@ -19,3 +19,7 @@ db_data/
 db_backups/
 docker/environments
 credentials.json
+
+infrastructure/cdk.out/
+
+app/.DS_Store

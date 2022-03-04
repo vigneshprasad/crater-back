@@ -1,0 +1,2 @@
+-r infrastructure/requirements.in
+-r app/requirements.dev.in

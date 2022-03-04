@@ -18,6 +18,6 @@ class Migration(migrations.Migration):
         ('notifications', '0002_notification_usernotification'),
     ]
 
-    operations = [
-        migrations.RunPython(create_settings, reverse_code=migrations.RunPython.noop),
-    ]
+    # operations = [
+    #     migrations.RunPython(create_settings, reverse_code=migrations.RunPython.noop),
+    # ]

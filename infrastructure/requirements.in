@@ -1,0 +1,3 @@
+aws-cdk-lib==2.14.0
+constructs
+cdk_ec2_key_pair
