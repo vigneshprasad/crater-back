@@ -49,7 +49,7 @@ class RewardAuction(Auction):
     )
 
     def __str__(self):
-        return "{}: {}".format(self.reward.name, self.reward.type)
+        return "{}".format(self.reward)
 
 
 class Bid(base_models.BaseModel):

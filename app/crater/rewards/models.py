@@ -69,7 +69,7 @@ class Reward(base_models.BaseModel):
         ordering = ["-order"]
 
     def __str__(self):
-        return "{} - {}".format(self.name, self.type.name)
+        return "{} - {}".format(self.creator, self.type.name)
 
     def get_active_auction(self):
         return self.auctions.filter(is_closed=False).last()
