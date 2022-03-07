@@ -23,7 +23,7 @@ STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'static/'))
 STATICFILES_STORAGE = "utils.storage_backends.NewStaticStorage"
 
 # Media
-AWS_STORAGE_BUCKET_NAME = os.environ.get("STORAGE_BUCKET_NAME")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_DEFAULT_OBJECT_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'media/'))
 PUBLIC_MEDIA_LOCATION = "media"
