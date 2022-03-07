@@ -1,17 +1,13 @@
 import datetime
 
 from django.db.models import Prefetch
-from rest_framework import mixins
-from rest_framework import status
-from rest_framework import viewsets
-from rest_framework.response import Response
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
-from conversations import constants
-from conversations import paginators
-from conversations import models
-from conversations import serializers
+from conversations import constants, models, paginators, serializers
 from users import permissions as user_permissions
+from users.models import User
 
 
 class GroupWebinarPublicViewSet(
@@ -27,10 +23,10 @@ class GroupWebinarPublicViewSet(
     def _get_upcoming_webinars(self):
         """Return upcoming webinars."""
         return self.get_queryset().filter(
-                is_live=False,
-                closed=False,
-                start__gte=datetime.datetime.now()
-            )
+            is_live=False,
+            closed=False,
+            start__gte=datetime.datetime.now()
+        )
 
     def _get_live_webinars(self):
         """Return live webinars."""
@@ -183,11 +179,23 @@ class SeriesPublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.SeriesSerializer
-    queryset = models.Series.objects.filter(is_published=True).prefetch_related(
-        Prefetch(
-            "groups",
-            models.Group.objects.order_by("closed", "is_live", "start")
+    queryset = models.Series.objects \
+        .filter(is_published=True) \
+        .select_related("topic__article", "topic__parent", "host__profile") \
+        .prefetch_related(
+            "categories",
+            Prefetch(
+                "groups",
+                models.Group.objects
+                .select_related("topic", "host__profile", "recording", "recording")
+                .order_by("closed", "is_live", "start")
+                .prefetch_related(
+                    "categories",
+                    "interests",
+                    Prefetch("attendees", User.objects.select_related("profile")),
+                    Prefetch("speakers", User.objects.select_related("profile")),
+                )
+            )
         )
-    )
     permission_classes = [user_permissions.AllowAny]
     pagination_class = paginators.WebinarPagination

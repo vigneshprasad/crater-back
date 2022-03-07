@@ -2,17 +2,16 @@ from __future__ import absolute_import, unicode_literals
 
 import logging
 
-from celery.task import task
 from celery import shared_task
+from celery.task import task
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
-
-from freelance.settings import DEFAULT_FROM_EMAIL
-from utils.instagram_service import instagram_service
 from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
+
+from freelance.settings import DEFAULT_FROM_EMAIL
 
 
 @shared_task(name="send_twilio_message")

@@ -253,16 +253,15 @@ class MeetingSerializer(serializers.ModelSerializer):
 
     def get_participant_detail(self, meeting):
         request = self.context.get("request")
-        user = request.user
-        if not user:
+        if not request.user:
             return None
-        participant = meeting.participants.exclude(email=user.email).first()
-        return MeetingUserSerializer(participant).data if participant else None
+        participant = meeting.participants.all()
+        return MeetingUserSerializer(participant[0]).data if participant else None
 
     @staticmethod
     def get_is_past(meeting):
         now = timezone.now()
-        if meeting.end >= now:
+        if not meeting.end or meeting.end >= now:
             return False
         return True
 

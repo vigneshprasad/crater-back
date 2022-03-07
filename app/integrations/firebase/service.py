@@ -46,4 +46,4 @@ class FirebaseService:
 
 firebase_service = FirebaseService(
     config=constants.FIREBASE_CONFIG
-)
+) if settings.FIREBASE_ACCOUNT_PRIVATE_KEY else None

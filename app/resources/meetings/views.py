@@ -1,21 +1,15 @@
 import datetime
-import pytz
-from django.db.models import Q
 
-from rest_framework import mixins, viewsets, status
+import pytz
+from django.db.models import Prefetch, Q
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from users import models as user_models
-from users import paginators as user_paginators
-from users import permissions as user_permissions
-from users import serializers as user_serializers
-from resources.meetings import models
-from resources.meetings import choices
-from resources.meetings import serializers
-from resources.meetings import services
-from resources.meetings import signals
-from resources.meetings import receivers
+from django.utils import timezone
+from resources.meetings import choices, models, receivers, serializers, services, signals
+from resources.meetings.models import Meeting
+from users import models as user_models, paginators as user_paginators, permissions as user_permissions, \
+    serializers as user_serializers
 
 
 class MeetingConfigViewSet(
@@ -153,32 +147,32 @@ class MeetingViewSet(
         return self.request.user.meeting_set.all()
 
     def _get_meeting_queryset(self, is_past):
-        now = datetime.datetime.now()
-        if is_past:
-            queryset = self.get_queryset().filter(
-                start__lte=now,
-            )
-        else:
-            queryset = self.get_queryset().filter(
-                start__gte=now,
-            )
+        now = timezone.now()
+        f = Q(start__lte=now) if is_past else Q(start__gte=now)
+        queryset = self.get_queryset().filter(f)
         return queryset
 
-    def _create_data_by_date(self, queryset):
-        data = []
-        date_list = list(queryset.values_list("start__date", flat=True).distinct())
-        date_list.reverse()
-
-        for date in date_list:
-            objects = queryset.filter(
-                start__date=date,
-            )
-            serialized = self.get_serializer(objects, many=True)
-            data.append({
-                "date": date.isoformat(),
-                "meetings": serialized.data,
-            })
-        return data
+    def _create_data_by_date(self, queryset, reverse=False):
+        f = Q(user_id=self.request.user.pk) if self.request.user else Q()
+        participants = Prefetch(
+            "participants",
+            Meeting.participants.through.objects
+            .exclude(f)
+            .prefetch_related("meeting_rsvps")
+        )
+        data = self.get_serializer(
+            queryset
+            .select_related("config")
+            .prefetch_related(participants),
+            many=True
+        ).data
+        dates = {}
+        for meeting in data:
+            date = datetime.datetime.strptime(meeting["start"], "%Y-%m-%dT%H:%M:%S.%f %z").date()
+            if date not in dates:
+                dates[date] = {"date": date, "meetings": []}
+            dates[date]["meetings"].append(meeting)
+        return sorted(dates.values(), key=lambda x: x["date"], reverse=reverse)
 
     @action(
         methods=["GET"],
@@ -186,8 +180,6 @@ class MeetingViewSet(
     )
     def upcoming(self, request):
         queryset = self._get_meeting_queryset(is_past=False)
-        date_list = list(queryset.values_list("start__date", flat=True).distinct())
-        date_list.reverse()
         data = self._create_data_by_date(queryset=queryset)
         return Response(data)
 
@@ -197,9 +189,7 @@ class MeetingViewSet(
     )
     def past(self, request):
         queryset = self._get_meeting_queryset(is_past=True)
-        date_list = list(queryset.values_list("start__date", flat=True).distinct())
-        date_list.reverse()
-        data = self._create_data_by_date(queryset=queryset)
+        data = self._create_data_by_date(queryset=queryset, reverse=True)
         return Response(data)
 
 

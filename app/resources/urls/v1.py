@@ -19,7 +19,7 @@ router.register("masterclasses", MaterClassViewSet)
 router.register("meetings", meeting_views.MeetingConfigViewSet)
 router.register("meeting-preferences", meeting_views.UserMeetingPreferenceViewSet)
 
-router.register("meetings/meeting", meeting_views.MeetingViewSet)
+router.register("meetings/meeting", meeting_views.MeetingViewSet, basename="meeting")
 router.register("meetings/config", meeting_views.MeetingConfigV2ViewSet)
 router.register("meetings/objectives", meeting_views.MeetingObjectivesViewSet)
 router.register("meetings/interests", meeting_views.MeetingInterestsViewSet)
