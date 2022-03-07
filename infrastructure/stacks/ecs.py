@@ -10,6 +10,7 @@ from aws_cdk.aws_codedeploy import EcsApplication
 from aws_cdk.aws_ecs import Compatibility, ContainerImage, DeploymentController, DeploymentControllerType, \
     FargatePlatformVersion, FargateService, NetworkMode, PortMapping, TaskDefinition
 from aws_cdk.aws_elasticloadbalancingv2 import ApplicationProtocol, HealthCheck
+from aws_cdk.aws_logs import LogGroup
 from conf import BUILD_VERSION, PROJECT_NAME, REGION
 from constructs import Construct
 from custom_constructs.deployment_group import DeploymentGroup
@@ -221,12 +222,12 @@ class FargateApiServiceStack(NestedStack):
                 "dd_env": environment_name,
                 "provider": "ecs",
                 "apikey": dd_api_secret.secret_value.to_string(),
-                "Host": "http-intake.logs.datadoghq.com",
+                "Host": "http-intake.logs.datadoghq.eu",
                 "dd_message_key": "log",
                 "TLS": "on",
             }
         )
-        self.log_group = aws_logs.LogGroup(
+        self.log_group = LogGroup(
             self,
             f"{construct_id}-logs",
             log_group_name=f"ecs/{construct_id}",
@@ -253,14 +254,14 @@ class FargateApiServiceStack(NestedStack):
                 "com.datadoghq.tags.version": BUILD_VERSION,
             }
         )
-
+        aws_logs = aws_ecs.LogDriver.aws_logs(
+                stream_prefix="ecs",
+                log_group=self.log_group
+            )
         self.task_definition.add_container(
             f"{construct_id}-datadog",
             container_name="datadog-agent",
-            logging=aws_ecs.LogDriver.aws_logs(
-                stream_prefix="ecs",
-                log_group=self.log_group
-            ),
+            logging=aws_logs,
             image=aws_ecs.ContainerImage.from_registry("gcr.io/datadoghq/agent:latest"),
             port_mappings=[aws_ecs.PortMapping(container_port=8126, host_port=8126)],
             environment={
@@ -279,6 +280,7 @@ class FargateApiServiceStack(NestedStack):
         if datadog_logging:
             self.task_definition.add_firelens_log_router(
                 f"{construct_id}-router",
+                logging=aws_logs,
                 firelens_config=aws_ecs.FirelensConfig(
                     type=aws_ecs.FirelensLogRouterType.FLUENTBIT,
                     options=aws_ecs.FirelensOptions(
@@ -404,7 +406,7 @@ class FargateServiceStack(NestedStack):
             secret_name="DD_API_KEY",
         )
 
-        self.log_group = aws_logs.LogGroup(
+        self.log_group = LogGroup(
             self,
             f"{construct_id}-logs",
             log_group_name=f"ecs/{construct_id}",
@@ -444,13 +446,14 @@ class FargateServiceStack(NestedStack):
             }
         )
         self.task_definition.apply_removal_policy(RemovalPolicy.RETAIN)
+        aws_logs = aws_ecs.LogDriver.aws_logs(
+            stream_prefix="ecs",
+            log_group=self.log_group
+        )
         self.task_definition.add_container(
             f"{construct_id}-datadog",
             container_name="datadog-agent",
-            logging=aws_ecs.LogDriver.aws_logs(
-                stream_prefix="ecs",
-                log_group=self.log_group
-            ),
+            logging=aws_logs,
             image=aws_ecs.ContainerImage.from_registry("gcr.io/datadoghq/agent:latest"),
             port_mappings=[aws_ecs.PortMapping(container_port=8126, host_port=8126)],
             environment={
@@ -466,6 +469,7 @@ class FargateServiceStack(NestedStack):
         if datadog_logging:
             self.task_definition.add_firelens_log_router(
                 f"{construct_id}-router",
+                logging=aws_logs,
                 firelens_config=aws_ecs.FirelensConfig(
                     type=aws_ecs.FirelensLogRouterType.FLUENTBIT,
                     options=aws_ecs.FirelensOptions(
