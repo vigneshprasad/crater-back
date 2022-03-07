@@ -1,6 +1,6 @@
 import datetime
 
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 
 from rest_framework import mixins
 from rest_framework import serializers
@@ -19,6 +19,7 @@ from conversations import constants
 from conversations import paginators
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
+from users.models import User
 
 
 class TopicViewSet(
@@ -503,7 +504,14 @@ class AllGroupWebinarViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)
+    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)\
+        .select_related("topic", "host__profile", "recording", "recording") \
+        .prefetch_related(
+            "categories",
+            "interests",
+            Prefetch("attendees", User.objects.select_related("profile")),
+            Prefetch("speakers", User.objects.select_related("profile")),
+        )
     serializer_class = serializers.GroupWebinarSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ["host", "categories"]
