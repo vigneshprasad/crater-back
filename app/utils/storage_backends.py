@@ -21,10 +21,7 @@ class PublicMediaStorage(S3Boto3Storage):
     file_overwrite = False
 
 
-if settings.AWS_ACCESS_KEY_ID:
-    class PrivateMediaStorage(S3Boto3Storage):
-        default_acl = 'private'
-        file_overwrite = False
-        custom_domain = False
-else:
-   PrivateMediaStorage = lambda: None
+class PrivateMediaStorage(S3Boto3Storage):
+    default_acl = 'private'
+    file_overwrite = False
+    custom_domain = False
