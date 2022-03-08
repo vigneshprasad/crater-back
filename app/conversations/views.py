@@ -520,7 +520,7 @@ class AllGroupWebinarViewSet(
     filterset_class = filters.AllWebinarsFilters
 
     def get_serializer_class(self):
-        if hasattr(self, "action") and self.action == "list":
+        if getattr(self, "action", None) == "list":
             return serializers.EmptyGroupWebinarSerializer
         return super().get_serializer_class()
 
