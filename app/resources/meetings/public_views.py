@@ -4,10 +4,12 @@ import pytz
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Prefetch, Q
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import mixins, viewsets, status
 
+from resources.meetings.models import Meeting
 from users import permissions
 from resources.meetings import models
 from resources.meetings import serializers
@@ -150,7 +152,7 @@ class MeetingPreferencePublicViewSet(
 
             for interest in old_preference.interests.all():
                 new_meeting_preference.interests.add(interest)
-        
+
             for slot in new_time_slots or []:
                 new_meeting_preference.time_slots.add(slot)
 
@@ -300,11 +302,20 @@ class MeetingCommunicationViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.MeetingSerializer
-    queryset = models.Meeting.objects.all()
     permission_classes = [permissions.AllowAny]
 
+    def get_queryset(self):
+        f = Q(user_id=self.request.user.pk) if self.request.user else Q()
+        participants = Prefetch(
+            "participants",
+            Meeting.participants.through.objects
+            .exclude(f)
+            .prefetch_related("meeting_rsvps")
+        )
+        return models.Meeting.objects.select_related("config").prefetch_related(participants),
 
-class RescheduleRequestPublicViewSet( 
+
+class RescheduleRequestPublicViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet
@@ -355,7 +366,7 @@ class RescheduleRequestPublicViewSet(
         try:
             # TODO(Nishant): Replace this with datetime.datetime.fromisoformat()
             selected_time_slot = datetime.datetime.strptime(
-                request.data["time_slot"], 
+                request.data["time_slot"],
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
         except ValueError:
@@ -408,7 +419,7 @@ class RescheduleRequestPublicViewSet(
     )
     def declined(self, request, *args, **kwargs):
         reschedule_request_id = request.data.get("id")
-        
+
         if not reschedule_request_id:
             return self.generate_bad_request(
                 {"error": "Reschedule request does not exist. Please check the URL."}
@@ -432,7 +443,7 @@ class RescheduleRequestPublicViewSet(
         )
 
         return Response({"success": True})
-        
+
 
 class MeetingRSVPPublicViewSet(
     viewsets.GenericViewSet

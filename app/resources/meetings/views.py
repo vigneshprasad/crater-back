@@ -6,6 +6,8 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
+
+from freelance.settings import DEFAULT_DATETIME_FORMAT
 from resources.meetings import choices, models, receivers, serializers, services, signals
 from resources.meetings.models import Meeting
 from users import models as user_models, paginators as user_paginators, permissions as user_permissions, \
@@ -168,7 +170,7 @@ class MeetingViewSet(
         ).data
         dates = {}
         for meeting in data:
-            date = datetime.datetime.strptime(meeting["start"], "%Y-%m-%dT%H:%M:%S.%f %z").date()
+            date = datetime.datetime.strptime(meeting["start"], DEFAULT_DATETIME_FORMAT).date()
             if date not in dates:
                 dates[date] = {"date": date, "meetings": []}
             dates[date]["meetings"].append(meeting)

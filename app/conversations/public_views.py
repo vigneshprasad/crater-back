@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.auth import get_user_model
 from django.db.models import Prefetch
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -7,7 +8,8 @@ from rest_framework.response import Response
 
 from conversations import constants, models, paginators, serializers
 from users import permissions as user_permissions
-from users.models import User
+
+User = get_user_model()
 
 
 class GroupWebinarPublicViewSet(
@@ -183,19 +185,19 @@ class SeriesPublicViewSet(
         .filter(is_published=True) \
         .select_related("topic__article", "topic__parent", "host__profile") \
         .prefetch_related(
-            "categories",
-            Prefetch(
-                "groups",
-                models.Group.objects
+        "categories",
+        Prefetch(
+            "groups",
+            models.Group.objects
                 .select_related("topic", "host__profile", "recording", "recording")
                 .order_by("closed", "is_live", "start")
                 .prefetch_related(
-                    "categories",
-                    "interests",
-                    Prefetch("attendees", User.objects.select_related("profile")),
-                    Prefetch("speakers", User.objects.select_related("profile")),
-                )
+                "categories",
+                "interests",
+                Prefetch("attendees", User.objects.select_related("profile")),
+                Prefetch("speakers", User.objects.select_related("profile")),
             )
         )
+    )
     permission_classes = [user_permissions.AllowAny]
     pagination_class = paginators.WebinarPagination
