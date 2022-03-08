@@ -524,6 +524,10 @@ class AllGroupWebinarViewSet(
             return serializers.EmptyGroupWebinarSerializer
         return super().get_serializer_class()
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM))
+        return Response(queryset.values("id"))
+
 
 class GroupWebinarViewSet(
     mixins.RetrieveModelMixin,
