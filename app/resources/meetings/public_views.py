@@ -303,6 +303,7 @@ class MeetingCommunicationViewSet(
 ):
     serializer_class = serializers.MeetingSerializer
     permission_classes = [permissions.AllowAny]
+    queryset = models.Meeting.objects.select_related("config")
 
     def get_queryset(self):
         f = Q(user_id=self.request.user.pk) if self.request.user else Q()
@@ -312,7 +313,7 @@ class MeetingCommunicationViewSet(
             .exclude(f)
             .prefetch_related("meeting_rsvps")
         )
-        return models.Meeting.objects.select_related("config").prefetch_related(participants),
+        return self.queryset.prefetch_related(participants),
 
 
 class RescheduleRequestPublicViewSet(
