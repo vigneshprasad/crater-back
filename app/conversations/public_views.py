@@ -147,7 +147,7 @@ class GroupWebinarPublicViewSet(
 
         queryset = self.filter_queryset(
             queryset_live | queryset_upcoming
-        ).order_by("-live", "start")
+        ).order_by("-is_live", "start")
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

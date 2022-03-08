@@ -485,6 +485,7 @@ class TopicSerializerForListWebinar(serializers.ModelSerializer):
 class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
 
     photo = serializers.SerializerMethodField(read_only=True)
+    introduction = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = get_user_model()
@@ -502,6 +503,10 @@ class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
         if not profile:
             return None
         return user.profile.get_photo_url()
+
+    @staticmethod
+    def get_introduction(user):
+        return user.profile.get_introduction() if user.has_profile else None
 
 
 class PastWebinarListSerializer(serializers.ModelSerializer):
