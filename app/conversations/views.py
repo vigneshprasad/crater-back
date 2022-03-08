@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.auth import get_user_model
 from django.db.models import Prefetch, Q
 
 from rest_framework import mixins
@@ -10,6 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from users import permissions
+from conversations import filters
 from conversations import models
 from conversations import serializers
 from conversations import services
@@ -19,7 +21,8 @@ from conversations import constants
 from conversations import paginators
 from resources.meetings import services as meeting_services
 from resources.meetings import models as meeting_models
-from users.models import User
+
+User = get_user_model()
 
 
 class TopicViewSet(
@@ -514,7 +517,12 @@ class AllGroupWebinarViewSet(
         )
     serializer_class = serializers.GroupWebinarSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ["host", "categories"]
+    filterset_class = filters.AllWebinarsFilters
+
+    def get_serializer_class(self):
+        if getattr(self, "action", None) == "list":
+            return serializers.EmptyGroupWebinarSerializer
+        return super().get_serializer_class()
 
 
 class GroupWebinarViewSet(
