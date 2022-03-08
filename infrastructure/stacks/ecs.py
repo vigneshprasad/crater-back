@@ -290,7 +290,7 @@ class FargateApiServiceStack(NestedStack):
                     )
                 ),
                 image=aws_ecs.ContainerImage.from_registry(
-                    name="amazon/aws-for-fluent-bit:stable"
+                    name="682452685130.dkr.ecr.ap-south-1.amazonaws.com/aws-for-fluent-bit:latest"
                 )
             )
 
