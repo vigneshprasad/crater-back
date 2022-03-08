@@ -511,7 +511,6 @@ class MeetingRequestViewSet(
         queryset=user_models.Profile.objects.filter(allow_meeting_request=True),
         serializer_class=user_serializers.ProfileSerializer,
         pagination_class=user_paginators.Pagination,
-        filterset_fields=["tags"]
     )
     def users(self, request, *args, **kwargs):
         """Returns serialized list of users the requesting user
