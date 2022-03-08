@@ -471,7 +471,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         return instance
 
 
-class TopicSerializerForListWebinar(serializers.ModelSerializer):
+class StreamListTopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Topic
@@ -482,7 +482,7 @@ class TopicSerializerForListWebinar(serializers.ModelSerializer):
         )
 
 
-class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
+class StreamListHostSerializer(serializers.ModelSerializer):
 
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
@@ -509,10 +509,16 @@ class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
         return user.profile.get_introduction() if user.has_profile else None
 
 
-class PastWebinarListSerializer(serializers.ModelSerializer):
+class StreamListSerializer(serializers.ModelSerializer):
+    """List serializer for Streams.
 
-    topic_detail = TopicSerializerForListWebinar(source="topic", read_only=True)
-    host_detail = GroupHostSerializerForListWebinar(source="host", read_only=True)
+    Note:
+        This only returns data required over a /list calls
+            for calls the stream.
+
+    """
+    topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
+    host_detail = StreamListHostSerializer(source="host", read_only=True)
 
     class Meta:
         model = models.Group
