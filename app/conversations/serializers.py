@@ -483,6 +483,7 @@ class TopicSerializerForListWebinar(serializers.ModelSerializer):
 
 
 class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
+
     photo = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -509,7 +510,7 @@ class PastWebinarListSerializer(serializers.ModelSerializer):
     host_detail = GroupHostSerializerForListWebinar(source="host", read_only=True)
 
     class Meta:
-        models = models.Group
+        model = models.Group
         fields = (
             "id",
             "topic_detail",
