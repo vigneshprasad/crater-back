@@ -2,14 +2,10 @@ import copy
 import datetime
 
 from django.utils import timezone
-
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from conversations import constants
-from conversations import exceptions
-from conversations import models
-from conversations import services
+from conversations import constants, exceptions, models, services
 from integrations.dyte import public as dyte_public
 from integrations.dyte import serializers as dyte_serializers
 from resources.meetings import serializers as meeting_serializers
@@ -302,6 +298,13 @@ class OptinSerializer(SetCreatorRequestDataMixin, serializers.ModelSerializer):
         return preference.meeting.week_start_date
 
 
+class EmptyGroupWebinarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Group
+        fields = ("id", )
+
+
 class GroupWebinarSerializer(serializers.ModelSerializer):
     topic_detail = TopicSerializer(source="topic", read_only=True)
     host_detail = GroupUserSerializer(source="host", read_only=True)
@@ -466,6 +469,53 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             )
 
         return instance
+
+
+class TopicSerializerForListWebinar(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Topic
+        fields = (
+            "name",
+            "image",
+            "description"
+        )
+
+
+class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "email",
+            "name",
+            "photo",
+            "introduction"
+        )
+
+    @staticmethod
+    def get_photo(user):
+        profile = user.has_profile
+        if not profile:
+            return None
+        return user.profile.get_photo_url()
+
+
+class PastWebinarListSerializer(serializers.ModelSerializer):
+
+    topic_detail = TopicSerializerForListWebinar(source="topic", read_only=True)
+    host_detail = GroupHostSerializerForListWebinar(source="host", read_only=True)
+
+    class Meta:
+        models = models.Group
+        fields = (
+            "id",
+            "topic_detail",
+            "host_detail",
+            "start"
+        )
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):

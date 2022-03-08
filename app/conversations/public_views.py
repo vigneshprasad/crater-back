@@ -155,16 +155,23 @@ class GroupWebinarPublicViewSet(
     @action(
         methods=["GET"],
         pagination_class=paginators.WebinarPagination,
+        queryset=models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM
+        ).select_related(
+            "topic",
+            "host",
+            "host__profile",
+            "host__creator"
+        ).order_by("-start"),
         detail=False,
+        serializer_class=serializers.PastWebinarListSerializer,
         filterset_fields=["host"],
     )
     def past(self, request):
         """Returns past webinars with published recordings."""
-
         queryset = self.filter_queryset(
             self._get_past_webinars_with_recordings()
         )
-
         page = self.paginate_queryset(queryset)
 
         if page is None:
@@ -181,17 +188,15 @@ class SeriesPublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.SeriesSerializer
-    queryset = models.Series.objects \
-        .filter(is_published=True) \
-        .select_related("topic__article", "topic__parent", "host__profile") \
-        .prefetch_related(
+    queryset = models.Series.objects.filter(is_published=True).select_related(
+        "topic__article", "topic__parent", "host__profile"
+    ).prefetch_related(
         "categories",
         Prefetch(
             "groups",
-            models.Group.objects
-                .select_related("topic", "host__profile", "recording", "recording")
-                .order_by("closed", "is_live", "start")
-                .prefetch_related(
+            models.Group.objects.select_related(
+                "topic", "host__profile", "recording", "recording"
+            ).order_by("closed", "is_live", "start").prefetch_related(
                 "categories",
                 "interests",
                 Prefetch("attendees", User.objects.select_related("profile")),
