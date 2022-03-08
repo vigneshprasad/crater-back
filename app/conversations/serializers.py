@@ -399,7 +399,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
 
         if user.is_anonymous:
             return None
-        elif group.host.uuid == user.uuid:
+        elif group.host and group.host.uuid == user.uuid:
             return None
 
         if not dyte_public.get_dyte_participant_for_user_and_group(

@@ -112,7 +112,7 @@ class TranscoderService:
         return False
 
 
-if getattr(settings, "AWS_ACCESS_KEY_ID"):
+if getattr(settings, "AWS_ACCESS_KEY_ID") and getattr(settings, "AWS_TRANSCODER_REGION_NAME"):
     transcoder_service = TranscoderService(
         pipeline_id=settings.MP4_PIPELINE_ID,
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,

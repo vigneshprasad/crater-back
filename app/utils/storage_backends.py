@@ -7,12 +7,13 @@ class StaticStorage(S3Boto3Storage):
     default_acl = 'public-read'
 
 
-class NewStaticStorage(S3Boto3Storage):
-    location = f"static/{settings.BUILD_VERSION}"
-    file_overwrite = True
-    default_acl = "public-read"
-    bucket_name = settings.AWS_STATIC_BUCKET_NAME
-    custom_domain = f'{settings.AWS_STATIC_BUCKET_NAME}.s3.amazonaws.com'
+if hasattr(settings, "AWS_STATIC_BUCKET_NAME"):
+    class NewStaticStorage(S3Boto3Storage):
+        location = f"static/{settings.BUILD_VERSION}"
+        file_overwrite = True
+        default_acl = "public-read"
+        bucket_name = settings.AWS_STATIC_BUCKET_NAME
+        custom_domain = f'{settings.AWS_STATIC_BUCKET_NAME}.s3.amazonaws.com'
 
 
 class PublicMediaStorage(S3Boto3Storage):

@@ -24,6 +24,7 @@ from sentry_sdk.integrations.redis import RedisIntegration
 
 # All environment variables.
 ENVIRONMENT = os.getenv("ENVIRONMENT")
+BUILD_VERSION = os.environ.get("BUILD_VERSION", "latest")
 ENVIRONMENT_PREPROD = "preprod"
 ENVIRONMENT_PROD = "prod"
 ENVIRONMENT_STAGE = "stage"
@@ -40,7 +41,7 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", "test")
 FERNET_KEY = b"TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8="
 
 # SECURITY WARNING: don"t run with debug turned on in production!
@@ -73,7 +74,7 @@ AUTH_USER_MODEL = "users.User"
 INSTALLED_APPS = [
     "ddtrace.contrib.django",
     "channels",
-    "consumers.chat",
+
     # "django.contrib.admin",
     "material.admin",
     "material.admin.default",
@@ -86,14 +87,14 @@ INSTALLED_APPS = [
     "django.contrib.sites",
 
     # "silk",
-    "debug_toolbar",
+    # "debug_toolbar",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.facebook",
     "allauth.socialaccount.providers.linkedin_oauth2",
-    "users.appleid",
+    # "users.appleid",
 
     "rest_framework",
     "rest_framework.authtoken",
@@ -113,6 +114,8 @@ INSTALLED_APPS = [
 
     "base",
     "users",
+    "utils",
+    "consumers.chat",
     "locations",
     "tags",
     "community.groups",
@@ -143,6 +146,7 @@ INSTALLED_APPS = [
     "conversations",
     "communications.notifications",
     "devices",
+
     "crater.auth",
     "crater.creator",
     "crater.rewards",
@@ -267,11 +271,11 @@ WSGI_APPLICATION = "freelance.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DBNAME"),
-        "USER": os.environ.get("POSTGRES_USER"),
-        "PASSWORD": os.environ.get("POSTGRES_PASS"),
-        "HOST": os.environ.get("POSTGRES_HOST"),
-        "PORT": os.environ.get("POSTGRES_PORT"),
+        "NAME": os.environ.get("POSTGRES_DBNAME", "freelance_pg"),
+        "USER": os.environ.get("POSTGRES_USER", "postgres"),
+        "PASSWORD": os.environ.get("POSTGRES_PASS", "SecurityPassword"),
+        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+        "PORT": os.environ.get("POSTGRES_PORT", 5432),
         "default-character-set": "utf8"
     },
 }
@@ -300,16 +304,14 @@ AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "eu-central-1")
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 AWS_S3_CUSTOM_DOMAIN = None
 AWS_DEFAULT_OBJECT_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
-
+AWS_DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "ap-south-1")
+AWS_TRANSCODER_REGION_NAME = os.getenv("AWS_TRASCODER_REGION_NAME", AWS_DEFAULT_REGION)
 
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
     AWS_DEFAULT_ACL = None
     AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "eu-central-1")
-    AWS_TRANSCODER_REGION_NAME = os.getenv("AWS_TRASCODER_REGION_NAME")
-    if not AWS_TRANSCODER_REGION_NAME:
-        AWS_TRANSCODER_REGION_NAME = AWS_S3_REGION_NAME
     STATIC_LOCATION = "static"
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/"
     STATICFILES_STORAGE = "utils.storage_backends.StaticStorage"
@@ -321,7 +323,6 @@ else:
     STATIC_ROOT = os.path.join(ROOT_DIR, "staticfiles")
     MEDIA_URL = "/media/"
     MEDIA_ROOT = os.path.join(ROOT_DIR, "media")
-    AWS_TRANSCODER_REGION_NAME = ""
 
 REDIS_HOST = os.getenv("REDIS_HOST", "freelance_redis")
 CELERY_BROKER_URL = "redis://%s:6379" % REDIS_HOST
@@ -511,28 +512,30 @@ DATADOG_TRACE = {
     'ENABLED': 'True'
 }
 
-# --------------- SILK -------------- #
-
-# def silk_permissions(user):
-#     """Return True/False based on if user is a super user."""
-#     return user.is_superuser
-#
-#
-# def clear_silk_logs():
-#     """Returns the command for clearing request logs."""
-#     return "python manage.py silk_clear_request_log"
-#
-#
-# # Tells silk to user python cProfiler.
-# SILKY_PYTHON_PROFILER = True
-#
-# # Permission to access silk.
-# SILKY_AUTHENTICATION = True
-# SILKY_AUTHORISATION = True
-# SILKY_PERMISSIONS = silk_permissions
-#
-# # Enables overhead added by silk processes.
-# SILKY_META = True
-#
-# # Removes these keys from being accessible on /silk
-# # SILKY_SENSITIVE_KEYS = {'username', 'api', "token", 'key', 'secret', 'password', 'signature'}
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "django": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["django"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "django.server": {
+            "handlers": ["django"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "django.db.backends": {
+            "handlers": ["django"],
+            "level": "DEBUG",
+            "propagate": True,
+        }
+    },
+}
