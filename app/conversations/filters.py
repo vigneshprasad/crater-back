@@ -5,7 +5,7 @@ from conversations import models
 
 class AllWebinarsFilters(filters.FilterSet):
 
-    start__gt = filters.DateTimeFilter(
+    start__gte = filters.DateTimeFilter(
         field_name="start",
         lookup_expr="gte",
     )
@@ -15,5 +15,5 @@ class AllWebinarsFilters(filters.FilterSet):
         fields = (
             "host",
             "categories",
-            "start__gt"
+            "start__gte"
         )
