@@ -35,7 +35,7 @@ services:
       - ./docker:/docker
     env_file: "./docker/environments"
     environment:
-      DJANGO_SETTINGS_MODULE=freelance.settings
+      DJANGO_SETTINGS_MODULE: freelance.settings
     depends_on:
       - db
       - redis
@@ -47,7 +47,7 @@ services:
     command: 'celery -A freelance worker -l info --concurrency=4 -B'
     env_file: "./docker/environments"
     environment:
-      DJANGO_SETTINGS_MODULE=freelance.settings
+      DJANGO_SETTINGS_MODULE: freelance.settings
     volumes:
       - ./app:/app
       - ./docker:/docker
