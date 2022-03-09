@@ -599,3 +599,41 @@ class SeriesSerializer(serializers.ModelSerializer):
             "start",
             "created_at",
         )
+
+
+class SeriesListHostSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name"
+        )
+
+
+class SeriesListTopicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Topic
+        fields = (
+            "name",
+            "image",
+            "description"
+        )
+
+
+class SeriesListSerializer(serializers.ModelSerializer):
+
+    topic_detail = SeriesListTopicSerializer(source="topic", read_only=True)
+    groups_detail_list = EmptyGroupWebinarSerializer(source="groups", many=True, read_only=True)
+    host_detail = SeriesListHostSerializer(source="host", read_only=True)
+
+    class Meta:
+        model = models.Series
+        fields = (
+            "id",
+            "topic_detail",
+            "groups_detail_list",
+            "host_detail",
+            "start"
+        )

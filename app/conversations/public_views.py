@@ -231,3 +231,8 @@ class SeriesPublicViewSet(
     )
     permission_classes = [user_permissions.AllowAny]
     pagination_class = paginators.WebinarPagination
+
+    def get_serializer_class(self):
+        if getattr(self, "action", None) == "list":
+            return serializers.SeriesListSerializer
+        return super().get_serializer_class()
