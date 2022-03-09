@@ -12,6 +12,8 @@ services:
     volumes:
       - ./db_data:/var/lib/postgresql
       - ./db_backups:/backups
+    ports:
+      - "5432:5432"
 
   redis:
     container_name: freelance_redis
@@ -19,17 +21,21 @@ services:
     env_file: "./docker/environments"
     volumes:
       - ./redis_data:/data
+    ports:
+      - 6379:6379
 
   app:
     container_name: freelance_app
     build:
-      context: .
+      context: app
     ports:
       - "8000:8000"
     volumes:
       - ./app:/app
       - ./docker:/docker
     env_file: "./docker/environments"
+    environment:
+      DJANGO_SETTINGS_MODULE=freelance.settings
     depends_on:
       - db
       - redis
@@ -37,9 +43,11 @@ services:
   celery:
     container_name: freelance_celery
     build:
-      context: .
+      context: app
     command: 'celery -A freelance worker -l info --concurrency=4 -B'
     env_file: "./docker/environments"
+    environment:
+      DJANGO_SETTINGS_MODULE=freelance.settings
     volumes:
       - ./app:/app
       - ./docker:/docker
