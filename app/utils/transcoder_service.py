@@ -1,3 +1,4 @@
+import logging
 import uuid
 import boto3
 
@@ -5,6 +6,8 @@ from botocore import exceptions as botocore_exceptions
 from django.conf import settings
 
 from users import models
+
+LOGGER = logging.getLogger("app")
 
 
 class TranscoderService:
@@ -33,7 +36,7 @@ class TranscoderService:
         except models.Profile.DoesNotExist:
             return None, None
 
-        if profile.cover and profile.cover.url != profile._old_cover:
+        if not (profile.cover and profile.cover.url != profile._old_cover):
             return None, None
 
         cover_name = profile.cover.name
@@ -56,7 +59,7 @@ class TranscoderService:
         job_info = self.create_elastic_transcoder_hls_job(
             input_file=input_file, outputs=outputs, output_file_prefix=self.output_file_prefix
         )
-        print(job_info)
+        LOGGER.info(job_info)
         if job_info:
             return job_info["Id"], output_file
 
@@ -68,6 +71,7 @@ class TranscoderService:
             cover_file = models.CoverFile.objects.get(pk=cover_file_pk)
         except models.CoverFile.DoesNotExist:
             return None, None
+
         cover_name = cover_file.file.name
         ext = cover_name.split(".")[-1]
         if ext.lower() not in ["mov", "mpeg", "avi", "mp4", "3gp", "mwv", "flv"]:
@@ -88,7 +92,7 @@ class TranscoderService:
         job_info = self.create_elastic_transcoder_hls_job(
             input_file=input_file, outputs=outputs, output_file_prefix=self.output_file_prefix
         )
-        print(job_info)
+        LOGGER.info(job_info)
         if job_info:
             return job_info["Id"], output_file
 
@@ -120,21 +124,19 @@ class TranscoderService:
                 Playlists=[]
             )
         except botocore_exceptions.ClientError as e:
-            print(f"ERROR: {e}")
+            LOGGER.error(str(e))
             return None
+
         return response["Job"]
 
     def job_success(self, job_id):
         try:
             job = self.etc_client.read_job(Id=job_id)["Job"]
         except (botocore_exceptions.ClientError, botocore_exceptions.NoCredentialsError) as e:
-            print(f"ERROR: {e}")
+            LOGGER.exception(str(e))
             return False
 
-        if job["Status"] == "Complete":
-            return True
-
-        return False
+        return job["Status"] == "Complete"
 
 
 if getattr(settings, "AWS_ACCESS_KEY_ID") and getattr(settings, "AWS_TRANSCODER_REGION_NAME"):
