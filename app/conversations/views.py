@@ -507,14 +507,16 @@ class AllGroupWebinarViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM)\
-        .select_related("topic", "host__profile", "recording", "recording") \
-        .prefetch_related(
-            "categories",
-            "interests",
-            Prefetch("attendees", User.objects.select_related("profile")),
-            Prefetch("speakers", User.objects.select_related("profile")),
-        )
+    queryset = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ).select_related(
+        "topic", "host__profile", "recording", "recording"
+    ).prefetch_related(
+        "categories",
+        "interests",
+        Prefetch("attendees", User.objects.select_related("profile")),
+        Prefetch("speakers", User.objects.select_related("profile")),
+    )
     serializer_class = serializers.GroupWebinarSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_class = filters.AllWebinarsFilters
@@ -525,7 +527,9 @@ class AllGroupWebinarViewSet(
         return super().get_serializer_class()
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM))
+        queryset = self.filter_queryset(models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM
+        ))
         return Response(queryset.values("id"))
 
 

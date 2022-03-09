@@ -443,12 +443,12 @@ def send_whatsapp_1_on_1_rsvp_reminder(meetings=None):
             freshchat_public.send_meeting_rsvp_reminder(rsvp.participant, meeting)
 
 
-@periodic_task(run_every=crontab(minute="*/15"))
+# @periodic_task(run_every=crontab(minute="*/15"))
 def update_meeting_rsvp_status_from_google(meetings=None):
     """
     Update the Meetings Rsvp Status for participants of all upcoming meetings
 
-    meetings(Meeting queryset): Queryset of meeting you want to update rsvp status for
+    meetings(Queryset): Queryset of meeting you want to update rsvp status for
         participants.
 
     """

@@ -1,5 +1,3 @@
-from cgitb import lookup
-from attr import field
 from django_filters import rest_framework as filters
 
 from crater.auctions import models

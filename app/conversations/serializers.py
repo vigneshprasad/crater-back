@@ -471,7 +471,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         return instance
 
 
-class TopicSerializerForListWebinar(serializers.ModelSerializer):
+class StreamListTopicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Topic
@@ -482,7 +482,7 @@ class TopicSerializerForListWebinar(serializers.ModelSerializer):
         )
 
 
-class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
+class StreamListHostSerializer(serializers.ModelSerializer):
 
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
@@ -509,10 +509,16 @@ class GroupHostSerializerForListWebinar(serializers.ModelSerializer):
         return user.profile.get_introduction() if user.has_profile else None
 
 
-class PastWebinarListSerializer(serializers.ModelSerializer):
+class StreamListSerializer(serializers.ModelSerializer):
+    """List serializer for Streams.
 
-    topic_detail = TopicSerializerForListWebinar(source="topic", read_only=True)
-    host_detail = GroupHostSerializerForListWebinar(source="host", read_only=True)
+    Note:
+        This only returns data required over a /list calls
+            for calls the stream.
+
+    """
+    topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
+    host_detail = StreamListHostSerializer(source="host", read_only=True)
 
     class Meta:
         model = models.Group
@@ -592,4 +598,42 @@ class SeriesSerializer(serializers.ModelSerializer):
             "host_detail",
             "start",
             "created_at",
+        )
+
+
+class SeriesListHostSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name"
+        )
+
+
+class SeriesListTopicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Topic
+        fields = (
+            "name",
+            "image",
+            "description"
+        )
+
+
+class SeriesListSerializer(serializers.ModelSerializer):
+
+    topic_detail = SeriesListTopicSerializer(source="topic", read_only=True)
+    groups_detail_list = EmptyGroupWebinarSerializer(source="groups", many=True, read_only=True)
+    host_detail = SeriesListHostSerializer(source="host", read_only=True)
+
+    class Meta:
+        model = models.Series
+        fields = (
+            "id",
+            "topic_detail",
+            "groups_detail_list",
+            "host_detail",
+            "start"
         )
