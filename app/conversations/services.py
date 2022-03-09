@@ -1,7 +1,6 @@
 import datetime
 import json
 
-import numpy as np
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
@@ -313,39 +312,9 @@ def participant_count(limit, current, sec):
         sec(int): Number of seconds into the session.
 
     """
-    if not limit:
-        return 0, 0
+    #TODO: Remove function
+    return 0, 0
 
-    rate_of_change = min(limit / 5, 1500)
-    limit = limit / 100 if limit else 100
-    sec += 10
-
-    # Make the final count and current count same.
-    final = current
-
-    # Calculate probability for participant going up or down.
-    random = np.random.rand()
-    random_2 = np.random.rand()
-    prob = max(0.6, (1 - (sec / rate_of_change)))
-    neg_prob = min(0.6, (sec * 2 / rate_of_change))
-
-    # Update the final count of participants based on the probability.
-    if sec > 1800:
-        final += np.random.randint(1, 2) if random_2 <= prob else 0
-        final -= np.random.randint(1, 3) if random <= neg_prob else 0
-    elif (sec // 300) % 2 == 1:
-        final += np.random.randint(1, 3) if random_2 <= prob else 0
-        final -= np.random.randint(1, 3) if random <= neg_prob else 0
-    else:
-        final += np.random.randint(1, 8) if random_2 <= prob else 0
-        final -= np.random.randint(1, 6) if random <= neg_prob else 0
-
-    # Calculate new final participant count and current seconds.
-    final, sec = (current, sec) if (
-            final < 1 or final > limit
-    ) else (final, sec)
-
-    return final, sec
 
 
 def cache_live_webinar(group):

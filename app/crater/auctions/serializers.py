@@ -1,12 +1,12 @@
 import copy
-from numpy import source
+
 from rest_framework import serializers
 
+from base import serializers as base_serializers
 from crater.auctions import constants, models
 from crater.creator import serializers as creator_serializers
-from base import serializers as base_serializers
-from users import serializers as user_serializers
 from crater.rewards import serializers as reward_serializers
+from users import serializers as user_serializers
 
 
 class RewardAuctionBaseSerializer(serializers.ModelSerializer):
