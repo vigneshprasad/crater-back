@@ -625,7 +625,6 @@ class SeriesListTopicSerializer(serializers.ModelSerializer):
 class SeriesListSerializer(serializers.ModelSerializer):
 
     topic_detail = SeriesListTopicSerializer(source="topic", read_only=True)
-    groups_detail_list = EmptyGroupWebinarSerializer(source="groups", many=True, read_only=True)
     host_detail = SeriesListHostSerializer(source="host", read_only=True)
 
     class Meta:
@@ -633,7 +632,7 @@ class SeriesListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "topic_detail",
-            "groups_detail_list",
+            "groups",
             "host_detail",
             "start"
         )

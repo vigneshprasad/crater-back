@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from crater.creator import models
+from users import models as user_models
 from users import serializers as user_serializers
 
 
@@ -86,6 +87,35 @@ class CreatorSerializer(serializers.ModelSerializer):
             return None
 
         return CommunitySerializer(community).data
+
+
+class CreatorProfileListSerializer(serializers.ModelSerializer):
+
+    photo = serializers.ImageField(read_only=True)
+    name = serializers.CharField(source="user.name", read_only=True)
+
+    class Meta:
+        model = user_models.Profile
+        fields = (
+            "id",
+            "name",
+            "photo"
+        )
+
+
+class CreatorListSerializer(serializers.ModelSerializer):
+
+    profile_detail = CreatorProfileListSerializer(source="user.profile", read_only=True)
+
+    class Meta:
+        model = models.Creator
+        fields = (
+            "id",
+            "user",
+            "slug",
+            "subscriber_count",
+            "profile_detail"
+        )
 
 
 class FollowerSerializer(serializers.ModelSerializer):
