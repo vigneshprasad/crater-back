@@ -18,7 +18,6 @@ class GroupWebinarPublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.GroupWebinarSerializer
-    # queryset = models.Group.objects.filter(type=constants.GROUP_TYPE_WEBINAR_ENUM, is_published=True)
     queryset = models.Group.objects.filter(
         type=constants.GROUP_TYPE_WEBINAR_ENUM,
         is_published=True
@@ -91,7 +90,6 @@ class GroupWebinarPublicViewSet(
             type=constants.GROUP_TYPE_WEBINAR_ENUM
         ).select_related(
             "topic",
-            "host",
             "host__profile",
             "host__creator"
         ).order_by("-start"),
@@ -127,7 +125,6 @@ class GroupWebinarPublicViewSet(
             type=constants.GROUP_TYPE_WEBINAR_ENUM
         ).select_related(
             "topic",
-            "host",
             "host__profile",
             "host__creator"
         ).order_by("-start"),
@@ -191,7 +188,6 @@ class GroupWebinarPublicViewSet(
             type=constants.GROUP_TYPE_WEBINAR_ENUM
         ).select_related(
             "topic",
-            "host",
             "host__profile",
             "host__creator"
         ).order_by("-start"),
