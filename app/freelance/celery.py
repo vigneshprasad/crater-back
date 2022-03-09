@@ -3,9 +3,10 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 from ddtrace import patch
+from django.conf import settings
 
-
-patch(celery=True)
+if not settings.DEBUG:
+    patch(celery=True)
 app = Celery('freelance')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.timezone = 'UTC'

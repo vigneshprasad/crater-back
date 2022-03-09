@@ -14,10 +14,10 @@ flake8-functions
 flake8-comprehensions
 flake8-bandit
 django-stubs
-mypy
 flake8-print
 flakehell
 safety
 pytest
 pytest-django
 mock
+django-debug-toolbar
