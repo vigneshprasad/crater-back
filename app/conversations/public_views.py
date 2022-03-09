@@ -220,7 +220,7 @@ class SeriesPublicViewSet(
         Prefetch(
             "groups",
             models.Group.objects.select_related(
-                "topic", "host__profile", "recording", "recording"
+                "topic", "host__profile", "recording",
             ).order_by("closed", "is_live", "start").prefetch_related(
                 "categories",
                 "interests",
@@ -232,7 +232,25 @@ class SeriesPublicViewSet(
     permission_classes = [user_permissions.AllowAny]
     pagination_class = paginators.WebinarPagination
 
-    def get_serializer_class(self):
-        if getattr(self, "action", None) == "list":
-            return serializers.SeriesListSerializer
-        return super().get_serializer_class()
+    # def get_serializer_class(self):
+    #     if getattr(self, "action", None) == "list":
+    #         return serializers.SeriesListSerializer
+    #     return super().get_serializer_class()
+
+    def list(self, request, *args, **kwargs):
+
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = serializers.SeriesListSerializer(
+                queryset,
+                many=True
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = serializers.SeriesListSerializer(
+            page,
+            many=True
+        )
+        return self.get_paginated_response(serializer.data)
