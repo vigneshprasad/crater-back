@@ -184,7 +184,7 @@ def add_participant_to_series_dyte_meetings(sender, series_requests, user, *args
 
     Args:
         sender(Series): Class object for series.
-        series_requests(list(Request)): Series requests of user
+        series_requests(list(Request)): Series requests of user.
         user(User): User that got added to the series.
 
     """
