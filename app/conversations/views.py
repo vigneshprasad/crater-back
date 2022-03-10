@@ -360,7 +360,7 @@ class RequestViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = serializers.RequestSerializer
+    serializer_class = serializers.RequestPostSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.Request.objects.all()
 
@@ -393,6 +393,10 @@ class RequestViewSet(
                 group_already_joined_exceptions.get_error_body(),
                 status=group_already_joined_exceptions.status_code
             )
+
+        # Accepting the request here itself.
+        if not data.get("status"):
+            data["status"] = constants.REQUEST_STATUS_ACCEPTED_ENUM
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -658,7 +662,7 @@ class SeriesRequestViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = serializers.RequestSerializer
+    serializer_class = serializers.RequestPostSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.Request.objects.all()
 
@@ -703,7 +707,9 @@ class SeriesRequestViewSet(
             {
                 "requester": user,
                 "group": group.pk,
-                "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+                "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+                # Marking the status accepted here itself.
+                "status": constants.REQUEST_STATUS_ACCEPTED_ENUM
             }
             for group in groups_to_rsvp
         ]

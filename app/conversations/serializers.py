@@ -524,7 +524,8 @@ class StreamListSerializer(serializers.ModelSerializer):
             "id",
             "topic_detail",
             "host_detail",
-            "start"
+            "start",
+            "is_live"
         )
 
 
@@ -634,3 +635,31 @@ class SeriesListSerializer(serializers.ModelSerializer):
             "host_detail",
             "start"
         )
+
+
+class RequestPostSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Request
+        fields = (
+            "pk",
+            "requester",
+            "group",
+            "status",
+            "participant_type"
+        )
+
+    def to_internal_value(self, data):
+        """Initial transform data for serializer, set creator as request user
+
+        Args:
+            data(dict): Request data we get from the API.
+
+        """
+        try:
+            data = copy.deepcopy(data)
+        except TypeError:
+            pass
+        if self.context.get("request"):
+            data["requester"] = self.context["request"].user.pk
+        return super().to_internal_value(data)
