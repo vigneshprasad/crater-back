@@ -1,6 +1,10 @@
 import jsii
-from aws_cdk import aws_ec2, aws_ecs, aws_route53, aws_s3, CfnOutput, ITaggable, RemovalPolicy, Stack
+from aws_cdk import aws_cloudfront, aws_cloudfront_origins, aws_ec2, aws_ecs, aws_route53, aws_s3, CfnOutput, Duration, \
+    ITaggable, \
+    RemovalPolicy, Stack
+from aws_cdk.aws_certificatemanager import Certificate
 from aws_cdk.aws_ec2 import Port, SecurityGroup
+from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import HttpMethods
 from cdk_ec2_key_pair import KeyPair
 from conf import DB_PORT, Env, REDIS_PORT, T3_MICRO
@@ -93,7 +97,46 @@ class BackendStack(Stack):
                 storage_encrypted=env.storage_encrypted
             )
 
-        self.alb = ALBStack(self, f"{construct_id}-alb", environment_prefix=env.environment_prefix)
+        self.alb = ALBStack(self, f"{construct_id}-alb")
+
+        self.distribution = aws_cloudfront.Distribution(
+            self,
+            f"{construct_id}-distribution",
+            certificate=Certificate.from_certificate_arn(self, f"{construct_id}-cloudfront-cert", env.certificate_arn),
+            domain_names=[f"{env.environment_prefix}.{env.domain_name}"],
+            price_class=aws_cloudfront.PriceClass.PRICE_CLASS_200,
+            default_behavior=aws_cloudfront.BehaviorOptions(
+                origin=aws_cloudfront_origins.LoadBalancerV2Origin(self.alb.load_balancer),
+                viewer_protocol_policy=aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                origin_request_policy=aws_cloudfront.OriginRequestPolicy.ALL_VIEWER,
+                cache_policy=aws_cloudfront.CachePolicy(
+                    self, f"{construct_id}-cache-policy",
+                    cache_policy_name=f"{construct_id}-cache",
+                    default_ttl=Duration.minutes(1),
+                    min_ttl=Duration.minutes(1),
+                    max_ttl=Duration.days(10),
+
+
+                    cookie_behavior=aws_cloudfront.CacheCookieBehavior.all(),
+                    header_behavior=aws_cloudfront.CacheHeaderBehavior.allow_list(
+                        "Authorization"
+                    ),
+                    query_string_behavior=aws_cloudfront.CacheQueryStringBehavior.allow_list(
+                        "page", "limit", "skip", "offset", "p", "page_size"
+                    ),
+                    enable_accept_encoding_gzip=True,
+                    enable_accept_encoding_brotli=True
+                )
+            )
+        )
+        aws_route53.ARecord(
+            self,
+            f"{construct_id}-record",
+            record_name=env.environment_prefix,
+            zone=self.hosted_zone,
+            target=aws_route53.RecordTarget.from_alias(alias_target=CloudFrontTarget(self.distribution))
+        )
+        self.domain = env.domain_name
 
         if env.enable_cache or env.enable_celery:
             self.cache = CacheStack(self, f"{construct_id}-cache")
@@ -176,7 +219,7 @@ class BackendStack(Stack):
             self,
             f"{construct_id}-DjangoServiceURL",
             export_name=f"{construct_id}-DjangoServiceURL",
-            value=f"https://{self.alb.domain}/"
+            value=f"https://{self.domain}/"
         )
         CfnOutput(
             self,

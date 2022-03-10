@@ -43,7 +43,6 @@ class ALBStack(NestedStack):
                 one_per_az=True
             )
         )
-        self.domain = self.load_balancer.load_balancer_dns_name
         self.http_listener = self.load_balancer.add_listener(
             f"{construct_id}-http-listener",
             port=HTTP_PORT,
@@ -57,14 +56,6 @@ class ALBStack(NestedStack):
                 subject_alternative_names=[f"*.api.{hosted_zone.zone_name}"],
                 validation=cert_manager.CertificateValidation.from_dns(hosted_zone)
             )
-            record = aws_route53.ARecord(
-                self,
-                f"{construct_id}-record",
-                record_name=environment_prefix,
-                zone=hosted_zone,
-                target=aws_route53.RecordTarget.from_alias(alias_target=LoadBalancerTarget(self.load_balancer))
-            )
-            self.domain = record.domain_name
 
             certificates = [ListenerCertificate.from_certificate_manager(certificate)]
             self.listener = self.load_balancer.add_listener(
