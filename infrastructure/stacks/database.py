@@ -104,24 +104,4 @@ class DatabaseClusterStack(NestedStack):
                 db_proxy_name=f"proxy-{construct_id}",
                 security_groups=[self.sg]
             )
-        # if instance_count > 2:
-        #     target = autoscaling.ScalableTarget(
-        #         self,
-        #         f"{construct_id}-scaling-target",
-        #         max_capacity=3,
-        #         min_capacity=1,
-        #         resource_id=self.cluster.cluster_identifier,
-        #         # resource_id=f"cluster:{construct_id}-cluster",
-        #         scalable_dimension="rds:cluster:ReadReplicaCount",
-        #         service_namespace=autoscaling.ServiceNamespace.RDS
-        #     )
-        #
-        #     target.scale_on_metric(
-        #         f"{construct_id}-cpu-scaling",
-        #         metric=self.cluster.metric_cpu_utilization,
-        #         scaling_steps=[
-        #             autoscaling.ScalingInterval(upper=80, change=1),
-        #             autoscaling.ScalingInterval(upper=40, change=-1),
-        #         ],
-        #         adjustment_type=autoscaling.AdjustmentType.CHANGE_IN_CAPACITY
-        #     )
+

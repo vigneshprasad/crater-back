@@ -5,12 +5,13 @@ from celery.schedules import crontab
 from ddtrace import patch
 from django.conf import settings
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "freelance.settings")
+
 if not settings.DEBUG:
     patch(celery=True)
 app = Celery('freelance')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.timezone = 'UTC'
-app.conf.broker_url = 'redis://localhost:6379/0'
 app.autodiscover_tasks()
 
 app.conf.update(

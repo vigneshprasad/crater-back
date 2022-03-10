@@ -374,7 +374,6 @@ class FargateServiceStack(NestedStack):
             task_definition_memory: str,
             environment_name: str,
             desired_count: Optional[int] = 1,
-            entrypoint: Optional[str] = None,
             log_retention: Optional[aws_logs.RetentionDays] = aws_logs.RetentionDays.ONE_MONTH,
             autoscaling_min_capacity: int = 1,
             autoscaling_max_capacity: int = 1,
