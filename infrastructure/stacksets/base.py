@@ -79,7 +79,7 @@ class BackendStack(Stack):
             security_group_name=f"{construct_id}-app-sg"
         )
         if env.use_cluster:
-            self.db = DatabaseClusterStack(
+            DatabaseClusterStack(
                 self,
                 f"{construct_id}-db-cluster",
                 backup_retention=env.backup_retention,
@@ -96,6 +96,12 @@ class BackendStack(Stack):
                 multi_az=env.db_multi_az,
                 storage_encrypted=env.storage_encrypted
             )
+            CfnOutput(
+                self,
+                f"{construct_id}-DbSecretArn",
+                export_name=f"{construct_id}-DbSecretArn",
+                value=self.db.db_secret.secret_arn
+            )
 
         self.alb = ALBStack(self, f"{construct_id}-alb")
 
@@ -107,6 +113,7 @@ class BackendStack(Stack):
             price_class=aws_cloudfront.PriceClass.PRICE_CLASS_200,
             default_behavior=aws_cloudfront.BehaviorOptions(
                 origin=aws_cloudfront_origins.LoadBalancerV2Origin(self.alb.load_balancer),
+                allowed_methods=aws_cloudfront.AllowedMethods.ALLOW_ALL,
                 viewer_protocol_policy=aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 origin_request_policy=aws_cloudfront.OriginRequestPolicy.ALL_VIEWER,
                 cache_policy=aws_cloudfront.CachePolicy(
@@ -115,8 +122,6 @@ class BackendStack(Stack):
                     default_ttl=Duration.minutes(1),
                     min_ttl=Duration.minutes(1),
                     max_ttl=Duration.days(10),
-
-
                     cookie_behavior=aws_cloudfront.CacheCookieBehavior.all(),
                     header_behavior=aws_cloudfront.CacheHeaderBehavior.allow_list(
                         "Authorization"
@@ -199,7 +204,7 @@ class BackendStack(Stack):
                 task_definition_memory=env.celery_memory,
                 log_retention=env.log_retention,
                 environment_name=env.environment_name,
-                entry_point=["celery", "-A", "freelance", "worker", "-l", "info", "--concurrency=4", "-B"],
+                entry_point="celery -A freelance worker -l info --concurrency=4 -B && celery -A apps beat -l info".split(" "),
                 datadog_logging=True
             )
             CfnOutput(
@@ -260,3 +265,10 @@ class BackendStack(Stack):
             export_name=f"{construct_id}-DeploymentGroupName",
             value=self.service.deployment_group_name
         )
+        CfnOutput(
+            self,
+            f"{construct_id}-PrivateKeySecretArn",
+            export_name=f"{construct_id}-PrivateKeySecretArn",
+            value=key.private_key_arn
+        )
+

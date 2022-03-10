@@ -52,7 +52,7 @@ class Env(Environment):
     storage_encrypted: Optional[bool] = False
     db_instance_type: InstanceType = T3_MEDIUM
     db_multi_az: bool = False
-    db_instance_count: Optional[int] = 2
+    db_instance_count: Optional[int] = 1
     # s3
     media_bucket_arn: Optional[str] = ""
 
@@ -85,13 +85,13 @@ PROD_ENV = Env(
     region=REGION,
     hosted_zone_id="Z0699370CT3MSW55GUDA",
     domain_name=f"prod.{DOMAIN}",
-    django_cpu="512",
-    django_memory="1024",
+    django_cpu="1024",
+    django_memory="2048",
     django_autoscaling_min_capacity=2,
-    django_autoscaling_max_capacity=6,
+    django_autoscaling_max_capacity=10,
     environment_name=PROD,
     environment_prefix="api",
-    # use_cluster=True,
+    use_cluster=True,
     db_instance_type=T3_MEDIUM,
     media_bucket_arn="arn:aws:s3:::1worknetwork-prod",
     peering_vpc_ids=["vpc-057431677ae96e918"],
