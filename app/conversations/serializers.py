@@ -524,7 +524,8 @@ class StreamListSerializer(serializers.ModelSerializer):
             "id",
             "topic_detail",
             "host_detail",
-            "start"
+            "start",
+            "is_live"
         )
 
 
