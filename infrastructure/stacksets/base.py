@@ -46,31 +46,6 @@ class BackendStack(Stack):
             nat_gateways=1,
             nat_gateway_provider=nat_provider
         )
-        for peering_vpc_id in env.peering_vpc_ids or []:
-            peering_vpc = aws_ec2.Vpc.from_lookup(self, peering_vpc_id, vpc_id=peering_vpc_id)
-            connection = aws_ec2.CfnVPCPeeringConnection(
-                self, f"{construct_id}-{peering_vpc_id}-peering",
-                vpc_id=self.vpc.vpc_id,
-                peer_vpc_id=peering_vpc_id,
-            )
-            for index, subnet in enumerate([*self.vpc.private_subnets, *self.vpc.public_subnets]):
-                aws_ec2.CfnRoute(
-                    self, f"{peering_vpc_id}-route-{index}",
-                    route_table_id=subnet.route_table.route_table_id,
-                    destination_cidr_block=peering_vpc.vpc_cidr_block,
-                    vpc_peering_connection_id=connection.ref
-                )
-            route_tables = set(
-                subnet.route_table.route_table_id
-                for subnet in peering_vpc.private_subnets
-            )
-            for index, route_table_id in enumerate(route_tables):
-                aws_ec2.CfnRoute(
-                    self, f"{peering_vpc_id}-elk-route-{index}",
-                    route_table_id=route_table_id,
-                    destination_cidr_block=self.vpc.vpc_cidr_block,
-                    vpc_peering_connection_id=connection.ref
-                )
 
         self.app_sg = SecurityGroup(
             self,
@@ -79,7 +54,7 @@ class BackendStack(Stack):
             security_group_name=f"{construct_id}-app-sg"
         )
         if env.use_cluster:
-            DatabaseClusterStack(
+            self.db = DatabaseClusterStack(
                 self,
                 f"{construct_id}-db-cluster",
                 backup_retention=env.backup_retention,
@@ -87,7 +62,7 @@ class BackendStack(Stack):
                 instance_count=env.db_instance_count,
                 storage_encrypted=env.storage_encrypted
             )
-        elif not env.peering_vpc_ids:
+        else:
             self.db = DatabaseStack(
                 self,
                 f"{construct_id}-db",
@@ -96,12 +71,12 @@ class BackendStack(Stack):
                 multi_az=env.db_multi_az,
                 storage_encrypted=env.storage_encrypted
             )
-            CfnOutput(
-                self,
-                f"{construct_id}-DbSecretArn",
-                export_name=f"{construct_id}-DbSecretArn",
-                value=self.db.db_secret.secret_arn
-            )
+        CfnOutput(
+            self,
+            f"{construct_id}-DbSecretArn",
+            export_name=f"{construct_id}-DbSecretArn",
+            value=self.db.db_secret.secret_arn
+        )
 
         self.alb = ALBStack(self, f"{construct_id}-alb")
 
@@ -147,8 +122,7 @@ class BackendStack(Stack):
             self.cache = CacheStack(self, f"{construct_id}-cache")
             self.cache.sg.add_ingress_rule(self.app_sg, Port.tcp(REDIS_PORT))
 
-        if hasattr(self, "db"):
-            self.db.sg.add_ingress_rule(self.app_sg, Port.tcp(DB_PORT))
+        self.db.sg.add_ingress_rule(self.app_sg, Port.tcp(DB_PORT))
         self.app_sg.add_ingress_rule(self.alb.alb_sg, Port.tcp(APP_PORT))
 
         self.cluster = aws_ecs.Cluster(
@@ -204,7 +178,7 @@ class BackendStack(Stack):
                 task_definition_memory=env.celery_memory,
                 log_retention=env.log_retention,
                 environment_name=env.environment_name,
-                entry_point="celery -A freelance worker -l info --concurrency=4 -B && celery -A apps beat -l info".split(" "),
+                entry_point="celery -A freelance worker -l info --concurrency=4 -B".split(" "),
                 datadog_logging=True
             )
             CfnOutput(

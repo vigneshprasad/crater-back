@@ -166,19 +166,10 @@ class FargateApiServiceStack(NestedStack):
             secrets[secret_name] = aws_ecs.Secret.from_secrets_manager(secret)
 
         # Secrets manager secrets
-        if hasattr(scope, "db"):
-            scope.db.db_secret.grant_read(self.execution_role)
-            db_secret = aws_ecs.Secret.from_secrets_manager(scope.db.db_secret)
-        else:
-            db_secret = aws_ecs.Secret.from_secrets_manager(
-                secretsmanager.Secret(
-                    self, f"{construct_id}-DB_SECRET",
-                    secret_name=f"/{environment_name.upper()}/DB_SECRET",
-                )
-            )
+        scope.db.db_secret.grant_read(self.execution_role)
 
         self.secrets = {
-            "DB_SECRET": db_secret,
+            "DB_SECRET": aws_ecs.Secret.from_secrets_manager(scope.db.db_secret),
             **params,
             **secrets,
         }

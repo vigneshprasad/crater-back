@@ -33,7 +33,6 @@ class Env(Environment):
     certificate_arn: Optional[str] = None
     # Network
     use_nat_gateway: Optional[bool] = False
-    peering_vpc_ids: Optional[List[str]] = None
     # Api
     django_cpu: Optional[str] = "256"
     django_memory: Optional[str] = "1024"
@@ -94,6 +93,5 @@ PROD_ENV = Env(
     use_cluster=True,
     db_instance_type=T3_MEDIUM,
     media_bucket_arn="arn:aws:s3:::1worknetwork-prod",
-    peering_vpc_ids=["vpc-057431677ae96e918"],
     certificate_arn="arn:aws:acm:us-east-1:682452685130:certificate/43dae845-f247-46e6-a6c0-6a7cdb278ce7"
 )
