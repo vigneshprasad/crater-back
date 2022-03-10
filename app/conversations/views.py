@@ -1,26 +1,13 @@
 import datetime
 
 from django.contrib.auth import get_user_model
-from django.db.models import Prefetch
-from django.db.models import Q
-from rest_framework import mixins
-from rest_framework import serializers
-from rest_framework import status
-from rest_framework import viewsets
+from django.db.models import Prefetch, Q
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from conversations import constants
-from conversations import exceptions
-from conversations import filters
-from conversations import models
-from conversations import paginators
-from conversations import private
-from conversations import serializers
-from conversations import services
-from conversations import signals
-from resources.meetings import models as meeting_models
-from resources.meetings import services as meeting_services
+from conversations import constants, exceptions, filters, models, paginators, private, serializers, services, signals
+from resources.meetings import models as meeting_models, services as meeting_services
 from users import permissions
 
 User = get_user_model()
@@ -404,7 +391,8 @@ class RequestViewSet(
         headers = self.get_success_headers(serializer.data)
 
         # If an invalid participant type is being sent. Raise and exception.
-        if participant_type not in [constants.REQUEST_PARTICIPANT_SPEAKER_ENUM, constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM]:
+        if participant_type not in [constants.REQUEST_PARTICIPANT_SPEAKER_ENUM,
+                                    constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM]:
             invalid_participant_type_exception = exceptions.InvalidParticipantType()
             return Response(
                 invalid_participant_type_exception.get_error_body(),
@@ -672,13 +660,12 @@ class SeriesRequestViewSet(
         series_id = data.get("series_id")
 
         # Get series by id
-        try:
-            series = models.Series.objects.get(
-                id=series_id,
-                is_published=True
-            )
-        except models.Series.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        series = models.Series.objects \
+            .filter(id=series_id, is_published=True) \
+            .select_related("host") \
+            .first()
+        if not series:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         # If the user rsvping is a host, throw an error.
         if series.host.pk == user.pk:

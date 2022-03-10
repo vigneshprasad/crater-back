@@ -108,6 +108,7 @@ django==3.0.3
     # via
     #   -r requirements.in
     #   channels
+    #   django-admin-autocomplete-filter
     #   django-admin-sortable2
     #   django-allauth
     #   django-cors-headers
@@ -124,6 +125,8 @@ django==3.0.3
     #   djrill
     #   drf-yasg
     #   image
+django-admin-autocomplete-filter==0.7.1
+    # via -r requirements.in
 django-admin-rangefilter==0.7.0
     # via -r requirements.in
 django-admin-row-actions==0.0.5
