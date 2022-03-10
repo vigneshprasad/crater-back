@@ -45,7 +45,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "test")
 FERNET_KEY = b"TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8="
 
 # SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = True
+DEBUG = ENVIRONMENT not in [ENVIRONMENT_PROD, ENVIRONMENT_DEV]
 
 ALLOWED_HOSTS = ["*"]
 
