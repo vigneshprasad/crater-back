@@ -187,7 +187,7 @@ class FargateApiServiceStack(NestedStack):
         self.container_environment = {
             "DJANGO_SETTINGS_MODULE": "freelance.settings_aws",
             "ENVIRONMENT": environment_name,
-            "ROOT_DOMAIN": scope.alb.domain,
+            "ROOT_DOMAIN": scope.domain,
             "AWS_DEFAULT_REGION": os.environ.get("AWS_DEFAULT_REGION", REGION),
             "BUILD_VERSION": BUILD_VERSION,
             "LOCAL_CURRENCY": "inr",

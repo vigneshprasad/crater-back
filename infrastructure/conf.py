@@ -29,6 +29,8 @@ class Env(Environment):
     hosted_zone_id: Optional[str] = None
     domain_name: Optional[str] = None
     environment_prefix: Optional[str] = None
+    # Cloudfront Certificate ARN from us-east-1 region
+    certificate_arn: Optional[str] = None
     # Network
     use_nat_gateway: Optional[bool] = False
     peering_vpc_ids: Optional[List[str]] = None
@@ -75,6 +77,7 @@ DEV_ENV = Env(
     environment_prefix="api",
     environment_name=DEV,
     db_instance_type=T3_MICRO,
+    certificate_arn="arn:aws:acm:us-east-1:682452685130:certificate/a2a42a13-ef12-46cc-92cd-60f056f2aca9"
 )
 
 PROD_ENV = Env(
@@ -91,5 +94,6 @@ PROD_ENV = Env(
     # use_cluster=True,
     db_instance_type=T3_MEDIUM,
     media_bucket_arn="arn:aws:s3:::1worknetwork-prod",
-    peering_vpc_ids=["vpc-057431677ae96e918"]
+    peering_vpc_ids=["vpc-057431677ae96e918"],
+    certificate_arn="arn:aws:acm:us-east-1:682452685130:certificate/43dae845-f247-46e6-a6c0-6a7cdb278ce7"
 )
