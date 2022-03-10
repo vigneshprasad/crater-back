@@ -396,7 +396,6 @@ class RequestViewSet(
 
         # Accepting the request here itself.
         if not data.get("status"):
-
             data["status"] = constants.REQUEST_STATUS_ACCEPTED_ENUM
 
         serializer = self.get_serializer(data=data)
