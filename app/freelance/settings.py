@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     "django_user_agents",
     "colorfield",
     "django_admin_row_actions",
+    "admin_auto_filters",
 
     "base",
     "users",
