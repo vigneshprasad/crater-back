@@ -394,6 +394,10 @@ class RequestViewSet(
                 status=group_already_joined_exceptions.status_code
             )
 
+        # Accepting the request here itself.
+        if not data.get("status", None):
+            data["status"] = constants.REQUEST_STATUS_ACCEPTED_ENUM
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         group_request = serializer.save()
@@ -703,7 +707,9 @@ class SeriesRequestViewSet(
             {
                 "requester": user,
                 "group": group.pk,
-                "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+                "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+                # Marking the status accepted here itself.
+                "status": constants.REQUEST_STATUS_ACCEPTED_ENUM
             }
             for group in groups_to_rsvp
         ]

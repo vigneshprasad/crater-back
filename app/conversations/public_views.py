@@ -87,7 +87,8 @@ class GroupWebinarPublicViewSet(
         detail=False,
         pagination_class=paginators.FeaturedWebinarPagination,
         queryset=models.Group.objects.filter(
-            type=constants.GROUP_TYPE_WEBINAR_ENUM
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True
         ).select_related(
             "topic",
             "host__profile",
@@ -122,7 +123,8 @@ class GroupWebinarPublicViewSet(
         methods=["GET"],
         detail=False,
         queryset=models.Group.objects.filter(
-            type=constants.GROUP_TYPE_WEBINAR_ENUM
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True
         ).select_related(
             "topic",
             "host__profile",
@@ -185,7 +187,8 @@ class GroupWebinarPublicViewSet(
         detail=False,
         pagination_class=paginators.WebinarPagination,
         queryset=models.Group.objects.filter(
-            type=constants.GROUP_TYPE_WEBINAR_ENUM
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True
         ).select_related(
             "topic",
             "host__profile",
