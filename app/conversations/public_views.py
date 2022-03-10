@@ -217,36 +217,35 @@ class SeriesPublicViewSet(
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.SeriesSerializer
-    queryset = models.Series.objects \
-        .filter(is_published=True) \
-        .select_related("topic", "host")
+    queryset = models.Series.objects.filter(is_published=True).select_related(
+        "topic", "host"
+    )
     permission_classes = [user_permissions.AllowAny]
     pagination_class = paginators.WebinarPagination
 
     def get_object(self):
-        queryset = self.queryset \
-            .select_related("topic__article", "topic__parent", "host__profile") \
-            .prefetch_related(
-                "categories",
-                Prefetch(
-                    "groups",
-                    models.Group.objects
-                    .select_related("topic", "host__profile", "recording", )
-                    .order_by("closed", "is_live", "start")
-                    .prefetch_related(
-                        "categories",
-                        "interests",
-                        Prefetch("attendees", User.objects.select_related("profile")),
-                        Prefetch("speakers", User.objects.select_related("profile")),
-                    )
+        queryset = self.queryset.select_related(
+            "topic__article", "topic__parent", "host__profile"
+        ).prefetch_related(
+            "categories",
+            Prefetch(
+                "groups",
+                models.Group.objects
+                .select_related("topic", "host__profile", "recording", )
+                .order_by("closed", "is_live", "start")
+                .prefetch_related(
+                    "categories",
+                    "interests",
+                    Prefetch("attendees", User.objects.select_related("profile")),
+                    Prefetch("speakers", User.objects.select_related("profile")),
                 )
             )
+        )
         queryset = self.filter_queryset(queryset)
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
         obj = get_object_or_404(queryset, **filter_kwargs)
         self.check_object_permissions(self.request, obj)
-
         return obj
 
     def list(self, request, *args, **kwargs):
@@ -254,14 +253,8 @@ class SeriesPublicViewSet(
         page = self.paginate_queryset(queryset)
 
         if page is None:
-            serializer = serializers.SeriesListSerializer(
-                queryset,
-                many=True
-            )
+            serializer = serializers.SeriesListSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        serializer = serializers.SeriesListSerializer(
-            page,
-            many=True
-        )
+        serializer = serializers.SeriesListSerializer(page, many=True)
         return self.get_paginated_response(serializer.data)
