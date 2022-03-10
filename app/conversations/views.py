@@ -360,7 +360,7 @@ class RequestViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = serializers.RequestSerializer
+    serializer_class = serializers.RequestPostSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.Request.objects.all()
 
@@ -662,7 +662,7 @@ class SeriesRequestViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = serializers.RequestSerializer
+    serializer_class = serializers.RequestPostSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.Request.objects.all()
 
