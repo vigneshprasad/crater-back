@@ -1,6 +1,6 @@
 import os
 from copy import copy
-from typing import Optional
+from typing import Dict, Optional
 
 import jsii
 from aws_cdk import aws_ecr, aws_ecs, aws_iam, aws_logs, aws_secretsmanager as secretsmanager, aws_ssm, Duration, Fn, \
@@ -14,7 +14,6 @@ from aws_cdk.aws_logs import LogGroup
 from conf import BUILD_VERSION, PROJECT_NAME, REGION
 from constructs import Construct
 from custom_constructs.deployment_group import DeploymentGroup
-
 from utils.policies import ExecutionRole, ssm_policies, TaskRole
 
 APP_PORT = 8000
@@ -35,6 +34,8 @@ class FargateApiServiceStack(NestedStack):
             autoscaling_max_capacity: int = 1,
             entry_point: Optional[list] = None,
             datadog_logging: Optional[bool] = False,
+            external_secrets: Optional[Dict[str, secretsmanager.Secret]] = None,
+            env: Optional[dict] = None,
             **kwargs
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -156,20 +157,17 @@ class FargateApiServiceStack(NestedStack):
         additional_secrets = [
             "SECRET_KEY",
         ]
-        secrets = {}
+        secrets = {**external_secrets} if external_secrets else {}
         for secret_name in additional_secrets:
-            secret = secretsmanager.Secret(
+            secrets[secret_name] = secretsmanager.Secret(
                 self, f"{construct_id}-{secret_name}",
                 secret_name=f"/{environment_name.upper()}/{secret_name}",
             )
+        for secret_name, secret in secrets.items():
             secret.grant_read(self.execution_role)
             secrets[secret_name] = aws_ecs.Secret.from_secrets_manager(secret)
 
-        # Secrets manager secrets
-        scope.db.db_secret.grant_read(self.execution_role)
-
         self.secrets = {
-            "DB_SECRET": aws_ecs.Secret.from_secrets_manager(scope.db.db_secret),
             **params,
             **secrets,
         }
@@ -188,6 +186,7 @@ class FargateApiServiceStack(NestedStack):
             "DD_ENV": environment_name,
             "DD_SERVICE": construct_id,
             "DD_VERSION": BUILD_VERSION,
+            **env
         }
 
         if hasattr(scope, "cache"):
@@ -246,9 +245,9 @@ class FargateApiServiceStack(NestedStack):
             }
         )
         aws_logs = aws_ecs.LogDriver.aws_logs(
-                stream_prefix="ecs",
-                log_group=self.log_group
-            )
+            stream_prefix="ecs",
+            log_group=self.log_group
+        )
         self.task_definition.add_container(
             f"{construct_id}-datadog",
             container_name="datadog-agent",
