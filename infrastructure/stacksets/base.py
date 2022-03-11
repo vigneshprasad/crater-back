@@ -178,8 +178,9 @@ class BackendStack(Stack):
                 task_definition_memory=env.celery_memory,
                 log_retention=env.log_retention,
                 environment_name=env.environment_name,
-                entry_point=["./bin/celery_entry_point.sh"],
-                datadog_logging=True
+                entry_point="celery -A freelance worker -l info --concurrency=4".split(),
+                datadog_logging=True,
+                celery_beat=True
             )
             CfnOutput(
                 self,

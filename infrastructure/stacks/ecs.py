@@ -370,6 +370,7 @@ class FargateServiceStack(NestedStack):
             autoscaling_max_capacity: int = 1,
             entry_point: Optional[list] = None,
             datadog_logging: Optional[bool] = False,
+            celery_beat: Optional[bool] = False,
 
             **kwargs
     ):
@@ -435,6 +436,36 @@ class FargateServiceStack(NestedStack):
                 "com.datadoghq.tags.version": BUILD_VERSION,
             }
         )
+        if celery_beat:
+            self.task_definition.add_container(
+                f"{construct_id}-container-beat",
+                image=aws_ecs.ContainerImage.from_ecr_repository(
+                    repository=self.repository,
+                    tag=BUILD_VERSION
+                ),
+                logging=aws_ecs.FireLensLogDriver(
+                    options={
+                        "Name": "datadog",
+                        "dd_service": f"{construct_id}-beat",
+                        "dd_source": "httpd",
+                        "dd_version": BUILD_VERSION,
+                        "dd_env": environment_name,
+                        "provider": "ecs",
+                        "apikey": dd_api_secret.secret_value.to_string(),
+                        "Host": "http-intake.logs.datadoghq.eu",
+                        "dd_message_key": "log",
+                        "TLS": "on",
+                    }
+                ),
+                secrets=scope.service.secrets,
+                environment=environment_vars,
+                entry_point="celery -A freelance beat -l debug".split(),
+                docker_labels={
+                    "com.datadoghq.tags.env": environment_name,
+                    "com.datadoghq.tags.service": f"{construct_id}-beat",
+                    "com.datadoghq.tags.version": BUILD_VERSION,
+                }
+            )
         self.task_definition.apply_removal_policy(RemovalPolicy.RETAIN)
         aws_logs = aws_ecs.LogDriver.aws_logs(
             stream_prefix="ecs",
