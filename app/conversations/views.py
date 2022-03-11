@@ -2,25 +2,13 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.db.models import Prefetch, Q
-
-from rest_framework import mixins
-from rest_framework import serializers
-from rest_framework import viewsets
-from rest_framework import status
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from conversations import constants, exceptions, filters, models, paginators, private, serializers, services, signals
+from resources.meetings import models as meeting_models, services as meeting_services
 from users import permissions
-from conversations import filters
-from conversations import models
-from conversations import serializers
-from conversations import services
-from conversations import exceptions
-from conversations import signals
-from conversations import constants
-from conversations import paginators
-from resources.meetings import services as meeting_services
-from resources.meetings import models as meeting_models
 
 User = get_user_model()
 
@@ -359,7 +347,7 @@ class RequestViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = serializers.RequestSerializer
+    serializer_class = serializers.RequestPostSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.Request.objects.all()
 
@@ -367,15 +355,9 @@ class RequestViewSet(
         user = request.user
         data = request.data
         group_id = data.get("group")
-        participant_type = data.get(
-            "participant_type",
-            constants.REQUEST_PARTICIPANT_SPEAKER_ENUM
-        )
+        participant_type = data.get("participant_type", constants.REQUEST_PARTICIPANT_SPEAKER_ENUM)
 
-        is_host = services.check_if_user_if_host(
-            user,
-            group_id
-        )
+        is_host = services.check_if_user_if_host(user, group_id)
 
         # If the user rsvping is a host, throw and error.
         if is_host:
@@ -399,42 +381,45 @@ class RequestViewSet(
                 status=group_already_joined_exceptions.status_code
             )
 
+        # Accepting the request here itself.
+        if not data.get("status"):
+            data["status"] = constants.REQUEST_STATUS_ACCEPTED_ENUM
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         group_request = serializer.save()
         headers = self.get_success_headers(serializer.data)
 
+        # If an invalid participant type is being sent. Raise and exception.
+        if participant_type not in [constants.REQUEST_PARTICIPANT_SPEAKER_ENUM,
+                                    constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM]:
+            invalid_participant_type_exception = exceptions.InvalidParticipantType()
+            return Response(
+                invalid_participant_type_exception.get_error_body(),
+                status=invalid_participant_type_exception.status_code
+            )
+
         try:
             if participant_type == constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM:
-                result = services.add_attendee_to_group_for_request(
-                    user,
-                    group_request
-                )
-            elif participant_type == constants.REQUEST_PARTICIPANT_SPEAKER_ENUM:
-                result = services.add_speaker_to_group_for_request(
-                    user,
-                    group_request
+                private.add_attendee_to_group_for_request.delay(
+                    user.pk,
+                    group_request.id
                 )
             else:
-                invalid_participant_type_exception = exceptions.InvalidParticipantType()
-                return Response(
-                    invalid_participant_type_exception.get_error_body(),
-                    status=invalid_participant_type_exception.status_code
+                services.add_speaker_to_group_for_request(
+                    user,
+                    group_request
                 )
-
-            serializer = self.get_serializer(result)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
         except (exceptions.GroupMaxSpeakersException, exceptions.GroupJoinedAtTheSameTime) as e:
             return Response(e.get_error_body(), status=e.status_code)
+
+        serializer = self.get_serializer(group_request)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def retrieve(self, request, *args, **kwargs):
 
         pk = kwargs.get("pk")
         user = request.user
-
-        # There multiple objects in the backend for now.
-        # TODO(Nishant): Cleanup GroupRequest and make 1 request for each user/group.
         group_request = self.get_queryset().filter(
             requester=user,
             group_id=pk,
@@ -665,7 +650,7 @@ class SeriesRequestViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = serializers.RequestSerializer
+    serializer_class = serializers.RequestPostSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.Request.objects.all()
 
@@ -675,13 +660,12 @@ class SeriesRequestViewSet(
         series_id = data.get("series_id")
 
         # Get series by id
-        try:
-            series = models.Series.objects.get(
-                id=series_id,
-                is_published=True
-            )
-        except models.Series.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        series = models.Series.objects \
+            .filter(id=series_id, is_published=True) \
+            .select_related("host") \
+            .first()
+        if not series:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         # If the user rsvping is a host, throw an error.
         if series.host.pk == user.pk:
@@ -710,7 +694,9 @@ class SeriesRequestViewSet(
             {
                 "requester": user,
                 "group": group.pk,
-                "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+                "participant_type": constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+                # Marking the status accepted here itself.
+                "status": constants.REQUEST_STATUS_ACCEPTED_ENUM
             }
             for group in groups_to_rsvp
         ]
@@ -720,9 +706,11 @@ class SeriesRequestViewSet(
         series_requests = serializer.save()
         headers = self.get_success_headers(serializer.data)
 
-        series_requests_updated = services.add_attendee_to_series(
-            attendee=user, series=series, series_requests=series_requests
+        private.add_attendee_to_series.delay(
+            attendee_pk=user.pk,
+            series_id=series.id,
+            series_request_ids=[series_request.id for series_request in series_requests]
         )
 
-        serializer = self.get_serializer(series_requests_updated, many=True)
+        serializer = self.get_serializer(series_requests, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

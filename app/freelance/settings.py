@@ -45,7 +45,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "test")
 FERNET_KEY = b"TwTXqQABy11_Sf_LlnmVZV3vX3zyg_n4vb5dZz64bX8="
 
 # SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = True
+DEBUG = ENVIRONMENT not in [ENVIRONMENT_PROD, ENVIRONMENT_DEV]
 
 ALLOWED_HOSTS = ["*"]
 
@@ -72,7 +72,6 @@ AUTH_USER_MODEL = "users.User"
 # Application definition
 
 INSTALLED_APPS = [
-    "ddtrace.contrib.django",
     "channels",
 
     # "django.contrib.admin",
@@ -86,8 +85,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
 
-    # "silk",
-    # "debug_toolbar",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -111,6 +108,7 @@ INSTALLED_APPS = [
     "django_user_agents",
     "colorfield",
     "django_admin_row_actions",
+    "admin_auto_filters",
 
     "base",
     "users",
@@ -156,6 +154,7 @@ INSTALLED_APPS = [
     # "crater.gateways",
     "crater.gateways.stripe_payments"
 ]
+
 
 SITE_ID = 1
 
@@ -231,8 +230,6 @@ MATERIAL_ADMIN_SITE = {
 }
 
 MIDDLEWARE = [
-    # "debug_toolbar.middleware.DebugToolbarMiddleware",
-    # "silk.middleware.SilkyMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -244,6 +241,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_user_agents.middleware.UserAgentMiddleware"
 ]
+
+if DEBUG:
+    INSTALLED_APPS += [
+        "debug_toolbar",
+    ]
+    MIDDLEWARE += [
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+    ]
+else:
+    INSTALLED_APPS += [
+       "ddtrace.contrib.django"
+    ]
 
 ROOT_URLCONF = "freelance.urls"
 
@@ -427,14 +436,15 @@ LOCAL_COUNTRY = os.getenv("LOCAL_COUNTRY", "IN")
 SENTRY_DSN = os.getenv("SENTRY_DNS")
 
 # Sentry Initializations.
-sentry_sdk.init(
-    dsn=SENTRY_DSN,
-    environment=os.getenv("ENVIRONMENT"),
-    integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
-    attach_stacktrace=True,
-    send_default_pii=True,
-    # traces_sample_rate=1
-)
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.getenv("ENVIRONMENT"),
+        integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+        attach_stacktrace=True,
+        send_default_pii=True,
+        # traces_sample_rate=1
+    )
 
 # ----------- FRESHCHAT ---------#
 ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True

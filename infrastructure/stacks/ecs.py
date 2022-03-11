@@ -166,19 +166,10 @@ class FargateApiServiceStack(NestedStack):
             secrets[secret_name] = aws_ecs.Secret.from_secrets_manager(secret)
 
         # Secrets manager secrets
-        if hasattr(scope, "db"):
-            scope.db.db_secret.grant_read(self.execution_role)
-            db_secret = aws_ecs.Secret.from_secrets_manager(scope.db.db_secret)
-        else:
-            db_secret = aws_ecs.Secret.from_secrets_manager(
-                secretsmanager.Secret(
-                    self, f"{construct_id}-DB_SECRET",
-                    secret_name=f"/{environment_name.upper()}/DB_SECRET",
-                )
-            )
+        scope.db.db_secret.grant_read(self.execution_role)
 
         self.secrets = {
-            "DB_SECRET": db_secret,
+            "DB_SECRET": aws_ecs.Secret.from_secrets_manager(scope.db.db_secret),
             **params,
             **secrets,
         }
@@ -187,7 +178,7 @@ class FargateApiServiceStack(NestedStack):
         self.container_environment = {
             "DJANGO_SETTINGS_MODULE": "freelance.settings_aws",
             "ENVIRONMENT": environment_name,
-            "ROOT_DOMAIN": scope.alb.domain,
+            "ROOT_DOMAIN": scope.domain,
             "AWS_DEFAULT_REGION": os.environ.get("AWS_DEFAULT_REGION", REGION),
             "BUILD_VERSION": BUILD_VERSION,
             "LOCAL_CURRENCY": "inr",
@@ -374,7 +365,6 @@ class FargateServiceStack(NestedStack):
             task_definition_memory: str,
             environment_name: str,
             desired_count: Optional[int] = 1,
-            entrypoint: Optional[str] = None,
             log_retention: Optional[aws_logs.RetentionDays] = aws_logs.RetentionDays.ONE_MONTH,
             autoscaling_min_capacity: int = 1,
             autoscaling_max_capacity: int = 1,

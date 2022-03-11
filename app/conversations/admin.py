@@ -1,11 +1,10 @@
-from django.contrib import admin
-from django.contrib import messages
+from admin_auto_filters.filters import AutocompleteFilterFactory
+from django.contrib import admin, messages
 from django.utils.html import format_html
-from rangefilter import filter
 from django_admin_row_actions import AdminRowActionsMixin
+from rangefilter import filter
 
-from conversations import models
-from conversations import tasks
+from conversations import models, tasks
 
 
 @admin.register(models.SuggestedTopic)
@@ -17,14 +16,14 @@ class SuggestedTopicAdmin(admin.ModelAdmin):
 @admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "parent", "image", "is_active")
-    search_fields = ("name", )
+    search_fields = ("name",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "is_active", "color", "color_example")
-    search_fields = ("name", )
+    search_fields = ("name",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
@@ -42,15 +41,15 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "closed",
         "is_published"
     )
-    actions = ("add_previous_webinar_attendees", )
+    actions = ("add_previous_webinar_attendees",)
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
         "closed_at",
         "approved_at",
         "last_live_at"
     )
-    search_fields = ("speakers__email", "speakers__name", "speakers__username", )
-    list_editable = ("is_published", "is_featured", "is_live", "closed", )
+    search_fields = ("speakers__email", "speakers__name", "speakers__username",)
+    list_editable = ("is_published", "is_featured", "is_live", "closed",)
     list_filter = (
         "closed",
         "is_published",
@@ -151,11 +150,12 @@ class RequestAdmin(admin.ModelAdmin):
         "group_type",
         "status"
     )
-    raw_id_fields = ("requester", "group", )
+    raw_id_fields = ("requester", "requester",)
+    list_select_related = ("requester", "group__host", "group__topic")
     search_fields = ("requester__username", "requester__name")
     list_filter = (
-        "group",
         ("created_at", filter.DateRangeFilter),
+        AutocompleteFilterFactory("Group", "group"),
         ("group__start", filter.DateRangeFilter)
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
@@ -187,7 +187,7 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("group", "user")
     search_fields = ("user__name", "user__email", "user__username")
-    list_filter = ("group", )
+    list_filter = ("group",)
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
 
@@ -201,8 +201,8 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "all_dyte_recordings",
         "is_published"
     )
-    list_editable = ("is_published", )
-    actions = ("publish_group_recordings", )
+    list_editable = ("is_published",)
+    actions = ("publish_group_recordings",)
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
         "group__host__username",
@@ -288,7 +288,7 @@ class GroupRtmpAdmin(admin.ModelAdmin):
         "group",
         "link"
     )
-    raw_id_fields = ("group", )
+    raw_id_fields = ("group",)
     search_fields = (
         "group__id",
     )
@@ -311,14 +311,14 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "display_name",
         "get_message_data"
     )
-    raw_id_fields = ("group", "sender", )
+    raw_id_fields = ("group", "sender",)
     search_fields = (
         "message",
         "sender__name",
         "sender__email",
         "sender__username"
     )
-    list_filter = ("group", )
+    list_filter = ("group",)
     exclude = ("updated_at",)
 
     def delete_queryset(self, request, queryset):

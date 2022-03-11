@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
 from integrations.dyte import models
@@ -41,10 +42,16 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "dyte_meeting"
     )
     raw_id_fields = ("participant", "dyte_meeting")
+    list_select_related = (
+        "participant",
+        "dyte_meeting__group__topic",
+        "dyte_meeting__group__host",
+        "dyte_meeting__meeting"
+    )
     exclude = ("auth_token", "created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         "is_online",
-        "dyte_meeting__group",
+        AutocompleteFilterFactory("Group", "dyte_meeting__group"),
         "dyte_meeting__group__start"
     )
     search_fields = (

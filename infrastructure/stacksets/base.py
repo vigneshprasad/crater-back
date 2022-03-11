@@ -1,6 +1,10 @@
 import jsii
-from aws_cdk import aws_ec2, aws_ecs, aws_route53, aws_s3, CfnOutput, ITaggable, RemovalPolicy, Stack
+from aws_cdk import aws_cloudfront, aws_cloudfront_origins, aws_ec2, aws_ecs, aws_route53, aws_s3, CfnOutput, Duration, \
+    ITaggable, \
+    RemovalPolicy, Stack
+from aws_cdk.aws_certificatemanager import Certificate
 from aws_cdk.aws_ec2 import Port, SecurityGroup
+from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import HttpMethods
 from cdk_ec2_key_pair import KeyPair
 from conf import DB_PORT, Env, REDIS_PORT, T3_MICRO
@@ -42,31 +46,6 @@ class BackendStack(Stack):
             nat_gateways=1,
             nat_gateway_provider=nat_provider
         )
-        for peering_vpc_id in env.peering_vpc_ids or []:
-            peering_vpc = aws_ec2.Vpc.from_lookup(self, peering_vpc_id, vpc_id=peering_vpc_id)
-            connection = aws_ec2.CfnVPCPeeringConnection(
-                self, f"{construct_id}-{peering_vpc_id}-peering",
-                vpc_id=self.vpc.vpc_id,
-                peer_vpc_id=peering_vpc_id,
-            )
-            for index, subnet in enumerate([*self.vpc.private_subnets, *self.vpc.public_subnets]):
-                aws_ec2.CfnRoute(
-                    self, f"{peering_vpc_id}-route-{index}",
-                    route_table_id=subnet.route_table.route_table_id,
-                    destination_cidr_block=peering_vpc.vpc_cidr_block,
-                    vpc_peering_connection_id=connection.ref
-                )
-            route_tables = set(
-                subnet.route_table.route_table_id
-                for subnet in peering_vpc.private_subnets
-            )
-            for index, route_table_id in enumerate(route_tables):
-                aws_ec2.CfnRoute(
-                    self, f"{peering_vpc_id}-elk-route-{index}",
-                    route_table_id=route_table_id,
-                    destination_cidr_block=self.vpc.vpc_cidr_block,
-                    vpc_peering_connection_id=connection.ref
-                )
 
         self.app_sg = SecurityGroup(
             self,
@@ -83,7 +62,7 @@ class BackendStack(Stack):
                 instance_count=env.db_instance_count,
                 storage_encrypted=env.storage_encrypted
             )
-        elif not env.peering_vpc_ids:
+        else:
             self.db = DatabaseStack(
                 self,
                 f"{construct_id}-db",
@@ -92,15 +71,58 @@ class BackendStack(Stack):
                 multi_az=env.db_multi_az,
                 storage_encrypted=env.storage_encrypted
             )
+        CfnOutput(
+            self,
+            f"{construct_id}-DbSecretArn",
+            export_name=f"{construct_id}-DbSecretArn",
+            value=self.db.db_secret.secret_arn
+        )
 
-        self.alb = ALBStack(self, f"{construct_id}-alb", environment_prefix=env.environment_prefix)
+        self.alb = ALBStack(self, f"{construct_id}-alb")
+
+        self.distribution = aws_cloudfront.Distribution(
+            self,
+            f"{construct_id}-distribution",
+            certificate=Certificate.from_certificate_arn(self, f"{construct_id}-cloudfront-cert", env.certificate_arn),
+            domain_names=[f"{env.environment_prefix}.{env.domain_name}"],
+            price_class=aws_cloudfront.PriceClass.PRICE_CLASS_200,
+            default_behavior=aws_cloudfront.BehaviorOptions(
+                origin=aws_cloudfront_origins.LoadBalancerV2Origin(self.alb.load_balancer),
+                allowed_methods=aws_cloudfront.AllowedMethods.ALLOW_ALL,
+                viewer_protocol_policy=aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                origin_request_policy=aws_cloudfront.OriginRequestPolicy.ALL_VIEWER,
+                cache_policy=aws_cloudfront.CachePolicy(
+                    self, f"{construct_id}-cache-policy",
+                    cache_policy_name=f"{construct_id}-cache",
+                    default_ttl=Duration.minutes(1),
+                    min_ttl=Duration.minutes(1),
+                    max_ttl=Duration.days(10),
+                    cookie_behavior=aws_cloudfront.CacheCookieBehavior.all(),
+                    header_behavior=aws_cloudfront.CacheHeaderBehavior.allow_list(
+                        "Authorization"
+                    ),
+                    query_string_behavior=aws_cloudfront.CacheQueryStringBehavior.allow_list(
+                        "page", "limit", "skip", "offset", "p", "page_size"
+                    ),
+                    enable_accept_encoding_gzip=True,
+                    enable_accept_encoding_brotli=True
+                )
+            )
+        )
+        aws_route53.ARecord(
+            self,
+            f"{construct_id}-record",
+            record_name=env.environment_prefix,
+            zone=self.hosted_zone,
+            target=aws_route53.RecordTarget.from_alias(alias_target=CloudFrontTarget(self.distribution))
+        )
+        self.domain = env.domain_name
 
         if env.enable_cache or env.enable_celery:
             self.cache = CacheStack(self, f"{construct_id}-cache")
             self.cache.sg.add_ingress_rule(self.app_sg, Port.tcp(REDIS_PORT))
 
-        if hasattr(self, "db"):
-            self.db.sg.add_ingress_rule(self.app_sg, Port.tcp(DB_PORT))
+        self.db.sg.add_ingress_rule(self.app_sg, Port.tcp(DB_PORT))
         self.app_sg.add_ingress_rule(self.alb.alb_sg, Port.tcp(APP_PORT))
 
         self.cluster = aws_ecs.Cluster(
@@ -156,7 +178,7 @@ class BackendStack(Stack):
                 task_definition_memory=env.celery_memory,
                 log_retention=env.log_retention,
                 environment_name=env.environment_name,
-                entry_point=["celery", "-A", "freelance", "worker", "-l", "info", "--concurrency=4", "-B"],
+                entry_point=["./bin/celery_entry_point.sh"],
                 datadog_logging=True
             )
             CfnOutput(
@@ -176,7 +198,7 @@ class BackendStack(Stack):
             self,
             f"{construct_id}-DjangoServiceURL",
             export_name=f"{construct_id}-DjangoServiceURL",
-            value=f"https://{self.alb.domain}/"
+            value=f"https://{self.domain}/"
         )
         CfnOutput(
             self,
@@ -217,3 +239,10 @@ class BackendStack(Stack):
             export_name=f"{construct_id}-DeploymentGroupName",
             value=self.service.deployment_group_name
         )
+        CfnOutput(
+            self,
+            f"{construct_id}-PrivateKeySecretArn",
+            export_name=f"{construct_id}-PrivateKeySecretArn",
+            value=key.private_key_arn
+        )
+

@@ -1,20 +1,18 @@
 import copy
 import datetime
 
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 
-from conversations import constants, exceptions, models, services
-from integrations.dyte import public as dyte_public
-from integrations.dyte import serializers as dyte_serializers
-from resources.meetings import serializers as meeting_serializers
-from resources.meetings import models as meeting_models
-from resources.curated_articles import serializers as articles_serializer
-from users import serializers as user_serializers
 from community.mixins import SetCreatorRequestDataMixin
+from conversations import constants, exceptions, models, services
 from crater.creator import serializers as creator_serializers
-
+from integrations.dyte import public as dyte_public, serializers as dyte_serializers
+from resources.curated_articles import serializers as articles_serializer
+from resources.meetings import models as meeting_models, serializers as meeting_serializers
+from users import serializers as user_serializers
+from users.models import User
 from utils import fields
 
 
@@ -526,7 +524,8 @@ class StreamListSerializer(serializers.ModelSerializer):
             "id",
             "topic_detail",
             "host_detail",
-            "start"
+            "start",
+            "is_live"
         )
 
 
@@ -604,7 +603,7 @@ class SeriesSerializer(serializers.ModelSerializer):
 class SeriesListHostSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = get_user_model()
+        model = User
         fields = (
             "pk",
             "name"
@@ -636,3 +635,31 @@ class SeriesListSerializer(serializers.ModelSerializer):
             "host_detail",
             "start"
         )
+
+
+class RequestPostSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Request
+        fields = (
+            "pk",
+            "requester",
+            "group",
+            "status",
+            "participant_type"
+        )
+
+    def to_internal_value(self, data):
+        """Initial transform data for serializer, set creator as request user
+
+        Args:
+            data(dict): Request data we get from the API.
+
+        """
+        try:
+            data = copy.deepcopy(data)
+        except TypeError:
+            pass
+        if self.context.get("request"):
+            data["requester"] = self.context["request"].user.pk
+        return super().to_internal_value(data)

@@ -29,9 +29,10 @@ class Env(Environment):
     hosted_zone_id: Optional[str] = None
     domain_name: Optional[str] = None
     environment_prefix: Optional[str] = None
+    # Cloudfront Certificate ARN from us-east-1 region
+    certificate_arn: Optional[str] = None
     # Network
     use_nat_gateway: Optional[bool] = False
-    peering_vpc_ids: Optional[List[str]] = None
     # Api
     django_cpu: Optional[str] = "256"
     django_memory: Optional[str] = "1024"
@@ -50,7 +51,7 @@ class Env(Environment):
     storage_encrypted: Optional[bool] = False
     db_instance_type: InstanceType = T3_MEDIUM
     db_multi_az: bool = False
-    db_instance_count: Optional[int] = 2
+    db_instance_count: Optional[int] = 1
     # s3
     media_bucket_arn: Optional[str] = ""
 
@@ -75,6 +76,7 @@ DEV_ENV = Env(
     environment_prefix="api",
     environment_name=DEV,
     db_instance_type=T3_MICRO,
+    certificate_arn="arn:aws:acm:us-east-1:682452685130:certificate/a2a42a13-ef12-46cc-92cd-60f056f2aca9"
 )
 
 PROD_ENV = Env(
@@ -82,14 +84,14 @@ PROD_ENV = Env(
     region=REGION,
     hosted_zone_id="Z0699370CT3MSW55GUDA",
     domain_name=f"prod.{DOMAIN}",
-    django_cpu="512",
-    django_memory="1024",
+    django_cpu="1024",
+    django_memory="2048",
     django_autoscaling_min_capacity=2,
-    django_autoscaling_max_capacity=6,
+    django_autoscaling_max_capacity=10,
     environment_name=PROD,
     environment_prefix="api",
-    # use_cluster=True,
+    use_cluster=True,
     db_instance_type=T3_MEDIUM,
     media_bucket_arn="arn:aws:s3:::1worknetwork-prod",
-    peering_vpc_ids=["vpc-057431677ae96e918"]
+    certificate_arn="arn:aws:acm:us-east-1:682452685130:certificate/43dae845-f247-46e6-a6c0-6a7cdb278ce7"
 )

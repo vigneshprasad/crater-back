@@ -91,9 +91,10 @@ def create_calendar_event_for_series_attendee(sender, series, user, **kwargs):
         sender(Series): Series class representation.
         series(Series): Series to which user has joined.
         user(User): User that joined the series.
+
     """
 
-    tasks.create_calendar_events_for_series_attendee.delay(
+    tasks.create_calendar_events_for_series_attendee(
         series_id=series.id,
         user_id=user.pk
     )
