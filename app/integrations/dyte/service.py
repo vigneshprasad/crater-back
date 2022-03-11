@@ -462,8 +462,8 @@ class DyteService:
         data = {
             "storageConfig": {
                 "type": "aws",
-                "accessKey": settings.AWS_ACCESS_KEY_ID,
-                "secret": settings.AWS_SECRET_ACCESS_KEY,
+                "accessKey": settings.DYTE_AWS_ACCESS_KEY_ID,
+                "secret": settings.DYTE_AWS_SECRET_ACCESS_KEY,
                 "region": settings.AWS_S3_REGION_NAME,
                 "bucket": settings.AWS_STORAGE_BUCKET_NAME,
                 "path": path
