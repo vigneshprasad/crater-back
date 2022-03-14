@@ -1,7 +1,6 @@
 [tool.pytest.ini_options]
 python_files = 'tests.py test_*.py tests_*.py'
-addopts = '--numprocesses=auto'
-DJANGO_SETTINGS_MODULE = 'freelance.settings_test'
+DJANGO_SETTINGS_MODULE = 'freelance.settings'
 filterwarnings = [
 	# To ignore a warning: copy begging of the warning message and
 	# escape special characters (like brackets) with '\\', e.g.:
@@ -17,8 +16,8 @@ fail_under = 80.0
 
 [tool.coverage.run]
 include = [
-	'apps/*',
-	'conf/settings.py',
+	'app/*',
+	'freelance/settings.py',
 ]
 omit = [
 	'*/migrations/*',
@@ -34,19 +33,17 @@ exclude = [
 	'docs',
 	'*.egg-info',
 	'migrations',
-	'conf'
+	'freelance'
 ]
 format = "grouped"
 show_source = true
 max_line_length = 120
 max_complexity = 7
 import_order_style = 'google'
-include = 'apps/'
-application_import_names = 'apps'
+include = 'app/'
 
 [tool.flakehell.plugins]
 flake8-black = ['+*']
-flake8-bandit = ['+*']
 flake8-blind-except = ['+*']
 flake8-bugbear = ['+*']
 flake8-comprehensions = ['+*']
@@ -63,15 +60,3 @@ pep8-naming = ['+*']
 pycodestyle=['+*', '-W503']
 pyflakes = ['+*']
 pylint = ['+*']
-
-
-[tool.flakehell.exceptions.'apps/utils/models.py']
-flake8-django = ['-DJ08']
-
-[tool.flakehell.exceptions.'apps/utils/authentication.py']
-flake8-builtins = ['-A003']
-
-[tool.flakehell.exceptions.'apps/utils/tests_utils.py']
-flake8-variables-names = ['-VNE003']
-flake8-builtins = ['-A002']
-flake8-bandit = ['-S105']
