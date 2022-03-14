@@ -306,6 +306,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
+DYTE_AWS_ACCESS_KEY_ID = os.getenv("DYTE_AWS_ACCESS_KEY_ID")
+DYTE_AWS_SECRET_ACCESS_KEY = os.getenv("DYTE_AWS_SECRET_ACCESS_KEY")
+
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")

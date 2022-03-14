@@ -1,5 +1,7 @@
 import jsii
-from aws_cdk import aws_cloudfront, aws_cloudfront_origins, aws_ec2, aws_ecs, aws_route53, aws_s3, CfnOutput, Duration, \
+from aws_cdk import aws_cloudfront, aws_cloudfront_origins, aws_ec2, aws_ecs, aws_iam, aws_route53, aws_s3, \
+    aws_secretsmanager, CfnOutput, \
+    Duration, \
     ITaggable, \
     RemovalPolicy, Stack
 from aws_cdk.aws_certificatemanager import Certificate
@@ -160,6 +162,18 @@ class BackendStack(Stack):
                 block_public_access=aws_s3.BlockPublicAccess(restrict_public_buckets=True),
                 removal_policy=RemovalPolicy.DESTROY
             )
+
+        dyte_user = aws_iam.User(
+            self, f"{construct_id}-dyte-bucket-user"
+        )
+        dyte_user_access_key = aws_iam.AccessKey(self, f"{construct_id}-dyte-access-key", user=dyte_user)
+        dyte_secret = aws_secretsmanager.Secret(
+            self, f"{construct_id}-dyte-access-key-secret",
+            secret_string_beta1=aws_secretsmanager.SecretStringValueBeta1.from_token(
+                dyte_user_access_key.secret_access_key.to_string())
+        )
+        self.media_bucket.grant_read_write(dyte_user)
+        self.media_bucket.grant_put_acl(dyte_user)
         self.service = FargateApiServiceStack(
             self,
             f"{construct_id}-django-service",
@@ -169,7 +183,12 @@ class BackendStack(Stack):
             environment_name=env.environment_name,
             autoscaling_min_capacity=env.django_autoscaling_min_capacity,
             autoscaling_max_capacity=env.django_autoscaling_max_capacity,
-            datadog_logging=True
+            datadog_logging=True,
+            external_secrets={
+                "DYTE_AWS_SECRET_ACCESS_KEY": dyte_secret,
+                "DB_SECRET": self.db.db_secret
+            },
+            env={"DYTE_AWS_ACCESS_KEY_ID": dyte_user_access_key.access_key_id}
         )
         if env.enable_celery:
             self.celery_service = FargateServiceStack(
@@ -178,8 +197,9 @@ class BackendStack(Stack):
                 task_definition_memory=env.celery_memory,
                 log_retention=env.log_retention,
                 environment_name=env.environment_name,
-                entry_point=["./bin/celery_entry_point.sh"],
-                datadog_logging=True
+                entry_point="celery -A freelance worker -l info --concurrency=4".split(),
+                datadog_logging=True,
+                celery_beat=True
             )
             CfnOutput(
                 self,
@@ -245,4 +265,3 @@ class BackendStack(Stack):
             export_name=f"{construct_id}-PrivateKeySecretArn",
             value=key.private_key_arn
         )
-

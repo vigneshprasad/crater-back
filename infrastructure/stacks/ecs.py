@@ -1,11 +1,12 @@
 import os
 from copy import copy
-from typing import Optional
+from typing import Dict, Optional
 
 import jsii
 from aws_cdk import aws_ecr, aws_ecs, aws_iam, aws_logs, aws_secretsmanager as secretsmanager, aws_ssm, Duration, Fn, \
     ITaggable, \
     NestedStack, RemovalPolicy
+from aws_cdk.aws_applicationautoscaling import MetricAggregationType, ScalingInterval
 from aws_cdk.aws_codedeploy import EcsApplication
 from aws_cdk.aws_ecs import Compatibility, ContainerImage, DeploymentController, DeploymentControllerType, \
     FargatePlatformVersion, FargateService, NetworkMode, PortMapping, TaskDefinition
@@ -14,7 +15,6 @@ from aws_cdk.aws_logs import LogGroup
 from conf import BUILD_VERSION, PROJECT_NAME, REGION
 from constructs import Construct
 from custom_constructs.deployment_group import DeploymentGroup
-
 from utils.policies import ExecutionRole, ssm_policies, TaskRole
 
 APP_PORT = 8000
@@ -35,6 +35,8 @@ class FargateApiServiceStack(NestedStack):
             autoscaling_max_capacity: int = 1,
             entry_point: Optional[list] = None,
             datadog_logging: Optional[bool] = False,
+            external_secrets: Optional[Dict[str, secretsmanager.Secret]] = None,
+            env: Optional[dict] = None,
             **kwargs
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -156,20 +158,17 @@ class FargateApiServiceStack(NestedStack):
         additional_secrets = [
             "SECRET_KEY",
         ]
-        secrets = {}
+        secrets = {**external_secrets} if external_secrets else {}
         for secret_name in additional_secrets:
-            secret = secretsmanager.Secret(
+            secrets[secret_name] = secretsmanager.Secret(
                 self, f"{construct_id}-{secret_name}",
                 secret_name=f"/{environment_name.upper()}/{secret_name}",
             )
+        for secret_name, secret in secrets.items():
             secret.grant_read(self.execution_role)
             secrets[secret_name] = aws_ecs.Secret.from_secrets_manager(secret)
 
-        # Secrets manager secrets
-        scope.db.db_secret.grant_read(self.execution_role)
-
         self.secrets = {
-            "DB_SECRET": aws_ecs.Secret.from_secrets_manager(scope.db.db_secret),
             **params,
             **secrets,
         }
@@ -188,6 +187,7 @@ class FargateApiServiceStack(NestedStack):
             "DD_ENV": environment_name,
             "DD_SERVICE": construct_id,
             "DD_VERSION": BUILD_VERSION,
+            **env
         }
 
         if hasattr(scope, "cache"):
@@ -246,9 +246,9 @@ class FargateApiServiceStack(NestedStack):
             }
         )
         aws_logs = aws_ecs.LogDriver.aws_logs(
-                stream_prefix="ecs",
-                log_group=self.log_group
-            )
+            stream_prefix="ecs",
+            log_group=self.log_group
+        )
         self.task_definition.add_container(
             f"{construct_id}-datadog",
             container_name="datadog-agent",
@@ -306,12 +306,26 @@ class FargateApiServiceStack(NestedStack):
             targets=[self.service]
         )
 
-        scaling.scale_on_request_count(
-            f"{construct_id}-cpu-scaling",
-            requests_per_target=20,
-            target_group=target_group_blue
+        scaling.scale_on_cpu_utilization(
+            f"{construct_id}-cpu-target-scaling",
+            target_utilization_percent=20,
+            scale_in_cooldown=Duration.seconds(60),
+            scale_out_cooldown=Duration.seconds(300),
         )
 
+        scaling.scale_on_metric(
+            f"{construct_id}-cpu-scaling",
+            metric=self.service.metric_cpu_utilization(),
+            metric_aggregation_type=MetricAggregationType.MAXIMUM,
+            cooldown=Duration.seconds(200),
+            scaling_steps=[
+                ScalingInterval(lower=80, change=2),
+                ScalingInterval(lower=90, change=3),
+                ScalingInterval(upper=20, change=-1)
+            ]
+
+
+        )
         # Create Blue Green Deployment Application
         self.application = EcsApplication(self, f"{construct_id}-app", application_name=f"{construct_id}-application")
         self.deployment_group_name = f"{construct_id}-group"
@@ -370,6 +384,7 @@ class FargateServiceStack(NestedStack):
             autoscaling_max_capacity: int = 1,
             entry_point: Optional[list] = None,
             datadog_logging: Optional[bool] = False,
+            celery_beat: Optional[bool] = False,
 
             **kwargs
     ):
@@ -435,6 +450,36 @@ class FargateServiceStack(NestedStack):
                 "com.datadoghq.tags.version": BUILD_VERSION,
             }
         )
+        if celery_beat:
+            self.task_definition.add_container(
+                f"{construct_id}-container-beat",
+                image=aws_ecs.ContainerImage.from_ecr_repository(
+                    repository=self.repository,
+                    tag=BUILD_VERSION
+                ),
+                logging=aws_ecs.FireLensLogDriver(
+                    options={
+                        "Name": "datadog",
+                        "dd_service": f"{construct_id}-beat",
+                        "dd_source": "httpd",
+                        "dd_version": BUILD_VERSION,
+                        "dd_env": environment_name,
+                        "provider": "ecs",
+                        "apikey": dd_api_secret.secret_value.to_string(),
+                        "Host": "http-intake.logs.datadoghq.eu",
+                        "dd_message_key": "log",
+                        "TLS": "on",
+                    }
+                ),
+                secrets=scope.service.secrets,
+                environment=environment_vars,
+                entry_point="celery -A freelance beat -l debug".split(),
+                docker_labels={
+                    "com.datadoghq.tags.env": environment_name,
+                    "com.datadoghq.tags.service": f"{construct_id}-beat",
+                    "com.datadoghq.tags.version": BUILD_VERSION,
+                }
+            )
         self.task_definition.apply_removal_policy(RemovalPolicy.RETAIN)
         aws_logs = aws_ecs.LogDriver.aws_logs(
             stream_prefix="ecs",

@@ -9,9 +9,9 @@ services:
       - POSTGRES_DB=freelance_pg
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=SecurityPassword
-    volumes:
-      - ./db_data:/var/lib/postgresql
-      - ./db_backups:/backups
+#    volumes:
+#      - ./db_data:/var/lib/postgresql
+#      - ./db_backups:/backups
     ports:
       - "5432:5432"
 
@@ -26,8 +26,11 @@ services:
 
   app:
     container_name: freelance_app
+    entrypoint: ./bin/develop_entry_point.sh
     build:
       context: app
+      args:
+        requirements_file: requirements.dev.txt
     ports:
       - "8000:8000"
     volumes:
@@ -36,6 +39,7 @@ services:
     env_file: "./docker/environments"
     environment:
       DJANGO_SETTINGS_MODULE: freelance.settings
+      POSTGRES_HOST: "db"
     depends_on:
       - db
       - redis
@@ -44,10 +48,33 @@ services:
     container_name: freelance_celery
     build:
       context: app
-    command: 'celery -A freelance worker -l info --concurrency=4 -B'
+      args:
+        requirements_file: requirements.dev.txt
+    command: 'celery -A freelance worker -l info --concurrency'
     env_file: "./docker/environments"
     environment:
       DJANGO_SETTINGS_MODULE: freelance.settings
+      POSTGRES_HOST: "db"
+    volumes:
+      - ./app:/app
+      - ./docker:/docker
+    links:
+      - db
+      - redis
+    depends_on:
+      - db
+      - redis
+  celery-beat:
+    container_name: freelance_celery_beat
+    build:
+      context: app
+      args:
+        requirements_file: requirements.dev.txt
+    command: 'celery -A freelance beat -l debug'
+    env_file: "./docker/environments"
+    environment:
+      DJANGO_SETTINGS_MODULE: freelance.settings
+      POSTGRES_HOST: "db"
     volumes:
       - ./app:/app
       - ./docker:/docker

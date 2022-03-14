@@ -21,8 +21,6 @@ variables:
   stage: Testing
   image: $CI_RUNNER
   interruptible: true
-  before_script:
-    - cd app
   only:
     - main
     - merge_requests
@@ -173,6 +171,15 @@ Build app image:
     - Build app runner
     - Build base app
 
+
+Code quality:
+  extends: .test
+  only:
+    - merge_requests
+  allow_failure: true
+  script:
+    - flakehell lint || export FAIL=true
+    - if ${FAIL:=false}; then false; fi
 
 CDK Validation:
   stage: Testing
