@@ -97,7 +97,6 @@ stages:
   - Requirements check
   - Building
   - Testing
-  - Quality assurance
   - Deploy infrastructure
   - Deploy Django app
   - Deploy Celery app

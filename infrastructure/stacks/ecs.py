@@ -6,6 +6,7 @@ import jsii
 from aws_cdk import aws_ecr, aws_ecs, aws_iam, aws_logs, aws_secretsmanager as secretsmanager, aws_ssm, Duration, Fn, \
     ITaggable, \
     NestedStack, RemovalPolicy
+from aws_cdk.aws_applicationautoscaling import MetricAggregationType, ScalingInterval
 from aws_cdk.aws_codedeploy import EcsApplication
 from aws_cdk.aws_ecs import Compatibility, ContainerImage, DeploymentController, DeploymentControllerType, \
     FargatePlatformVersion, FargateService, NetworkMode, PortMapping, TaskDefinition
@@ -305,12 +306,26 @@ class FargateApiServiceStack(NestedStack):
             targets=[self.service]
         )
 
-        scaling.scale_on_request_count(
-            f"{construct_id}-cpu-scaling",
-            requests_per_target=20,
-            target_group=target_group_blue
+        scaling.scale_on_cpu_utilization(
+            f"{construct_id}-cpu-target-scaling",
+            target_utilization_percent=20,
+            scale_in_cooldown=Duration.seconds(60),
+            scale_out_cooldown=Duration.seconds(300),
         )
 
+        scaling.scale_on_metric(
+            f"{construct_id}-cpu-scaling",
+            metric=self.service.metric_cpu_utilization(),
+            metric_aggregation_type=MetricAggregationType.MAXIMUM,
+            cooldown=Duration.seconds(200),
+            scaling_steps=[
+                ScalingInterval(lower=80, change=2),
+                ScalingInterval(lower=90, change=3),
+                ScalingInterval(upper=20, change=-1)
+            ]
+
+
+        )
         # Create Blue Green Deployment Application
         self.application = EcsApplication(self, f"{construct_id}-app", application_name=f"{construct_id}-application")
         self.deployment_group_name = f"{construct_id}-group"

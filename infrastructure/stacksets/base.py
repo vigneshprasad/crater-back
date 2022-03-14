@@ -172,6 +172,8 @@ class BackendStack(Stack):
             secret_string_beta1=aws_secretsmanager.SecretStringValueBeta1.from_token(
                 dyte_user_access_key.secret_access_key.to_string())
         )
+        self.media_bucket.grant_read_write(dyte_user)
+        self.media_bucket.grant_put_acl(dyte_user)
         self.service = FargateApiServiceStack(
             self,
             f"{construct_id}-django-service",
