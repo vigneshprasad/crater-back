@@ -22,7 +22,7 @@ services:
     volumes:
       - ./redis_data:/data
     ports:
-      - 6379:6379
+      - "6379:6379"
 
   app:
     container_name: freelance_app
@@ -48,7 +48,7 @@ services:
       context: app
       args:
         requirements_file: requirements.dev.txt
-    command: 'celery -A freelance worker -l info --concurrency'
+    command: 'celery -A freelance worker -l info --concurrency=4'
     env_file: "./docker/environments"
     environment:
       DJANGO_SETTINGS_MODULE: freelance.settings
@@ -61,6 +61,7 @@ services:
     depends_on:
       - db
       - redis
+
   celery-beat:
     container_name: freelance_celery_beat
     build:
