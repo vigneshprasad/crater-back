@@ -378,7 +378,7 @@ protobuf==3.19.4
     #   google-cloud-storage
     #   googleapis-common-protos
     #   proto-plus
-psycopg2-binary==2.8.6
+psycopg2-binary==2.9.0
     # via -r requirements.in
 py==1.11.0
     # via pytest
