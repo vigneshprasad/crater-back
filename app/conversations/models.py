@@ -125,6 +125,7 @@ class Category(base_model.BaseModel):
         blank=True
     )
     is_active = models.BooleanField(default=True)
+    show_on_home_page = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["order"]
