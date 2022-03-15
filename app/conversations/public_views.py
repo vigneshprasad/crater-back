@@ -196,7 +196,7 @@ class GroupWebinarPublicViewSet(
             "host__creator"
         ).order_by("-start"),
         serializer_class=serializers.StreamListSerializer,
-        filterset_fields=["host"],
+        filterset_fields=["host", "categories"],
     )
     def past(self, request):
         """Returns past webinars with published recordings."""
