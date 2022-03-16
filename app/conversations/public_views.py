@@ -123,6 +123,7 @@ class GroupWebinarPublicViewSet(
     @action(
         methods=["GET"],
         detail=False,
+        pagination_class=paginators.FeaturedWebinarPagination,
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
             is_published=True
@@ -143,9 +144,14 @@ class GroupWebinarPublicViewSet(
 
         """
         queryset = self.filter_queryset(self._get_upcoming_webinars()).order_by("start")
-        # TODO(Nishant): Paginate this API.
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         methods=["GET"],
