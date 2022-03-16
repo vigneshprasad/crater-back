@@ -625,6 +625,16 @@ class CategoryViewSet(
     queryset = models.Category.objects.filter(is_active=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def home(self, request):
+        queryset = self.get_queryset().filter(show_on_home_page=True)
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class GroupRecodingViewSet(
     mixins.RetrieveModelMixin,
