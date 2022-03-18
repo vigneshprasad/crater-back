@@ -12,15 +12,26 @@ staticfiles/
 media/
 package/material/
 *.txt.py
+app/.DS_Store
+.DS_Store
+
+
+# Schedules, envs.
 .env
 celerybeat-schedule
+celerybeat.pid
+credentials.json
+
+# Shell scripts.
+dev_connect.sh
+prod_connect.sh
+
+# Settings files to ignore.
+app/freelance/dev_settings.py
+app/freelance/prod_settings.py
+
 redis_data/
 db_data/
 db_backups/
 docker/environments
-credentials.json
-
 infrastructure/cdk.out/
-
-app/.DS_Store
-.DS_Store
