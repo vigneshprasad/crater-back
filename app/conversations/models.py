@@ -377,7 +377,6 @@ class Group(base_model.BaseModel):
             if user in users:
                 continue
             users.append(user)
-
         return users
 
     def can_add_speakers(self):
@@ -388,7 +387,7 @@ class Group(base_model.BaseModel):
 
     def get_display(self):
         """This is the display date time for a Group.
-            ex. "Friday, 31 July - 08:00 PM - 08:30 PM"
+            ex. "Sunday, 31 July - 08:00 PM - 08:30 PM"
 
         """
         display_time = self.get_display_time()
@@ -397,7 +396,7 @@ class Group(base_model.BaseModel):
 
     def get_display_start(self):
         """This is the display start date time for a Group.
-            ex. "Friday, 31 July - 08:00 PM"
+            ex. Sunday, 31 July - 08:00 PM
 
         """
         display_time = self.get_display_start_time()
@@ -411,7 +410,7 @@ class Group(base_model.BaseModel):
             This is generally used for communication.
 
         """
-        return self.start.strftime("%A, %d %B")
+        return self.local_start.strftime("%A, %d %B")
 
     def get_display_time(self):
         """Give a displayable time (start plus end) for a Group.
@@ -459,7 +458,6 @@ class Group(base_model.BaseModel):
     def get_series(self):
         """Return series of the group"""
         series = self.series_groups.filter(is_published=True).first()
-
         return series
 
 
