@@ -2,6 +2,7 @@ import boto3
 import datetime
 import pytz
 from celery.task import task
+from django.core.validators import FileExtensionValidator
 
 from django.db import models
 from django.core import exceptions
@@ -114,11 +115,12 @@ class Category(base_model.BaseModel):
         blank=True,
         help_text=_("Enter color code for the color here.")
     )
-    photo = models.ImageField(
+    photo = models.FileField(
         upload_to="groups/category/%Y/%m/%d/",
         verbose_name=_("Category Photo"),
         null=True,
-        blank=True
+        blank=True,
+        validators=[FileExtensionValidator(['jpg', 'png', 'svg'])]
     )
     order = models.PositiveSmallIntegerField(
         null=True,
