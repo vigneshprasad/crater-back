@@ -128,6 +128,7 @@ class Category(base_model.BaseModel):
     )
     is_active = models.BooleanField(default=True)
     show_on_home_page = models.BooleanField(default=True)
+    tagline = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ["order"]
