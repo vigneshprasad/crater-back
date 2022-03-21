@@ -27,6 +27,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT")
 BUILD_VERSION = os.environ.get("BUILD_VERSION", "latest")
 ENVIRONMENT_PREPROD = "preprod"
 ENVIRONMENT_PROD = "prod"
+
 ENVIRONMENT_STAGE = "stage"
 ENVIRONMENT_DEV = "dev"
 

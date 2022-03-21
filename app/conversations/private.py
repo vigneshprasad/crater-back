@@ -8,7 +8,7 @@ from conversations import signals
 
 User = get_user_model()
 
-LOGGER = logging.getLogger("app")
+LOGGER = logging.getLogger(__name__)
 
 
 @task()

@@ -60,7 +60,15 @@ class DyteParticipantViewSet(
     GenericViewSet
 ):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = models.DyteMeetingParticipant.objects.all()
+    queryset = models.DyteMeetingParticipant.objects.only(
+        "dyte_meeting",
+        "participant",
+        "auth_token"
+    ).select_related(
+        "dyte_meeting__group"
+        "dyte_meeting__group__host"
+        "dyte_meeting__group__speakers"
+    )
     serializer_class = serializers.DyteParticipantSerializer
 
     @action(
@@ -88,7 +96,7 @@ class DyteParticipantViewSet(
         if not dyte_meeting:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if (group.host.pk == user.pk) or (user in group.speakers.all()):
+        if (group.host_id == user.pk) or (user in group.speakers.all()):
             # Add the host to the dyte meeting.
             result = public.add_participant_to_meeting(
                 dyte_meeting,

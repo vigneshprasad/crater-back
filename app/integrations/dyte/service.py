@@ -2,10 +2,12 @@ import logging
 import json
 import requests
 
+from django.conf import settings
+
 from integrations.dyte import constants
 from integrations.dyte import models
 
-from freelance import settings
+LOGGER = logging.getLogger(__name__)
 
 
 class DyteService:
@@ -71,7 +73,7 @@ class DyteService:
 
         # Adding this check so that we don't update meeting links.
         if meeting.link:
-            logging.error("Meeting already has a meeting link:{}, {}".format(meeting.id, meeting.link))
+            LOGGER.error("Meeting already has a meeting link:{}, {}".format(meeting.id, meeting.link))
             return None
 
         participants = meeting.participants.all()
@@ -92,7 +94,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte meeting creation failed: {}".format(meeting.id))
+            LOGGER.error("Dyte meeting creation failed: {}".format(meeting.id))
             return None
 
         meeting_data = response_json["data"]["meeting"]
@@ -139,7 +141,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte custom meeting creation failed")
+            LOGGER.error("Dyte custom meeting creation failed")
             return None
 
         meeting_data = response_json["data"]["meeting"]
@@ -176,7 +178,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte webinar creation failed")
+            LOGGER.error("Dyte webinar creation failed")
             return None
 
         meeting_data = response_json["data"]["meeting"]
@@ -234,12 +236,12 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte add participant failed")
+            LOGGER.error("Dyte add participant failed")
             return None
 
         success = response_json["success"]
         if not success:
-            logging.error(
+            LOGGER.error(
                 "Dyte add participant failed: {}".format(
                     response_json.get("message")
                 )
@@ -247,6 +249,8 @@ class DyteService:
             return None
 
         participant_data = response_json["data"]["authResponse"]
+        # TODO(Nishant): Can we get authToken expiry here, in case we want to move this
+        # to a task.
         auth_token = participant_data["authToken"]
 
         dyte_participant, _ = models.DyteMeetingParticipant.objects.update_or_create(
@@ -266,7 +270,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte get all meetings failed")
+            LOGGER.error("Dyte get all meetings failed")
             return None
 
         meetings_data = response_json["data"]["meetings"]
@@ -292,7 +296,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte get all meetings failed")
+            LOGGER.error("Dyte get all meetings failed")
             return None
 
         meeting_data = None
@@ -328,7 +332,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte webhook creation failed.")
+            LOGGER.error("Dyte webhook creation failed.")
             return None
 
         webhook_data = None
@@ -365,7 +369,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte webhook update failed.")
+            LOGGER.error("Dyte webhook update failed.")
             return None
 
         return response_json["success"]
@@ -388,7 +392,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte webhooks delete failed.")
+            LOGGER.error("Dyte webhooks delete failed.")
             return None
 
         return response_json["success"]
@@ -411,7 +415,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte webhooks delete failed.")
+            LOGGER.error("Dyte webhooks delete failed.")
             return None
 
         webhook_data = None
@@ -433,7 +437,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte webhooks get failed.")
+            LOGGER.error("Dyte webhooks get failed.")
             return None
 
         webhooks_data = None
@@ -485,11 +489,14 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte start recording failed.")
+            LOGGER.error("Dyte start recording failed.")
             return None
 
         dyte_meeting_recording = None
         if not response_json.get("success"):
+            LOGGER.error(
+                response_json.get("message")
+            )
             return dyte_meeting_recording
 
         recording_data = response_json["data"]["recording"]
@@ -498,7 +505,7 @@ class DyteService:
 
         if status and status == constants.DYTE_RECORDING_STATUS_ERRORED:
             error_message = recording_data.get("errMessage")
-            logging.error(
+            LOGGER.error(
                 "Dyte recording {} for Group: {}".format(
                     error_message,
                     dyte_meeting.group.id
@@ -546,7 +553,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte stop recording failed.")
+            LOGGER.error("Dyte stop recording failed.")
             return None
 
         recording_data = None
@@ -581,7 +588,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte get recording failed.")
+            LOGGER.error("Dyte get recording failed.")
             return None
 
         recording_data = None
@@ -615,7 +622,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte get recordings failed.")
+            LOGGER.error("Dyte get recordings failed.")
             return None
 
         recording_data = None
@@ -678,7 +685,7 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            logging.error("Dyte get recordings failed.")
+            LOGGER.error("Dyte get recordings failed.")
             return None
 
         stats = []
