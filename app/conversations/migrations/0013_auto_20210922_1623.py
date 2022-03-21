@@ -5,10 +5,10 @@ from django.db import migrations
 LIST_OF_CATEGORIES = [
     "Marketing",
     "Branding",
-    "Personal Finance",
+    "Finance",
     "Career",
     "Content Creation",
-    "Stock Market",
+    "Stocks",
     "Crypto",
     "Startups",
     "Design",

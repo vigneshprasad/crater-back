@@ -72,7 +72,9 @@ class CategorySerializer(serializers.ModelSerializer):
             "name",
             "color",
             "photo",
-            "order"
+            "order",
+            "tagline",
+            "show_on_home_page"
         )
 
 

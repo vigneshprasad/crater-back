@@ -6,6 +6,7 @@ from celery.task import task
 from django.db import models
 from django.core import exceptions
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
@@ -114,17 +115,20 @@ class Category(base_model.BaseModel):
         blank=True,
         help_text=_("Enter color code for the color here.")
     )
-    photo = models.ImageField(
+    photo = models.FileField(
         upload_to="groups/category/%Y/%m/%d/",
         verbose_name=_("Category Photo"),
         null=True,
-        blank=True
+        blank=True,
+        validators=[FileExtensionValidator(['jpg', 'png', 'svg'])]
     )
     order = models.PositiveSmallIntegerField(
         null=True,
         blank=True
     )
     is_active = models.BooleanField(default=True)
+    show_on_home_page = models.BooleanField(default=True)
+    tagline = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ["order"]
