@@ -26,8 +26,8 @@ class DyteService:
         "delete_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks/{webhook_id}",
         "get_all_webhooks": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks",
         # Recording endpoints.
-        "start_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/rooms/{room_name}/recording",
-        "stop_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/rooms/{room_name}/recordings/{recording_id}",
+        "start_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recording",
+        "stop_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings/{recording_id}",
         "get_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings/{recording_id}",
         "get_all_recordings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings",
 
@@ -233,6 +233,7 @@ class DyteService:
             headers=self._get_authorization_headers(),
             json=data
         )
+
         try:
             response_json = response.json()
         except json.JSONDecodeError:
@@ -241,11 +242,9 @@ class DyteService:
 
         success = response_json["success"]
         if not success:
-            LOGGER.error(
-                "Dyte add participant failed: {}".format(
-                    response_json.get("message")
-                )
-            )
+            LOGGER.error("Dyte add participant failed: {}".format(
+                response_json.get("message")
+            ))
             return None
 
         participant_data = response_json["data"]["authResponse"]
@@ -455,7 +454,7 @@ class DyteService:
         """
         url = self.DYTE_API_ENDPOINTS["start_recording"].format(
             org_id=self.org_id,
-            room_name=dyte_meeting.room_name
+            meeting_id=dyte_meeting.dyte_meeting_id
         )
 
         group_id = dyte_meeting.group_id if dyte_meeting.group_id else dyte_meeting.meeting_id
@@ -494,9 +493,8 @@ class DyteService:
 
         dyte_meeting_recording = None
         if not response_json.get("success"):
-            LOGGER.error(
-                response_json.get("message")
-            )
+            # Send the message to logger if recording didn't start.
+            LOGGER.error("Dyte start recording failed: {}".format(response_json.get("message")))
             return dyte_meeting_recording
 
         recording_data = response_json["data"]["recording"]
@@ -504,6 +502,7 @@ class DyteService:
         status = recording_data.get("status")
 
         if status and status == constants.DYTE_RECORDING_STATUS_ERRORED:
+            # If recording errored for some reason, log that error.
             error_message = recording_data.get("errMessage")
             LOGGER.error(
                 "Dyte recording {} for Group: {}".format(
@@ -524,20 +523,20 @@ class DyteService:
 
         return dyte_meeting_recording.recording_id
 
-    def stop_recording(self, room_name, recording_id):
+    def stop_recording(self, dyte_meeting, recording_id):
         """Get a recording for a given meeting
 
         Args:
-            room_name(str): Dyte meeting room name
+            dyte_meeting(DyteMeeting): DyteMeeting object
             recording_id(str): Dyte recording id
 
         """
-        if not (room_name and recording_id):
+        if not (dyte_meeting and recording_id):
             return None
 
         url = self.DYTE_API_ENDPOINTS["stop_recording"].format(
             org_id=self.org_id,
-            room_name=room_name,
+            meeting_id=dyte_meeting.dyte_meeting_id,
             recording_id=recording_id
         )
         data = {
@@ -557,9 +556,13 @@ class DyteService:
             return None
 
         recording_data = None
-        if response_json.get("success"):
-            recording_data = response_json["data"]["recording"]
+        if not response_json.get("success"):
+            LOGGER.error("Dyte stop recording failed: {}".format(
+                response_json.get("message")
+            ))
+            return recording_data
 
+        recording_data = response_json["data"]["recording"]
         return recording_data
 
     def get_recording(self, meeting_id, recording_id):
