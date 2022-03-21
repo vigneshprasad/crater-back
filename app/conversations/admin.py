@@ -22,9 +22,10 @@ class TopicAdmin(admin.ModelAdmin):
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "is_active", "color", "color_example")
+    list_display = ("id", "name", "is_active", "color", "color_example", "show_on_home_page")
     search_fields = ("name",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    list_editable = ("is_active", "show_on_home_page")
 
 
 @admin.register(models.Group)
