@@ -2,11 +2,11 @@ import boto3
 import datetime
 import pytz
 from celery.task import task
-from django.core.validators import FileExtensionValidator
 
 from django.db import models
 from django.core import exceptions
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
