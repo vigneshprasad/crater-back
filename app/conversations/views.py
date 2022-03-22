@@ -593,7 +593,7 @@ class GroupWebinarViewSet(
 
         # Get all users which the user has subscribed to.
         subscribed_creators = creator_public.get_subscribed_creators(user)
-        subscribed_creators_user_ids = [creator.user.pk for creator in subscribed_creators]
+        subscribed_creators_user_ids = [creator.user_id for creator in subscribed_creators]
 
         data = {}
         for group_and_host_id in group_and_host_ids:
@@ -629,7 +629,7 @@ class GroupWebinarViewSet(
             "topic",
             "host__profile",
             "host__creator"
-        ).order_by("-start"),
+        ),
         serializer_class=serializers.StreamListSerializer,
         pagination_class=paginators.WebinarPagination,
         permission_classes=[permissions.IsAuthenticated]
