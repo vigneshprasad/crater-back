@@ -490,10 +490,7 @@ class StreamListHostSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_slug(user):
-        if not user.has_profile:
-            return None
-
-        if not user.profile.is_creator:
+        if not user.is_creator:
             return None
 
         return user.creator.slug
