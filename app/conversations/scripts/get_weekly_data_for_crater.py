@@ -3,7 +3,7 @@ import warnings
 
 from dateutil import relativedelta
 from django.contrib.auth import get_user_model
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from conversations import constants
@@ -345,12 +345,16 @@ def get_organic_users_for_duration(start_date=None, end_date=None):
     start = start_datetime if \
         start_datetime > DEFAULT_ORGANIC_USERS_START_DATE.date() else DEFAULT_ORGANIC_USERS_START_DATE.date()
 
-    return get_user_model().objects.filter(
+    data = get_user_model().objects.filter(
         date_joined__gte=start,
         date_joined__lte=end_datetime,
         groups__name=user_constants.CRATER_CLUB_GROUP,
-        user_source__isnull=True,
         creator__isnull=True
+    )
+
+    return data.filter(
+        Q(user_source__isnull=True) |
+        Q(user_source__referrer__isnull=False)
     ).count()
 
 
