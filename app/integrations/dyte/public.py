@@ -120,4 +120,4 @@ def stop_recording_for_group_and_recording_id(group, recording_id=None):
     if not recording_id:
         return False
 
-    return dyte_service.stop_recording(dyte_meeting.room_name, recording_id)
+    return dyte_service.stop_recording(dyte_meeting, recording_id)
