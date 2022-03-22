@@ -279,7 +279,7 @@ class User(AbstractUser):
 
     @property
     def is_creator(self):
-        return bool(hasattr(self.user, "creator") and self.user.creator)
+        return bool(hasattr(self, "creator") and self.creator)
 
 
 class Device(TimeStampedModel):
