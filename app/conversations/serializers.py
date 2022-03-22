@@ -528,7 +528,6 @@ class StreamListSerializer(serializers.ModelSerializer):
     """
     topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
     host_detail = StreamListHostSerializer(source="host", read_only=True)
-    rsvp = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -538,25 +537,7 @@ class StreamListSerializer(serializers.ModelSerializer):
             "host_detail",
             "start",
             "is_live",
-            "rsvp"
         )
-
-    def get_rsvp(self, group):
-        request = self.context.get("request")
-        user = request.user
-
-        if user.is_anonymous:
-            return None
-        elif group.host and group.host.uuid == user.uuid:
-            return None
-
-        if not dyte_public.get_dyte_participant_for_user_and_group(
-                user=user,
-                group=group
-        ):
-            return False
-
-        return True
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):
