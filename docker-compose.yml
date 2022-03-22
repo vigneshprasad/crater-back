@@ -68,7 +68,7 @@ services:
       context: app
       args:
         requirements_file: requirements.dev.txt
-    command: "celery -A freelance beat -l debug"
+    command: "celery -A freelance beat -l debug --pidfile="
     env_file: "./docker/environments"
     environment:
       DJANGO_SETTINGS_MODULE: freelance.settings

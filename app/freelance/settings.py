@@ -23,10 +23,11 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.redis import RedisIntegration
 
 # All environment variables.
-ENVIRONMENT = os.getenv("ENVIRONMENT")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 BUILD_VERSION = os.environ.get("BUILD_VERSION", "latest")
 ENVIRONMENT_PREPROD = "preprod"
 ENVIRONMENT_PROD = "prod"
+
 ENVIRONMENT_STAGE = "stage"
 ENVIRONMENT_DEV = "dev"
 
@@ -312,12 +313,12 @@ DYTE_AWS_SECRET_ACCESS_KEY = os.getenv("DYTE_AWS_SECRET_ACCESS_KEY")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "eu-central-1")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "ap-south-1")
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 AWS_S3_CUSTOM_DOMAIN = None
 AWS_DEFAULT_OBJECT_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
 AWS_DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "ap-south-1")
-AWS_TRANSCODER_REGION_NAME = os.getenv("AWS_TRASCODER_REGION_NAME", AWS_DEFAULT_REGION)
+AWS_TRANSCODER_REGION_NAME = os.getenv("AWS_TRANSCODER_REGION_NAME", AWS_DEFAULT_REGION)
 
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
     AWS_DEFAULT_ACL = None
@@ -519,10 +520,11 @@ STRIPE_SECRET_KEY = os.environ.get(
 # API safe methods.
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
+# --------- LOGGING -------- #
 DATADOG_TRACE = {
-    'DEFAULT_SERVICE': 'worknetwork-backend',
-    'AGENT_HOSTNAME': '127.0.0.1',
-    'ENABLED': 'True'
+    "DEFAULT_SERVICE": "worknetwork-backend",
+    "AGENT_HOSTNAME": "127.0.0.1",
+    "ENABLED": "True"
 }
 
 LOGGING = {
@@ -545,10 +547,13 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": True,
         },
-        "django.db.backends": {
-            "handlers": ["django"],
-            "level": "DEBUG",
-            "propagate": True,
-        }
     },
 }
+
+if ENVIRONMENT != "local":
+    # Add SQL logging only for dev and prod.
+    LOGGING["loggers"]["django.db.backends"] = {
+        "handlers": ["django"],
+        "level": "DEBUG",
+        "propagate": True,
+    }
