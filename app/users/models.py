@@ -277,6 +277,10 @@ class User(AbstractUser):
         if commit:
             self.save()
 
+    @property
+    def is_creator(self):
+        return bool(hasattr(self, "creator") and self.creator)
+
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
@@ -545,10 +549,6 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.name if self.user.name else self.user.username
-
-    @property
-    def is_creator(self):
-        return bool(hasattr(self.user, "creator") and self.user.creator)
 
     def get_introduction(self):
         return self.introduction

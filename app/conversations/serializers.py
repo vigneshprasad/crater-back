@@ -486,6 +486,14 @@ class StreamListHostSerializer(serializers.ModelSerializer):
 
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
+    slug = serializers.SerializerMethodField(read_only=True)
+
+    @staticmethod
+    def get_slug(user):
+        if not user.is_creator:
+            return None
+
+        return user.creator.slug
 
     class Meta:
         model = get_user_model()
@@ -494,7 +502,8 @@ class StreamListHostSerializer(serializers.ModelSerializer):
             "email",
             "name",
             "photo",
-            "introduction"
+            "introduction",
+            "slug"
         )
 
     @staticmethod
@@ -527,7 +536,7 @@ class StreamListSerializer(serializers.ModelSerializer):
             "topic_detail",
             "host_detail",
             "start",
-            "is_live"
+            "is_live",
         )
 
 

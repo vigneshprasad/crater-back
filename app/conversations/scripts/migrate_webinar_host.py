@@ -11,9 +11,8 @@ def run(group_id, dry_run=True):
         participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
     )
     host = group.host
-    host_profile = host.profile
 
-    if not host_profile.is_creator:
+    if not host.is_creator:
         print("{} is not a creator.".format(host.name))
 
     total_followers_added = 0

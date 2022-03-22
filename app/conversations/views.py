@@ -593,7 +593,7 @@ class GroupWebinarViewSet(
 
         # Get all users which the user has subscribed to.
         subscribed_creators = creator_public.get_subscribed_creators(user)
-        subscribed_creators_user_ids = [creator.user_pk for creator in subscribed_creators]
+        subscribed_creators_user_ids = [creator.user_id for creator in subscribed_creators]
 
         data = {}
         for group_and_host_id in group_and_host_ids:
@@ -614,6 +614,42 @@ class GroupWebinarViewSet(
 
         if page is None:
             serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        queryset=models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True
+        ).select_related(
+            "topic",
+            "host__profile",
+            "host__creator"
+        ),
+        serializer_class=serializers.StreamListSerializer,
+        pagination_class=paginators.WebinarPagination,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def suggested(self, request):
+        user = request.user
+
+        live_streams = self._get_live_webinars()
+        upcoming_streams = self._get_upcoming_webinars()
+
+        live_and_upcoming_streams = self.filter_queryset(
+            live_streams | upcoming_streams
+        ).exclude(
+            Q(host=request.user) | Q(requests__requester=user)
+        ).order_by("-is_live", "start")
+
+        page = self.paginate_queryset(live_and_upcoming_streams)
+
+        if page is None:
+            serializer = self.get_serializer(live_and_upcoming_streams, many=True)
             return Response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)
