@@ -142,7 +142,7 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=10))
+    end_datetime = (now_time + datetime.timedelta(minutes=5))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
