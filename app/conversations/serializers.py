@@ -486,6 +486,19 @@ class StreamListHostSerializer(serializers.ModelSerializer):
 
     photo = serializers.SerializerMethodField(read_only=True)
     introduction = serializers.SerializerMethodField(read_only=True)
+    slug = serializers.SerializerMethodField(read_only=True)
+
+    @staticmethod
+    def get_slug(user):
+        profile = user.has_profile
+        if not profile:
+            return None
+
+        is_creator = user.profile.is_creator
+        if not is_creator:
+            return None
+
+        return user.creator.slug
 
     class Meta:
         model = get_user_model()
@@ -494,7 +507,8 @@ class StreamListHostSerializer(serializers.ModelSerializer):
             "email",
             "name",
             "photo",
-            "introduction"
+            "introduction",
+            "slug"
         )
 
     @staticmethod
@@ -519,6 +533,7 @@ class StreamListSerializer(serializers.ModelSerializer):
     """
     topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
     host_detail = StreamListHostSerializer(source="host", read_only=True)
+    rsvp = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -527,8 +542,26 @@ class StreamListSerializer(serializers.ModelSerializer):
             "topic_detail",
             "host_detail",
             "start",
-            "is_live"
+            "is_live",
+            "rsvp"
         )
+
+    def get_rsvp(self, group):
+        request = self.context.get("request")
+        user = request.user
+
+        if user.is_anonymous:
+            return None
+        elif group.host and group.host.uuid == user.uuid:
+            return None
+
+        if not dyte_public.get_dyte_participant_for_user_and_group(
+                user=user,
+                group=group
+        ):
+            return False
+
+        return True
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):
