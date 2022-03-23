@@ -114,3 +114,26 @@ def get_active_recording_for_dyte_meeting(dyte_meeting):
     ).first()
 
     return dyte_meeting_active_recording
+
+
+def get_recording_to_stop_for_dyte_meeting(dyte_meeting):
+    """Return recording id for recording to stop for a Dyte meeting.
+
+    Args:
+        dyte_meeting(DyteMeeting): DyteMeeting object
+
+    Returns:
+        recording_id(str): Recording ID on dyte's end we
+            need to stop.
+
+    """
+
+    # Only recordings in RECORDING status can be stopped.
+    recording_to_stop = dyte_meeting.meeting_recordings.filter(
+        status=constants.DYTE_RECORDING_STATUS_RECORDING
+    ).last()
+
+    if not recording_to_stop:
+        return None
+
+    return recording_to_stop.recording_id

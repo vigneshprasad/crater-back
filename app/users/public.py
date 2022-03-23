@@ -31,8 +31,9 @@ def get_or_create_user(phone_number):
     # Mark the user's phone number as verified.
     user.set_phone_number_verified()
 
-    if created:
-        # Send a signal on user creation.
+    if created or (not user.has_profile):
+        # Send a signal on user creation, or if the
+        # user has no profile.
         signals.user_created.send(
             sender=user.__class__,
             user=user

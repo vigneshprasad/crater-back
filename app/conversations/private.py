@@ -1,5 +1,9 @@
+import logging
+
 from conversations import constants
 from conversations import models
+
+LOGGER = logging.getLogger(__name__)
 
 
 def create_topic(

@@ -507,6 +507,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         choices=models.Profile.COMPANIES_INVESTED_CHOICES
     )
     groups = UserGroupSerializer(source="user.groups", read_only=True, many=True)
+    is_creator = serializers.BooleanField(source="user.is_creator", read_only=True)
 
     class Meta:
         model = models.Profile
