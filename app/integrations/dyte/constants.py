@@ -13,7 +13,9 @@ DEFAULT_PRESET_NAME = "participant"
 DEFAULT_WEBINAR_PRESET_NAME = "webinar_view_preset"
 DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME = "webinar_participant"
 DEFAULT_WEBINAR_HOST_PRESET_NAME = "default_webinar_host_preset"
-WEBINAR_OBS_HOST_PRESET_NAME = "webinar_host_obs"
+
+WEBINAR_OBS_HOST_PRESET_NAME = "default_webinar_host_preset_obs"
+WEBINAR_OBS_PARTICIPANT_PRESET_NAME = "webinar_participant_obs"
 
 # Dyte meeting constants.
 DYTE_EVENT_MEETING_STARTED = "meeting.started"

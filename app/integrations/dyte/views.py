@@ -85,7 +85,6 @@ class DyteParticipantViewSet(
 
         """
         group_id = kwargs.get("pk")
-        is_obs = kwargs.get("is_obs")
         user = request.user
 
         try:
@@ -97,12 +96,18 @@ class DyteParticipantViewSet(
         if not dyte_meeting:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        preset = constants.DEFAULT_WEBINAR_HOST_PRESET_NAME if not is_obs else constants.WEBINAR_OBS_HOST_PRESET_NAME
+        # Determine the preset based on whether the stream is
+        # happening via OBS.
+        is_obs = group.is_obs
+        host_preset = constants.DEFAULT_WEBINAR_HOST_PRESET_NAME \
+            if not is_obs else constants.WEBINAR_OBS_HOST_PRESET_NAME
+        participant_preset = constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME \
+            if not is_obs else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME
 
         if (group.host_id == user.pk) or (user in group.speakers.all()):
-            result = public.add_participant_to_meeting(dyte_meeting, user, preset)
+            result = public.add_participant_to_meeting(dyte_meeting, user, host_preset)
         else:
-            result = public.add_participant_to_meeting(dyte_meeting, user)
+            result = public.add_participant_to_meeting(dyte_meeting, user, participant_preset)
 
         serialized = self.get_serializer(result)
         return Response(serialized.data, status=status.HTTP_200_OK)

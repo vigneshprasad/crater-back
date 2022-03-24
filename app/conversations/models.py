@@ -236,6 +236,9 @@ class Group(base_model.BaseModel):
     is_rescheduled = models.BooleanField(default=False)
     rescheduled_at = models.DateTimeField(null=True, blank=True)
 
+    # Denotes if the stream is happening via OBS.
+    is_obs = models.BooleanField(default=False)
+
     # Group closed status and datetime of closure.
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
