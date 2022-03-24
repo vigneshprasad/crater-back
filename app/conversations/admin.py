@@ -40,7 +40,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_featured",
         "is_live",
         "closed",
-        "is_published"
+        "is_published",
+        "is_rescheduled"
     )
     actions = ("add_previous_webinar_attendees",)
     raw_id_fields = ("speakers", "attendees", "host", "categories")
@@ -50,7 +51,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "last_live_at"
     )
     search_fields = ("speakers__email", "speakers__name", "speakers__username",)
-    list_editable = ("is_published", "is_featured", "is_live", "closed",)
+    list_editable = ("is_published", "is_featured", "is_live", "closed", "is_rescheduled")
     list_filter = (
         "closed",
         "is_published",
