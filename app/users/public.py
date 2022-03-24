@@ -4,6 +4,7 @@ from django.db import transaction
 
 from users import constants
 from users import signals
+from users import models
 
 
 @transaction.atomic
@@ -42,7 +43,7 @@ def get_or_create_user(phone_number):
     return user, created
 
 
-def get_user(phone_number):
+def get_user_for_phone_number(phone_number):
     """Return user if present.
 
     Args:
@@ -51,10 +52,7 @@ def get_user(phone_number):
 
     """
     try:
-        user = get_user_model().objects.get(
-            username=phone_number,
-            phone_number=phone_number
-        )
+        user = get_user_model().objects.get(username=phone_number)
     except get_user_model().DoesNotExist:
         return None
     except get_user_model().MutipleObjectsReturned:
@@ -63,13 +61,32 @@ def get_user(phone_number):
     return user
 
 
-def create_user(phone_number, email, name):
+def get_user_for_email(email):
+    """Return user if present.
+
+    Args:
+        email(str): String representation of the user's
+            email.
+
+    """
+    try:
+        user = get_user_model().objects.get(email=email)
+    except get_user_model().DoesNotExist:
+        return None
+    except get_user_model().MutipleObjectsReturned:
+        raise Exception
+
+    return user
+
+
+def create_user(phone_number, email, name, primary_url=None):
     """Create a user.
 
     Args:
         phone_number(str): Phone number of the user we are adding.
         email(str): Email ID of the user.
         name(str): User's name
+        primary_url(str): Primary url for the user.
 
     """
     try:
@@ -89,5 +106,12 @@ def create_user(phone_number, email, name):
         name=constants.CRATER_CLUB_GROUP
     )
     user.groups.add(crater_club_group)
+
+    # Create profile for user.
+    profile = models.Profile.objects.create(
+        user=user
+    )
+    profile.primary_url = primary_url
+    profile.save()
 
     return user

@@ -19,7 +19,7 @@ from users import public as user_public
 
 class UserCreateSearchViewSet(viewsets.GenericViewSet):
 
-    permission_classes = [user_permissions.ConversationDashboardPermission]
+    permission_classes = [user_permissions.AllowAny]
 
     @action(
         methods=["get"],
@@ -50,41 +50,58 @@ class UserCreateSearchViewSet(viewsets.GenericViewSet):
     @staticmethod
     def create(request, *arg, **kwargs):
         """Creates a user for given parameters."""
-        post_data = request.POST
+        post_data = request.data
         name = post_data.get("name")
         phone_number = post_data.get("phone_number")
         email = post_data.get("email")
         primary_url = post_data.get("primary_url")
 
-        try:
-            user = user_public.get_user(
-                phone_number=phone_number
-            )
-        except Exception:
-            return Response({
-                "message": "Multiple users exists with {} number.".format(phone_number)
-            }, status=status.HTTP_400_BAD_REQUEST)
+        phone_number_exists = False
+        email_exists = False
+        user = None
 
-        if user:
-            return Response({
-                "message": "User already exists with {} number".format(phone_number)
-            }, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = user_public.get_user_for_phone_number(phone_number=phone_number)
+        except Exception:
+            phone_number_exists = True
+        phone_number_exists = True if user else phone_number_exists
+
+        try:
+            user = user_public.get_user_for_email(email=email)
+        except Exception:
+            email_exists = True
+        email_exists = True if user else email_exists
+
+        if phone_number_exists and email_exists:
+            return Response(
+                {
+                    "message": "Email and Phone Number already exists"
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+        elif phone_number_exists:
+            return Response(
+                {
+                    "message": "Phone Number already exists"
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+        elif email_exists:
+            return Response(
+                {
+                    "message": "Email already exists"
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             user = user_public.create_user(
                 phone_number=phone_number,
                 email=email,
-                name=name
+                name=name,
+                primary_url=primary_url
             )
         except Exception as e:
             return Response({
                 "message": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Update primary url for user.
-        profile = user.profile
-        profile.primary_url = primary_url
-        profile.save()
 
         data = {
             "pk": user.pk,
