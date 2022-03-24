@@ -1,10 +1,14 @@
-from django.contrib.auth.models import Group
+from urllib.request import urlopen
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
 from django.db import transaction
 
 from users import constants
-from users import signals
 from users import models
+from users import signals
 
 
 @transaction.atomic
@@ -79,7 +83,14 @@ def get_user_for_email(email):
     return user
 
 
-def create_user(phone_number, email, name, primary_url=None):
+def create_user(
+        phone_number,
+        email,
+        name,
+        primary_url=None,
+        profile_image_name=None,
+        profile_image_url=None
+):
     """Create a user.
 
     Args:
@@ -87,6 +98,8 @@ def create_user(phone_number, email, name, primary_url=None):
         email(str): Email ID of the user.
         name(str): User's name
         primary_url(str): Primary url for the user.
+        profile_image_name(str): Profile image name.
+        profile_image_url(str): Profile image url.
 
     """
     try:
@@ -113,5 +126,16 @@ def create_user(phone_number, email, name, primary_url=None):
     )
     profile.primary_url = primary_url
     profile.save()
+
+    if profile_image_name and profile_image_url:
+        # Get the image file from the url and save it as
+        # image object.
+        image_temp = NamedTemporaryFile()
+        image_temp.write(urlopen(profile_image_url).read())
+        image_temp.flush()
+
+        # This will generate proper image.url as well.
+        profile.photo.save(profile_image_name, File(image_temp))
+        profile.save()
 
     return user

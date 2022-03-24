@@ -1,10 +1,8 @@
 import datetime
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from rest_framework import status
-
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -55,6 +53,8 @@ class UserCreateSearchViewSet(viewsets.GenericViewSet):
         phone_number = post_data.get("phone_number")
         email = post_data.get("email")
         primary_url = post_data.get("primary_url")
+        profile_image_url = post_data.get("profile_image")
+        profile_image_name = post_data.get("profile_image_name")
 
         phone_number_exists = False
         email_exists = False
@@ -96,7 +96,9 @@ class UserCreateSearchViewSet(viewsets.GenericViewSet):
                 phone_number=phone_number,
                 email=email,
                 name=name,
-                primary_url=primary_url
+                primary_url=primary_url,
+                profile_image_url=profile_image_url,
+                profile_image_name=profile_image_name
             )
         except Exception as e:
             return Response({
@@ -177,8 +179,8 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
         # Create or get topic.
         if not topic_id:
             title = topic_details.get("title")
-            image_name = topic_details.get("image")
-            image_url = settings.AWS_DEFAULT_OBJECT_URL + "/media/{}".format(image_name)
+            image_url = topic_details.get("image")
+            image_name = topic_details.get("image_name")
             description = topic_details.get("description") or description
             topic_type = conversation_constants.GROUP_TYPE_WEBINAR_ENUM
             topic = conversation_private.create_topic(

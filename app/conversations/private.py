@@ -1,10 +1,10 @@
 import logging
+from urllib.request import urlopen
 
 from celery.task import task
-import requests
+from django.contrib.auth import get_user_model
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
-from django.contrib.auth import get_user_model
 
 from conversations import constants
 from conversations import models
@@ -40,13 +40,13 @@ def create_topic(
 
     # Get the image file from the url and save it as
     # image object.
-    r = requests.get(image_url)
     image_temp = NamedTemporaryFile()
-    image_temp.write(r.content)
+    image_temp.write(urlopen(image_url).read())
     image_temp.flush()
 
     # This will generate proper image.url as well.
-    topic.image.save(image_name, File(image_temp), save=True)
+    topic.image.save(image_name, File(image_temp))
+    topic.save()
 
     return topic
 
