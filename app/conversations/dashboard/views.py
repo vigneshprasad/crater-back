@@ -11,6 +11,7 @@ from rest_framework.response import Response
 
 from conversations import constants as conversation_constants
 from conversations import private as conversation_private
+from conversations.dashboard import constants
 from crater.creator import private as creator_private
 from users import permissions as user_permissions
 from users import public as user_public
@@ -97,7 +98,7 @@ class UserCreateSearchViewSet(viewsets.GenericViewSet):
 
 class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
 
-    permission_classes = [user_permissions.ConversationDashboardPermission]
+    permission_classes = [user_permissions.AllowAny]
 
     @staticmethod
     def create(request, *args, **kwargs):
@@ -107,7 +108,7 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
             It's return only the name, phone_number, email for the user.
 
         """
-        post_data = request.POST
+        post_data = request.data
         host_id = post_data.get("host")
         # Get user object for host_id.
         try:
@@ -141,7 +142,7 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
         # Sanitize start datetime for the stream.
         start_datetime = post_data.get("start")
         try:
-            start = datetime.datetime.strptime(start_datetime, settings.DEFAULT_DATETIME_FORMAT)
+            start = datetime.datetime.strptime(start_datetime, constants.RETOOL_DATETIME_FORMAT)
         except ValueError:
             return Response({
                 "message": "Invalid Datetime format"
@@ -159,16 +160,16 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
         # Create or get topic.
         if not topic_id:
             title = topic_details.get("title")
-            image = topic_details.get("image")
+            image_name = topic_details.get("image")
+            image_url = settings.AWS_DEFAULT_OBJECT_URL + "/media/{}".format(image_name)
             description = topic_details.get("description") or description
             topic_type = conversation_constants.GROUP_TYPE_WEBINAR_ENUM
-            created_by = request.user
             topic = conversation_private.create_topic(
                 title,
-                image,
+                image_name=image_name,
+                image_url=image_url,
                 description=description,
-                topic_type=topic_type,
-                created_by=created_by,
+                topic_type=topic_type
             )
         else:
             topic = conversation_private.get_topic(topic_id)
@@ -176,16 +177,17 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
         # Get or create creator object for the host.
         creator = creator_private.get_or_create_creator(host)
         # Update creator object for host.
-        if not creator.poc:
-            creator.point_of_contact = creator_poc_id
-        if not creator.prospector:
-            creator.prospector = creator_prospector_id
+        if not creator.point_of_contact and creator_poc_id:
+            creator.point_of_contact_id = creator_poc_id
+        if not creator.prospector and creator_prospector_id:
+            creator.prospector_id = creator_prospector_id
+
         creator.save()
 
         # Create stream.
         group = conversation_private.create_webinar(
             host=host,
-            speakers=speakers_ids,
+            speakers=speakers,
             topic=topic,
             description=description,
             start=start,
@@ -203,7 +205,7 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
 class CategoryViewSet(viewsets.GenericViewSet):
 
     queryset = conversation_private.get_all_categories()
-    permission_classes = [user_permissions.ConversationDashboardPermission]
+    permission_classes = [user_permissions.AllowAny]
 
     def list(self, request):
         """Return a list of category id and name"""

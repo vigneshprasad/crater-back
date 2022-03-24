@@ -1,5 +1,9 @@
 import logging
 
+import requests
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+
 from conversations import constants
 from conversations import models
 
@@ -8,28 +12,37 @@ LOGGER = logging.getLogger(__name__)
 
 def create_topic(
         title,
-        image,
+        image_name,
+        image_url,
         description=None,
-        created_by=None,
         topic_type=constants.GROUP_TYPE_WEBINAR_ENUM
 ):
     """Creates a topic.
 
     Args:
         title(str): Name for the topic.
-        image(file): Image file for the topic.
+        image_name(str): Name of the image file for the topic.
+        image_url(str): Image url from S3 after upload.
         description(str): Description of the topic.
-        created_by(User): User who is creating the topic.
         topic_type(int): Type of topic.
 
     """
     topic = models.Topic.objects.create(
         name=title,
-        imgae=image,
         type=topic_type,
-        description=description,
-        creator=created_by
+        description=description
     )
+
+    # Get the image file from the url and save it as
+    # image object.
+    r = requests.get(image_url)
+    image_temp = NamedTemporaryFile()
+    image_temp.write(r.content)
+    image_temp.flush()
+
+    # This will generate proper image.url as well.
+    topic.image.save(image_name, File(image_temp), save=True)
+
     return topic
 
 
@@ -107,7 +120,7 @@ def create_webinar(
         type=group_type,
         is_featured=is_featured,
         is_published=is_published,
-        is_closed=is_closed
+        closed=is_closed
     )
 
     group.speakers.add(*speakers)
