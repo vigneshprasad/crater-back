@@ -97,6 +97,7 @@ def add_attendee_to_group_for_request(attendee_pk, group_request_id):
     Args:
         attendee_pk(uuid): PK of attendee to be added to group
         group_request_id(int): Request ID of the group to which user to be added
+
     """
     try:
         attendee = User.objects.get(pk=attendee_pk)
@@ -108,6 +109,7 @@ def add_attendee_to_group_for_request(attendee_pk, group_request_id):
         return False
 
     group_request.group.attendees.add(attendee)
+
     # Send a signal once user is added to the group.
     signals.attendee_added_to_group.send(
         sender=group_request.group.__class__,
@@ -138,11 +140,11 @@ def add_attendee_to_series(attendee_pk, series_id, series_request_ids):
         LOGGER.error(str(e))
         return False
 
-        # Update request status and add attendee to request group
+    # Update request status and add attendee to request group
     for request in series_requests:
         request.group.attendees.add(attendee)
 
-        # Send a signal once user is added to the series.
+    # Send a signal once user is added to the series.
     signals.attendee_added_to_series.send(
         sender=series.__class__,
         series=series,
