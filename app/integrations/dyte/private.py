@@ -129,7 +129,7 @@ def get_recording_to_stop_for_dyte_meeting(dyte_meeting):
     """
 
     # Only recordings in RECORDING status can be stopped.
-    recording_to_stop = dyte_meeting.meeting_recordings.filter(
+    recording_to_stop = dyte_meeting.meeting_recording.filter(
         status=constants.DYTE_RECORDING_STATUS_RECORDING
     ).last()
 
