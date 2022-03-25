@@ -224,16 +224,22 @@ class Group(base_model.BaseModel):
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
     medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
 
+    # Flags.
     is_featured = models.BooleanField(default=False)
     is_full = models.BooleanField(default=False)
-
     is_live = models.BooleanField(default=False)
     # Denotes the datetime at which the group was marked live or
     # inactive.
     last_live_at = models.DateTimeField(null=True, blank=True)
 
+    # Denotes if the group has been rescheduled.
+    is_rescheduled = models.BooleanField(default=False)
+    rescheduled_at = models.DateTimeField(null=True, blank=True)
+
+    # Denotes if the stream is happening via OBS.
+    is_obs = models.BooleanField(default=False)
+
     # Group closed status and datetime of closure.
-    # TODO(Nishant): Can change this into statuses as well.
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
 
@@ -304,6 +310,12 @@ class Group(base_model.BaseModel):
             sender=self.__class__,
             group=self
         )
+
+    def mark_rescheduled(self, user=None):
+        """Marks the group as rescheduled"""
+        self.is_rescheduled = True
+        self.rescheduled_at = timezone.now()
+        self.save()
 
     def mark_closed(self, user=None):
         """Marks group as closed.
