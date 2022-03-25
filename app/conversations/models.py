@@ -139,7 +139,7 @@ class Category(base_model.BaseModel):
         return self.name
 
     def color_example(self):
-        """Return an html which display the color added
+        """Return html which display the color added
             to the category.
 
         """

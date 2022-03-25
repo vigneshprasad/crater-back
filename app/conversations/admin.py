@@ -51,7 +51,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "approved_at",
         "last_live_at"
     )
-    search_fields = ("speakers__email", "speakers__name", "speakers__username",)
+    search_fields = ("id", "speakers__email", "speakers__name", "speakers__username",)
     list_editable = (
         "is_published",
         "is_featured",
