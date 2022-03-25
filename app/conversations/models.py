@@ -6,6 +6,7 @@ from celery.task import task
 from django.db import models
 from django.core import exceptions
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
@@ -114,17 +115,20 @@ class Category(base_model.BaseModel):
         blank=True,
         help_text=_("Enter color code for the color here.")
     )
-    photo = models.ImageField(
+    photo = models.FileField(
         upload_to="groups/category/%Y/%m/%d/",
         verbose_name=_("Category Photo"),
         null=True,
-        blank=True
+        blank=True,
+        validators=[FileExtensionValidator(['jpg', 'png', 'svg'])]
     )
     order = models.PositiveSmallIntegerField(
         null=True,
         blank=True
     )
     is_active = models.BooleanField(default=True)
+    show_on_home_page = models.BooleanField(default=True)
+    tagline = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ["order"]
@@ -135,7 +139,7 @@ class Category(base_model.BaseModel):
         return self.name
 
     def color_example(self):
-        """Return an html which display the color added
+        """Return html which display the color added
             to the category.
 
         """
@@ -220,16 +224,22 @@ class Group(base_model.BaseModel):
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
     medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
 
+    # Flags.
     is_featured = models.BooleanField(default=False)
     is_full = models.BooleanField(default=False)
-
     is_live = models.BooleanField(default=False)
     # Denotes the datetime at which the group was marked live or
     # inactive.
     last_live_at = models.DateTimeField(null=True, blank=True)
 
+    # Denotes if the group has been rescheduled.
+    is_rescheduled = models.BooleanField(default=False)
+    rescheduled_at = models.DateTimeField(null=True, blank=True)
+
+    # Denotes if the stream is happening via OBS.
+    is_obs = models.BooleanField(default=False)
+
     # Group closed status and datetime of closure.
-    # TODO(Nishant): Can change this into statuses as well.
     closed = models.BooleanField(default=False)
     closed_at = models.DateTimeField(null=True, blank=True)
 
@@ -300,6 +310,12 @@ class Group(base_model.BaseModel):
             sender=self.__class__,
             group=self
         )
+
+    def mark_rescheduled(self, user=None):
+        """Marks the group as rescheduled"""
+        self.is_rescheduled = True
+        self.rescheduled_at = timezone.now()
+        self.save()
 
     def mark_closed(self, user=None):
         """Marks group as closed.

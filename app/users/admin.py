@@ -6,12 +6,19 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-
-from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
-from users.forms import AdminCreationForm, UserForm, ProfileForm
-from users.models import Profile, Admin, Referral, CoverFile
-from users import models
 from utils.mixins import ViewActionMixin
+
+from users import models
+from users.filters import GroupNameAdminFilter
+from users.filters import GroupNameUserFilter
+from users.filters import RefererFilter
+from users.forms import AdminCreationForm
+from users.forms import ProfileForm
+from users.forms import UserForm
+from users.models import Admin
+from users.models import CoverFile
+from users.models import Profile
+from users.models import Referral
 
 admin.site.unregister(Group)
 
@@ -64,13 +71,16 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     inlines = [ProfileAdmin]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("groups").filter(is_superuser=False, is_staff=False)
+        return super().get_queryset(request).prefetch_related("groups").filter(
+            is_superuser=False, is_staff=False
+        )
 
     @staticmethod
     def group(user):
         if not user.groups.exists():
             return mark_safe("<i class='material-icons red-color medium-icon'>highlight_off</i>")
         return ", ".join([group.name for group in user.groups.all()])
+
 
 @admin.register(Admin)
 class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
@@ -79,14 +89,14 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = "verified_user"
 
     form = AdminCreationForm
-    list_display = ("name", "email", "is_superuser", "is_active", "group", "action")
+    list_display = ("name", "email", "is_superuser", "is_active", "all_groups", "action")
     list_filter = ("is_superuser", GroupNameAdminFilter)
     search_fields = ("name", "email")
     list_editable = ("name", "is_superuser")
 
     @staticmethod
-    def group(user_admin):
-        return user_admin.groups.first()
+    def all_groups(user_admin):
+        return ", ".join(user_admin.groups.values_list("name", flat=True))
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(Q(is_superuser=True) | Q(is_staff=True))
