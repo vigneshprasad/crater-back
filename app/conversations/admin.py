@@ -22,9 +22,10 @@ class TopicAdmin(admin.ModelAdmin):
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "is_active", "color", "color_example")
+    list_display = ("id", "name", "is_active", "color", "color_example", "show_on_home_page")
     search_fields = ("name",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    list_editable = ("is_active", "show_on_home_page")
 
 
 @admin.register(models.Group)
@@ -155,7 +156,7 @@ class RequestAdmin(admin.ModelAdmin):
     search_fields = ("requester__username", "requester__name")
     list_filter = (
         ("created_at", filter.DateRangeFilter),
-        AutocompleteFilterFactory("Group", "group"),
+        AutocompleteFilterFactory("Group", "group", use_pk_exact=True),
         ("group__start", filter.DateRangeFilter)
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
@@ -289,12 +290,7 @@ class GroupRtmpAdmin(admin.ModelAdmin):
         "link"
     )
     raw_id_fields = ("group",)
-    search_fields = (
-        "group__id",
-    )
-    list_filter = (
-        "group",
-    )
+    search_fields = ("group__id",)
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
     def delete_queryset(self, request, queryset):

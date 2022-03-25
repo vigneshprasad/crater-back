@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from conversations import constants, exceptions, filters, models, paginators, private, serializers, services, signals
 from resources.meetings import models as meeting_models, services as meeting_services
 from users import permissions
+from crater.creator import public as creator_public
 
 User = get_user_model()
 
@@ -579,7 +580,7 @@ class GroupWebinarViewSet(
         filterset_fields=["host"],
     )
     def creators(self, request):
-        """Return a live or upcoming webinar for a creator and exclude if
+        """Return upcoming webinars of a creator and exclude if
         requested user has followed the creator.
 
         """
@@ -587,29 +588,68 @@ class GroupWebinarViewSet(
 
         queryset_upcoming = self._get_upcoming_webinars()
 
-        # TODO: Needs query optimization
-        # Get creators the user is subscribed to
-        creator_ids = list(
-            user.following.filter(
-                notify=True
-            ).values_list("creator__user", flat=True)
+        # Get group id and host ids from the queryset.
+        group_and_host_ids = queryset_upcoming.values("id", "host")
+
+        # Get all users which the user has subscribed to.
+        subscribed_creators = creator_public.get_subscribed_creators(user)
+        subscribed_creators_user_ids = [creator.user_id for creator in subscribed_creators]
+
+        data = {}
+        for group_and_host_id in group_and_host_ids:
+            # If the group host is in subscribed list, don't add to data.
+            if group_and_host_id["host"] in subscribed_creators_user_ids:
+                continue
+            # If first group is already added to data, don't add again.
+            if data.get(group_and_host_id["host"]):
+                continue
+            # Add the host id and first upcoming group id to the data.
+            data[group_and_host_id["host"]] = group_and_host_id["id"]
+
+        queryset = queryset_upcoming.filter(
+            id__in=data.values()
         )
-
-        queryset = queryset_upcoming.exclude(
-            host__pk__in=creator_ids + [user.pk]
-        ).order_by("start")
-
-        unique_stream_host = {}
-        for stream in queryset:
-            if stream.host not in unique_stream_host.keys():
-                unique_stream_host[stream.host] = stream.id
-
-        queryset = queryset.filter(id__in=unique_stream_host.values())
 
         page = self.paginate_queryset(queryset)
 
         if page is None:
             serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        queryset=models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True
+        ).select_related(
+            "topic",
+            "host__profile",
+            "host__creator"
+        ),
+        serializer_class=serializers.StreamListSerializer,
+        pagination_class=paginators.WebinarPagination,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def suggested(self, request):
+        user = request.user
+
+        live_streams = self._get_live_webinars()
+        upcoming_streams = self._get_upcoming_webinars()
+
+        live_and_upcoming_streams = self.filter_queryset(
+            live_streams | upcoming_streams
+        ).exclude(
+            Q(host=request.user) | Q(requests__requester=user)
+        ).order_by("-is_live", "start")
+
+        page = self.paginate_queryset(live_and_upcoming_streams)
+
+        if page is None:
+            serializer = self.get_serializer(live_and_upcoming_streams, many=True)
             return Response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)
@@ -624,6 +664,7 @@ class CategoryViewSet(
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.filter(is_active=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filterset_fields = ["show_on_home_page"]
 
 
 class GroupRecodingViewSet(

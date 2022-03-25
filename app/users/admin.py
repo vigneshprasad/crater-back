@@ -6,12 +6,19 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-
-from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
-from users.forms import AdminCreationForm, UserForm, ProfileForm
-from users.models import Profile, Admin, Referral, CoverFile
-from users import models
 from utils.mixins import ViewActionMixin
+
+from users import models
+from users.filters import GroupNameAdminFilter
+from users.filters import GroupNameUserFilter
+from users.filters import RefererFilter
+from users.forms import AdminCreationForm
+from users.forms import ProfileForm
+from users.forms import UserForm
+from users.models import Admin
+from users.models import CoverFile
+from users.models import Profile
+from users.models import Referral
 
 admin.site.unregister(Group)
 
@@ -64,7 +71,9 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     inlines = [ProfileAdmin]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("groups").filter(is_superuser=False, is_staff=False)
+        return super().get_queryset(request).prefetch_related("groups").filter(
+            is_superuser=False, is_staff=False
+        )
 
     @staticmethod
     def group(user):

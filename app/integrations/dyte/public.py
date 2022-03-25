@@ -78,16 +78,10 @@ def start_recording_for_group(group):
     """
     dyte_meeting = group.dyte_webinar.first()
     if not dyte_meeting:
-        logging.error(
-            "Dyte meeting not present for group: {}".format(
-                group.id
-            )
-        )
+        logging.error("Dyte meeting not present for group: {}".format(group.id))
         return False
 
-    return dyte_service.start_recording(
-        dyte_meeting=dyte_meeting
-    )
+    return dyte_service.start_recording(dyte_meeting=dyte_meeting)
 
 
 def get_recordings_for_group(group):
@@ -102,13 +96,11 @@ def get_recordings_for_group(group):
     if not dyte_meeting:
         return None
 
-    return dyte_service.get_all_recordings(
-        dyte_meeting=dyte_meeting
-    )
+    return dyte_service.get_all_recordings(dyte_meeting=dyte_meeting)
 
 
-def stop_recording_for_group_and_recording_id(group, recording_id):
-    """Stop Dyte meeting recording
+def stop_recording_for_group_and_recording_id(group, recording_id=None):
+    """Stop recording for a group.
 
     Args:
         group(Group): Group we are stopping the recording
@@ -119,11 +111,13 @@ def stop_recording_for_group_and_recording_id(group, recording_id):
     """
     dyte_meeting = group.dyte_webinar.first()
     if not dyte_meeting:
-        logging.error(
-            "Dyte meeting not present for group: {}".format(
-                group.id
-            )
-        )
+        logging.error("Dyte meeting not present for group: {}".format(group.id))
         return False
 
-    return dyte_service.stop_recording(dyte_meeting.room_name, recording_id)
+    recording_id = private.get_recording_to_stop_for_dyte_meeting(dyte_meeting) \
+        if not recording_id else recording_id
+
+    if not recording_id:
+        return False
+
+    return dyte_service.stop_recording(dyte_meeting, recording_id)

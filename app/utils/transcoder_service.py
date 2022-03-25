@@ -7,7 +7,7 @@ from django.conf import settings
 
 from users import models
 
-LOGGER = logging.getLogger("app")
+LOGGER = logging.getLogger(__name__)
 
 
 class TranscoderService:
