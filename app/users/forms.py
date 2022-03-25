@@ -13,27 +13,16 @@ from tags import models as tags_models
 from users.models import Admin, Profile
 from utils.fields import CachedMaterialAdminFileWidget
 
+class AdminCreationForm(UserCreationForm):
 
-class GroupMixin:
-    def clean_groups(self):
-        return [self.cleaned_data.get('groups')]
-
-
-class GroupModelChoiceField(forms.ModelChoiceField):
-    def prepare_value(self, value):
-        return super().prepare_value(value[0] if value and isinstance(value, list) else value)
-
-
-class AdminCreationForm(GroupMixin, UserCreationForm):
-
-    groups = GroupModelChoiceField(queryset=Group.objects.all())
+    groups = forms.ModelMultipleChoiceField(queryset=Group.objects.all())
     is_staff = forms.BooleanField(initial=True)
 
     class Meta:
         model = get_user_model()
-        fields = ('name', 'email', 'is_staff', 'groups', 'is_superuser', 'is_active')
+        fields = ("name", "email", "is_staff", "groups", "is_superuser", "is_active")
         widgets = {
-            'groups': forms.Select(),
+            "groups": forms.SelectMultiple(),
         }
 
     @staticmethod

@@ -89,14 +89,14 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
     icon_name = "verified_user"
 
     form = AdminCreationForm
-    list_display = ("name", "email", "is_superuser", "is_active", "group", "action")
+    list_display = ("name", "email", "is_superuser", "is_active", "all_groups", "action")
     list_filter = ("is_superuser", GroupNameAdminFilter)
     search_fields = ("name", "email")
     list_editable = ("name", "is_superuser")
 
     @staticmethod
-    def group(user_admin):
-        return user_admin.groups.first()
+    def all_groups(user_admin):
+        return ", ".join(user_admin.groups.values_list("name", flat=True))
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(Q(is_superuser=True) | Q(is_staff=True))

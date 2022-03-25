@@ -40,7 +40,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_featured",
         "is_live",
         "closed",
-        "is_published"
+        "is_published",
+        "is_rescheduled",
+        "is_obs"
     )
     actions = ("add_previous_webinar_attendees",)
     raw_id_fields = ("speakers", "attendees", "host", "categories")
@@ -49,8 +51,15 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "approved_at",
         "last_live_at"
     )
-    search_fields = ("speakers__email", "speakers__name", "speakers__username",)
-    list_editable = ("is_published", "is_featured", "is_live", "closed",)
+    search_fields = ("id", "speakers__email", "speakers__name", "speakers__username",)
+    list_editable = (
+        "is_published",
+        "is_featured",
+        "is_live",
+        "closed",
+        "is_rescheduled",
+        "is_obs"
+    )
     list_filter = (
         "closed",
         "is_published",
@@ -77,6 +86,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if "closed" in fields_changed:
             if cleaned_data["closed"]:
                 obj.mark_closed(user=request.user)
+
+        if "is_rescheduled" in fields_changed:
+            if cleaned_data["is_rescheduled"]:
+                obj.mark_rescheduled(user=request.user)
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
