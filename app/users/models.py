@@ -588,6 +588,14 @@ class Referral(TimeStampedModel):
 
 class UserReferral(models.Model):
     """Track user referrals with payouts."""
+
+    USER_REFERRAL_STATUS_CHOICES = (
+        (constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM, constants.REFERRAL_STATUS_USER_ACTION_PENDING),
+        (constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM, constants.REFERRAL_STATUS_PAYMENT_DUE),
+        (constants.REFERRAL_STATUS_PAID_ENUM, constants.REFERRAL_STATUS_PAID),
+        (constants.REFERRAL_STATUS_PAYMENT_CANCELLED_ENUM, constants.REFERRAL_STATUS_PAYMENT_CANCELLED),
+    )
+
     user = models.OneToOneField(
         get_user_model(),
         related_name="referred_by",
@@ -598,9 +606,11 @@ class UserReferral(models.Model):
         related_name="referrals",
         on_delete=models.CASCADE
     )
-    payable = models.PositiveIntegerField()
-    paid_out = models.PositiveIntegerField()
-    outstanding_payment = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField(default=constants.REFERRAL_DEFAULT_PAYABLE_AMOUNT)
+    status = models.PositiveIntegerField(
+        default=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM,
+        choices=USER_REFERRAL_STATUS_CHOICES
+    )
 
 
 class Admin(User):

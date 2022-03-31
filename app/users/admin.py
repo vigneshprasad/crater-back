@@ -168,6 +168,6 @@ class ProfileExtraMetaAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserReferral)
 class UserReferralAdmin(admin.ModelAdmin):
-    list_display = ("user", "referred_by", "payable", "paid_out", "outstanding_payment")
+    list_display = ("user", "referred_by", "amount", "status")
     search_fields = ("user__pk", "user__name", "referred_by__pk", "referred_by__name")
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
