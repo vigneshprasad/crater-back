@@ -6,6 +6,7 @@ from crater.auth import private
 from crater.auth import constants
 from wn_analytics import models as analytics_models
 from users import models as user_models
+from users import services as user_services
 
 
 class PhoneOtpSerializer(serializers.ModelSerializer):
@@ -108,5 +109,12 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 utm_medium=utm_medium,
                 referrer=referrer
             )
+
+            if utm_source == "null" and utm_medium == "null" and referrer:
+                # Create user referral
+                user_services.create_user_referral(
+                    new_user=instance.user,
+                    referrer=referrer
+                )
 
         return instance
