@@ -601,7 +601,7 @@ class UserReferral(models.Model):
         related_name="referred_by",
         on_delete=models.CASCADE
     )
-    referred_by = models.ForeignKey(
+    referrer = models.ForeignKey(
         get_user_model(),
         related_name="referrals",
         on_delete=models.CASCADE
