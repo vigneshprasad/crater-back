@@ -164,3 +164,10 @@ class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
 @admin.register(models.ProfileExtraInfoMeta)
 class ProfileExtraMetaAdmin(admin.ModelAdmin):
     list_display = ("id", "question", "tag")
+
+
+@admin.register(models.UserReferral)
+class UserReferralAdmin(admin.ModelAdmin):
+    list_display = ("user", "referred_by", "payable", "paid_out", "outstanding_payment")
+    search_fields = ("user__pk", "user__name", "referred_by__pk", "referred_by__name")
+    exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")

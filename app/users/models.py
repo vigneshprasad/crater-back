@@ -16,6 +16,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib.auth import get_user_model
 
 from base import models as base_models
 from notifications.models import UserNotificationsSettings
@@ -200,13 +201,13 @@ class User(AbstractUser):
     @property
     def profile_completed(self):
         status = (
-            self.has_profile
-            and
-            self.phone_number
-            and
-            self.phone_number_verified
-            and
-            self.email_verified
+                self.has_profile
+                and
+                self.phone_number
+                and
+                self.phone_number_verified
+                and
+                self.email_verified
         )
         return status
 
@@ -307,7 +308,6 @@ class Device(TimeStampedModel):
 
 
 class Profile(models.Model):
-
     EDUCATION_LEVEL_CHOICES = (
         (constants.EDUCATION_LEVEL_HIGH_SCHOOL_ENUM, constants.EDUCATION_LEVEL_HIGH_SCHOOL),
         (constants.EDUCATION_LEVEL_UNDERGRADUATE_ENUM, constants.EDUCATION_LEVEL_UNDERGRADUATE),
@@ -586,6 +586,23 @@ class Referral(TimeStampedModel):
         verbose_name_plural = _("Referrals")
 
 
+class UserReferral(models.Model):
+    """Track user referrals with payouts."""
+    user = models.OneToOneField(
+        get_user_model(),
+        related_name="referred_by",
+        on_delete=models.CASCADE
+    )
+    referred_by = models.ForeignKey(
+        get_user_model(),
+        related_name="referrals",
+        on_delete=models.CASCADE
+    )
+    payable = models.PositiveIntegerField()
+    paid_out = models.PositiveIntegerField()
+    outstanding_payment = models.PositiveIntegerField()
+
+
 class Admin(User):
     proxy = True
 
@@ -674,14 +691,14 @@ class UserActivity(base_models.BaseModel):
 
 # TODO(Nishant): Remove this.
 @receiver(post_save, sender=CoverFile)
-def profile_post_save(sender, instance, created,  *args, **kwargs):
+def profile_post_save(sender, instance, created, *args, **kwargs):
     if created:
         transaction.on_commit(lambda: start_transcoding_for_cover_file.delay(instance.pk))
 
 
 # TODO(Nishant): Remove this.
 @receiver(post_save, sender=User)
-def user_post_save(sender, instance, created,  *args, **kwargs):
+def user_post_save(sender, instance, created, *args, **kwargs):
     if not (hasattr(instance, "notification_settings") and instance.notification_settings):
         UserNotificationsSettings.objects.create(user=instance)
     if created and not instance.subscriptions.filter(is_active=True):
