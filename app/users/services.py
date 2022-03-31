@@ -235,3 +235,17 @@ def get_user_with_number_of_meetings(number_of_meeting):
     ).filter(
         number_of_meetings__gte=number_of_meeting
     ).values_list("participants", flat=True)
+
+
+def create_user_referral(new_user, referrer):
+    """Create user referral.
+
+    Args:
+        new_user(User): Referred user
+        referrer(User): User who has referred
+
+    """
+    return models.UserReferral.objects.create(
+        user=new_user,
+        referrer=referrer
+    )
