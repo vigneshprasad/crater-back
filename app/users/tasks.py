@@ -1,9 +1,11 @@
 from __future__ import absolute_import, unicode_literals
 
+import datetime
 import logging
 
 from celery import shared_task
-from celery.task import task
+from celery.schedules import crontab
+from celery.task import task, periodic_task
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
@@ -12,6 +14,9 @@ from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
 
 from freelance.settings import DEFAULT_FROM_EMAIL
+from users import models
+from users import constants
+from integrations.dyte import models as dyte_models
 
 
 @shared_task(name="send_twilio_message")
@@ -97,3 +102,32 @@ def auto_remove_not_used_cover_files(self):
         created__lte=one_day_ago
     )
     files.delete()
+
+
+@periodic_task(run_every=crontab(hour="1"))
+def update_user_referrals_status():
+    """Update user referral status from `User Action Pending`
+        to `Due` based on whether the referred user has watched
+        a stream for 20 minutes or more.
+
+    """
+    # Get all user referrals which is in `User Action Pending` state.
+    referrals = models.UserReferral.objects.filter(
+        status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
+    ).values_list("user__pk", flat=True)
+
+    if referrals:
+        dyte_meeting_participants = dyte_models.DyteMeetingParticipant.objects.filter(
+            participant__in=referrals,
+            last_online_at__isnull=False,
+            dyte_meeting__group__is_closed=True,
+            dyte_meeting__group__is_live=False,
+            dyte_meeting__group__start__lte=datetime.datetime.now(),
+        )
+
+        for dyte_meeting_participant in dyte_meeting_participants:
+            if (
+                    dyte_meeting_participant.last_online_at - dyte_meeting_participant.dyte_meeting.group.start
+            ).total_seconds() / 60 >= 20:
+                dyte_meeting_participant.participant.referred_by.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
+                dyte_meeting_participant.participant.referred_by.save()
