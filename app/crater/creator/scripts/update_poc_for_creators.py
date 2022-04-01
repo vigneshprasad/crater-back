@@ -18,11 +18,12 @@ def run(
     for row in reader:
 
         print("-----")
-        creator_number = row.get("Creator").strip()
+        creator_number = row.get("Creator Phone Number").strip()
         poc_email = row.get("POC Email").strip()
+        prospector_email = row.get("Prospector Email").strip()
 
-        if not (creator_number and poc_email):
-            print("Data not present", creator_number, poc_email)
+        if not creator_number:
+            print("Data not present: ", creator_number)
             continue
 
         try:
@@ -36,17 +37,29 @@ def run(
         try:
             poc = get_user_model().objects.get(
                 email=poc_email
-            )
+            ) if poc_email else None
         except get_user_model().DoesNotExist:
             print("POC doesn't not exist: {}".format(poc_email))
             continue
 
+        try:
+            prospector = get_user_model().objects.get(
+                email=prospector_email
+            ) if prospector_email else None
+        except get_user_model().DoesNotExist:
+            print("Prospector doesn't not exist: {}".format(poc_email))
+            continue
+
         print("Creator: ", creator.__str__())
         print("POC: ", poc.__str__())
+        print("Prospector: ", prospector.__str__())
 
         if not dry_run:
-            creator.point_of_contact = poc
+            if poc:
+                creator.point_of_contact = poc
+            if prospector:
+                creator.prospector = prospector
             creator.save()
-            print("Updated POC for Creator: {}".format(creator.id))
+            print("Updated POC and prospector for Creator: {}".format(creator.id))
 
         print("-----")
