@@ -1344,7 +1344,7 @@ def get_average_attendees_per_stream(start_date=None, end_date=None):
                 dyte_meeting__group=group,
                 last_online_at__isnull=False
             ).exclude(participant__in=group.speakers.all())
-            )
+        )
         if not participant:
             continue
         total_groups += 1

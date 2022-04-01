@@ -1,5 +1,3 @@
-from django.contrib.auth import get_user_model
-
 from crater.creator import models
 from crater.creator import signals
 
