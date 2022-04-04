@@ -547,7 +547,12 @@ class UserReferralViewSet(
 ):
     queryset = models.UserReferral.objects.exclude(
         status=constants.REFERRAL_STATUS_PAYMENT_CANCELLED_ENUM
-    ).order_by("-created_at")
+    ).select_related(
+        "stream",
+        "stream__topic"
+    ).order_by(
+        "-created_at"
+    )
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.UserReferralSerializer
     pagination_class = Pagination
