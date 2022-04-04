@@ -104,7 +104,7 @@ def auto_remove_not_used_cover_files(self):
     files.delete()
 
 
-@periodic_task(run_every=crontab(hour="1"))
+@periodic_task(run_every=crontab(minute=0, hour="*/1"))
 def update_user_referrals_status():
     """Update user referral status from `User Action Pending`
         to `Due` based on whether the referred user has watched
@@ -130,4 +130,5 @@ def update_user_referrals_status():
                     dyte_meeting_participant.last_online_at - dyte_meeting_participant.dyte_meeting.group.start
             ).total_seconds() / 60 >= 20:
                 dyte_meeting_participant.participant.referred_by.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
+                dyte_meeting_participant.participant.referred_by.stream = dyte_meeting_participant.dyte_meeting.group
                 dyte_meeting_participant.participant.referred_by.save()
