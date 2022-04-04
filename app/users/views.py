@@ -560,16 +560,12 @@ class UserReferralViewSet(
             )
         )
 
-        referrals = services.get_all_user_referrals(
-            user_referrals=queryset
-        )
-
-        page = self.paginate_queryset(referrals)
+        page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(referrals, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(
@@ -581,6 +577,8 @@ class UserReferralViewSet(
         queryset = self.filter_queryset(
             self.get_queryset().filter(
                 referrer__pk=user.pk
+            ).exclude(
+                status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
             )
         )
 

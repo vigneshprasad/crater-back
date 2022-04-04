@@ -24,6 +24,7 @@ from django.contrib.auth.models import Group
 from base import serializers as base_serializers
 from tags import models as tag_models
 from tags import serializers as tag_serializers
+
 from utils import messages
 from utils import fields
 from utils.instagram_service import instagram_service
@@ -33,6 +34,7 @@ from users import validators
 from users import signals
 from users import services
 from wn_analytics import models as wn_analytics_models
+from conversations import models as conversations_models
 
 
 logger = logging.getLogger("django.request")
@@ -961,11 +963,31 @@ class ProfileExtraInfoMetaSerializer(serializers.ModelSerializer):
         }
 
 
+class UserReferralStreamSerializer(serializers.ModelSerializer):
+    topic = serializers.StringRelatedField(source="topic.name", read_only=True)
+
+    class Meta:
+        model = conversations_models.Group
+        fields = (
+            "id",
+            "topic",
+            "start",
+        )
+
+
+class UserReferralUserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name",
+        )
+
+
 class UserReferralSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(read_only=True)
-    referrer_name = serializers.CharField(read_only=True)
-    stream_topic = serializers.StringRelatedField(read_only=True, allow_null=True)
-    stream_start = serializers.DateTimeField(read_only=True, allow_null=True)
+    user = serializers.CharField(source="user.name", read_only=True)
+    referrer = serializers.CharField(source="referrer.name", read_only=True)
+    stream_detail = UserReferralStreamSerializer(source="stream", read_only=True)
     status = base_serializers.DisplayChoiceField(
         read_only=True,
         choices=models.UserReferral.USER_REFERRAL_STATUS_CHOICES
@@ -975,11 +997,10 @@ class UserReferralSerializer(serializers.ModelSerializer):
         model = models.UserReferral
         fields = (
             "id",
-            "username",
-            "referrer_name",
+            "user",
+            "referrer",
             "amount",
             "status",
-            "stream_topic",
-            "stream_start"
+            "stream_detail",
         )
         read_only_fields = fields
