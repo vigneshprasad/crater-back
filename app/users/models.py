@@ -606,6 +606,13 @@ class UserReferral(base_models.BaseModel):
         related_name="referrals",
         on_delete=models.CASCADE
     )
+    stream = models.ForeignKey(
+        "conversations.Group",
+        related_name="referral_stream",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
     amount = models.PositiveIntegerField(default=constants.REFERRAL_DEFAULT_PAYABLE_AMOUNT)
     status = models.PositiveIntegerField(
         default=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM,
