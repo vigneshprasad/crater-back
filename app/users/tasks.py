@@ -120,7 +120,7 @@ def update_user_referrals_status():
         dyte_meeting_participants = dyte_models.DyteMeetingParticipant.objects.filter(
             participant__in=referrals,
             last_online_at__isnull=False,
-            dyte_meeting__group__is_closed=True,
+            dyte_meeting__group__closed=True,
             dyte_meeting__group__is_live=False,
             dyte_meeting__group__start__lte=datetime.datetime.now(),
         )
