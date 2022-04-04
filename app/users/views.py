@@ -1,8 +1,13 @@
+import datetime
+from itertools import chain
+
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth import views as auth_views, get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.db.models import When, F, ExpressionWrapper
+from django.db.models.fields import DurationField
 from django.urls import reverse_lazy
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -39,6 +44,7 @@ from .swagger_schemas import referer_email
 from .tasks import send_email
 from resources.meetings import models as meeting_models
 from conversations import models as conversation_models
+from integrations.dyte import models as dyte_models
 
 
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
@@ -534,4 +540,52 @@ class ProfileMetaViewSet(viewsets.GenericViewSet):
         return Response(data)
 
 
+class UserReferralViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = models.UserReferral.objects.exclude(
+        status=constants.REFERRAL_STATUS_PAYMENT_CANCELLED_ENUM
+    ).order_by("-created_at")
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.UserReferralSerializer
+    pagination_class = Pagination
 
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                referrer__pk=user.pk
+            )
+        )
+
+        referrals = services.get_all_user_referrals(
+            user_referrals=queryset
+        )
+
+        page = self.paginate_queryset(referrals)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(referrals, many=True)
+        return Response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+    )
+    def summary(self, request):
+        user = request.user
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                referrer__pk=user.pk
+            )
+        )
+
+        referrals_summary = services.get_referrals_summary(
+            user_referrals=queryset
+        )
+
+        return Response(referrals_summary)
