@@ -1,4 +1,9 @@
-from django.db.models import Count
+import datetime
+from itertools import chain
+
+from django.db.models import Count, ExpressionWrapper, F, Sum, Q
+from django.db.models.fields import DurationField
+from django.db.models.functions import Coalesce
 
 from users import models
 from users import constants
@@ -249,3 +254,104 @@ def create_user_referral(new_user, referrer):
         user=new_user,
         referrer=referrer
     )
+
+
+def get_referrals_who_watched_streams(user_referrals):
+    """Return user referrals with watched stream if a referred user
+        has watched a stream for more than 20 minutes.
+
+    Args:
+        user_referrals(list(UserReferrals)): UserReferrals model queryset.
+
+    """
+    duration = ExpressionWrapper(
+        F("last_online_at") - F("stream_start"),
+        output_field=DurationField()
+    )
+
+    # Get the streams the referral user has watched for >= 20 minutes
+    referrals_with_streams = user_referrals.filter(
+        user__dyte_participant__last_online_at__isnull=False,
+        user__dyte_participant__dyte_meeting__group__closed=True,
+        user__dyte_participant__dyte_meeting__group__is_live=False,
+        user__dyte_participant__dyte_meeting__group__start__lte=datetime.datetime.now()
+    ).exclude(
+        status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
+    ).values(
+        last_online_at=F("user__dyte_participant__last_online_at"),
+        stream_topic=F("user__dyte_participant__dyte_meeting__group__topic__name"),
+        stream_start=F("user__dyte_participant__dyte_meeting__group__start")
+    ).annotate(
+        duration=duration
+    ).filter(
+        duration__gte=datetime.timedelta(minutes=20)
+    ).values(
+        "id",
+        "amount",
+        "status",
+        "stream_topic",
+        "stream_start",
+        username=F("user__name"),
+        referrer_name=F("referrer__name"),
+    )
+
+    return referrals_with_streams
+
+
+def get_all_user_referrals(user_referrals):
+    """Return all user referrals with watched stream details for
+        non-pending referrals.
+
+    Args:
+        user_referrals(list(UserReferrals)): UserReferrals model queryset.
+
+    """
+    pending_referrals = user_referrals.filter(
+        status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
+    ).values(
+        "id",
+        "amount",
+        "status",
+        username=F("user__name"),
+        referrer_name=F("referrer__name"),
+    )
+
+    referrals_with_streams = get_referrals_who_watched_streams(
+        user_referrals=user_referrals
+    )
+
+    referrals = list(chain(pending_referrals, referrals_with_streams))
+
+    return referrals
+
+
+def get_referrals_summary(user_referrals):
+    """Return referrals summary information.
+
+    Args:
+        user_referrals(list(UserReferrals)): UserReferrals model queryset.
+
+    """
+    referrals = get_referrals_who_watched_streams(
+        user_referrals=user_referrals
+    )
+
+    if not referrals:
+        return {}
+
+    referrals_summary = referrals.annotate(
+        total_referrals=Count("id"),
+        total_payable=Sum("amount"),
+        paid_out=Coalesce(Sum(
+            "amount",
+            filter=Q(status=constants.REFERRAL_STATUS_PAID_ENUM)
+        ), 0),
+        outstanding_payment=F("total_payable") - F("paid_out")
+    ).values(
+        "total_referrals",
+        "total_payable",
+        "paid_out",
+        "outstanding_payment"
+    )[0]
+
+    return referrals_summary
