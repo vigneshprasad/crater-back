@@ -129,6 +129,8 @@ def update_user_referrals_status():
             if (
                     dyte_meeting_participant.last_online_at - dyte_meeting_participant.dyte_meeting.group.start
             ).total_seconds() / 60 >= 20:
-                dyte_meeting_participant.participant.referred_by.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
-                dyte_meeting_participant.participant.referred_by.stream = dyte_meeting_participant.dyte_meeting.group
-                dyte_meeting_participant.participant.referred_by.save()
+                referral = dyte_meeting_participant.participant.referred_by
+
+                referral.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
+                referral.stream = dyte_meeting_participant.dyte_meeting.group
+                referral.save()
