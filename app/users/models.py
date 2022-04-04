@@ -586,7 +586,7 @@ class Referral(TimeStampedModel):
         verbose_name_plural = _("Referrals")
 
 
-class UserReferral(models.Model):
+class UserReferral(base_models.BaseModel):
     """Track user referrals with payouts."""
 
     USER_REFERRAL_STATUS_CHOICES = (
@@ -611,6 +611,10 @@ class UserReferral(models.Model):
         default=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM,
         choices=USER_REFERRAL_STATUS_CHOICES
     )
+
+    class Meta:
+        verbose_name = _("User Referral")
+        verbose_name_plural = _("User Referrals")
 
 
 class Admin(User):
