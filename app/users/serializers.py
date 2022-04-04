@@ -21,6 +21,7 @@ from rest_framework import exceptions
 from rest_framework import serializers
 from django.contrib.auth.models import Group
 
+from base import serializers as base_serializers
 from tags import models as tag_models
 from tags import serializers as tag_serializers
 from utils import messages
@@ -958,3 +959,27 @@ class ProfileExtraInfoMetaSerializer(serializers.ModelSerializer):
             "companies_invested": services.get_companies_invested_field_info(),
             "other_tag": services.get_other_tag_field_info(),
         }
+
+
+class UserReferralSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(read_only=True)
+    referrer_name = serializers.CharField(read_only=True)
+    stream_topic = serializers.StringRelatedField(read_only=True, allow_null=True)
+    stream_start = serializers.DateTimeField(read_only=True, allow_null=True)
+    status = base_serializers.DisplayChoiceField(
+        read_only=True,
+        choices=models.UserReferral.USER_REFERRAL_STATUS_CHOICES
+    )
+
+    class Meta:
+        model = models.UserReferral
+        fields = (
+            "id",
+            "username",
+            "referrer_name",
+            "amount",
+            "status",
+            "stream_topic",
+            "stream_start"
+        )
+        read_only_fields = fields
