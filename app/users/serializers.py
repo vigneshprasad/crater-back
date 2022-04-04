@@ -975,15 +975,6 @@ class UserReferralStreamSerializer(serializers.ModelSerializer):
         )
 
 
-class UserReferralUserDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = (
-            "pk",
-            "name",
-        )
-
-
 class UserReferralSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.name", read_only=True)
     referrer = serializers.CharField(source="referrer.name", read_only=True)
