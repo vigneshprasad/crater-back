@@ -104,7 +104,7 @@ def auto_remove_not_used_cover_files(self):
     files.delete()
 
 
-@periodic_task(run_every=crontab(minute=0, hour="*/1"))
+@periodic_task(run_every=crontab(hour="*/1"))
 def update_user_referrals_status():
     """Update user referral status from `User Action Pending`
         to `Due` based on whether the referred user has watched
@@ -116,21 +116,23 @@ def update_user_referrals_status():
         status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
     ).values_list("user__pk", flat=True)
 
-    if referrals:
-        dyte_meeting_participants = dyte_models.DyteMeetingParticipant.objects.filter(
-            participant__in=referrals,
-            last_online_at__isnull=False,
-            dyte_meeting__group__closed=True,
-            dyte_meeting__group__is_live=False,
-            dyte_meeting__group__start__lte=datetime.datetime.now(),
-        )
+    if not referrals:
+        return
 
-        for dyte_meeting_participant in dyte_meeting_participants:
-            if (
-                    dyte_meeting_participant.last_online_at - dyte_meeting_participant.dyte_meeting.group.start
-            ).total_seconds() / 60 >= 20:
-                referral = dyte_meeting_participant.participant.referred_by
+    dyte_meeting_participants = dyte_models.DyteMeetingParticipant.objects.filter(
+        participant__in=referrals,
+        last_online_at__isnull=False,
+        dyte_meeting__group__closed=True,
+        dyte_meeting__group__is_live=False,
+        dyte_meeting__group__start__lte=datetime.datetime.now(),
+    )
 
-                referral.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
-                referral.stream = dyte_meeting_participant.dyte_meeting.group
-                referral.save()
+    for dyte_meeting_participant in dyte_meeting_participants:
+        if (
+                dyte_meeting_participant.last_online_at - dyte_meeting_participant.dyte_meeting.group.start
+        ).total_seconds() / 60 >= 20:
+            referral = dyte_meeting_participant.participant.referred_by
+
+            referral.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
+            referral.stream = dyte_meeting_participant.dyte_meeting.group
+            referral.save()
