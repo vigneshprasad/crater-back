@@ -1319,14 +1319,6 @@ def get_average_rsvps_per_stream(start_date=None, end_date=None):
         requester__user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
 
-    # total_groups = models.Request.objects.filter(
-    #     created_at__gte=start_date,
-    #     created_at__lte=end_date,
-    #     participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
-    #     group__type=constants.GROUP_TYPE_WEBINAR_ENUM
-    # ).exclude(
-    #     requester__user_source__utm_source=DEVSCRIPT_SOURCE
-    # ).values("group").distinct().count()
     published_streams_went_live_within_duration = published_streams_went_live.filter(
         start__gte=start_date,
         start__lte=end_date
@@ -1399,19 +1391,10 @@ def get_chat_messages_for_streams(start_date, end_date=None):
         start__gte=start_date,
         start__lte=end_date,
     )
-    # groups = models.GroupMessage.objects.filter(
-    #     created_at__gte=start_date,
-    #     created_at__lte=end_date
-    # ).exclude(
-    #     sender__user_source__utm_source=DEVSCRIPT_SOURCE
-    # ).values_list("group", flat=True)
-    # # Get distinct groups.
-    # groups = list(set(groups))
 
     total_groups = 0
     total_message_count = 0
 
-    print(published_streams_went_live_with_duration.count())
     for group in published_streams_went_live_with_duration:
         message_count = models.GroupMessage.objects.filter(
             group=group
@@ -1421,7 +1404,6 @@ def get_chat_messages_for_streams(start_date, end_date=None):
         ).count()
 
         if not message_count:
-            print(group.id)
             continue
 
         total_groups += 1
