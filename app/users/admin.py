@@ -6,19 +6,12 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from utils.mixins import ViewActionMixin
 
 from users import models
-from users.filters import GroupNameAdminFilter
-from users.filters import GroupNameUserFilter
-from users.filters import RefererFilter
-from users.forms import AdminCreationForm
-from users.forms import ProfileForm
-from users.forms import UserForm
-from users.models import Admin
-from users.models import CoverFile
-from users.models import Profile
-from users.models import Referral
+from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
+from users.forms import AdminCreationForm, ProfileForm, UserForm
+from users.models import Admin, CoverFile, Profile, Referral
+from utils.mixins import ViewActionMixin
 
 admin.site.unregister(Group)
 
@@ -164,3 +157,12 @@ class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
 @admin.register(models.ProfileExtraInfoMeta)
 class ProfileExtraMetaAdmin(admin.ModelAdmin):
     list_display = ("id", "question", "tag")
+
+
+@admin.register(models.UserReferral)
+class UserReferralAdmin(admin.ModelAdmin):
+    raw_id_fields = ("user", "referrer", "stream")
+    list_display = ("id", "user", "referrer", "stream", "amount", "status")
+    search_fields = ("user__username", "user__name", "referrer__username", "referrer__name")
+    readonly_fields = ("due_at", "paid_at")
+    exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")

@@ -1,4 +1,9 @@
-from django.db.models import Count
+import datetime
+from itertools import chain
+
+from django.db.models import Count, ExpressionWrapper, F, Sum, Q
+from django.db.models.fields import DurationField
+from django.db.models.functions import Coalesce
 
 from users import models
 from users import constants
@@ -235,3 +240,40 @@ def get_user_with_number_of_meetings(number_of_meeting):
     ).filter(
         number_of_meetings__gte=number_of_meeting
     ).values_list("participants", flat=True)
+
+
+def create_user_referral(new_user, referrer):
+    """Create user referral.
+
+    Args:
+        new_user(User): Referred user
+        referrer(User): User who has referred
+
+    """
+    return models.UserReferral.objects.create(
+        user=new_user,
+        referrer=referrer
+    )
+
+
+def get_referrals_summary(user_referrals):
+    """Return referrals summary information.
+
+    Args:
+        user_referrals(list(UserReferrals)): UserReferrals model queryset.
+
+    """
+    referrals_summary = user_referrals.aggregate(
+        total_referrals=Count("id"),
+        total_payable=Sum("amount"),
+        paid_out=Coalesce(Sum(
+            "amount",
+            filter=Q(status=constants.REFERRAL_STATUS_PAID_ENUM)
+        ), 0),
+        outstanding_payment=Sum("amount") - Coalesce(Sum(
+            "amount",
+            filter=Q(status=constants.REFERRAL_STATUS_PAID_ENUM)
+        ), 0)
+    )
+
+    return referrals_summary
