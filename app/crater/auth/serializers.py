@@ -97,10 +97,11 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         utm_campaign = validated_data.pop("utm_campaign")
         utm_medium = validated_data.pop("utm_medium")
         referrer = validated_data.pop("referrer")
+        is_new_user = validated_data.get("new_user", False)
 
         instance = super().update(instance, validated_data)
 
-        if (utm_source or utm_campaign) and validated_data.get("new_user"):
+        if (utm_source or utm_campaign) and is_new_user:
             # Only create if the user is a new user.
             analytics_models.UserSource.objects.create(
                 user=instance.user,
@@ -110,11 +111,11 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 referrer=referrer
             )
 
-            if utm_source == "null" and utm_medium == "null" and referrer:
-                # Create user referral
-                user_services.create_user_referral(
-                    new_user=instance.user,
-                    referrer=referrer
-                )
+        if not (utm_source and utm_medium) and referrer and is_new_user:
+            # Create user referral.
+            user_services.create_user_referral(
+                new_user=instance.user,
+                referrer=referrer
+            )
 
         return instance
