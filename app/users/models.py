@@ -16,6 +16,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib.auth import get_user_model
 
 from base import models as base_models
 from notifications.models import UserNotificationsSettings
@@ -200,13 +201,13 @@ class User(AbstractUser):
     @property
     def profile_completed(self):
         status = (
-            self.has_profile
-            and
-            self.phone_number
-            and
-            self.phone_number_verified
-            and
-            self.email_verified
+                self.has_profile
+                and
+                self.phone_number
+                and
+                self.phone_number_verified
+                and
+                self.email_verified
         )
         return status
 
@@ -307,7 +308,6 @@ class Device(TimeStampedModel):
 
 
 class Profile(models.Model):
-
     EDUCATION_LEVEL_CHOICES = (
         (constants.EDUCATION_LEVEL_HIGH_SCHOOL_ENUM, constants.EDUCATION_LEVEL_HIGH_SCHOOL),
         (constants.EDUCATION_LEVEL_UNDERGRADUATE_ENUM, constants.EDUCATION_LEVEL_UNDERGRADUATE),
@@ -586,6 +586,72 @@ class Referral(TimeStampedModel):
         verbose_name_plural = _("Referrals")
 
 
+class UserReferral(base_models.BaseModel):
+    """Track user referrals with payouts."""
+
+    USER_REFERRAL_STATUS_CHOICES = (
+        (constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM, constants.REFERRAL_STATUS_USER_ACTION_PENDING),
+        (constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM, constants.REFERRAL_STATUS_PAYMENT_DUE),
+        (constants.REFERRAL_STATUS_PAID_ENUM, constants.REFERRAL_STATUS_PAID),
+        (constants.REFERRAL_STATUS_PAYMENT_CANCELLED_ENUM, constants.REFERRAL_STATUS_PAYMENT_CANCELLED),
+    )
+
+    # User field denotes the new user who is referred by
+    # an existing Crater user.
+    user = models.OneToOneField(
+        get_user_model(),
+        related_name="referred_by",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    # Referrer field denotes the existing Crater user who
+    # has referred others.
+    referrer = models.ForeignKey(
+        get_user_model(),
+        related_name="referrals",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    # First stream the referred user watched for
+    # more than 20 minutes
+    stream = models.ForeignKey(
+        "conversations.Group",
+        related_name="referral_stream",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    # Amount to be paid for this referral.
+    amount = models.PositiveIntegerField(default=constants.REFERRAL_DEFAULT_PAYABLE_AMOUNT)
+    status = models.PositiveIntegerField(
+        default=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM,
+        choices=USER_REFERRAL_STATUS_CHOICES
+    )
+    # Date time when the referral was marked payment_due.
+    due_at = models.DateTimeField(null=True, blank=True)
+    # Date time when the amount was paid to the referrer.
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("User Referral")
+        verbose_name_plural = _("User Referrals")
+        unique_together = ["user", "referrer"]
+
+    def __str__(self):
+        return "{} ({})".format(self.user.name, self.user)
+
+    def mark_payment_due(self):
+        self.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
+        self.due_at = datetime.datetime.now()
+        self.save()
+
+    def mark_paid(self):
+        self.status = constants.REFERRAL_STATUS_PAID_ENUM
+        self.paid_at = datetime.datetime.now()
+        self.save()
+
+
 class Admin(User):
     proxy = True
 
@@ -674,14 +740,14 @@ class UserActivity(base_models.BaseModel):
 
 # TODO(Nishant): Remove this.
 @receiver(post_save, sender=CoverFile)
-def profile_post_save(sender, instance, created,  *args, **kwargs):
+def profile_post_save(sender, instance, created, *args, **kwargs):
     if created:
         transaction.on_commit(lambda: start_transcoding_for_cover_file.delay(instance.pk))
 
 
 # TODO(Nishant): Remove this.
 @receiver(post_save, sender=User)
-def user_post_save(sender, instance, created,  *args, **kwargs):
+def user_post_save(sender, instance, created, *args, **kwargs):
     if not (hasattr(instance, "notification_settings") and instance.notification_settings):
         UserNotificationsSettings.objects.create(user=instance)
     if created and not instance.subscriptions.filter(is_active=True):
