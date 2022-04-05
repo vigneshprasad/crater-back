@@ -1,12 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from crater.auth import models
-from crater.auth import private
-from crater.auth import constants
+from crater.auth import models, private, constants
+from users import models as user_models, services as user_services
 from wn_analytics import models as analytics_models
-from users import models as user_models
-from users import services as user_services
 
 
 class PhoneOtpSerializer(serializers.ModelSerializer):
@@ -91,8 +89,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        validated_data["used"] = True
 
+        validated_data["used"] = True
         utm_source = validated_data.pop("utm_source")
         utm_campaign = validated_data.pop("utm_campaign")
         utm_medium = validated_data.pop("utm_medium")
@@ -101,7 +99,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
         instance = super().update(instance, validated_data)
 
-        if (utm_source or utm_campaign) and is_new_user:
+        if (utm_source or utm_campaign or referrer) and is_new_user:
             # Only create if the user is a new user.
             analytics_models.UserSource.objects.create(
                 user=instance.user,
@@ -111,7 +109,13 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 referrer=referrer
             )
 
-        if not (utm_source and utm_medium) and referrer and is_new_user:
+        try:
+            referrer_user = get_user_model().objects.get(pk=referrer)
+        except get_user_model().DoesNotExist:
+            referrer_user = None
+
+        # If the referrer user is a creator don't create user referral.
+        if referrer_user and not referrer_user.is_creator and is_new_user:
             # Create user referral.
             user_services.create_user_referral(
                 new_user=instance.user,
