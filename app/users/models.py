@@ -596,7 +596,8 @@ class UserReferral(base_models.BaseModel):
         (constants.REFERRAL_STATUS_PAYMENT_CANCELLED_ENUM, constants.REFERRAL_STATUS_PAYMENT_CANCELLED),
     )
 
-    # `user` field denotes the new user who is referred by an existing Crater user.
+    # User field denotes the new user who is referred by
+    # an existing Crater user.
     user = models.OneToOneField(
         get_user_model(),
         related_name="referred_by",
@@ -604,13 +605,16 @@ class UserReferral(base_models.BaseModel):
         null=True
     )
 
-    # `referrer` field denotes the existing Crater user who has referred others.
+    # Referrer field denotes the existing Crater user who
+    # has referred others.
     referrer = models.ForeignKey(
         get_user_model(),
         related_name="referrals",
         on_delete=models.SET_NULL,
         null=True
     )
+    # First stream the referred user watched for
+    # more than 20 minutes
     stream = models.ForeignKey(
         "conversations.Group",
         related_name="referral_stream",
@@ -618,34 +622,34 @@ class UserReferral(base_models.BaseModel):
         null=True,
         blank=True
     )
+    # Amount to be paid for this referral.
     amount = models.PositiveIntegerField(default=constants.REFERRAL_DEFAULT_PAYABLE_AMOUNT)
     status = models.PositiveIntegerField(
         default=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM,
         choices=USER_REFERRAL_STATUS_CHOICES
     )
+    # Date time when the referral was marked payment_due.
     due_at = models.DateTimeField(null=True, blank=True)
+    # Date time when the amount was paid to the referrer.
     paid_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = _("User Referral")
         verbose_name_plural = _("User Referrals")
+        unique_together = ["user", "referrer"]
 
     def __str__(self):
         return "{} ({})".format(self.user.name, self.user)
 
-    def save(
-            self,
-            force_insert=False,
-            force_update=False,
-            using=None,
-            update_fields=None
-    ):
-        if self.status == constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM:
-            self.due_at = datetime.datetime.now()
-        elif self.status == constants.REFERRAL_STATUS_PAID_ENUM:
-            self.paid_at = datetime.datetime.now()
+    def mark_payment_due(self):
+        self.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
+        self.due_at = datetime.datetime.now()
+        self.save()
 
-        return super(UserReferral, self).save(force_insert, force_update, using, update_fields)
+    def mark_paid(self):
+        self.status = constants.REFERRAL_STATUS_PAID_ENUM
+        self.paid_at = datetime.datetime.now()
+        self.save()
 
 
 class Admin(User):

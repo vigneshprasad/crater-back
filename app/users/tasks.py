@@ -124,15 +124,18 @@ def update_user_referrals_status():
         last_online_at__isnull=False,
         dyte_meeting__group__closed=True,
         dyte_meeting__group__is_live=False,
+        dyte_meeting__group__is_published=True,
         dyte_meeting__group__start__lte=datetime.datetime.now(),
     )
 
     for dyte_meeting_participant in dyte_meeting_participants:
-        if (
+        # Get time spent on stream in minutes by the referred user.
+        time_spent_on_stream = (
                 dyte_meeting_participant.last_online_at - dyte_meeting_participant.dyte_meeting.group.start
-        ).total_seconds() / 60 >= 20:
-            referral = dyte_meeting_participant.participant.referred_by
+        ).total_seconds() / 60
 
-            referral.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
-            referral.stream = dyte_meeting_participant.dyte_meeting.group
-            referral.save()
+        if not time_spent_on_stream >= 20:
+            continue
+
+        referral = dyte_meeting_participant.participant.referred_by
+        referral.mark_payment_due()
