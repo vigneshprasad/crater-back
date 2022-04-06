@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from leaderboard import models
 
 
-@receiver(m2m_changed, sender=models.Leaderboard.creators.through)
+@receiver(m2m_changed, sender=models.Leaderboard.participants.through)
 def create_user_leaderboard(sender, instance, *args, **kwargs):
 
     action = kwargs.get("action")
@@ -17,6 +17,8 @@ def create_user_leaderboard(sender, instance, *args, **kwargs):
     if not pk_set:
         return None
 
+    # On addition of participant, create user leaderboard
+    # for the user and leaderboard.
     if action == "post_add":
         for user in pk_set:
             models.UserLeaderboard.objects.update_or_create(
@@ -27,6 +29,7 @@ def create_user_leaderboard(sender, instance, *args, **kwargs):
                 }
             )
 
+    # On removal, mark the user's leaderboard as inactive.
     if action == "post_remove":
         models.UserLeaderboard.objects.filter(
             user__in=pk_set

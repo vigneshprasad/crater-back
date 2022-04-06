@@ -6,6 +6,15 @@ from leaderboard import models, serializers
 from users import permissions
 
 
+class ChallengeViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin
+):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.Challenge.objects.filter(is_active=True)
+    serializer_class = serializers.ChallengeSerializer
+
+
 class LeaderboardViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
