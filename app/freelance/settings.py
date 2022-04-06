@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     "users",
     "utils",
     "consumers.chat",
+    "leaderboard",
     "locations",
     "tags",
     "community.groups",

@@ -1,7 +1,25 @@
-from django.db.models.signals import m2m_changed
+from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
 from leaderboard import models
+from leaderboard import tasks
+
+
+@receiver(post_save, sender=models.Challenge)
+def create_leaderboards_for_challenge(sender, instance, *args, **kwargs):
+    """Create leaderboards for challenge.
+
+    Args:
+        sender(Challenge.__class__): Class representation of Challenge.
+        instance(Challenge): Challenge object which was created.
+    """
+    if not kwargs.get("created"):
+        return
+
+    tasks.create_leaderboards_for_duration_types(
+        instance,
+        instance.duration_types
+    )
 
 
 @receiver(m2m_changed, sender=models.Leaderboard.participants.through)

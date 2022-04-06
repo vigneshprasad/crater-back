@@ -8,7 +8,8 @@ from users import permissions
 
 class ChallengeViewSet(
     mixins.ListModelMixin,
-    mixins.RetrieveModelMixin
+    mixins.RetrieveModelMixin,
+    GenericViewSet
 ):
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.Challenge.objects.filter(is_active=True)
