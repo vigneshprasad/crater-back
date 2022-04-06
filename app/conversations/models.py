@@ -253,6 +253,13 @@ class Group(base_model.BaseModel):
     approved_at = models.DateTimeField(null=True, blank=True)
     is_published = models.BooleanField(default=False)
 
+    total_minutes_spent = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = _("Group")

@@ -49,6 +49,13 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     last_online_at = models.DateTimeField(null=True, blank=True)
     is_online = models.BooleanField(default=False)
+    # Minutes spent on the livestream according to Dyte.
+    minutes_spent = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         unique_together = ["dyte_meeting", "participant"]
