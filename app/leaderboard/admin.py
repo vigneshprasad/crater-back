@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 
 from leaderboard import models
@@ -18,6 +19,15 @@ class ChallengeAdmin(admin.ModelAdmin):
     model = models.Challenge
     list_display = ("id", "name", "title", "all_categories", "all_duration_types", "is_active")
     list_editable = ("is_active", )
+    search_fields = (
+        "name",
+        "title",
+        "id"
+    )
+    list_filter = (
+        "is_active",
+        "duration_types"
+    )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     @staticmethod
@@ -35,6 +45,16 @@ class LeaderboardAdmin(admin.ModelAdmin):
     model = models.Leaderboard
     list_display = ("id", "challenge", "duration_type", "all_participants", "start", "end", "is_active")
     list_editable = ("is_active", )
+    search_fields = (
+        "challenge__title",
+        "challenge__id",
+        "id"
+    )
+    list_filter = (
+        "is_active",
+        "duration_type",
+        AutocompleteFilterFactory("Challenge", "challenge"),
+    )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     actions = ("add_challenge_participants", )
 
@@ -71,4 +91,9 @@ class UserLeaderboardAdmin(admin.ModelAdmin):
 
     model = models.UserLeaderboard
     list_display = ("id", "leaderboard", "user", "total_minutes", "rank")
+    raw_id_fields = ("leaderboard", "user", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    list_filter = (
+        "leaderboard__duration_type",
+        AutocompleteFilterFactory("Leaderboard", "leaderboard"),
+    )

@@ -16,7 +16,10 @@ def create_leaderboards_for_challenge(sender, instance, *args, **kwargs):
     if not kwargs.get("created"):
         return
 
-    tasks.create_leaderboards_for_challenge.delay(instance.id)
+    tasks.create_leaderboards_for_challenge.apply_async(
+        args=(instance.id,),
+        countdown=30
+    )
 
 
 @receiver(m2m_changed, sender=models.Challenge.participants.through)
