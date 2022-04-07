@@ -24,14 +24,14 @@ def update_user_leaderboards():
             minutes = conversations_models.Group.objects.filter(
                 host=host,
                 start__gte=leaderboard.start,
-                end__lte=leaderboards.end
+                end__lte=leaderboard.end
             ).aggregate(minutes=Sum("total_minutes"))["minutes"]
 
-            user_leaderboards.total_minutes = minutes
-            user_leaderboards.last_calculated_at = timezone.now()
-            user_leaderboards.save()
+            user_leaderboard.total_minutes = minutes
+            user_leaderboard.last_calculated_at = timezone.now()
+            user_leaderboard.save()
 
-        leaderboards.last_calculated_at = timezone.now()
+        leaderboard.last_calculated_at = timezone.now()
 
 
 @task
