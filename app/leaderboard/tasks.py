@@ -60,6 +60,26 @@ def create_leaderboards_for_challenge(challenge_id):
 
 
 @task
+def create_user_leaderboards_for_leaderboard(leaderboard_id):
+    """Creates leaderboard on a Challenge creation for the provided durations.
+
+    Args:
+        leaderboard_id(int): ID of challenge object that was created.
+
+    """
+    leaderboard = models.Leaderboard.objects.get(id=leaderboard_id)
+    participants = leaderboard.challenge.participants.all()
+    # Add challenge participants to the leaderboard.
+    leaderboard.participants.add(*participants)
+
+    for participant in participants:
+        models.UserLeaderboard.objects.get_or_create(
+            user=participant,
+            leaderboard=leaderboard
+        )
+
+
+@task
 def add_challenge_participants(leaderboard_ids):
     """Add challenge participants to leaderboard from challenge.
 
