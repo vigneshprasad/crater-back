@@ -1,9 +1,20 @@
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from base import models as base_models
 from leaderboard import constants
+
+
+class DurationType(base_models.BaseModel):
+    """Duration Type models."""
+    name = models.PositiveIntegerField(
+        choices=constants.LEADERBOARD_DURATION_CHOICES,
+        unique=True
+    )
+
+    def __str__(self):
+        duration_type_map = dict(constants.LEADERBOARD_DURATION_CHOICES)
+        return duration_type_map[self.name]
 
 
 class Challenge(base_models.BaseModel):
@@ -31,18 +42,23 @@ class Challenge(base_models.BaseModel):
     end = models.DateTimeField()
 
     # What durations are allowed for the challenge.
-    duration_types = ArrayField(
-        models.PositiveIntegerField(choices=constants.LEADERBOARD_DURATION_CHOICES),
-        max_length=4
-    )
+    duration_types = models.ManyToManyField(DurationType)
     # Challenge participants.
-    participants = models.ManyToManyField(get_user_model())
+    participants = models.ManyToManyField(
+        get_user_model(),
+        related_name="challenges",
+        blank=True
+    )
 
     # Rules for the challenge.
     rules = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.title
+
     def get_active_leaderboards(self):
+        """Return active leaderboards for Challenges."""
         return self.leaderboards.filter(is_active=True)
 
 
@@ -59,15 +75,18 @@ class Leaderboard(base_models.BaseModel):
     end = models.DateTimeField()
 
     # Creators that are part of the leaderboard.
-    duration_type = models.PositiveIntegerField(
-        choices=constants.LEADERBOARD_DURATION_CHOICES,
-        default=constants.LEADERBOARD_DURATION_MONTHLY_ENUM,
-        null=True,
-        blank=True
+    duration_type = models.ForeignKey(
+        DurationType,
+        related_name="leaderboards",
+        on_delete=models.PROTECT
     )
 
     # All participants of the leaderboard.
-    participants = models.ManyToManyField(get_user_model())
+    participants = models.ManyToManyField(
+        get_user_model(),
+        related_name="leaderboards",
+        blank=True
+    )
     is_active = models.BooleanField(default=True)
 
     # Denotes when the leaderboard was last calculated.
@@ -76,7 +95,14 @@ class Leaderboard(base_models.BaseModel):
         blank=True
     )
 
+    # class Meta:
+    #     unique_together = ["challenge", "duration_type", "is_active"]
+
+    def __str__(self):
+        return "{} - {}".format(self.challenge.title, self.duration_type.__str__())
+
     def get_active_user_leaderboards(self):
+        """Return active user leaderboard for the Leaderboard."""
         return self.user_leaderboards.filter(is_active=True)
 
 
@@ -110,3 +136,6 @@ class UserLeaderboard(base_models.BaseModel):
         null=True,
         blank=True
     )
+
+    def __str__(self):
+        return "{} ()".format(self.user, self.leaderboard)

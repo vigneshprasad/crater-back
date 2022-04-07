@@ -507,7 +507,7 @@ DYTE_ORD_ID = os.getenv("DYTE_ORG_ID", "a446c4de-979e-4d4f-97f7-2b695e75ef90")
 DYTE_APP_ID = os.getenv("DYTE_APP_ID", "649454884b7925512fae")
 
 DYTE_PROD_BASE_URL = "https://api.cluster.dyte.in"
-DYTE_JOIN_MEETING_BASE_URL = "https://worknetwork.dyte.io/"
+DYTE_JOIN_MEETING_BASE_URL = "https://crater.dyte.io/"
 
 # -------------- STRIPE ------------- #
 STRIPE_PUBLISHABLE_KEY = os.environ.get(

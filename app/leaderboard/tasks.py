@@ -35,18 +35,19 @@ def update_user_leaderboards():
 
 
 @task
-def create_leaderboards_for_duration_types(challenge, duration_types):
+def create_leaderboards_for_challenge(challenge_id):
     """Creates leaderboard on a Challenge creation for the provided durations.
 
     Args:
-        challenge(Challenge): Challenge object that was created.
-        duration_types(list): List of duration types we have to create
-            leaderboards for.
+        challenge_id(int): ID of challenge object that was created.
 
     """
+    challenge = models.Challenge.objects.get(id=challenge_id)
+    duration_types = challenge.duration_types.all()
+
     for duration_type in duration_types:
 
-        duration = constants.DURATION_TYPE_TO_DAYS_MAP[duration_type]
+        duration = constants.DURATION_TYPE_TO_DAYS_MAP[duration_type.name]
         start = challenge.start
         end = start + datetime.timedelta(days=duration)
 
@@ -60,11 +61,18 @@ def create_leaderboards_for_duration_types(challenge, duration_types):
 
 @task
 def add_challenge_participants(leaderboard_ids):
-    """Add challenge participants to leaderboard from challenge."""
+    """Add challenge participants to leaderboard from challenge.
+
+    Args:
+        leaderboard_ids(list): List of leaderboard ids for which
+            we have to add participants.
+
+    """
     leaderboards = models.Leaderboard.objects.filter(id__in=leaderboard_ids)
 
     for leaderboard in leaderboards:
         participants = leaderboard.challenge.participants.all()
+
         for participant in participants:
             models.UserLeaderboard.objects.get_or_create(
                 user=participant,

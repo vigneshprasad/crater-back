@@ -10,7 +10,7 @@ from integrations.dyte import models, service
 dyte_service = service.dyte_service
 
 
-@periodic_task(crontab(run_every="*/5"))
+@periodic_task(run_every=crontab("*/5"))
 def get_minutes_for_live_streams():
     """Get minutes of live streams from Dyte's end and update on
         our models.
@@ -24,7 +24,7 @@ def get_minutes_for_live_streams():
     live_groups = conversations_models.Group.objects.filter(
         is_live=True,
         is_published=True,
-        is_closed=False,
+        closed=False,
         start__lte=now
     )
 
@@ -60,7 +60,7 @@ def get_minutes_for_all_streams_for_the_day():
     yesterday = today - datetime.timedelta(days=1)
     groups_in_the_last_day = conversations_models.Group.objects.filter(
         is_published=True,
-        is_closed=True,
+        closed=True,
         start__lte=today,
         start__gte=yesterday
     )

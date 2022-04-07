@@ -4,28 +4,32 @@ from leaderboard import models
 from leaderboard import tasks
 
 
+@admin.register(models.DurationType)
+class DurationTypeAdmin(admin.ModelAdmin):
+
+    model = models.DurationType
+    list_display = ("id", "name", )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
+@admin.register(models.Challenge)
 class ChallengeAdmin(admin.ModelAdmin):
 
     model = models.Challenge
-    list_display = ("id", "name", "title", "all_categories", "duration_types", "is_active")
+    list_display = ("id", "name", "title", "all_categories", "all_duration_types", "is_active")
     list_editable = ("is_active", )
-
-    # def save_model(self, request, obj, form, change):
-    #     result = super(ChallengeAdmin, self).save_model(request, obj, form, change)
-    #     if not change:
-    #         fields_changed = form.changed_data
-    #         cleaned_data = form.cleaned_data
-    #         if "duration_types" in fields_changed:
-    #             if cleaned_data["duration_types"]:
-    #                 duration_type = cleaned_data["duration_types"]
-    #                 # tasks.create_leaderboards_for_duration_types(obj)
-    #     return result
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     @staticmethod
     def all_categories(obj):
         return [category.__str__() for category in obj.categories.all()]
 
+    @staticmethod
+    def all_duration_types(obj):
+        return [duration.__str__() for duration in obj.duration_types.all()]
 
+
+@admin.register(models.Leaderboard)
 class LeaderboardAdmin(admin.ModelAdmin):
 
     model = models.Leaderboard
@@ -62,8 +66,9 @@ class LeaderboardAdmin(admin.ModelAdmin):
     add_challenge_participants.short_description = "Add all challenge participants"
 
 
+@admin.register(models.UserLeaderboard)
 class UserLeaderboardAdmin(admin.ModelAdmin):
 
     model = models.UserLeaderboard
-    list_display = ("id", "leaderboard__challenge", "user", "total_minutes", "rank")
+    list_display = ("id", "leaderboard", "user", "total_minutes", "rank")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
