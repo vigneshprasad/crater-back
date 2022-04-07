@@ -48,7 +48,9 @@ class LeaderboardAdmin(admin.ModelAdmin):
     search_fields = (
         "challenge__title",
         "challenge__id",
-        "id"
+        "id",
+        "participants__username",
+        "participants__name",
     )
     list_filter = (
         "is_active",

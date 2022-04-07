@@ -71,7 +71,10 @@ def add_challenge_participants(leaderboard_ids):
     leaderboards = models.Leaderboard.objects.filter(id__in=leaderboard_ids)
 
     for leaderboard in leaderboards:
+
         participants = leaderboard.challenge.participants.all()
+        # Add all participants to leaderboard as well.
+        leaderboard.participants.add(*participants)
 
         for participant in participants:
             models.UserLeaderboard.objects.get_or_create(
