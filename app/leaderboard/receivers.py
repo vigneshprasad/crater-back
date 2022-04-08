@@ -12,6 +12,7 @@ def create_leaderboards_for_challenge(sender, instance, *args, **kwargs):
     Args:
         sender(Challenge.__class__): Class representation of Challenge.
         instance(Challenge): Challenge object which was created.
+
     """
     if not kwargs.get("created"):
         return
