@@ -30,10 +30,15 @@ def get_minutes_for_live_streams():
 
     for group in live_groups:
         stats = dyte_service.get_stats_for_meeting(group)
+        total_minutes_spent_by_attendees = 0
+        total_minutes_spent_by_host = 0
+
+        if not stats:
+            continue
+
         for stat in stats:
             user_pk = stat["clientSpecificId"]
             total_minutes = stat["totalMinutes"]
-
             try:
                 dyte_participant = models.DyteMeetingParticipant.objects.get(
                     dyte_meeting__group=group,
@@ -42,8 +47,20 @@ def get_minutes_for_live_streams():
             except models.DyteMeetingParticipant.DoesNotExist:
                 continue
 
+            # Add dyte minutes to the dyte participant object.
             dyte_participant.minutes_spent = total_minutes
             dyte_participant.save()
+
+            # Add host and attendee minutes separately.
+            if dyte_participant.participant == group.host:
+                total_minutes_spent_by_host += total_minutes
+            else:
+                total_minutes_spent_by_attendees += total_minutes
+
+        # Add these minutes to the group object.
+        group.total_minutes_spent_by_attendees = total_minutes_spent_by_attendees
+        group.total_minutes_spent_by_host = total_minutes_spent_by_host
+        group.save()
 
 
 @periodic_task(run_every=crontab(hour="5", minute="30"))
@@ -66,13 +83,16 @@ def get_minutes_for_all_streams_for_the_day():
     )
 
     for group in groups_in_the_last_day:
-
         stats = dyte_service.get_stats_for_meeting(group)
-        total_minutes_spent = 0
+        total_minutes_spent_by_attendees = 0
+        total_minutes_spent_by_host = 0
+
+        if not stats:
+            continue
+
         for stat in stats:
             user_pk = stat["clientSpecificId"]
             total_minutes = stat["totalMinutes"]
-
             try:
                 dyte_participant = models.DyteMeetingParticipant.objects.get(
                     dyte_meeting__group=group,
@@ -81,9 +101,17 @@ def get_minutes_for_all_streams_for_the_day():
             except models.DyteMeetingParticipant.DoesNotExist:
                 continue
 
+            # Add dyte minutes to the dyte participant object.
             dyte_participant.minutes_spent = total_minutes
             dyte_participant.save()
-            total_minutes_spent += total_minutes
 
-        group.total_minutes_spent = total_minutes_spent
+            # Add host and attendee minutes separately.
+            if dyte_participant.participant == group.host:
+                total_minutes_spent_by_host += total_minutes
+            else:
+                total_minutes_spent_by_attendees += total_minutes
+
+        # Add these minutes to the group object.
+        group.total_minutes_spent_by_attendees = total_minutes_spent_by_attendees
+        group.total_minutes_spent_by_host = total_minutes_spent_by_host
         group.save()

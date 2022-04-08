@@ -26,7 +26,7 @@ def update_user_leaderboards():
                 host=host,
                 start__gte=leaderboard.start,
                 end__lte=leaderboard.end
-            ).aggregate(minutes=Sum("total_minutes_spent"))
+            ).aggregate(minutes=Sum("total_minutes_spent_by_attendees"))
             minutes = groups_minute_aggregate["minutes"]
 
             user_leaderboard.total_minutes = minutes or 0
