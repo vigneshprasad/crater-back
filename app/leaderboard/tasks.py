@@ -19,15 +19,17 @@ def update_user_leaderboards():
 
     for leaderboard in leaderboards:
         user_leaderboards = leaderboard.user_leaderboards.filter(is_active=True)
+
         for user_leaderboard in user_leaderboards:
             host = user_leaderboard.user
-            minutes = conversations_models.Group.objects.filter(
+            groups_minute_aggregate = conversations_models.Group.objects.filter(
                 host=host,
                 start__gte=leaderboard.start,
                 end__lte=leaderboard.end
-            ).aggregate(minutes=Sum("total_minutes"))["minutes"]
+            ).aggregate(minutes=Sum("total_minutes_spent"))
+            minutes = groups_minute_aggregate["minutes"]
 
-            user_leaderboard.total_minutes = minutes
+            user_leaderboard.total_minutes = minutes or 0
             user_leaderboard.last_calculated_at = timezone.now()
             user_leaderboard.save()
 
