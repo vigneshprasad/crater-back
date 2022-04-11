@@ -109,13 +109,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 referrer=referrer
             )
 
-        try:
-            referrer_user = get_user_model().objects.get(pk=referrer)
-        except get_user_model().DoesNotExist:
-            referrer_user = None
-
         # If the referrer user is a creator don't create user referral.
-        if referrer_user and not referrer_user.is_creator and is_new_user:
+        if referrer and not referrer.is_creator and is_new_user:
             # Create user referral.
             user_services.create_user_referral(
                 new_user=instance.user,
