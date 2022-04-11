@@ -21,8 +21,10 @@ from rest_framework import exceptions
 from rest_framework import serializers
 from django.contrib.auth.models import Group
 
+from base import serializers as base_serializers
 from tags import models as tag_models
 from tags import serializers as tag_serializers
+
 from utils import messages
 from utils import fields
 from utils.instagram_service import instagram_service
@@ -32,6 +34,7 @@ from users import validators
 from users import signals
 from users import services
 from wn_analytics import models as wn_analytics_models
+from conversations import models as conversations_models
 
 
 logger = logging.getLogger("django.request")
@@ -958,3 +961,37 @@ class ProfileExtraInfoMetaSerializer(serializers.ModelSerializer):
             "companies_invested": services.get_companies_invested_field_info(),
             "other_tag": services.get_other_tag_field_info(),
         }
+
+
+class UserReferralStreamSerializer(serializers.ModelSerializer):
+    topic = serializers.StringRelatedField(source="topic.name", read_only=True)
+
+    class Meta:
+        model = conversations_models.Group
+        fields = (
+            "id",
+            "topic",
+            "start",
+        )
+
+
+class UserReferralSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.name", read_only=True)
+    referrer = serializers.CharField(source="referrer.name", read_only=True)
+    stream_detail = UserReferralStreamSerializer(source="stream", read_only=True)
+    status = base_serializers.DisplayChoiceField(
+        read_only=True,
+        choices=models.UserReferral.USER_REFERRAL_STATUS_CHOICES
+    )
+
+    class Meta:
+        model = models.UserReferral
+        fields = (
+            "id",
+            "user",
+            "referrer",
+            "amount",
+            "status",
+            "stream_detail",
+        )
+        read_only_fields = fields
