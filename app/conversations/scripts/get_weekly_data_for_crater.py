@@ -6,20 +6,18 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count, Q
 from django.utils import timezone
 
-from conversations import constants
-from conversations import models
+from conversations import constants, models
 from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
 from integrations.dyte.service import dyte_service
-from wn_analytics import models as analytics_models
 from users import constants as user_constants
-
+from wn_analytics import models as analytics_models
 
 DATE_JOINED_DURATION_CHOICES = [
     24,
-    7*24,
-    14*24,
-    30*24
+    7 * 24,
+    14 * 24,
+    30 * 24
 ]
 
 # Default start date in case not provided.
@@ -50,6 +48,156 @@ DEVSCRIPT_SOURCE = "Dev Script"
 DEVSCRIPT_HOST_CREATOR = "+917350560609"
 
 
+def _filter_group_where_host_went_live(groups):
+    """Returns groups where the host went live.
+
+    Args:
+        groups(Queryset): Groups queryset we are filtering.
+
+    """
+    group_ids = []
+    for group in groups:
+        dmps = dyte_models.DyteMeetingParticipant.objects.filter(
+            participant=group.host,
+            dyte_meeting__group__host=group.host,
+            last_online_at__isnull=False
+        )
+        # If the host didn't go online, don't add to
+        # list of groups.
+        if not dmps:
+            continue
+        group_ids.append(group.id)
+
+    # Return a queryset from here.
+    return models.Group.objects.filter(id__in=group_ids)
+
+
+published_streams = models.Group.objects.filter(
+    is_published=True,
+    type=constants.GROUP_TYPE_WEBINAR_ENUM
+)
+
+# Only including groups where host went live.
+published_streams_went_live = _filter_group_where_host_went_live(published_streams)
+
+
+def get_data_for_groups_by_duration(start_date=None, end_date=None):
+    """Get data for groups for duration.
+
+    Returns:
+        CSV output for per session data between start and end.
+
+    """
+    start_datetime = None
+    end_datetime = None
+
+    if not start_date:
+        start_date = DEFAULT_ORGANIC_USERS_START_DATE
+        start_datetime = start_date.date()
+
+    if not end_date:
+        end_date = timezone.now()
+        end_datetime = end_date.date()
+
+    start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+    end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    groups = published_streams_went_live.filter(
+        start__gte=start_datetime,
+        start__lte=end_datetime
+    ).exclude(
+        host__username=DEVSCRIPT_HOST_CREATOR
+    )
+
+    for group in groups:
+
+        rsvps = models.Request.objects.filter(group=group)
+        req_count = 0
+        organic_rsvp = 0
+
+        for rsvp in rsvps.all():
+            if rsvp.requester.email in EMAIL_TO_EXCLUDE:
+                continue
+            req_count += 1
+            if rsvp.requester.date_joined.date() < DEFAULT_ORGANIC_USERS_START_DATE.date():
+                continue
+            us = analytics_models.UserSource.objects.filter(user=rsvp.requester).last()
+            if not us:
+                organic_rsvp += 1
+
+        dyte_meeting = dyte_models.DyteMeeting.objects.get(group=group)
+        dmps = dyte_models.DyteMeetingParticipant.objects.filter(
+            dyte_meeting=dyte_meeting,
+            last_online_at__isnull=False
+        ).exclude(
+            participant__user_source__utm_source=DEVSCRIPT_SOURCE
+        )
+
+        host_dmp = dyte_models.DyteMeetingParticipant.objects.filter(
+            dyte_meeting=dyte_meeting,
+            participant=group.host,
+            last_online_at__isnull=False
+        ).exclude(
+            participant__username=DEVSCRIPT_HOST_CREATOR
+        )
+        if not len(host_dmp) == 1:
+            host_end = group.start
+        else:
+            host_end = host_dmp[0].last_online_at
+
+        online_count = 0
+        completion = 0
+        organic_online = 0
+        for dmp in dmps.all():
+            if dmp.participant.email in EMAIL_TO_EXCLUDE:
+                continue
+            if dmp.participant.email == group.host.email:
+                continue
+            online_count += 1
+            if (host_end - dmp.last_online_at).total_seconds() > 420:
+                completion += 1
+            if dmp.participant.date_joined.date() < DEFAULT_ORGANIC_USERS_START_DATE.date():
+                continue
+            us = analytics_models.UserSource.objects.filter(
+                user=dmp.participant,
+            ).last()
+            if not us or us.referrer:
+                organic_online += 1
+
+        categories = group.categories.all()
+        categories_str = ""
+        for category in categories:
+            categories_str += category.name + ", "
+
+        dyte_data = dyte_service.get_stats_for_meeting(group)
+        dyte_online = len(dyte_data)
+        dyte_time_spent = 0
+        for d in dyte_data:
+            dyte_time_spent += d["totalMinutes"]
+
+        users_who_messaged = models.GroupMessage.objects.filter(
+            group=group
+        ).exclude(
+            sender__email__in=EMAIL_TO_EXCLUDE
+        ).values("sender").distinct().count()
+
+        print(
+            group.pk, "#",
+            group.host, "#",
+            group.topic, "#",
+            group.start, "#",
+            categories_str, "#",
+            req_count, "#",
+            organic_rsvp, "#",
+            online_count, "#",
+            completion, "#",
+            organic_online, "#",
+            dyte_online, "#",
+            round(dyte_time_spent, 2), "#",
+            users_who_messaged, "#"
+        )
+
+
 def run(start_date, end_date):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -57,7 +205,6 @@ def run(start_date, end_date):
 
 
 def all_data(start_date, end_date):
-
     # Total users.
     total_users = get_total_number_of_users(start_date=start_date, end_date=end_date)
     total_user_since_organic = get_total_users_since_organic(end_date=end_date)
@@ -73,18 +220,38 @@ def all_data(start_date, end_date):
     # Get first went online.
     first_online = get_number_of_streams_watched_by_participant(start_date=start_date, end_date=end_date)
     # Get second went online.
-    second_online = get_number_of_streams_watched_by_participant(start_date=start_date, end_date=end_date, online_count=2)
+    second_online = get_number_of_streams_watched_by_participant(
+        start_date=start_date,
+        end_date=end_date,
+        online_count=2
+    )
     # Get third went online.
-    third_online = get_number_of_streams_watched_by_participant(start_date=start_date, end_date=end_date, online_count=3)
+    third_online = get_number_of_streams_watched_by_participant(
+        start_date=start_date,
+        end_date=end_date,
+        online_count=3
+    )
 
     # Get RSVP/Online after 24 hours.
     rsvp_after_24_hours = get_rsvp_after_date_joined_duration(start_date=start_date, end_date=end_date)
     # Get RSVP/Online after 7 days.
-    rsvp_after_7_days = get_rsvp_after_date_joined_duration(start_date=start_date, end_date=end_date, duration=7*24)
+    rsvp_after_7_days = get_rsvp_after_date_joined_duration(
+        start_date=start_date,
+        end_date=end_date,
+        duration=7 * 24
+    )
     # Get RSVP/Online after 14 days.
-    rsvp_after_14_days = get_rsvp_after_date_joined_duration(start_date=start_date, end_date=end_date, duration=14*24)
+    rsvp_after_14_days = get_rsvp_after_date_joined_duration(
+        start_date=start_date,
+        end_date=end_date,
+        duration=14 * 24
+    )
     # Get RSVP/Online after 30 days.
-    rsvp_after_30_days = get_rsvp_after_date_joined_duration(start_date=start_date, end_date=end_date, duration=30*24)
+    rsvp_after_30_days = get_rsvp_after_date_joined_duration(
+        start_date=start_date,
+        end_date=end_date,
+        duration=30 * 24
+    )
 
     # Get total steamers.
     total_streamers = get_total_streamers(start_date=start_date, end_date=end_date)
@@ -93,11 +260,23 @@ def all_data(start_date, end_date):
     # Get stream performed after 24 hours.
     streams_after_24_hours = get_stream_performed_after_duration(start_date=start_date, end_date=end_date)
     # Get stream performed after 7 days.
-    streams_after_7_days = get_stream_performed_after_duration(start_date=start_date, end_date=end_date, duration=7*24)
+    streams_after_7_days = get_stream_performed_after_duration(
+        start_date=start_date,
+        end_date=end_date,
+        duration=7 * 24
+    )
     # Get stream performed after 14 days.
-    streams_after_14_days = get_stream_performed_after_duration(start_date=start_date, end_date=end_date, duration=14*24)
+    streams_after_14_days = get_stream_performed_after_duration(
+        start_date=start_date,
+        end_date=end_date,
+        duration=14 * 24
+    )
     # Get stream performed after 30 days.
-    streams_after_30_days = get_stream_performed_after_duration(start_date=start_date, end_date=end_date, duration=30*24)
+    streams_after_30_days = get_stream_performed_after_duration(
+        start_date=start_date,
+        end_date=end_date,
+        duration=30 * 24
+    )
 
     # DAU for duration.
     dau = get_dau_for_duration(start_date=start_date, end_date=end_date)
@@ -145,9 +324,9 @@ def all_data(start_date, end_date):
     total_followers = get_total_followers(start_date=start_date, end_date=end_date)
     total_subscribers = get_total_subscribers(start_date=start_date, end_date=end_date)
 
-    print("Total no. of users",  total_users)
-    print("Total no. of users since organic",  total_user_since_organic)
-    print("Organic users",  organic_users)
+    print("Total no. of users", total_users)
+    print("Total no. of users since organic", total_user_since_organic)
+    print("Organic users", organic_users)
     print("\n")
 
     print("First RSVP", first_rsvp)
@@ -206,11 +385,11 @@ def all_data(start_date, end_date):
     print("\n")
 
 
-def get_data_for_groups_by_duration(start_date=None, end_date=None):
-    """Get data for groups for duration.
+def get_streams_not_gone_live_for_duration(start_date=None, end_date=None):
+    """Return count of published stream that didn't go live.
 
-    Returns:
-        CSV output for per session data between start and end.
+    Data Point:
+        Stream not went live.
 
     """
     start_datetime = None
@@ -224,101 +403,13 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
         end_date = timezone.now()
         end_datetime = end_date.date()
 
-    start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
-    end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
-
-    groups = models.Group.objects.filter(
-        start__gte=start_datetime,
-        start__lte=end_datetime,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
-    ).exclude(
-        host__username=DEVSCRIPT_HOST_CREATOR
+    published_streams_not_went_live = published_streams.difference(
+        published_streams_went_live
     )
+    for published_stream_not_went_live in published_streams_not_went_live:
+        print(published_streams_not_went_live.id)
 
-    for group in groups:
-
-        rsvps = models.Request.objects.filter(group=group)
-
-        req_count = 0
-        organic_rsvp = 0
-
-        for rsvp in rsvps.all():
-            if rsvp.requester.email in EMAIL_TO_EXCLUDE:
-                continue
-            req_count += 1
-            if rsvp.requester.date_joined.date() < DEFAULT_ORGANIC_USERS_START_DATE.date():
-                continue
-            us = analytics_models.UserSource.objects.filter(user=rsvp.requester).last()
-            if not us:
-                organic_rsvp += 1
-
-        dyte_meeting = dyte_models.DyteMeeting.objects.get(group=group)
-        dmps = dyte_models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting=dyte_meeting,
-            last_online_at__isnull=False
-        ).exclude(
-            participant__user_source__utm_source=DEVSCRIPT_SOURCE
-        )
-
-        host_dmp = dyte_models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting=dyte_meeting, participant=group.host, last_online_at__isnull=False
-        ).exclude(
-            participant__username=DEVSCRIPT_HOST_CREATOR
-        )
-        if not len(host_dmp) == 1:
-            host_end = group.start
-        else:
-            host_end = host_dmp[0].last_online_at
-
-        online_count = 0
-        completion = 0
-        organic_online = 0
-        for dmp in dmps.all():
-            if dmp.participant.email in EMAIL_TO_EXCLUDE:
-                continue
-            if dmp.participant.email == group.host.email:
-                continue
-            online_count += 1
-            if (host_end - dmp.last_online_at).total_seconds() > 420:
-                completion += 1
-            if dmp.participant.date_joined.date() < DEFAULT_ORGANIC_USERS_START_DATE.date():
-                continue
-            us = analytics_models.UserSource.objects.filter(user=dmp.participant).last()
-            if not us:
-                organic_online += 1
-
-        categories = group.categories.all()
-        categories_str = ""
-        for category in categories:
-            categories_str += category.name + ", "
-
-        dyte_data = dyte_service.get_stats_for_meeting(group)
-        dyte_online = len(dyte_data)
-        dyte_time_spent = 0
-        for d in dyte_data:
-            dyte_time_spent += d["totalMinutes"]
-
-        users_who_messaged = models.GroupMessage.objects.filter(
-            group=group
-        ).exclude(
-            sender__email__in=EMAIL_TO_EXCLUDE
-        ).values("sender").distinct().count()
-
-        print(
-            group.pk, "#",
-            group.host, "#",
-            group.topic, "#",
-            group.start, "#",
-            categories_str, "#",
-            req_count, "#",
-            organic_rsvp, "#",
-            online_count, "#",
-            completion, "#",
-            organic_online, "#",
-            dyte_online, "#",
-            dyte_time_spent, "#",
-            users_who_messaged, "#"
-        )
+    return published_streams_not_went_live.count()
 
 
 def get_organic_users_for_duration(start_date=None, end_date=None):
@@ -381,13 +472,15 @@ def get_total_streamers(start_date=None, end_date=None):
 
     start_datetime = start_datetime if start_datetime > GLOBAL_START.date() else GLOBAL_START.date()
 
-    return models.Group.objects.filter(
+    hosts = published_streams_went_live.filter(
         start__gte=start_datetime,
         start__lte=end_datetime,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
-    ).exclude(
-        host__username=DEVSCRIPT_HOST_CREATOR
-    ).values("host").distinct().count()
+        host__creator__is_active=True
+    ).values_list("host", flat=True)
+    # Make the hosts unique.
+    hosts = list(set(hosts))
+
+    return len(hosts)
 
 
 def get_total_followers(start_date=None, end_date=None):
@@ -413,7 +506,8 @@ def get_total_followers(start_date=None, end_date=None):
 
     return creator_models.Follower.objects.filter(
         created_at__gte=start_datetime,
-        created_at__lte=end_datetime
+        created_at__lte=end_datetime,
+        creator__is_active=True
     ).exclude(
         user__user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
@@ -444,6 +538,7 @@ def get_total_subscribers(start_date=None, end_date=None):
     return creator_models.Follower.objects.filter(
         updated_at__gte=start_datetime,
         updated_at__lte=end_datetime,
+        creator__is_active=True,
         notify=True
     ).exclude(
         user__user_source__utm_source=DEVSCRIPT_SOURCE
@@ -481,7 +576,6 @@ def get_mau_for_duration(start_date=None, end_date=None):
     start = start_datetime
 
     for i in range(0, months):
-
         end = start + relativedelta.relativedelta(months=1)
         unique_rsvps = models.Request.objects.filter(
             created_at__gte=start,
@@ -493,7 +587,7 @@ def get_mau_for_duration(start_date=None, end_date=None):
         all_rsvps += unique_rsvps.count()
         start += relativedelta.relativedelta(months=1)
 
-    return round(all_rsvps/months, 2)
+    return round(all_rsvps / months, 2)
 
 
 def get_wau_for_duration(start_date=None, end_date=None):
@@ -522,13 +616,12 @@ def get_wau_for_duration(start_date=None, end_date=None):
 
     time_spent = end_datetime - start_datetime
     days = time_spent.days
-    weeks = int(days/7)
+    weeks = int(days / 7)
 
     all_rsvps = 0
     start = start_datetime
 
     for i in range(0, weeks):
-
         end = start + timezone.timedelta(days=7)
         unique_rsvps = models.Request.objects.filter(
             created_at__gte=start,
@@ -540,7 +633,7 @@ def get_wau_for_duration(start_date=None, end_date=None):
         all_rsvps += unique_rsvps.count()
         start += timezone.timedelta(days=7)
 
-    return round(all_rsvps/weeks, 2)
+    return round(all_rsvps / weeks, 2)
 
 
 def get_dau_for_duration(start_date=None, end_date=None):
@@ -573,7 +666,6 @@ def get_dau_for_duration(start_date=None, end_date=None):
     start = start_datetime
 
     for i in range(0, days):
-
         end = start + timezone.timedelta(days=1)
         unique_rsvps = models.Request.objects.filter(
             created_at__gte=start,
@@ -585,7 +677,7 @@ def get_dau_for_duration(start_date=None, end_date=None):
         all_rsvps += unique_rsvps.count()
         start += timezone.timedelta(days=1)
 
-    return round(all_rsvps/days, 2)
+    return round(all_rsvps / days, 2)
 
 
 def get_organic_creators(start_date=None, end_date=None):
@@ -609,13 +701,20 @@ def get_organic_creators(start_date=None, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    return creator_models.Creator.objects.filter(
+    # List of host that went live in the duration.
+    hosts = set(list(published_streams_went_live.values_list("host", flat=True)))
+
+    # Get creators that have gone live in the past.
+    organic_creators = creator_models.Creator.objects.filter(
         created_at__gte=start_date,
         created_at__lte=end_date,
-        point_of_contact__isnull=True
-    ).exclude(
-        user__user_source__utm_source=DEVSCRIPT_SOURCE
-    ).count()
+        # point_of_contact__isnull=True,
+        prospector__isnull=True,
+        is_active=True,
+        user__in=hosts
+    )
+
+    return organic_creators.count()
 
 
 def get_total_users_since_organic(start_date=None, end_date=None):
@@ -732,14 +831,14 @@ def get_number_of_streams_watched_by_participant(start_date=None, end_date=None,
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
     number_of_streams_joined = dyte_models.DyteMeetingParticipant.objects.filter(
-            updated_at__gte=start_date,
-            updated_at__lte=end_date,
-            last_online_at__isnull=False
-        ).exclude(
-            participant__user_source__utm_source=DEVSCRIPT_SOURCE
-        ).values("participant_id").annotate(
-            participant_count=Count("participant_id")
-        ).filter(participant_count__gte=online_count)
+        updated_at__gte=start_date,
+        updated_at__lte=end_date,
+        last_online_at__isnull=False
+    ).exclude(
+        participant__user_source__utm_source=DEVSCRIPT_SOURCE
+    ).values("participant_id").annotate(
+        participant_count=Count("participant_id")
+    ).filter(participant_count__gte=online_count)
 
     return number_of_streams_joined.count()
 
@@ -816,31 +915,27 @@ def get_stream_performed_after_duration(start_date=None, end_date=None, duration
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
     number_of_streams_after_duration = []
+    streams_after_duration = 0
 
-    speakers = models.Group.objects.filter(
+    published_streams_went_live_within_duration = published_streams_went_live.filter(
         start__gte=start_date,
-        start__lte=end_date,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
-    ).values_list("host", flat=True)
+        start__lte=end_date
+    ).order_by("start")
 
-    for speaker in speakers:
-        groups = models.Group.objects.filter(
-            speakers=speaker,
-            start__gte=start_date,
-            start__lte=end_date
-        ).order_by("start")
+    hosts = published_streams_went_live_within_duration.values_list("host", flat=True)
+    hosts = list(set(hosts))
+
+    for host in hosts:
+        groups = published_streams_went_live_within_duration.filter(host=host)
         if groups.count() <= 1:
-            continue
-
-        if speaker in number_of_streams_after_duration:
             continue
 
         first_stream = groups.first()
         last_stream = groups.last()
         if last_stream.start - first_stream.start > timezone.timedelta(hours=duration):
-            number_of_streams_after_duration.append(speaker)
+            streams_after_duration += 1
 
-    return len(number_of_streams_after_duration)
+    return streams_after_duration
 
 
 def get_average_minutes_on_streams_participants(start_date=None, end_date=None):
@@ -866,10 +961,9 @@ def get_average_minutes_on_streams_participants(start_date=None, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    groups = models.Group.objects.filter(
+    groups = published_streams_went_live.filter(
         start__gte=start_date,
-        start__lte=end_date,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
+        start__lte=end_date
     ).exclude(
         host__username=DEVSCRIPT_HOST_CREATOR
     )
@@ -879,7 +973,9 @@ def get_average_minutes_on_streams_participants(start_date=None, end_date=None):
     total_stream_time = 0
 
     for group in groups:
-        total_time_for_stream, avg_time_for_stream, participants_joined = _get_minutes_spent_by_participants_on_stream(group)
+        total_time_for_stream, avg_time_for_stream, participants_joined = _get_minutes_spent_by_participants_on_stream(
+            group
+        )
         if not avg_time_for_stream:
             continue
 
@@ -887,7 +983,7 @@ def get_average_minutes_on_streams_participants(start_date=None, end_date=None):
         total_stream_time += total_time_for_stream
         total_participants += participants_joined
 
-    avg_time_spent = (total_stream_time/total_participants) if total_participants else 0
+    avg_time_spent = (total_stream_time / total_participants) if total_participants else 0
     return total_stream_time, round(avg_time_spent, 2), total_participants
 
 
@@ -914,10 +1010,9 @@ def get_average_minutes_on_streams_hosts(start_date=None, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    groups = models.Group.objects.filter(
+    groups = published_streams_went_live.filter(
         start__gte=start_date,
-        start__lte=end_date,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
+        start__lte=end_date
     ).exclude(
         host__username=DEVSCRIPT_HOST_CREATOR
     )
@@ -935,7 +1030,7 @@ def get_average_minutes_on_streams_hosts(start_date=None, end_date=None):
         total_stream_time += total_time_for_stream
         total_speakers += speakers_joined
 
-    avg_time_spent = (total_stream_time/total_speakers) if total_speakers else 0
+    avg_time_spent = (total_stream_time / total_speakers) if total_speakers else 0
     return total_stream_time, round(avg_time_spent, 2), total_speakers
 
 
@@ -960,10 +1055,9 @@ def total_number_of_streams(start_date=None, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    return models.Group.objects.filter(
+    return published_streams_went_live.filter(
         start__gte=start_date,
-        start__lte=end_date,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
+        start__lte=end_date
     ).exclude(
         host__username=DEVSCRIPT_HOST_CREATOR
     ).count()
@@ -994,15 +1088,14 @@ def get_average_streams_per_day(start_date=None, end_date=None):
     time_elapsed = end_datetime - start
     days = time_elapsed.days
 
-    streams = models.Group.objects.filter(
+    streams = published_streams_went_live.filter(
         start__gte=start_date,
-        start__lte=end_date,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
+        start__lte=end_date
     ).exclude(
         host__username=DEVSCRIPT_HOST_CREATOR
     ).count()
 
-    return streams, round(streams/days, 2)
+    return streams, round(streams / days, 2)
 
 
 def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
@@ -1027,7 +1120,7 @@ def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    all_attendees = models.Group.objects.filter(
+    all_attendees = published_streams_went_live.filter(
         start__gte=start_date,
         start__lte=end_date
     ).values_list("attendees", flat=True)
@@ -1044,8 +1137,8 @@ def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
             continue
 
         # Total groups attended.
-        groups = models.Group.objects.filter(
-            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        # TODO(Nishant): Should we change this to Request object calculations.
+        groups = published_streams_went_live.filter(
             attendees=attendee,
             start__gte=start_date,
             start__lte=end_date
@@ -1063,9 +1156,9 @@ def get_average_streams_rsvp_per_month(start_date=None, end_date=None):
             continue
 
         total_attendees += 1
-        total_groups_attended_monthly += groups/months_difference if months_difference else groups
+        total_groups_attended_monthly += groups / months_difference if months_difference else groups
 
-    return round(total_groups_attended_monthly/total_attendees, 2)
+    return round(total_groups_attended_monthly / total_attendees, 2)
 
 
 def get_average_streams_attended_per_month(start_date=None, end_date=None):
@@ -1089,7 +1182,7 @@ def get_average_streams_attended_per_month(start_date=None, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    all_attendees = models.Group.objects.filter(
+    all_attendees = published_streams_went_live.filter(
         start__gte=start_date,
         start__lte=end_date
     ).exclude(
@@ -1107,8 +1200,7 @@ def get_average_streams_attended_per_month(start_date=None, end_date=None):
         except get_user_model().DoesNotExist:
             continue
 
-        groups = models.Group.objects.filter(
-            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        groups = published_streams_went_live.filter(
             attendees=attendee,
             start__gte=start_date,
             start__lte=end_date
@@ -1129,9 +1221,9 @@ def get_average_streams_attended_per_month(start_date=None, end_date=None):
         months_difference = (r.years * 12) + r.months
 
         total_attendees += 1
-        total_groups_attended_monthly += attended_groups/months_difference if months_difference else attended_groups
+        total_groups_attended_monthly += attended_groups / months_difference if months_difference else attended_groups
 
-    return round(total_groups_attended_monthly/total_attendees, 2)
+    return round(total_groups_attended_monthly / total_attendees, 2)
 
 
 def get_average_streams_streamed_per_month(start_date, end_date=None):
@@ -1155,29 +1247,28 @@ def get_average_streams_streamed_per_month(start_date, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    all_speakers = models.Group.objects.filter(
+    all_hosts = published_streams_went_live.filter(
         start__gte=start_date,
         start__lte=end_date
     ).exclude(
         host__username=DEVSCRIPT_HOST_CREATOR
     ).values_list("host", flat=True)
     # Make speakers distinct.
-    all_speakers = list(set(all_speakers))
+    all_hosts = list(set(all_hosts))
 
-    total_speakers = 0
+    total_hosts = 0
     total_groups_streamed = 0
     total_groups_streamed_monthly = 0
 
-    for speaker in all_speakers:
+    for host in all_hosts:
         try:
-            user = get_user_model().objects.get(pk=speaker)
+            user = get_user_model().objects.get(pk=host)
         except get_user_model().DoesNotExist:
             continue
 
         # Total groups attended.
-        groups = models.Group.objects.filter(
-            type=constants.GROUP_TYPE_WEBINAR_ENUM,
-            speakers=speaker,
+        groups = published_streams_went_live.filter(
+            host=host,
             start__gte=start_date,
             start__lte=end_date
         ).count()
@@ -1191,11 +1282,11 @@ def get_average_streams_streamed_per_month(start_date, end_date=None):
         if not groups:
             continue
 
-        total_speakers += 1
+        total_hosts += 1
         total_groups_streamed += groups
-        total_groups_streamed_monthly += groups/months_difference if months_difference else groups
+        total_groups_streamed_monthly += groups / months_difference if months_difference else groups
 
-    return round(total_groups_streamed_monthly/total_speakers, 2)
+    return round(total_groups_streamed_monthly / total_hosts, 2)
 
 
 def get_average_rsvps_per_stream(start_date=None, end_date=None):
@@ -1222,21 +1313,20 @@ def get_average_rsvps_per_stream(start_date=None, end_date=None):
     total_requests = models.Request.objects.filter(
         created_at__gte=start_date,
         created_at__lte=end_date,
-        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+        group__in=published_streams_went_live
     ).exclude(
         requester__user_source__utm_source=DEVSCRIPT_SOURCE
     ).count()
 
-    total_groups = models.Request.objects.filter(
-        created_at__gte=start_date,
-        created_at__lte=end_date,
-        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
-        group__type=constants.GROUP_TYPE_WEBINAR_ENUM
+    published_streams_went_live_within_duration = published_streams_went_live.filter(
+        start__gte=start_date,
+        start__lte=end_date
     ).exclude(
-        requester__user_source__utm_source=DEVSCRIPT_SOURCE
-    ).values("group").distinct().count()
+        host__user_source__utm_source=DEVSCRIPT_SOURCE
+    ).values("id").distinct().count()
 
-    return round(total_requests/total_groups, 2)
+    return round(total_requests / published_streams_went_live_within_duration, 2)
 
 
 def get_average_attendees_per_stream(start_date=None, end_date=None):
@@ -1260,10 +1350,9 @@ def get_average_attendees_per_stream(start_date=None, end_date=None):
     start_datetime = start_datetime if start_datetime else datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
-    groups = models.Group.objects.filter(
+    groups = published_streams_went_live.filter(
         start__gte=start_date,
-        start__lte=end_date,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
+        start__lte=end_date
     ).exclude(
         host__username=DEVSCRIPT_HOST_CREATOR
     )
@@ -1272,16 +1361,18 @@ def get_average_attendees_per_stream(start_date=None, end_date=None):
     participants = []
 
     for group in groups:
-        participant = list(dyte_models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            last_online_at__isnull=False
-        ).exclude(participant__in=group.speakers.all()))
+        participant = list(
+            dyte_models.DyteMeetingParticipant.objects.filter(
+                dyte_meeting__group=group,
+                last_online_at__isnull=False
+            ).exclude(participant__in=group.speakers.all())
+        )
         if not participant:
             continue
         total_groups += 1
         participants += participant
 
-    return round(len(participants)/total_groups, 2)
+    return round(len(participants) / total_groups, 2)
 
 
 def get_chat_messages_for_streams(start_date, end_date=None):
@@ -1296,28 +1387,29 @@ def get_chat_messages_for_streams(start_date, end_date=None):
     if not end_date:
         end_date = timezone.now()
 
-    groups = models.GroupMessage.objects.filter(
-        created_at__gte=start_date,
-        created_at__lte=end_date
-    ).exclude(
-        sender__user_source__utm_source=DEVSCRIPT_SOURCE
-    ).values_list("group", flat=True)
-    # Get distinct groups.
-    groups = list(set(groups))
+    published_streams_went_live_with_duration = published_streams_went_live.filter(
+        start__gte=start_date,
+        start__lte=end_date,
+    )
 
     total_groups = 0
     total_message_count = 0
 
-    for group in groups:
+    for group in published_streams_went_live_with_duration:
         message_count = models.GroupMessage.objects.filter(
-            group=group).exclude(sender__email__in=EMAIL_TO_EXCLUDE).count()
+            group=group
+        ).exclude(
+            Q(sender__email__in=EMAIL_TO_EXCLUDE)
+            | Q(sender__user_source__utm_source=DEVSCRIPT_SOURCE)
+        ).count()
+
         if not message_count:
             continue
 
         total_groups += 1
         total_message_count += message_count
 
-    return total_message_count, total_groups, round(total_message_count/total_groups, 2)
+    return total_message_count, total_groups, round(total_message_count / total_groups, 2)
 
 
 def get_number_of_users_who_messaged(start_date, end_date=None):
@@ -1330,9 +1422,15 @@ def get_number_of_users_who_messaged(start_date, end_date=None):
     if not end_date:
         end_date = timezone.now()
 
+    published_streams_went_live_with_duration = published_streams_went_live.filter(
+        start__gte=start_date,
+        start__lte=end_date
+    )
+
     return models.GroupMessage.objects.filter(
         created_at__gte=start_date,
-        created_at__lte=end_date
+        created_at__lte=end_date,
+        group__in=published_streams_went_live_with_duration
     ).exclude(
         sender__user_source__utm_source=DEVSCRIPT_SOURCE
     ).exclude(
@@ -1342,7 +1440,6 @@ def get_number_of_users_who_messaged(start_date, end_date=None):
 
 # -------- PRIVATE FUNCTIONS -------- #
 def _get_minutes_spent_by_participants_on_stream(group):
-
     speakers = group.speakers.values_list("pk", flat=True)
     participants = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group_id=group.id
@@ -1371,12 +1468,11 @@ def _get_minutes_spent_by_participants_on_stream(group):
         participants_joined += 1
         total_minutes += minutes
 
-    avg_time_spent = (total_minutes/participants_joined) if participants_joined else 0
+    avg_time_spent = (total_minutes / participants_joined) if participants_joined else 0
     return total_minutes, round(avg_time_spent, 2), participants_joined
 
 
 def _get_minutes_spent_by_hosts_on_stream(group):
-
     hosts = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group_id=group.id,
         participant_id=group.host.pk
@@ -1405,5 +1501,5 @@ def _get_minutes_spent_by_hosts_on_stream(group):
         hosts_joined += 1
         total_minutes += minutes
 
-    avg_time_spent = (total_minutes/hosts_joined) if hosts_joined else 0
+    avg_time_spent = (total_minutes / hosts_joined) if hosts_joined else 0
     return total_minutes, round(avg_time_spent, 2), hosts_joined
