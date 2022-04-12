@@ -34,7 +34,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Challenge
         fields = (
-            "id"
+            "id",
             "name",
             "title",
             "description",
