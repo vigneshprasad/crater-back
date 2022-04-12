@@ -11,34 +11,29 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_auth.registration.views import VerifyEmailView as DefaultVerifyEmailView
 from rest_auth.utils import jwt_encode
-from rest_auth.views import PasswordResetConfirmView as DefaultPasswordResetConfirmView
-from rest_auth.views import UserDetailsView as DefaultUserDetailsView
-from rest_auth.views import LogoutView as RestLogoutView
-from rest_framework import filters
-from rest_framework import mixins, viewsets, status
+from rest_auth.views import PasswordResetConfirmView as DefaultPasswordResetConfirmView, \
+    UserDetailsView as DefaultUserDetailsView, LogoutView as RestLogoutView
+from rest_framework import filters, mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from conversations import models as conversation_models
 from payment import models as payment_models, serializers as payment_serializers
 from payment.tasks import charge_subscription_payment
-from services import serializers as service_serializers, models as service_models
-from users import permissions
-from users import services
-from users import utils
+from resources.meetings import models as meeting_models
+from users import permissions, services, utils
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, constants
 from .forms import AdminSetPasswordForm
 from .models import Profile
 from .paginators import Pagination
-from .signals import basic_profile_created, service_created, phone_number_verified, referred_friend, profile_requested
+from .signals import basic_profile_created, phone_number_verified, referred_friend, profile_requested
 from .swagger_schemas import referer_email
 from .tasks import send_email
-from resources.meetings import models as meeting_models
-from conversations import models as conversation_models
 
 
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
@@ -534,4 +529,55 @@ class ProfileMetaViewSet(viewsets.GenericViewSet):
         return Response(data)
 
 
+class UserReferralViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = models.UserReferral.objects.exclude(
+        status=constants.REFERRAL_STATUS_PAYMENT_CANCELLED_ENUM
+    ).select_related(
+        "stream",
+        "stream__topic"
+    ).order_by(
+        "-created_at"
+    )
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.UserReferralSerializer
+    pagination_class = Pagination
 
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                referrer__pk=user.pk
+            )
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+    )
+    def summary(self, request):
+        user = request.user
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                referrer__pk=user.pk
+            ).exclude(
+                status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
+            )
+        )
+
+        referrals_summary = services.get_referrals_summary(
+            user_referrals=queryset
+        )
+
+        return Response(referrals_summary)

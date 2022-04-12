@@ -1,11 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from crater.auth import models
-from crater.auth import private
-from crater.auth import constants
+from crater.auth import models, private, constants
+from users import models as user_models, services as user_services
 from wn_analytics import models as analytics_models
-from users import models as user_models
 
 
 class PhoneOtpSerializer(serializers.ModelSerializer):
@@ -90,22 +89,31 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        validated_data["used"] = True
 
+        validated_data["used"] = True
         utm_source = validated_data.pop("utm_source")
         utm_campaign = validated_data.pop("utm_campaign")
         utm_medium = validated_data.pop("utm_medium")
         referrer = validated_data.pop("referrer")
+        is_new_user = validated_data.get("new_user", False)
 
         instance = super().update(instance, validated_data)
 
-        if (utm_source or utm_campaign) and validated_data.get("new_user"):
+        if (utm_source or utm_campaign or referrer) and is_new_user:
             # Only create if the user is a new user.
             analytics_models.UserSource.objects.create(
                 user=instance.user,
                 utm_source=utm_source,
                 utm_campaign=utm_campaign,
                 utm_medium=utm_medium,
+                referrer=referrer
+            )
+
+        # If the referrer user is a creator don't create user referral.
+        if referrer and not referrer.is_creator and is_new_user:
+            # Create user referral.
+            user_services.create_user_referral(
+                new_user=instance.user,
                 referrer=referrer
             )
 

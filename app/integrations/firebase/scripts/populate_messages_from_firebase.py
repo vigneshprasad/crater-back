@@ -1,12 +1,8 @@
-import datetime
-
-from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
+from conversations import constants as conversation_constants, models as conversation_models
 from integrations.firebase import service
-from conversations import constants as conversation_constants
-from conversations import models as conversation_models
-
 
 firebase_service = service.firebase_service
 
@@ -56,6 +52,8 @@ def run(date, groups=None, dry_run=True):
                     user = get_user_model().objects.get(pk=user_pk)
                 except get_user_model().DoesNotExist:
                     print("User Pk doesn't exist: {}".format(user_pk))
+                    continue
+                except ValidationError:
                     continue
 
                 print("Firebase message ID: ", firebase_message_id)
