@@ -55,6 +55,7 @@ class UserCreateSearchViewSet(viewsets.GenericViewSet):
         primary_url = post_data.get("primary_url")
         profile_image_url = post_data.get("profile_image")
         profile_image_name = post_data.get("profile_image_name")
+        profile_introduction = post_data.get("profile_introduction")
 
         phone_number_exists = False
         email_exists = False
