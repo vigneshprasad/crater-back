@@ -1,24 +1,20 @@
 import datetime
-import json
 import logging
 
 import boto3
-from asgiref.sync import async_to_sync
 from celery.schedules import crontab
 from celery.task import periodic_task
 from celery.task import task
 from django.conf import settings
-from channels.layers import get_channel_layer
+from django.utils import timezone
 
 from conversations import constants
 from conversations import models
-from conversations import services
+from crater.creator import public as creator_public
+from integrations.dyte import models as dyte_models
 from integrations.dyte import public as dyte_public
 from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import public as freshchat_public
-from resources.meetings import services as meeting_services
-from users import constants as user_constants
-from users import models as user_models
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -307,3 +303,47 @@ def publish_group_recordings(group_recording_ids):
         group_recording.is_published = True
         group_recording.published_at = datetime.datetime.now()
         group_recording.save()
+
+
+@periodic_task(run_every=crontab(hour=5, minute=30))
+def add_user_as_follower_for_groups(groups=None):
+    """Adds follower object to a creator if the user has
+        watched 3 or more streams of the creator.
+
+    """
+    now = timezone.now()
+    min_start = now - datetime.timedelta(days=1)
+    # Get all streams.
+    groups = models.Group.objects.filter(
+        start__lte=timezone.now(),
+        start__gte=min_start,
+        host__creator__isnull=False,
+        host__creator__is_active=True,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ) if not groups else groups
+
+    host_creator_ids = groups.values("host", "host__creator").distinct()
+    attendees_ids = list(set(groups.values_list("attendees", flat=True)))
+
+    for attendee_id in attendees_ids:
+
+        for host_creator_id in host_creator_ids:
+            creator_id = host_creator_id["host__creator"]
+            host_id = host_creator_id["host"]
+
+            # Get all streams attended by a user for a host.
+            dyte_participants = dyte_models.DyteMeetingParticipant.objects.filter(
+                participant_id=attendee_id,
+                dyte_meeting__group__host_id=host_id,
+                last_online_at__isnull=False
+            )
+
+            # If the user hasn't watched minimum 2 streams, don't
+            # make the user the follower.
+            if dyte_participants.count() < 3:
+                continue
+
+            creator_public.get_or_create_follower_for_user(
+                attendee_id,
+                creator_id
+            )
