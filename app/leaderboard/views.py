@@ -38,10 +38,12 @@ class UserLeaderboardViewSet(
     filterset_fields = ["leaderboard"]
 
     def retrieve(self, request, *args, **kwargs):
+
         leaderboard_id = kwargs.get("id")
         leaderboard = models.Leaderboard.objects.get(id=leaderboard_id)
-
-        user_leaderboards = leaderboard.user_leaderboards.all().order_by("-total_minutes")
+        user_leaderboards = leaderboard.user_leaderboards.all().order_by(
+            "-total_minutes"
+        )
         serializer = self.get_serializer(user_leaderboards, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

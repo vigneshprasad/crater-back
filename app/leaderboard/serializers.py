@@ -1,9 +1,8 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
-from leaderboard import models
-from leaderboard import constants
 from crater.creator import models as creator_models
+from leaderboard import models, constants
 
 
 class DurationTypeNameChoiceSerializer(serializers.ChoiceField):
@@ -13,25 +12,44 @@ class DurationTypeNameChoiceSerializer(serializers.ChoiceField):
             return None
         return self._choices[value]
 
+
 class DurationTypeSerializer(serializers.ModelSerializer):
-    name = DurationTypeNameChoiceSerializer(read_only=True, choices=constants.LEADERBOARD_DURATION_CHOICES)
+
+    name = DurationTypeNameChoiceSerializer(
+        read_only=True,
+        choices=constants.LEADERBOARD_DURATION_CHOICES
+    )
 
     class Meta:
         model = models.DurationType
         fields = (
-            "name",
-            "id"
+            "id",
+            "name"
         )
+        read_only_fields = fields
 
 
 class ChallengeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Challenge
-        fields = "__all__"
+        fields = (
+            "id"
+            "name",
+            "title",
+            "description",
+            "image",
+            "start",
+            "end",
+            "rules",
+            "is_active"
+        )
+        # Marking all the fields as readonly.
+        read_only_fields = fields
 
 
 class LeaderboardSerializer(serializers.ModelSerializer):
+
     duration_type_detail = DurationTypeSerializer(source="duration_type", read_only=True)
 
     class Meta:
@@ -47,8 +65,12 @@ class LeaderboardSerializer(serializers.ModelSerializer):
             "last_calculated_at",
             "duration_type_detail"
         )
+        # Marking all the fields as readonly.
+        read_only_fields = fields
 
-class UserLeaderbaordUserSerializer(serializers.ModelSerializer):
+
+class UserLeaderboardUserSerializer(serializers.ModelSerializer):
+
     photo = serializers.ImageField(source="profile.photo", read_only=True)
 
     class Meta:
@@ -57,19 +79,22 @@ class UserLeaderbaordUserSerializer(serializers.ModelSerializer):
             "name",
             "photo"
         )
+        # Marking all the fields as readonly.
+        read_only_fields = fields
 
-class UserLeaderboardCreatorSerializdr(serializers.ModelSerializer):
+
+class UserLeaderboardCreatorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = creator_models.Creator
-        fields = (
-            "slug",
-        )
+        fields = ("slug", )
+        read_only_fields = fields
 
 
 class UserLeaderboardSerializer(serializers.ModelSerializer):
-    user_detail = UserLeaderbaordUserSerializer(source="user", read_only=True)
-    creator_detail = UserLeaderboardCreatorSerializdr(source="user.creator", read_only=True)
+
+    user_detail = UserLeaderboardUserSerializer(source="user", read_only=True)
+    creator_detail = UserLeaderboardCreatorSerializer(source="user.creator", read_only=True)
 
     class Meta:
         model = models.UserLeaderboard
@@ -80,7 +105,7 @@ class UserLeaderboardSerializer(serializers.ModelSerializer):
             "rank",
             "total_minutes",
             "is_active",
-            "last_calculated_at",
             "user_detail",
             "creator_detail",
         )
+        read_only_fields = fields
