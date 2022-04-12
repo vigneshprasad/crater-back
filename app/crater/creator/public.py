@@ -30,16 +30,16 @@ def get_subscribed_creators(user):
 def get_or_create_follower_for_user(attendee_id, creator_id):
     """Gets of creates a follower for a creator.
 
-        Args:
-            attendee_id(uuid): PK of the user who is the follower.
-            creator_id(int): ID of the creator being followed by the
-                user.
+    Args:
+        attendee_id(uuid): PK of the user who is the follower.
+        creator_id(int): ID of the creator being followed by the
+            user.
 
-        Note:
-            Updates the follower to unfollowed=False if the
-                follower has unfollowed.
+    Note:
+        Updates the follower to unfollowed=False if the
+            follower has unfollowed.
 
-        """
+    """
     follower, created = models.Follower.objects.get_or_create(
         creator_id=creator_id,
         user_id=attendee_id
