@@ -1,15 +1,6 @@
-from django.contrib.auth import get_user_model
-from django.utils import timezone
-from rest_framework import mixins
-from rest_framework import viewsets
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework import mixins, viewsets
 
-from crater.rewards import models
-from crater.creator import private
-from crater.rewards import serializers
-from crater.creator import signals
+from crater.rewards import models, serializers
 from users import permissions as user_permissions
 
 

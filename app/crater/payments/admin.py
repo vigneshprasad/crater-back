@@ -7,4 +7,5 @@ from crater.payments import models
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "status", "gateway")
     raw_id_fields = ("user",)
+    list_filter = ("status", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

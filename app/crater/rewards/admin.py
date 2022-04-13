@@ -24,6 +24,7 @@ class RewardAdmin(admin.ModelAdmin):
         "is_active"
     )
     raw_id_fields = ("creator", )
+    list_filter = ("type", "is_active")
     list_editable = ("order", )
     exclude = (
         "created_at",
