@@ -18,6 +18,7 @@ class ChallengeAdmin(admin.ModelAdmin):
 
     model = models.Challenge
     list_display = ("id", "name", "title", "all_categories", "all_duration_types", "is_active")
+    raw_id_fields = ("participants", "categories")
     list_editable = ("is_active", )
     search_fields = (
         "name",
@@ -43,7 +44,8 @@ class ChallengeAdmin(admin.ModelAdmin):
 class LeaderboardAdmin(admin.ModelAdmin):
 
     model = models.Leaderboard
-    list_display = ("id", "challenge", "duration_type", "all_participants", "start", "end", "is_active")
+    list_display = ("id", "challenge", "duration_type", "start", "end", "is_active")
+    raw_id_fields = ("participants", "challenge")
     list_editable = ("is_active", )
     search_fields = (
         "challenge__title",
