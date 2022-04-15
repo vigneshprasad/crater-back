@@ -1,11 +1,16 @@
 import datetime
+import logging
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.utils.html import format_html
 
 from base import models as base_model
 from integrations.dyte import constants
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DyteMeeting(base_model.BaseModel):
@@ -91,9 +96,9 @@ class DyteMeetingParticipant(base_model.BaseModel):
         self.save()
 
         # Create online logs.
-        # DyteParticipantOnlineLog.objects.create(
-        #     dyte_meeting_participant_id=self.id
-        # )
+        DyteParticipantOnlineLog.objects.create(
+            dyte_meeting_participant_id=self.id
+        )
 
     def mark_offline(self):
         self.is_online = False
@@ -101,34 +106,39 @@ class DyteMeetingParticipant(base_model.BaseModel):
         self.save()
 
         # Update the online log to offline.
-        # online_log = DyteParticipantOnlineLog.objects.filter(
-        #     dyte_meeting_participant_id=self.id,
-        #     is_offline=False
-        # )
-        # online_log.mark_offline()
+        online_log = DyteParticipantOnlineLog.objects.filter(
+            dyte_meeting_participant=self,
+            is_offline=False
+        )
+        if not online_log:
+            return LOGGER.error("Went offline without online log. {}".format(
+                self.id
+            ))
+
+        online_log.mark_offline()
 
 
-# class DyteParticipantOnlineLog(base_model.BaseModel):
-#
-#     dyte_meeting_participant = models.ForeignKey(
-#         "dyte.DyteMeetingParticipant",
-#         on_delete=models.CASCADE
-#     )
-#     online_at = models.DateTimeField(auto_now_add=True)
-#     offline_at = models.DateTimeField(null=True, blank=True)
-#     is_offline = models.BooleanField(default=False)
-#
-#     @property
-#     def online_time(self):
-#         last_online_at = self.offline_at if self.offline_at else timezone.now()
-#         time_spent = last_online_at - self.online_at
-#         minutes = time_spent.seconds // 60 % 60
-#         return minutes
-#
-#     def mark_offline(self):
-#         self.offline_at = timezone.now()
-#         self.is_offline = True
-#         self.save()
+class DyteParticipantOnlineLog(base_model.BaseModel):
+
+    dyte_meeting_participant = models.ForeignKey(
+        "dyte.DyteMeetingParticipant",
+        on_delete=models.CASCADE
+    )
+    online_at = models.DateTimeField(auto_now_add=True)
+    offline_at = models.DateTimeField(null=True, blank=True)
+    is_offline = models.BooleanField(default=False)
+
+    @property
+    def online_time(self):
+        last_online_at = self.offline_at if self.offline_at else timezone.now()
+        time_spent = last_online_at - self.online_at
+        minutes = time_spent.seconds // 60 % 60
+        return minutes
+
+    def mark_offline(self):
+        self.offline_at = timezone.now()
+        self.is_offline = True
+        self.save()
 
 
 class DyteMeetingRecording(base_model.BaseModel):
