@@ -96,4 +96,4 @@ INSTANT_CONVERSATION_TIME_SLOTS = [
 
 SESSION_URL_WITH_GROUP = "session/{group_id}"
 LIVESTREAM_URL_WITH_GROUP = "livestream/{group_id}"
-PAST_STREAM_FEATURED_CATEGORIES = ["Coding", "Crypto", "Marketing"]
+PAST_STREAM_FEATURED_CATEGORIES = ["Design", "Finance", "Other"]
