@@ -49,7 +49,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     readonly_fields = (
         "closed_at",
         "approved_at",
-        "last_live_at"
+        "last_live_at",
+        "total_minutes_spent_by_attendees",
+        "total_minutes_spent_by_host"
     )
     search_fields = ("id", "speakers__email", "speakers__name", "speakers__username",)
     list_editable = (
