@@ -90,6 +90,21 @@ class GroupWebinarPublicViewSet(
             start__gte=min_start
         )
 
+    @staticmethod
+    def _get_past_streams_with_featured_recordings(past_streams):
+        past_streams_by_categories = {}
+        now = datetime.datetime.now()
+
+        for category in constants.PAST_STREAM_FEATURED_CATEGORIES:
+            past_streams_by_categories[category] = past_streams.filter(categories__name=category)
+
+        try:
+            featured_streams = [streams[now.day] for streams in past_streams_by_categories.values()]
+        except IndexError:
+            featured_streams = [streams[0] for streams in past_streams_by_categories.values()]
+
+        return featured_streams
+
     @action(
         methods=["GET"],
         detail=False,
@@ -100,7 +115,8 @@ class GroupWebinarPublicViewSet(
         ).select_related(
             "topic",
             "host__profile",
-            "host__creator"
+            "host__creator",
+            "recording",
         ).order_by("-start"),
         serializer_class=serializers.StreamListSerializer,
         filterset_fields=["host"]
@@ -126,16 +142,13 @@ class GroupWebinarPublicViewSet(
                 live_groups | featured_groups
             ).order_by("-is_live", "start")
         else:
-            past_streams_with_recording = self.filter_queryset(self._get_past_webinars_with_recordings(featured=True))
-            past_streams_by_categories = {}
-
-            for category in constants.PAST_STREAM_FEATURED_CATEGORIES:
-                past_streams_by_categories[category] = past_streams_with_recording.filter(categories__name=category)
-
-            try:
-                featured_streams = [streams[now.day] for streams in past_streams_by_categories.values()]
-            except IndexError:
-                featured_streams = [streams[0] for streams in past_streams_by_categories.values()]
+            self.serializer_class = serializers.StreamWithRecordingListSerializer
+            past_streams_with_recording = self.filter_queryset(
+                self._get_past_webinars_with_recordings(featured=True)
+            )
+            featured_streams = self._get_past_streams_with_featured_recordings(
+                past_streams=past_streams_with_recording
+            )
 
         page = self.paginate_queryset(featured_streams)
 
