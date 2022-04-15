@@ -33,7 +33,7 @@ class DyteMeeting(base_model.BaseModel):
     room_name = models.CharField(max_length=128)
 
     def __str__(self):
-        return "{} - {}".format(self.room_name, (self.meeting or self.group))
+        return "{} - {}".format(self.dyte_meeting_id, (self.meeting or self.group))
 
 
 class DyteMeetingParticipant(base_model.BaseModel):
@@ -90,6 +90,13 @@ class DyteMeetingParticipant(base_model.BaseModel):
     #
     #     return minutes_spent
 
+    def __str__(self):
+        return "{} - {} [{}]".format(
+            self.dyte_meeting.id,
+            self.dyte_meeting.dyte_meeting_id,
+            self.participant.username
+        )
+
     def mark_online(self):
         self.is_online = True
         self.last_online_at = datetime.datetime.now()
@@ -109,11 +116,10 @@ class DyteMeetingParticipant(base_model.BaseModel):
         online_log = DyteParticipantOnlineLog.objects.filter(
             dyte_meeting_participant=self,
             is_offline=False
-        )
+        ).first()
         if not online_log:
-            return LOGGER.error("Went offline without online log. {}".format(
-                self.id
-            ))
+            LOGGER.error("Went offline without online log. {}".format(self.id))
+            return None
 
         online_log.mark_offline()
 
