@@ -75,7 +75,7 @@ def get_minutes_for_live_streams():
         group.save()
 
 
-@periodic_task(run_every=crontab(hour="00", minute="00"))
+@periodic_task(run_every=crontab(hour="0", minute="0"))
 def get_minutes_for_all_streams_for_the_day():
     """Get minutes of yesterday's streams from Dyte's end and update on
         our models.
