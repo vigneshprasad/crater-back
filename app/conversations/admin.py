@@ -215,9 +215,10 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "recording",
         "status",
         "all_dyte_recordings",
-        "is_published"
+        "is_published",
+        "featured",
     )
-    list_editable = ("is_published",)
+    list_editable = ("is_published", "featured",)
     actions = ("publish_group_recordings",)
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
@@ -226,6 +227,8 @@ class GroupRecordingAdmin(admin.ModelAdmin):
     )
     list_filter = (
         "group",
+        "featured",
+        "is_published",
         ("created_at", filter.DateRangeFilter),
         ("group__start", filter.DateRangeFilter),
     )
