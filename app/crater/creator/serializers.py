@@ -12,6 +12,7 @@ class CreatorSerializer(serializers.ModelSerializer):
     # Return serializer default community for a creator.
     default_community = serializers.SerializerMethodField(read_only=True)
     is_follower = serializers.SerializerMethodField(read_only=True)
+    is_subscriber = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
 
@@ -31,7 +32,8 @@ class CreatorSerializer(serializers.ModelSerializer):
             "show_club_members",
             "video",
             "video_poster",
-            "show_analytics"
+            "show_analytics",
+            "is_subscriber",
         )
         extra_kwargs = {
             "subscriber_count": {
@@ -74,6 +76,24 @@ class CreatorSerializer(serializers.ModelSerializer):
             return True
 
         return creator.followers.filter(user=user).exists()
+
+    def get_is_subscriber(self, creator):
+        """Returns True if the requesting user has
+            subscribed to the creator
+
+        """
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+        # If the user is the same as the creator. Return True
+        if user.pk == creator.user.pk:
+            return True
+
+        return creator.followers.filter(user=user, notify=True).exists()
 
     @staticmethod
     def get_default_community(obj):

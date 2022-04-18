@@ -49,7 +49,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     readonly_fields = (
         "closed_at",
         "approved_at",
-        "last_live_at"
+        "last_live_at",
+        "total_minutes_spent_by_attendees",
+        "total_minutes_spent_by_host"
     )
     search_fields = ("id", "speakers__email", "speakers__name", "speakers__username",)
     list_editable = (
@@ -213,9 +215,10 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "recording",
         "status",
         "all_dyte_recordings",
-        "is_published"
+        "is_published",
+        "featured",
     )
-    list_editable = ("is_published",)
+    list_editable = ("is_published", "featured",)
     actions = ("publish_group_recordings",)
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
@@ -224,6 +227,8 @@ class GroupRecordingAdmin(admin.ModelAdmin):
     )
     list_filter = (
         "group",
+        "featured",
+        "is_published",
         ("created_at", filter.DateRangeFilter),
         ("group__start", filter.DateRangeFilter),
     )

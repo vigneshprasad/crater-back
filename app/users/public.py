@@ -89,7 +89,8 @@ def create_user(
         name,
         primary_url=None,
         profile_image_name=None,
-        profile_image_url=None
+        profile_image_url=None,
+        profile_introduction=None,
 ):
     """Create a user.
 
@@ -100,6 +101,7 @@ def create_user(
         primary_url(str): Primary url for the user.
         profile_image_name(str): Profile image name.
         profile_image_url(str): Profile image url.
+        profile_introduction(str): Profile introduction.
 
     """
     try:
@@ -125,6 +127,7 @@ def create_user(
         user=user
     )
     profile.primary_url = primary_url
+    profile.introduction = profile_introduction
     profile.save()
 
     if profile_image_name and profile_image_url:
