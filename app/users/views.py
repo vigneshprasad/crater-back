@@ -581,3 +581,21 @@ class UserReferralViewSet(
         )
 
         return Response(referrals_summary)
+
+
+class UserPermissionViewSet(viewsets.GenericViewSet):
+
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.UserPermission.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        obj = self.get_queryset().get(user=user)
+        if not obj:
+            return Response(None, status=status.HTTP_404_NOT_FOUND)
+
+        data = self.get_serializer(obj).data
+        return Response(data, status=status.HTTP_200_OK)
+
+
+

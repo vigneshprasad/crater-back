@@ -995,3 +995,14 @@ class UserReferralSerializer(serializers.ModelSerializer):
             "stream_detail",
         )
         read_only_fields = fields
+
+
+class UserPermissionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserPermission
+        fields = (
+            "user",
+            "allow_create_stream",
+            "allow_chat"
+        )
