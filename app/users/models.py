@@ -741,7 +741,7 @@ class UserActivity(base_models.BaseModel):
 class UserPermission(base_models.BaseModel):
     user = models.OneToOneField(
         "users.User",
-        related_name="setting",
+        related_name="permission",
         on_delete=models.CASCADE,
         verbose_name=_("User")
     )
