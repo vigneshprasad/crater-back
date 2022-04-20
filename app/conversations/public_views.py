@@ -1,4 +1,5 @@
 import datetime
+from random import randint
 
 from django.contrib.auth import get_user_model
 from django.db.models import Prefetch
@@ -92,16 +93,13 @@ class GroupWebinarPublicViewSet(
 
     @staticmethod
     def _get_past_streams_with_featured_recordings(past_streams):
-        past_streams_by_categories = {}
-        now = datetime.datetime.now()
+        featured_streams = []
 
         for category in constants.PAST_STREAM_FEATURED_CATEGORIES:
-            past_streams_by_categories[category] = past_streams.filter(categories__name=category)
-
-        try:
-            featured_streams = [streams[now.day] for streams in past_streams_by_categories.values()]
-        except IndexError:
-            featured_streams = [streams[0] for streams in past_streams_by_categories.values()]
+            past_streams_category = past_streams.filter(categories__name=category)
+            if past_streams_category:
+                random_index = randint(0, len(past_streams_category) - 1)
+                featured_streams.append(past_streams_category[random_index])
 
         return featured_streams
 
@@ -129,17 +127,16 @@ class GroupWebinarPublicViewSet(
 
         """
         live_groups = self.filter_queryset(self._get_live_webinars())
-        live_streams_next_hour = False
+        featured_groups = self.filter_queryset(self._get_featured_webinars())
+        featured_streams_next_hour = False
 
         if not live_groups:
-            # Check if there are any live streams within the next 1 hour
+            # Filter featured streams within the next 1 hour
             now = datetime.datetime.now()
             next_hour_datetime = now + datetime.timedelta(hours=1)
-            live_streams_next_hour = live_groups.filter(start__lte=next_hour_datetime)
+            featured_streams_next_hour = featured_groups.filter(start__lte=next_hour_datetime)
 
-        if live_streams_next_hour:
-            featured_groups = self.filter_queryset(self._get_featured_webinars())
-
+        if featured_streams_next_hour or live_groups:
             featured_streams = self.filter_queryset(
                 live_groups | featured_groups
             ).order_by("-is_live", "start")
@@ -148,6 +145,7 @@ class GroupWebinarPublicViewSet(
             past_streams_with_recording = self.filter_queryset(
                 self._get_past_webinars_with_recordings(featured=True)
             )
+
             featured_streams = self._get_past_streams_with_featured_recordings(
                 past_streams=past_streams_with_recording
             )
