@@ -12,8 +12,10 @@ register_router.register("profile/cover_file", views.CoverFileViewSet, base_name
 register_router.register("profile", views.ProfileViewSet, base_name="profile")
 register_router.register("bank_details", views.BankDetailViewSet, base_name="bank-details")
 register_router.register("verify", views.VerificationView, base_name="verify")
+register_router.register("users/permission", views.UserPermissionViewSet, base_name="user-permission")
 register_router.register("users", views.UserViewSet, base_name="users-view")
 register_router.register("referrals", views.UserReferralViewSet, base_name="referrals-view")
+
 
 router = routers.SimpleRouter()
 

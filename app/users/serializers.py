@@ -1002,6 +1002,7 @@ class UserPermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.UserPermission
         fields = (
+            "id",
             "user",
             "allow_create_stream",
             "allow_chat"

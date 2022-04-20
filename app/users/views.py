@@ -584,7 +584,7 @@ class UserReferralViewSet(
 
 
 class UserPermissionViewSet(viewsets.GenericViewSet):
-
+    serializer_class = serializers.UserPermissionSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.UserPermission.objects.all()
 
