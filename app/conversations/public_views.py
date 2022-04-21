@@ -1,4 +1,5 @@
 import datetime
+from random import randint
 
 from django.contrib.auth import get_user_model
 from django.db.models import Prefetch
@@ -50,7 +51,7 @@ class GroupWebinarPublicViewSet(
             closed=False
         )
 
-    def _get_past_webinars_with_recordings(self):
+    def _get_past_webinars_with_recordings(self, featured=False):
         """Return past webinars with published recordings."""
 
         groups_with_recordings = self.get_queryset().filter(
@@ -63,6 +64,13 @@ class GroupWebinarPublicViewSet(
             recording__recording__isnull=False,
             recording__is_published=True
         ).order_by("-start")
+
+        if featured:
+            featured_groups_with_recording = published_groups_with_recording.filter(
+                recording__featured=True
+            )
+
+            return featured_groups_with_recording
 
         return published_groups_with_recording
 
@@ -83,6 +91,18 @@ class GroupWebinarPublicViewSet(
             start__gte=min_start
         )
 
+    @staticmethod
+    def _get_past_streams_with_featured_recordings(past_streams):
+        featured_streams = []
+
+        for category in constants.PAST_STREAM_FEATURED_CATEGORIES:
+            past_streams_category = past_streams.filter(categories__name=category)
+            if past_streams_category:
+                random_index = randint(0, len(past_streams_category) - 1)
+                featured_streams.append(past_streams_category[random_index])
+
+        return featured_streams
+
     @action(
         methods=["GET"],
         detail=False,
@@ -93,7 +113,8 @@ class GroupWebinarPublicViewSet(
         ).select_related(
             "topic",
             "host__profile",
-            "host__creator"
+            "host__creator",
+            "recording",
         ).order_by("-start"),
         serializer_class=serializers.StreamListSerializer,
         filterset_fields=["host"]
@@ -107,14 +128,32 @@ class GroupWebinarPublicViewSet(
         """
         live_groups = self.filter_queryset(self._get_live_webinars())
         featured_groups = self.filter_queryset(self._get_featured_webinars())
+        featured_streams_next_hour = False
 
-        live_and_featured_groups = self.filter_queryset(
-            live_groups | featured_groups
-        ).order_by("-is_live", "start")
-        page = self.paginate_queryset(live_and_featured_groups)
+        if not live_groups:
+            # Filter featured streams within the next 1 hour
+            now = datetime.datetime.now()
+            next_hour_datetime = now + datetime.timedelta(hours=1)
+            featured_streams_next_hour = featured_groups.filter(start__lte=next_hour_datetime)
+
+        if featured_streams_next_hour or live_groups:
+            featured_streams = self.filter_queryset(
+                live_groups | featured_groups
+            ).order_by("-is_live", "start")
+        else:
+            self.serializer_class = serializers.StreamWithRecordingListSerializer
+            past_streams_with_recording = self.filter_queryset(
+                self._get_past_webinars_with_recordings(featured=True)
+            )
+
+            featured_streams = self._get_past_streams_with_featured_recordings(
+                past_streams=past_streams_with_recording
+            )
+
+        page = self.paginate_queryset(featured_streams)
 
         if page is None:
-            serializer = self.get_serializer(live_and_featured_groups, many=True)
+            serializer = self.get_serializer(featured_streams, many=True)
             return Response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)

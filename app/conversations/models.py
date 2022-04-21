@@ -627,6 +627,7 @@ class GroupRecording(base_model.BaseModel):
 
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
+    featured = models.BooleanField(default=False)
 
     def publish(self):
         """Publish the group recording.

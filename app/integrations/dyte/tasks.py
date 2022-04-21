@@ -38,7 +38,7 @@ def get_minutes_for_live_streams():
 
         host_total_minutes = 0
         for stat in stats:
-            if stat["clientSpecificId"] != group.host_id:
+            if stat["clientSpecificId"] != str(group.host_id):
                 continue
             host_total_minutes = stat["totalMinutes"]
 
@@ -75,7 +75,7 @@ def get_minutes_for_live_streams():
         group.save()
 
 
-@periodic_task(run_every=crontab(hour="5", minute="30"))
+@periodic_task(run_every=crontab(hour="0", minute="0"))
 def get_minutes_for_all_streams_for_the_day():
     """Get minutes of yesterday's streams from Dyte's end and update on
         our models.
@@ -104,7 +104,7 @@ def get_minutes_for_all_streams_for_the_day():
 
         host_total_minutes = 0
         for stat in stats:
-            if stat["clientSpecificId"] != group.host_id:
+            if stat["clientSpecificId"] != str(group.host_id):
                 continue
             host_total_minutes = stat["totalMinutes"]
 
