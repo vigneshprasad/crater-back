@@ -590,12 +590,9 @@ class UserPermissionViewSet(viewsets.GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         user = request.user
-        obj = self.get_queryset().get(user=user)
-        if not obj:
+        try:
+            obj = self.get_queryset().get(user=user)
+            data = self.get_serializer(obj).data
+            return Response(data, status=status.HTTP_200_OK)
+        except models.UserPermission.DoesNotExist:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
-
-        data = self.get_serializer(obj).data
-        return Response(data, status=status.HTTP_200_OK)
-
-
-
