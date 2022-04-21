@@ -738,6 +738,17 @@ class UserActivity(base_models.BaseModel):
     last_active = models.DateTimeField()
 
 
+class UserPermission(base_models.BaseModel):
+    user = models.OneToOneField(
+        "users.User",
+        related_name="permission",
+        on_delete=models.CASCADE,
+        verbose_name=_("User")
+    )
+    allow_create_stream = models.BooleanField(default=False)
+    allow_chat = models.BooleanField(default=True)
+
+
 # TODO(Nishant): Remove this.
 @receiver(post_save, sender=CoverFile)
 def profile_post_save(sender, instance, created, *args, **kwargs):
