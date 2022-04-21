@@ -174,4 +174,4 @@ class UserPermissionAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "allow_create_stream", "allow_chat")
     list_editable = ["allow_create_stream", "allow_chat"]
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
-    search_fields = ("user__username", "user__name", "referrer__username", "referrer__name")
+    search_fields = ("user__username", "user__name",)
