@@ -16,18 +16,13 @@ class DyteMeetingAdmin(admin.ModelAdmin):
     raw_id_fields = ("group", "meeting", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
-        "group",
+        AutocompleteFilterFactory("Group", "group"),
         "group__start"
     )
     search_fields = (
-        "meeting__participants__name",
-        "meeting__participants__username",
+        "group__id",
         "group__host__name",
-        "group__host__username",
-        "group__speakers__name",
-        "group__speakers__username",
-        "group__attendees__name",
-        "group__attendees__username",
+        "group__host__username"
     )
 
 
@@ -63,6 +58,23 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         return obj.joined_group
 
     joined_stream.boolean = True
+
+
+@admin.register(models.DyteParticipantOnlineLog)
+class DyteParticipantOnlineLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "dyte_meeting_participant",
+        "online_at",
+        "offline_at",
+        "is_offline",
+        "online_time"
+    )
+    raw_id_fields = ("dyte_meeting_participant", )
+    list_filter = (
+        "is_offline",
+        AutocompleteFilterFactory("Dyte Meeting Participant", "dyte_meeting_participant"),
+    )
 
 
 @admin.register(models.DyteMeetingRecording)

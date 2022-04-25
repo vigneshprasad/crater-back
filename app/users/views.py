@@ -581,3 +581,18 @@ class UserReferralViewSet(
         )
 
         return Response(referrals_summary)
+
+
+class UserPermissionViewSet(viewsets.GenericViewSet):
+    serializer_class = serializers.UserPermissionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.UserPermission.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            obj = self.get_queryset().get(user=user)
+            data = self.get_serializer(obj).data
+            return Response(data, status=status.HTTP_200_OK)
+        except models.UserPermission.DoesNotExist:
+            return Response(None, status=status.HTTP_404_NOT_FOUND)

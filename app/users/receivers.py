@@ -64,6 +64,18 @@ def create_profile_on_user_creation(sender, user, *args, **kwargs):
 
 
 @receiver(signals.user_created)
+def create_user_permission_on_user_creation(sender, user, *args, **kwargs):
+    """Create UserPermission on user creation.
+
+    Args:
+        sender(class): User class representation.
+        user(User): User object that got created.
+
+    """
+    models.UserPermission.objects.get_or_create(user=user)
+
+
+@receiver(signals.user_created)
 def create_user_activity_on_user_creation(sender, user, *args, **kwargs):
     """Create user activity entry on user creation
 

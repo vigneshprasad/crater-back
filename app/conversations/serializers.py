@@ -528,6 +528,7 @@ class StreamListSerializer(serializers.ModelSerializer):
     """
     topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
     host_detail = StreamListHostSerializer(source="host", read_only=True)
+    is_past = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -537,7 +538,17 @@ class StreamListSerializer(serializers.ModelSerializer):
             "host_detail",
             "start",
             "is_live",
+            "is_past",
         )
+
+    @staticmethod
+    def get_is_past(group):
+        """Return True if the meeting was in the past."""
+        if group.is_live:
+            return False
+
+        now = timezone.now() - datetime.timedelta(hours=6)
+        return now >= group.start
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):
@@ -674,3 +685,19 @@ class RequestPostSerializer(serializers.ModelSerializer):
         if self.context.get("request"):
             data["requester"] = self.context["request"].user.pk
         return super().to_internal_value(data)
+
+
+class StreamWithRecordingListSerializer(StreamListSerializer):
+    recording_details = GroupRecordingSerializer(source="recording", read_only=True)
+
+    class Meta:
+        model = models.Group
+        fields = (
+            "id",
+            "topic_detail",
+            "host_detail",
+            "start",
+            "is_live",
+            "is_past",
+            "recording_details",
+        )
