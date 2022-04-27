@@ -448,8 +448,7 @@ if SENTRY_DSN:
         environment=os.getenv("ENVIRONMENT"),
         integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
         attach_stacktrace=True,
-        send_default_pii=True,
-        # traces_sample_rate=1
+        send_default_pii=True
     )
 
 # ----------- FRESHCHAT ---------#
