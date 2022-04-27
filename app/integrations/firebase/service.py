@@ -62,7 +62,7 @@ class FirebaseService:
 
     @staticmethod
     def send_message(data, group_id, sender):
-        data["group"] = group_id
+        data["group"] = str(group_id)
         if settings.ENVIRONMENT != settings.ENVIRONMENT_PROD:
             data["group"] = settings.ENVIRONMENT + "_" + group_id
 
