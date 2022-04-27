@@ -379,7 +379,7 @@ def send_follow_action_message():
 
         firebase_service.send_message(
             data=data,
-            group_id="undefined_5",
+            group_id=stream.id,
             sender=admin_uid
         )
 
@@ -412,7 +412,7 @@ def referral_action_message():
 
         firebase_service.send_message(
             data=data,
-            group_id="undefined_5",
+            group_id=stream.id,
             sender=admin_uid
         )
 
@@ -445,7 +445,7 @@ def streams_action_message():
 
         firebase_service.send_message(
             data=data,
-            group_id="undefined_5",
+            group_id=stream.id,
             sender=admin_uid
         )
 
@@ -478,6 +478,6 @@ def download_app_action_message():
 
         firebase_service.send_message(
             data=data,
-            group_id="undefined_5",
+            group_id=stream.id,
             sender=admin_uid
         )
