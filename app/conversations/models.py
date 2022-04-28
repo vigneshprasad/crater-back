@@ -707,7 +707,8 @@ class GroupMessage(base_model.BaseModel):
     """
     CHAT_MESSAGE_TYPE_CHOICES = (
         (constants.CHAT_MESSAGE_TYPE_TEXT_ENUM, constants.CHAT_MESSAGE_TYPE_TEXT),
-        (constants.CHAT_MESSAGE_TYPE_REACTION_ENUM, constants.CHAT_MESSAGE_TYPE_REACTION)
+        (constants.CHAT_MESSAGE_TYPE_REACTION_ENUM, constants.CHAT_MESSAGE_TYPE_REACTION),
+        (constants.CHAT_MESSAGE_TYPE_ACTION_ENUM, constants.CHAT_MESSAGE_TYPE_ACTION),
     )
     
     message = models.TextField(null=True, blank=True)
