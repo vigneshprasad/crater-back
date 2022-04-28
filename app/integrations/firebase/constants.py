@@ -12,3 +12,7 @@ FIREBASE_CONFIG = {
   "auth_provider_x509_cert_url": settings.FIREBASE_AUTH_PROVIDER_CERT_URL,
   "client_x509_cert_url": settings.FIREBASE_CLIENT_CERT_URL
 }
+
+FIREBASE_CHAT_ADMIN_UID = "963e816d-abfa-443c-85a0-d362f6ac8f6b"
+FIREBASE_CHAT_ADMIN_EMAIL = "admin@admin.com"
+FIREBASE_CHAT_ADMIN_USERNAME = "crater_admin"
