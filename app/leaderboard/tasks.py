@@ -27,7 +27,7 @@ def update_user_leaderboards():
                 start__gte=leaderboard.start,
                 end__lte=leaderboard.end
             ).aggregate(minutes=Sum("total_minutes_spent_by_attendees"))
-            minutes = groups_minute_aggregate["minutes"]
+            minutes = round(groups_minute_aggregate["minutes"], 2)
 
             user_leaderboard.total_minutes = minutes or 0
             user_leaderboard.last_calculated_at = timezone.now()
