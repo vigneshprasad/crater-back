@@ -166,3 +166,12 @@ class UserReferralAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "user__name", "referrer__username", "referrer__name")
     readonly_fields = ("due_at", "paid_at")
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
+
+
+@admin.register(models.UserPermission)
+class UserPermissionAdmin(admin.ModelAdmin):
+    raw_id_fields = ("user",)
+    list_display = ("id", "user", "allow_create_stream", "allow_chat")
+    list_editable = ["allow_create_stream", "allow_chat"]
+    exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
+    search_fields = ("user__username", "user__name",)

@@ -15,6 +15,8 @@ from integrations.dyte import models as dyte_models
 from integrations.dyte import public as dyte_public
 from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import public as freshchat_public
+from integrations.firebase import private as firebase_private
+from integrations.firebase.service import firebase_service
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -347,3 +349,135 @@ def add_user_as_follower_for_groups(groups=None):
                 attendee_id,
                 creator_id
             )
+
+
+@periodic_task(run_every=crontab(minute="*/10"))
+def send_follow_action_message():
+    live_streams = models.Group.objects.filter(
+        is_live=True,
+        closed=False,
+    )
+
+    if not live_streams:
+        return
+
+    for stream in live_streams:
+        action_time = stream.start + datetime.timedelta(minutes=10)
+        end_time = stream.start + datetime.timedelta(minutes=11)
+        now = timezone.now()
+
+        if not action_time <= now < end_time:
+            continue
+
+        admin_uid = firebase_private.get_or_register_admin()
+
+        data = {
+            "message": constants.CHAT_ACTION_FOLLOW_MESSAGE,
+            "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
+            "action": int(constants.CHAT_ACTION_TYPE_FOLLOW_ENUM)
+        }
+
+        firebase_service.send_message(
+            data=data,
+            group_id=stream.id,
+            sender=admin_uid
+        )
+
+
+@periodic_task(run_every=crontab(minute="*/15"))
+def referral_action_message():
+    live_streams = models.Group.objects.filter(
+        is_live=True,
+        closed=False,
+    )
+
+    if not live_streams:
+        return
+
+    for stream in live_streams:
+        action_time = stream.start + datetime.timedelta(minutes=15)
+        end_time = stream.start + datetime.timedelta(minutes=16)
+        now = timezone.now()
+
+        if not action_time <= now < end_time:
+            continue
+
+        admin_uid = firebase_private.get_or_register_admin()
+
+        data = {
+            "message": constants.CHAT_ACTION_REFERRAL_MESSAGE,
+            "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
+            "action": int(constants.CHAT_ACTION_TYPE_REFERRAL_ENUM)
+        }
+
+        firebase_service.send_message(
+            data=data,
+            group_id=stream.id,
+            sender=admin_uid
+        )
+
+
+@periodic_task(run_every=crontab(minute="*/25"))
+def streams_action_message():
+    live_streams = models.Group.objects.filter(
+        is_live=True,
+        closed=False,
+    )
+
+    if not live_streams:
+        return
+
+    for stream in live_streams:
+        action_time = stream.start + datetime.timedelta(minutes=25)
+        end_time = stream.start + datetime.timedelta(minutes=26)
+        now = timezone.now()
+
+        if not action_time <= now < end_time:
+            continue
+
+        admin_uid = firebase_private.get_or_register_admin()
+
+        data = {
+            "message": constants.CHAT_ACTION_STREAMS_MESSAGE,
+            "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
+            "action": int(constants.CHAT_ACTION_TYPE_STREAMS_ENUM)
+        }
+
+        firebase_service.send_message(
+            data=data,
+            group_id=stream.id,
+            sender=admin_uid
+        )
+
+
+@periodic_task(run_every=crontab(minute="*/20"))
+def download_app_action_message():
+    live_streams = models.Group.objects.filter(
+        is_live=True,
+        closed=False,
+    )
+
+    if not live_streams:
+        return
+
+    for stream in live_streams:
+        action_time = stream.start + datetime.timedelta(minutes=20)
+        end_time = stream.start + datetime.timedelta(minutes=21)
+        now = timezone.now()
+
+        if not action_time <= now < end_time:
+            continue
+
+        admin_uid = firebase_private.get_or_register_admin()
+
+        data = {
+            "message": constants.CHAT_ACTION_DOWNLOAD_APP_MESSAGE,
+            "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
+            "action": int(constants.CHAT_ACTION_TYPE_DOWNLOAD_APP_ENUM)
+        }
+
+        firebase_service.send_message(
+            data=data,
+            group_id=stream.id,
+            sender=admin_uid
+        )

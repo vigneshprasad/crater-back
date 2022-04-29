@@ -28,9 +28,11 @@ DEFAULT_MAX_SPEAKERS = 6
 # Chat message constants
 CHAT_MESSAGE_TYPE_TEXT_ENUM = 1
 CHAT_MESSAGE_TYPE_REACTION_ENUM = 2
+CHAT_MESSAGE_TYPE_ACTION_ENUM = 3
 
 CHAT_MESSAGE_TYPE_TEXT = "text"
-CHAT_MESSAGE_TYPE_REACTION = "reaction" 
+CHAT_MESSAGE_TYPE_REACTION = "reaction"
+CHAT_MESSAGE_TYPE_ACTION = "action"
 
 # Invite constants.
 INVITE_STATUS_PENDING_ENUM = 0
@@ -97,3 +99,19 @@ INSTANT_CONVERSATION_TIME_SLOTS = [
 SESSION_URL_WITH_GROUP = "session/{group_id}"
 LIVESTREAM_URL_WITH_GROUP = "livestream/{group_id}"
 PAST_STREAM_FEATURED_CATEGORIES = ["Design", "Finance", "Other"]
+
+
+CHAT_ACTION_TYPE_FOLLOW_ENUM = 1
+CHAT_ACTION_TYPE_REFERRAL_ENUM = 2
+CHAT_ACTION_TYPE_STREAMS_ENUM = 3
+CHAT_ACTION_TYPE_DOWNLOAD_APP_ENUM = 4
+
+CHAT_ACTION_TYPE_FOLLOW = "follow"
+CHAT_ACTION_TYPE_REFERRAL = "referral"
+CHAT_ACTION_TYPE_STREAMS = "streams"
+CHAT_ACTION_TYPE_DOWNLOAD_APP = "download_app"
+
+CHAT_ACTION_FOLLOW_MESSAGE = "Hey there! If you like this stream, follow me to never miss out on my upcoming streams."
+CHAT_ACTION_REFERRAL_MESSAGE = "Earn up to ₹100 for each friend that joins & watches a stream on Crater."
+CHAT_ACTION_STREAMS_MESSAGE = "Explore other upcoming live streams on Crater"
+CHAT_ACTION_DOWNLOAD_APP_MESSAGE = "Download the Crater app on android and iOS"
