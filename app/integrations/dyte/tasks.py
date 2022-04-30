@@ -40,7 +40,7 @@ def get_minutes_for_live_streams():
         for stat in stats:
             if stat["clientSpecificId"] != str(group.host_id):
                 continue
-            host_total_minutes = round(stat["totalMinutes"], 2)
+            host_total_minutes = round(stat.get("totalMinutes", 0), 2)
 
         # If there are no host minutes, don't calculate minutes for
         # stream.
@@ -49,7 +49,7 @@ def get_minutes_for_live_streams():
 
         for stat in stats:
             user_pk = stat["clientSpecificId"]
-            total_minutes = round(stat["totalMinutes"], 2)
+            total_minutes = round(stat.get("totalMinutes", 0), 2)
             try:
                 dyte_participant = models.DyteMeetingParticipant.objects.get(
                     dyte_meeting__group=group,
@@ -106,7 +106,7 @@ def get_minutes_for_all_streams_for_the_day():
         for stat in stats:
             if stat["clientSpecificId"] != str(group.host_id):
                 continue
-            host_total_minutes = round(stat["totalMinutes"], 2)
+            host_total_minutes = round(stat.get("totalMinutes", 0), 2)
 
         # If there are no host minutes, don't calculate minutes for
         # stream.
@@ -115,7 +115,7 @@ def get_minutes_for_all_streams_for_the_day():
 
         for stat in stats:
             user_pk = stat["clientSpecificId"]
-            total_minutes = round(stat["totalMinutes"], 2)
+            total_minutes = round(stat.get("totalMinutes", 0), 2)
             try:
                 dyte_participant = models.DyteMeetingParticipant.objects.get(
                     dyte_meeting__group=group,
