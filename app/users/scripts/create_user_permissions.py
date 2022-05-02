@@ -3,7 +3,7 @@ from users import models
 
 def run(dry_run=True):
     """Create user permissions."""
-    users = models.User.objects.filter(permission__isnull=False)
+    users = models.User.objects.filter(permission__isnull=True)
     print(users.count())
     print("-----")
 
