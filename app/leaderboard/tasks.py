@@ -15,9 +15,14 @@ def update_user_leaderboards():
         15 minutes.
 
     """
+    # Get all active leaderboards.
     leaderboards = private.get_active_leaderboards()
+    # Get leaderboard that ended yesterday and update the final results.
+    leaderboards_ended_yesterday = private.get_recently_ended_leaderboards()
 
-    for leaderboard in leaderboards:
+    all_leaderboards_to_be_updated = leaderboards | leaderboards_ended_yesterday
+
+    for leaderboard in all_leaderboards_to_be_updated:
         user_leaderboards = leaderboard.user_leaderboards.filter(is_active=True)
 
         for user_leaderboard in user_leaderboards:
