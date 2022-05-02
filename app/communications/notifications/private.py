@@ -1,8 +1,7 @@
 from celery.task import task
 from django.contrib.auth import get_user_model
 
-from communications.notifications import models
-from communications.notifications import constants
+from communications.notifications import models, constants
 from utils.one_signal_service import os_service
 
 
@@ -69,6 +68,9 @@ def send_notification(user_pk, notification_json, data=None):
     """
     user = get_user_model().objects.get(pk=user_pk)
     devices = user.devices.filter(is_active=True)
+    if not devices:
+        return False
+
     notification_json["data"] = data
 
     for device in devices:

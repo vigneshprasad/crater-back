@@ -29,9 +29,9 @@ class UserDevice(base_models.BaseModel):
     """User's device info with activity.
 
     Note:
-        A user can have multiple devices at the same time
-            but we will considered the latest used device
-            for any user.
+        A user can have multiple devices at the same
+            time, but we will consider the latest
+            used device for any user.
 
     """
     user = models.ForeignKey(
@@ -46,7 +46,7 @@ class UserDevice(base_models.BaseModel):
         blank=True,
         on_delete=models.CASCADE
     )
-    # When this devices was last used.
+    # When was device last used.
     last_used = models.DateTimeField(
         default=timezone.now
     )

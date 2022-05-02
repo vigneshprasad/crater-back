@@ -1,8 +1,9 @@
 import logging
 
-from communications.notifications import models
-from communications.notifications import constants
-from communications.notifications import private
+from django.contrib.auth import get_user_model
+
+from communications.notifications import models, constants, private
+from crater.creator import public as creator_public
 
 
 def send_conversation_create_notification_for_group(group):
@@ -78,6 +79,55 @@ def send_optin_notifications(user):
     notification_json = private.create_notification_json_from_notification(notification)
     data = {
         "obj_type": constants.OBJECT_TYPE_CREATE_CONVERSATION
+    }
+    private.send_notification.delay(user.pk, notification_json, data=data)
+    private.create_notification_log(user, notification, notification_json, data=data)
+
+
+def send_reminder_notifications_for_stream(group):
+
+    followers = []
+    host = group.host
+    creator = creator_public.get_creator_for_user(host)
+
+    if creator:
+        # Add users followers if creator is present.
+        followers = list(creator.followers.filter(
+            notify=True
+        ).values_list("user_id", flat=True))
+
+    # Get attendees for the group.
+    attendees = list(group.attendees.values_list("pk", flat=True))
+
+    # Create an exhaustive list of users to send reminder to.
+    users_to_remind = list(set(followers + attendees))
+    users = get_user_model().objects.filter(pk__in=users_to_remind)
+
+    for user in users:
+        send_reminder_notifications_for_user_and_stream(user, group)
+
+
+def send_reminder_notifications_for_user_and_stream(user, group):
+
+    notification = models.Notification.objects.filter(
+        name=constants.STREAM_REMINDER_NOTIFICATION,
+        is_active=True
+    ).first()
+
+    if not notification:
+        logging.error("Notification not present: {}".format(constants.STREAM_REMINDER_NOTIFICATION))
+        return
+
+    # Get the notification json and append variables to it.
+    notification_json = private.create_notification_json_from_notification(notification)
+    # TODO(Nishant): Add the contents here.
+    notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
+        time=group.get_display_start_time(), day=group.get_display_day()
+        )
+    # Get data for the notification.
+    data = {
+        "obj_type": constants.OBJECT_TYPE_CONVERSATION,
+        "group_id": group.id
     }
     private.send_notification.delay(user.pk, notification_json, data=data)
     private.create_notification_log(user, notification, notification_json, data=data)

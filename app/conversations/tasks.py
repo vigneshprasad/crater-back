@@ -3,20 +3,17 @@ import logging
 
 import boto3
 from celery.schedules import crontab
-from celery.task import periodic_task
-from celery.task import task
+from celery.task import periodic_task, task
 from django.conf import settings
 from django.utils import timezone
 
-from conversations import constants
-from conversations import models
+from communications.notifications import public as notifications_public
+from conversations import constants, models
 from crater.creator import public as creator_public
-from integrations.dyte import models as dyte_models
-from integrations.dyte import public as dyte_public
-from integrations.freshchat import constants as freshchat_constants
-from integrations.freshchat import public as freshchat_public
+from integrations.dyte import models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
+from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -150,10 +147,10 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     )
 
     for webinar in webinars:
-        # Send whatsapp reminder for webinar to attendees.
-        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(
-            webinar
-        )
+        # Send whatsapp reminder for group's to attendees and followers.
+        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(webinar)
+        # Send in app notifications to group's attendees and followers.
+        notifications_public.send_reminder_notifications_for_stream(webinar)
 
 
 @periodic_task(run_every=crontab(minute="*/15"))
