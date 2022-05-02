@@ -3,11 +3,11 @@ from users import models
 
 def run(dry_run=True):
     """Create user permissions."""
-    users = models.User.objects.filter(user_permission__isnull=False)
+    users = models.User.objects.filter(permission__isnull=False)
     print(users.count())
+    print("-----")
 
     for user in users:
-        print("-----")
         print(user)
         if not dry_run:
             user_permission, created = models.UserPermission.objects.get_or_create(user=user)
