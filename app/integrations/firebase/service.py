@@ -69,13 +69,14 @@ class FirebaseService:
     def send_message(self, data, group_id, sender):
         data["group"] = self.get_value_by_env(group_id)
         data["sender"] = self.get_value_by_env(sender)
+        data["created_at"] = firestore.firestore.SERVER_TIMESTAMP
 
-        resp = requests.post(
-            self.FIREBASE_API_ENDPOINTS["send_message"],
-            data
-        )
+        collection = f"group/{data['group']}/messages"
 
-        return resp.text
+        ref = self.db.collection(collection)
+        document = ref.add(data)
+
+        return document
 
     def get_document(self, document_id, collection):
         """Get a user by email from document on Firebase DB."""
