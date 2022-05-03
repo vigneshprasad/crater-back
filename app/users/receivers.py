@@ -11,10 +11,27 @@ from users import signals
 from users import models
 
 
-PROFILE_COMPLETED_POINTS_KEY = 1
-REFERAL_SUCCESS_POINTS_KEY = 13
-
 User = get_user_model()
+LOGGER = logging.getLogger(__name__)
+
+
+@receiver(post_save, sender=get_user_model())
+def send_signal_on_user_creation(sender, instance, *args, **kwargs):
+    """Checks if a user's name is populated for the first time.
+
+    Args:
+        sender(User class): Class representation of user model.
+        instance(User): Instance being saved.
+
+    """
+    # If the model is being created. Return from here.
+    if not kwargs.get("created"):
+        return
+
+    signals.user_created.send(
+        sender=instance.__class__,
+        user=instance
+    )
 
 
 @receiver(pre_save, sender=get_user_model())
@@ -60,7 +77,11 @@ def create_profile_on_user_creation(sender, user, *args, **kwargs):
         user(User): User object that got created.
 
     """
-    models.Profile.objects.get_or_create(user=user)
+    try:
+        models.Profile.objects.get_or_create(user=user)
+    except Exception as e:
+        LOGGER.error(str(e))
+        return
 
 
 @receiver(signals.user_created)
@@ -72,7 +93,11 @@ def create_user_permission_on_user_creation(sender, user, *args, **kwargs):
         user(User): User object that got created.
 
     """
-    models.UserPermission.objects.get_or_create(user=user)
+    try:
+        models.UserPermission.objects.get_or_create(user=user)
+    except Exception as e:
+        LOGGER.error(str(e))
+        return
 
 
 @receiver(signals.user_created)

@@ -16,6 +16,7 @@ class SuggestedTopicAdmin(admin.ModelAdmin):
 @admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "parent", "image", "is_active")
+    raw_id_fields = ("parent", )
     search_fields = ("name",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 

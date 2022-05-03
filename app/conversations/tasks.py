@@ -348,8 +348,8 @@ def add_user_as_follower_for_groups(groups=None):
             )
 
 
-@periodic_task(run_every=crontab(minute="*/10"))
-def send_follow_action_message():
+@periodic_task(run_every=crontab(minute="*/5"))
+def follow_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
         closed=False,
@@ -360,7 +360,7 @@ def send_follow_action_message():
 
     for stream in live_streams:
         action_time = stream.start + datetime.timedelta(minutes=10)
-        end_time = stream.start + datetime.timedelta(minutes=11)
+        end_time = stream.start + datetime.timedelta(minutes=13)
         now = timezone.now()
 
         if not action_time <= now < end_time:
@@ -381,7 +381,7 @@ def send_follow_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/15"))
+@periodic_task(run_every=crontab(minute="*/5"))
 def referral_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
@@ -393,7 +393,7 @@ def referral_action_message():
 
     for stream in live_streams:
         action_time = stream.start + datetime.timedelta(minutes=15)
-        end_time = stream.start + datetime.timedelta(minutes=16)
+        end_time = stream.start + datetime.timedelta(minutes=18)
         now = timezone.now()
 
         if not action_time <= now < end_time:
@@ -414,7 +414,7 @@ def referral_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/25"))
+@periodic_task(run_every=crontab(minute="*/5"))
 def streams_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
@@ -426,7 +426,7 @@ def streams_action_message():
 
     for stream in live_streams:
         action_time = stream.start + datetime.timedelta(minutes=25)
-        end_time = stream.start + datetime.timedelta(minutes=26)
+        end_time = stream.start + datetime.timedelta(minutes=28)
         now = timezone.now()
 
         if not action_time <= now < end_time:
@@ -447,7 +447,7 @@ def streams_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/20"))
+@periodic_task(run_every=crontab(minute="*/5"))
 def download_app_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
@@ -459,7 +459,7 @@ def download_app_action_message():
 
     for stream in live_streams:
         action_time = stream.start + datetime.timedelta(minutes=20)
-        end_time = stream.start + datetime.timedelta(minutes=21)
+        end_time = stream.start + datetime.timedelta(minutes=23)
         now = timezone.now()
 
         if not action_time <= now < end_time:
