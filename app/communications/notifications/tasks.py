@@ -131,27 +131,33 @@ def send_groups_going_live_notifications(groups=None):
     if not group_going_live_highest_rsvp:
         return
 
-    notification = models.Notification.objects.filter(name=constants.STREAM_GOING_LIVE_NOTIFICATION).first()
+    stream_going_live_notification = models.Notification.objects.filter(name=constants.STREAM_GOING_LIVE_NOTIFICATION).first()
 
-    if not notification:
+    if not stream_going_live_notification:
         logging.error("Notification not present: {}".format(constants.STREAM_GOING_LIVE_NOTIFICATION))
         return
 
-    logging.info("Sending notification reminders for groups going live during {} - {}. Group: {}".format(
+    logging.info("Sending notification for group going live during {} - {}. Group: {}".format(
             now, next_hour_time, group_going_live_highest_rsvp
     ))
 
-    notification_json = private.create_notification_json_from_notification(notification)
+    stream_going_live_notification_json = private.create_notification_json_from_notification(stream_going_live_notification)
     data = {
         "obj_type": constants.OBJECT_TYPE_CONVERSATION,
         "group_id": group_going_live_highest_rsvp.id,
         "auto_connect": True
     }
 
-    # TODO(Nishant): Which users should this go to.
-    all_users = user_models.User.objects.filter(
+    # Sending to all users.
+    users = user_models.User.objects.filter(
         group__name=user_constants.CRATER_CLUB_GROUP
     )
-    for user in all_users:
-        private.send_notification.delay(user.pk, notification_json, data=data)
-        private.create_notification_log(user, notification, notification_json, data=data)
+    user_pks = users.values_list("pk", flat=True)
+
+    private.send_bulk_notifications(user_pks, stream_going_live_notification_json, data=data)
+    private.create_notification_logs(
+        users,
+        stream_going_live_notification,
+        stream_going_live_notification_json,
+        data=data
+    )

@@ -14,7 +14,7 @@ class Notification(base_model.BaseModel):
     OBJECT_TYPE_CHOICES = (
         (constants.OBJECT_TYPE_UPCOMING_MEETING, constants.OBJECT_TYPE_UPCOMING_MEETING.title()),
         (constants.OBJECT_TYPE_CONVERSATION, constants.OBJECT_TYPE_CONVERSATION.title()),
-        (constants.OBJECT_TYPE_CREATE_CONVERSATION, constants.OBJECT_TYPE_CREATE_CONVERSATION.title()),
+        (constants.OBJECT_TYPE_CREATE_CONVERSATION, constants.OBJECT_TYPE_CREATE_CONVERSATION.title())
     )
 
     name = models.CharField(max_length=64)
@@ -50,7 +50,7 @@ class Notification(base_model.BaseModel):
 
 
 class NotificationLogs(base_model.BaseModel):
-    # TODO(Nishant): Add is_read, read_time fields.
+
     user = models.ForeignKey(
         get_user_model(),
         related_name='app_notifications',
