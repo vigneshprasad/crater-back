@@ -10,6 +10,7 @@ class RewardAuctionsAdmin(admin.ModelAdmin):
         "reward",
         "start",
         "is_closed",
+        "is_active",
         "base_price",
         "quantity",
         "quantity_sold"
