@@ -663,6 +663,9 @@ class ReferrerBlacklist(base_models.BaseModel):
         related_name="blacklist"
     )
 
+    def delete(self, soft=True):
+        # Hard deleting the row.
+        super(ReferrerBlacklist, self).delete(soft=False)
 
 
 class Admin(User):
