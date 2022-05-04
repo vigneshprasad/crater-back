@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import GroupAdmin
@@ -158,11 +159,34 @@ class ProfileExtraMetaAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserReferral)
 class UserReferralAdmin(admin.ModelAdmin):
-    raw_id_fields = ("user", "referrer", "stream")
+
     list_display = ("id", "user", "referrer", "stream", "amount", "status")
-    search_fields = ("user__username", "user__name", "referrer__username", "referrer__name")
+    raw_id_fields = ("user", "referrer", "stream")
+    search_fields = (
+        "user__username",
+        "user__name",
+        "referrer__username",
+        "referrer__name"
+    )
     readonly_fields = ("due_at", "paid_at")
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
+
+
+@admin.register(models.ReferrerBlacklist)
+class ReferrerBlacklistAdmin(admin.ModelAdmin):
+
+    list_display = ("referrer", "blocked_at")
+    raw_id_fields = ("referrer", )
+    list_filter = (AutocompleteFilterFactory("User", "referrer"), )
+    exclude = ("updated_at", "deleted_at", "is_deleted")
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
+
+    @staticmethod
+    def blocked_at(obj):
+        return obj.created_at
 
 
 @admin.register(models.UserPermission)

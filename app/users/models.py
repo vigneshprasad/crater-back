@@ -652,6 +652,19 @@ class UserReferral(base_models.BaseModel):
         self.save()
 
 
+class ReferrerBlacklist(base_models.BaseModel):
+    """User referred by referrer in this model will be
+        blocked on all permissions.
+
+    """
+    referrer = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="blacklist"
+    )
+
+
+
 class Admin(User):
     proxy = True
 
