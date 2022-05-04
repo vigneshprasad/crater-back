@@ -118,7 +118,7 @@ class Bid(base_models.BaseModel):
 
     def mark_pending(self):
         """Mark the bid pending."""
-        self.status = constants.BID_STATUS_ACCEPTED_ENUM
+        self.status = constants.BID_STATUS_PENDING_ENUM
         self.save()
 
     def mark_accepted(self):

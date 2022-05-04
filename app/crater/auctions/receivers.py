@@ -40,14 +40,13 @@ def send_auction_created_or_updated_signal(sender, instance, *args, **kwargs):
 @receiver(signals.bid_payment_charge_capture_setup)
 def bid_payment_charge_success(sender, bid, *args, **kwargs):
     """Updates bid status once Charge is created for a Bid."""
-    bid.status = constants.BID_STATUS_PENDING_ENUM
-    bid.save()
+    bid.mark_pending()
 
 
 @receiver(signals.bid_payment_charge_capture_success)
 def bid_payment_charge_captured(sender, bid, *args, **kwargs):
     """Updates the bid status once Charge is captured."""
-    bid.mark_pending()
+    bid.mark_accepted()
 
 
 @receiver(stripe_payment_signals.capture_payment_intent_success)
