@@ -10,6 +10,7 @@ from users import serializers as user_serializers
 
 
 class RewardAuctionBaseSerializer(serializers.ModelSerializer):
+
     minimum_bid = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -24,16 +25,21 @@ class RewardAuctionBaseSerializer(serializers.ModelSerializer):
             "base_price",
             "minimum_bid",
         )
-    
+
     @staticmethod
     def get_minimum_bid(obj):
-        highest_bid = obj.bids.filter(status=constants.BID_STATUS_ACCEPTED_ENUM).order_by("-bid_price").first()
+        """Return minimum bid price, after multiplier."""
+        highest_bid = obj.bids.filter(
+            status=constants.BID_STATUS_ACCEPTED_ENUM
+        ).order_by("-bid_price").first()
         if not highest_bid:
             return obj.base_price
-        return constants.MINIMUM_BID_MULTIPLIER(highest_bid.bid_price)
+
+        return constants.get_amount_with_bid_multiplier(highest_bid.bid_price)
 
 
 class BidSerializer(serializers.ModelSerializer):
+
     status_detail = base_serializers.DisplayChoiceField(
         choices=models.Bid.BID_STATUS_CHOICES,
         read_only=True,

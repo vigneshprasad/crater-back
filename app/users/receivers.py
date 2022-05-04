@@ -1,15 +1,11 @@
-import datetime
 import logging
 
-from django.db.models.signals import post_save
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.utils import timezone
 
-from users import signals
-from users import models
-
+from users import signals, models
 
 User = get_user_model()
 LOGGER = logging.getLogger(__name__)
