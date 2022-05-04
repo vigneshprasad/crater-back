@@ -9,10 +9,12 @@ class RewardAuctionsAdmin(admin.ModelAdmin):
         "id",
         "reward",
         "start",
+        "end",
         "is_closed",
         "base_price",
         "quantity"
     )
+    list_editable = ("is_closed", )
     readonly_fields = ("quantity_sold", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
