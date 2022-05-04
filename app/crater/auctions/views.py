@@ -74,8 +74,8 @@ class BidViewSet(
     filterset_class = filters.BidsFilters
 
     def create(self, request, *args, **kwargs):
-        auction_id = kwargs.get("auction")
-        
+        # TODO(Nishant): Add an exception here if the reward auction
+        # has expired.
         return super(BidViewSet, self).create(request, *args, **kwargs)
 
     @action(
