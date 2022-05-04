@@ -122,8 +122,11 @@ def create_user(
     )
     user.groups.add(crater_club_group)
 
-    # Create profile for user.
-    profile = models.Profile.objects.create(
+    # Refresh user from DB.
+    user.refresh_from_db()
+
+    # Get or create profile for user.
+    profile = models.Profile.objects.get_or_create(
         user=user
     )
     profile.primary_url = primary_url
@@ -140,5 +143,11 @@ def create_user(
         # This will generate proper image.url as well.
         profile.photo.save(profile_image_name, File(image_temp))
         profile.save()
+
+    # Raising user created here.
+    signals.user_created.send(
+        sender=user.__class__,
+        user=user
+    )
 
     return user

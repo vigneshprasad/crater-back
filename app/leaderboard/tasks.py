@@ -15,9 +15,14 @@ def update_user_leaderboards():
         15 minutes.
 
     """
+    # Get all active leaderboards.
     leaderboards = private.get_active_leaderboards()
+    # Get leaderboard that ended yesterday and update the final results.
+    leaderboards_ended_yesterday = private.get_recently_ended_leaderboards()
 
-    for leaderboard in leaderboards:
+    all_leaderboards_to_be_updated = leaderboards | leaderboards_ended_yesterday
+
+    for leaderboard in all_leaderboards_to_be_updated:
         user_leaderboards = leaderboard.user_leaderboards.filter(is_active=True)
 
         for user_leaderboard in user_leaderboards:
@@ -27,9 +32,9 @@ def update_user_leaderboards():
                 start__gte=leaderboard.start,
                 end__lte=leaderboard.end
             ).aggregate(minutes=Sum("total_minutes_spent_by_attendees"))
-            minutes = groups_minute_aggregate["minutes"]
+            minutes = groups_minute_aggregate["minutes"] or 0
 
-            user_leaderboard.total_minutes = minutes or 0
+            user_leaderboard.total_minutes = round(minutes, 2)
             user_leaderboard.last_calculated_at = timezone.now()
             user_leaderboard.save()
 

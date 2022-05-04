@@ -39,6 +39,10 @@ class ChallengeAdmin(admin.ModelAdmin):
     def all_duration_types(obj):
         return [duration.__str__() for duration in obj.duration_types.all()]
 
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
+
 
 @admin.register(models.Leaderboard)
 class LeaderboardAdmin(admin.ModelAdmin):
@@ -89,6 +93,10 @@ class LeaderboardAdmin(admin.ModelAdmin):
 
     add_challenge_participants.short_description = "Add all challenge participants"
 
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
+
 
 @admin.register(models.UserLeaderboard)
 class UserLeaderboardAdmin(admin.ModelAdmin):
@@ -101,3 +109,7 @@ class UserLeaderboardAdmin(admin.ModelAdmin):
         "leaderboard__duration_type",
         AutocompleteFilterFactory("Leaderboard", "leaderboard"),
     )
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
