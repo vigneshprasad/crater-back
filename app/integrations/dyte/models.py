@@ -78,17 +78,24 @@ class DyteMeetingParticipant(base_model.BaseModel):
         return latest_group_join_time <= self.last_online_at
         # return DyteParticipantOnlineLog.objects.filter(dyte_meeting_participant_id=self.id).exists()
 
-    # @property
-    # def total_minutes(self):
-    #     """Total minutes spent on the stream."""
-    #     minutes_spent = 0
-    #     online_logs = DyteParticipantOnlineLog.objects.filter(
-    #         dyte_meeting_participant_id=self.id
-    #     )
-    #     for log in online_logs:
-    #         minutes_spent += log.online_time
-    #
-    #     return minutes_spent
+    @property
+    def total_minutes_watched(self):
+        """Total minutes spent on the stream."""
+        minutes_spent = 0
+        online_logs = DyteParticipantOnlineLog.objects.filter(
+            dyte_meeting_participant_id=self.id
+        )
+
+        # If there are no online logs, calculate time based on
+        # old approach.
+        if not online_logs:
+            time_spent = self.last_online_at - self.dyte_meeting.group.start
+            minutes_spent = time_spent.seconds // 60 % 60
+
+        for log in online_logs:
+            minutes_spent += log.online_time
+
+        return minutes_spent
 
     def __str__(self):
         return "{} - {} [{}]".format(

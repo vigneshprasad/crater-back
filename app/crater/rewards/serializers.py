@@ -1,9 +1,9 @@
-from rest_framework import serializers, fields
+from rest_framework import serializers
 
-from crater.rewards import models
 from crater.auctions import models as auction_models
 from crater.auctions import constants as auction_constants
 from crater.creator import serializers as creator_serializers
+from crater.rewards import models
 
 
 class RewardTypeSerializer(serializers.ModelSerializer):
@@ -56,7 +56,6 @@ class RewardSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_quantity(reward):
         auction = reward.get_active_auction()
-
         if not auction:
             return 0
 
@@ -65,7 +64,6 @@ class RewardSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_quantity_sold(reward):
         auction = reward.get_active_auction()
-
         if not auction:
             return 0
 
@@ -74,11 +72,10 @@ class RewardSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_active_auction(reward):
         auction = reward.get_active_auction()
-
         if not auction:
             return None
 
-        return AuctionSerializer(auction).data
+        return SubRewardAuctionSerializer(auction).data
 
 
 class RedemptionSerializer(serializers.ModelSerializer):
@@ -88,7 +85,7 @@ class RedemptionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class AuctionSerializer(serializers.ModelSerializer):
+class SubRewardAuctionSerializer(serializers.ModelSerializer):
     minimum_bid = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -106,7 +103,11 @@ class AuctionSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_minimum_bid(obj):
-        highest_bid = obj.bids.filter(status=auction_constants.BID_STATUS_ACCEPTED_ENUM).order_by("-bid_price").first()
+        """Returns minimum price for bid, after multiplier."""
+        highest_bid = obj.bids.filter(
+            status=auction_constants.BID_STATUS_ACCEPTED_ENUM
+        ).order_by("-bid_price").first()
         if not highest_bid:
             return obj.base_price
-        return auction_constants.MINIMUM_BID_MULTIPLIER(highest_bid.bid_price)
+
+        return auction_constants.get_amount_with_bid_multiplier(highest_bid.bid_price)

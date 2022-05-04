@@ -65,14 +65,10 @@ class GroupWebinarPublicViewSet(
             recording__is_published=True
         ).order_by("-start")
 
-        if featured:
-            featured_groups_with_recording = published_groups_with_recording.filter(
-                recording__featured=True
-            )
+        if not featured:
+            return published_groups_with_recording
 
-            return featured_groups_with_recording
-
-        return published_groups_with_recording
+        return published_groups_with_recording.filter(recording__featured=True)
 
     def _get_featured_webinars(self):
         """Return featured webinars.
@@ -93,13 +89,20 @@ class GroupWebinarPublicViewSet(
 
     @staticmethod
     def _get_past_streams_with_featured_recordings(past_streams):
-        featured_streams = []
+        """Return past stream with featured recordings.
 
+        Args:
+            past_streams(list/queryset): List of past streams from which
+                we are getting the featured past streams.
+
+        """
+        featured_streams = []
         for category in constants.PAST_STREAM_FEATURED_CATEGORIES:
             past_streams_category = past_streams.filter(categories__name=category)
-            if past_streams_category:
-                random_index = randint(0, len(past_streams_category) - 1)
-                featured_streams.append(past_streams_category[random_index])
+            if not past_streams_category:
+                continue
+            random_index = randint(0, len(past_streams_category) - 1)
+            featured_streams.append(past_streams_category[random_index])
 
         return featured_streams
 
@@ -136,6 +139,7 @@ class GroupWebinarPublicViewSet(
             next_hour_datetime = now + datetime.timedelta(hours=1)
             featured_streams_next_hour = featured_groups.filter(start__lte=next_hour_datetime)
 
+        # If there are no live groups and featured stream in the next one hour.
         if featured_streams_next_hour or live_groups:
             featured_streams = self.filter_queryset(
                 live_groups | featured_groups
@@ -145,7 +149,6 @@ class GroupWebinarPublicViewSet(
             past_streams_with_recording = self.filter_queryset(
                 self._get_past_webinars_with_recordings(featured=True)
             )
-
             featured_streams = self._get_past_streams_with_featured_recordings(
                 past_streams=past_streams_with_recording
             )

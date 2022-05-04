@@ -739,6 +739,10 @@ class UserActivity(base_models.BaseModel):
 
 
 class UserPermission(base_models.BaseModel):
+    """Control permissions for user to do actions
+        on the platform.
+
+    """
     user = models.OneToOneField(
         "users.User",
         related_name="permission",

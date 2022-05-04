@@ -9,11 +9,13 @@ class RewardAuctionsAdmin(admin.ModelAdmin):
         "id",
         "reward",
         "start",
+        "end",
         "is_closed",
         "base_price",
-        "quantity",
-        "quantity_sold"
+        "quantity"
     )
+    list_editable = ("is_closed", )
+    readonly_fields = ("quantity_sold", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
@@ -28,7 +30,8 @@ class BidAdmin(admin.ModelAdmin):
         "status"
     )
     raw_id_fields = ("bidder", "creator")
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted", "payment")
+    readonly_fields = ("payment", )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted",)
 
 
 @admin.register(models.CoinPriceLog)

@@ -11,5 +11,14 @@ BID_STATUS_ACCEPTED = "Accepted"
 BID_STATUS_REJECTED = "Rejected"
 BID_STATUS_CANCELLED = "Cancelled"
 
-def MINIMUM_BID_MULTIPLIER(price):
-  return float(price) + (float(price) * 0.1)
+MINIMUM_BID_MUPLTIPLIER = 0.1
+
+
+def get_amount_with_bid_multiplier(price):
+    """Returns amount after adding minimum bid multiplier.
+
+    Args:
+        price(float): Price of the bid.
+
+    """
+    return float(price) + (float(price) * MINIMUM_BID_MUPLTIPLIER)

@@ -18,4 +18,5 @@ class UserCoinHoldingAdmin(admin.ModelAdmin):
 @admin.register(models.UserReward)
 class UserRewardAdmin(admin.ModelAdmin):
     list_display = ("user", "reward", "quantity", "redeemed_quantity", "is_redeemed")
+    raw_id_fields = ("user", "reward", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

@@ -4,6 +4,8 @@ from crater.auctions import models
 
 
 class BidsFilters(filters.FilterSet):
+    """Custom filter class for Bids."""
+
     status = filters.MultipleChoiceFilter(
         field_name="status",
         lookup_expr="in",
