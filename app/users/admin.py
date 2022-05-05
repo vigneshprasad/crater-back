@@ -175,7 +175,7 @@ class UserReferralAdmin(admin.ModelAdmin):
 @admin.register(models.ReferrerBlacklist)
 class ReferrerBlacklistAdmin(admin.ModelAdmin):
 
-    list_display = ("referrer", "blocked_at")
+    list_display = ("id", "referrer", "blocked_at")
     raw_id_fields = ("referrer", )
     list_filter = (AutocompleteFilterFactory("User", "referrer"), )
     exclude = ("updated_at", "deleted_at", "is_deleted")
