@@ -14,14 +14,41 @@ LOGGER = logging.getLogger(__name__)
 @receiver(post_save, sender=models.ReferrerBlacklist)
 def block_referrals_on_blacklist_addition(sender, instance, *args, **kwargs):
     """Block referrals from chat if the referrer is blacklisted."""
-    if not kwargs.get("is_created"):
+    if not kwargs.get("created"):
         return
 
     referrer = instance.referrer
+    referred_users = referrer.referrals.values_list("user", flat=True)
+
     # Disable chat for all referrals.
-    models.UserReferral.objects.filter(
-        referrer=referrer
+    permissions_updated = models.UserPermission.objects.filter(
+        user__in=referred_users
     ).update(allow_chat=False)
+
+    return permissions_updated
+
+
+@receiver(post_save, sender=models.UserReferral)
+def block_permissions_for_referrer_blacklist(sender, instance, *args, **kwargs):
+    """Blocks chat permission for user if the referrer
+        is blacklisted.
+
+    """
+    if not kwargs.get("created"):
+        return
+
+    referred_user = instance.user
+    referrer = instance.referrer
+    # If the referrer is not blacklisted, return.
+    if not hasattr(referrer, "blacklist"):
+        return
+
+    if not hasattr(referred_user, "permission"):
+        return
+
+    user_permission = referred_user.permission
+    user_permission.allow_chat = False
+    user_permission.save()
 
 
 @receiver(post_save, sender=get_user_model())
@@ -103,27 +130,10 @@ def create_user_permission_on_user_creation(sender, user, *args, **kwargs):
 
     """
     try:
-        user_permission = models.UserPermission.objects.get_or_create(user=user)
+        models.UserPermission.objects.get_or_create(user=user)
     except Exception as e:
         LOGGER.error(str(e))
         return
-
-    referred_user = user_permission.user
-
-    # If the user was not referred, return from here..
-    if not hasattr(referred_user, "referred_by"):
-        return
-    # Get the referrer.
-    referrer = user.referred_by
-
-    # If the referrer is not blacklisted, return from here.
-    if not hasattr(referrer, "blacklist"):
-        return
-
-    # If the referrer is blacklisted, disable chat for
-    # referred user.
-    user_permission.allow_chat = False
-    user_permission.save()
 
 
 @receiver(signals.user_created)
