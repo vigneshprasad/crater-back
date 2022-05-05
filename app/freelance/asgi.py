@@ -5,8 +5,7 @@ import sentry_sdk
 from channels.routing import get_default_application
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-sentry_sdk.init(dsn=os.getenv('SENTRY_DSN'))
-
+sentry_sdk.init(dsn=os.getenv("SENTRY_DSN"))
 
 django.setup()
 

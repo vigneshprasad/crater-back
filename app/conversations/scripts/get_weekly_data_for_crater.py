@@ -59,6 +59,7 @@ def _filter_group_where_host_went_live(groups):
     for group in groups:
         dmps = dyte_models.DyteMeetingParticipant.objects.filter(
             participant=group.host,
+            dyte_meeting__group=group,
             dyte_meeting__group__host=group.host,
             last_online_at__isnull=False
         )

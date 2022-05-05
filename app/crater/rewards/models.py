@@ -19,7 +19,11 @@ class RewardType(base_models.BaseModel):
         blank=True,
         on_delete=models.CASCADE
     )
+    order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-order"]
 
     def __str__(self):
         return self.name
@@ -64,11 +68,15 @@ class Reward(base_models.BaseModel):
     class Meta:
         ordering = ["-order"]
 
+    def __str__(self):
+        return "{} - {}".format(self.creator, self.type.name)
+
     def get_active_auction(self):
         return self.auctions.filter(is_closed=False).last()
 
 
 class Redemption(base_models.BaseModel):
+
     user = models.ForeignKey(
         "users.User",
         models.CASCADE

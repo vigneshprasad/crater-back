@@ -40,7 +40,7 @@ router.register("coin_log", auction_views.CoinPriceLogViewSet, basename="coin-pr
 
 # Payment endpoints
 router.register("payment", payment_views.PaymentViewSet, basename="crater-payments")
-router.register("gateways/stripe/webhook", stripe_payment_views.StripeWebhookViewSet, basename="strip-webhook")
+router.register("gateways/stripe/webhook", stripe_payment_views.StripeWebhookViewSet, basename="stripe-webhook")
 router.register("gateways/stripe", stripe_payment_views.PaymentIntentViewSet, basename="crater-gateways-stripe")
 
 # Analytics Dashboard endpoints

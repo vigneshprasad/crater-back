@@ -35,3 +35,6 @@ class Payment(base_models.BaseModel):
         choices=GATEWAY_CHOICES,
         default=constants.PAYMENT_GATEWAY_STRIPE_ENUM
     )
+
+    def __str__(self):
+        return "{} - {} - {}".format(self.id, self.user, self.amount)
