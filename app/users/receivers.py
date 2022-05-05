@@ -5,7 +5,9 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from users import signals, models
+from utils.socket_io_service import socket_io_service
+from users import signals
+from users import models
 
 User = get_user_model()
 LOGGER = logging.getLogger(__name__)
@@ -69,6 +71,19 @@ def send_signal_on_user_creation(sender, instance, *args, **kwargs):
         user=instance
     )
 
+@receiver(pre_save, sender=models.UserPermission)
+def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
+    if instance._state.adding:
+        return
+
+    previous = models.UserPermission.objects.get(id=instance.id)
+    previous_chat_permission = previous.allow_chat
+    current_chat_permission = instance.allow_chat
+
+    if previous_chat_permission == current_chat_permission:
+        return
+
+    socket_io_service.send_user_permission(instance)
 
 @receiver(pre_save, sender=get_user_model())
 def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
