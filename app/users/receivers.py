@@ -23,11 +23,13 @@ def block_referrals_on_blacklist_addition(sender, instance, *args, **kwargs):
     referred_users = referrer.referrals.values_list("user", flat=True)
 
     # Disable chat for all referrals.
-    permissions_updated = models.UserPermission.objects.filter(
+    permissions = models.UserPermission.objects.filter(
         user__in=referred_users
-    ).update(allow_chat=False)
+    )
 
-    return permissions_updated
+    for permission in permissions:
+        permission.allow_chat = False
+        permission.save()
 
 
 @receiver(post_save, sender=models.UserReferral)
