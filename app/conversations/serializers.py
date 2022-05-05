@@ -423,7 +423,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get("request")
         user = request.user
-        tomorrow = timezone.now() + datetime.timedelta(hours=24)
+        start_at = timezone.now() + datetime.timedelta(minutes=15)
 
         # Raise an exception if the user already has a group
         # at the same time.
@@ -432,8 +432,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(exceptions.GroupCreatedAtTheSameTime().get_error_body())
         elif start < timezone.now():
             raise serializers.ValidationError(exceptions.GroupStartDateTimeNotInFuture().get_error_body())
-        elif start < tomorrow:
-            raise serializers.ValidationError(exceptions.GroupStartLessThan24Hours().get_error_body())
+        elif start < start_at:
+            raise serializers.ValidationError(exceptions.GroupStartLessThan15minutes().get_error_body())
 
         title = validated_data.pop("topic_title") if validated_data.get("topic_title") else None
         image = validated_data.pop("topic_image") if validated_data.get("topic_image") else None
