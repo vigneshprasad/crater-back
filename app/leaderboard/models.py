@@ -55,7 +55,7 @@ class Challenge(base_models.BaseModel):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.title
+        return "{} - {}".format(self.id, self.title)
 
     def get_active_leaderboards(self):
         """Return active leaderboards for Challenges."""
@@ -99,7 +99,7 @@ class Leaderboard(base_models.BaseModel):
     #     unique_together = ["challenge", "duration_type", "is_active"]
 
     def __str__(self):
-        return "{} - {}".format(self.challenge.title, self.duration_type.__str__())
+        return "{} - {} - {}".format(self.id, self.challenge.title, self.duration_type.__str__())
 
     def get_active_user_leaderboards(self):
         """Return active user leaderboard for the Leaderboard."""
