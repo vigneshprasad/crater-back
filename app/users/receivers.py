@@ -11,6 +11,46 @@ User = get_user_model()
 LOGGER = logging.getLogger(__name__)
 
 
+@receiver(post_save, sender=models.ReferrerBlacklist)
+def block_referrals_on_blacklist_addition(sender, instance, *args, **kwargs):
+    """Block referrals from chat if the referrer is blacklisted."""
+    if not kwargs.get("created"):
+        return
+
+    referrer = instance.referrer
+    referred_users = referrer.referrals.values_list("user", flat=True)
+
+    # Disable chat for all referrals.
+    permissions_updated = models.UserPermission.objects.filter(
+        user__in=referred_users
+    ).update(allow_chat=False)
+
+    return permissions_updated
+
+
+@receiver(post_save, sender=models.UserReferral)
+def block_permissions_for_referrer_blacklist(sender, instance, *args, **kwargs):
+    """Blocks chat permission for user if the referrer
+        is blacklisted.
+
+    """
+    if not kwargs.get("created"):
+        return
+
+    referred_user = instance.user
+    referrer = instance.referrer
+    # If the referrer is not blacklisted, return.
+    if not hasattr(referrer, "blacklist"):
+        return
+
+    if not hasattr(referred_user, "permission"):
+        return
+
+    user_permission = referred_user.permission
+    user_permission.allow_chat = False
+    user_permission.save()
+
+
 @receiver(post_save, sender=get_user_model())
 def send_signal_on_user_creation(sender, instance, *args, **kwargs):
     """Checks if a user's name is populated for the first time.
