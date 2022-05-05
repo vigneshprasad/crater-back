@@ -15,8 +15,3 @@ def close_ending_reward_auctions():
     )
     # Mark all these reward auctions closed.
     reward_auctions.update(is_closed=True)
-
-
-@periodic_task(run_every=crontab(hour="0", minute="0"))
-def mark_reward_auction_active():
-    pass

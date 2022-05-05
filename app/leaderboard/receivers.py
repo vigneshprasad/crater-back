@@ -46,7 +46,7 @@ def create_user_leaderboard_for_challenge(sender, instance, *args, **kwargs):
 
     action = kwargs.get("action")
     challenge = instance
-    leaderboards = challenge.leaderboards.filter(is_active=True)
+    leaderboards = challenge.leaderboards.all()
 
     if action not in ["post_add", "post_remove"]:
         return None
