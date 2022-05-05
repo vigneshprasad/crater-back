@@ -137,7 +137,7 @@ class GroupStartLessThan15minutes(base_exceptions.BaseAPIException):
     def __init__(self):
         super().__init__(
             message="The start time is too soon.",
-            error_code="groupStartLessThan15minutes"
+            error_code="groupStartLessThan15Minutes"
         )
 
     def __str__(self):
