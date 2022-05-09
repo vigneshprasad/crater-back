@@ -1,18 +1,10 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
-from rest_framework import mixins
-from rest_framework import viewsets
-from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-
-from crater.auctions import constants
-from crater.auctions import exceptions
-from crater.auctions import models
-from crater.auctions import serializers
-from crater.auctions import signals
-from crater.auctions import filters
+from crater.auctions import constants, models, serializers, filters, exceptions
 from users import permissions as user_permissions
 
 
@@ -24,7 +16,11 @@ class AuctionViewSet(
 ):
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.RewardAuctionBaseSerializer
-    queryset = models.RewardAuction.objects.filter(is_closed=False)
+    queryset = models.RewardAuction.objects.filter(
+        is_active=True,
+        is_closed=False,
+        end__gt=timezone.now()
+    )
     filterset_fields = ["reward"]
 
     def _get_active_auction(self, reward_id):
@@ -76,6 +72,11 @@ class BidViewSet(
     queryset = models.Bid.objects.all().order_by("-created_at")
     filter_backends = (DjangoFilterBackend,)
     filterset_class = filters.BidsFilters
+
+    def create(self, request, *args, **kwargs):
+        # TODO(Nishant): Add an exception here if the reward auction
+        # has expired.
+        return super(BidViewSet, self).create(request, *args, **kwargs)
 
     @action(
         methods=["POST"],

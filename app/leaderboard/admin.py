@@ -102,8 +102,9 @@ class LeaderboardAdmin(admin.ModelAdmin):
 class UserLeaderboardAdmin(admin.ModelAdmin):
 
     model = models.UserLeaderboard
-    list_display = ("id", "leaderboard", "user", "total_minutes", "rank")
+    list_display = ("id", "leaderboard", "user", "total_minutes", "rank", "is_active")
     raw_id_fields = ("leaderboard", "user", )
+    list_editable = ("is_active", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         "leaderboard__duration_type",
