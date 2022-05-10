@@ -112,6 +112,6 @@ CHAT_ACTION_TYPE_STREAMS = "streams"
 CHAT_ACTION_TYPE_DOWNLOAD_APP = "download_app"
 
 CHAT_ACTION_FOLLOW_MESSAGE = "Hey there! If you like this stream, follow me to never miss out on my upcoming streams."
-CHAT_ACTION_REFERRAL_MESSAGE = "Earn ₹50 and gift ₹50 for each friend that joins & watches a stream on Crater."
+CHAT_ACTION_REFERRAL_MESSAGE = "Earn ₹100 for each friend that joins & watches a stream on Crater."
 CHAT_ACTION_STREAMS_MESSAGE = "Explore other upcoming live streams on Crater"
 CHAT_ACTION_DOWNLOAD_APP_MESSAGE = "Download the Crater app on android and iOS"
