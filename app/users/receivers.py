@@ -77,7 +77,8 @@ def send_signal_on_user_creation(sender, instance, *args, **kwargs):
     )
 
 
-@receiver(pre_save, sender=models.UserPermission)
+# TODO(Abhishek): Need fix for this.
+# @receiver(pre_save, sender=models.UserPermission)
 def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
     """Send a request to socket.io if a User permission is updated."""
     if instance._state.adding:
