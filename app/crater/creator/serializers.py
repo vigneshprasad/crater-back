@@ -1,10 +1,31 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_auth import serializers as rest_auth_serializers
 
 from crater.creator import models
+from crater.creator import constants
 from users import models as user_models
 from users import serializers as user_serializers
-from crater.creator import constants
+
+
+class PointOfContactDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
+    photo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "photo",
+            "email",
+            "name",
+            "phone_number",
+        )
+
+    @staticmethod
+    def get_photo(obj):
+        if not hasattr(obj, "profile"):
+            return None
+        return obj.profile.photo.url if obj.profile.photo else obj.profile.photo_url
 
 
 class CreatorSerializer(serializers.ModelSerializer):
@@ -117,14 +138,14 @@ class CreatorSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_point_of_contact_detail(obj):
         if obj.point_of_contact:
-            return user_serializers.UserDetailSerializer(obj.point_of_contact).data
+            return PointOfContactDetailSerializer(obj.point_of_contact).data
 
         try:
             default_poc_user = get_user_model().objects.get(email=constants.DEFAULT_POC_EMAIL)
         except get_user_model().DoesNotExist:
             return None
 
-        return user_serializers.UserDetailSerializer(default_poc_user).data
+        return PointOfContactDetailSerializer(default_poc_user).data
 
 
 class CreatorProfileListSerializer(serializers.ModelSerializer):
