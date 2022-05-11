@@ -556,6 +556,11 @@ class Profile(models.Model):
     def get_photo_url(self):
         return self.photo.url if self.photo else self.photo_url
 
+    def opt_out_of_whatsapp(self):
+        """Opt user out of whatsapp messaging."""
+        self.opted_in_for_whatsapp = False
+        self.save()
+
 
 class ProfileExtraInfoMeta(models.Model):
     question = models.TextField(max_length=800)

@@ -164,3 +164,6 @@ FRONT_END_IDENTIFY_CALL_ANDROID = {
     "version": 2,
     "writeKey": "iGbaBkLh7gb9l1rkZjGFSqmzkj13z4YN"
 }
+
+
+IGC_SOURCE = "IGC"
