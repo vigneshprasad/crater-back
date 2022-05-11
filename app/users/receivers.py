@@ -8,6 +8,8 @@ from django.utils import timezone
 from utils.socket_io_service import socket_io_service
 from users import signals
 from users import models
+from wn_analytics import constants as analytics_constants
+
 
 User = get_user_model()
 LOGGER = logging.getLogger(__name__)
@@ -74,8 +76,10 @@ def send_signal_on_user_creation(sender, instance, *args, **kwargs):
         user=instance
     )
 
+
 @receiver(pre_save, sender=models.UserPermission)
 def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
+    """Send a request to socket.io if a User permission is updated."""
     if instance._state.adding:
         return
 
@@ -87,6 +91,7 @@ def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
         return
 
     socket_io_service.send_user_permission(instance)
+
 
 @receiver(pre_save, sender=get_user_model())
 def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
