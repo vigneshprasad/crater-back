@@ -518,6 +518,9 @@ STRIPE_SECRET_KEY = os.environ.get(
     "sk_test_51K3b69SEKv2Ym9yY2iHp4gY7IS4fPzhWjMMcrF2RRllNsfCWPyUwtNTCnqoFeJMuCKzljR5y8p7eLATF0lByhd7M00BBpRPjZM"
 )
 
+# ----------- SOCKET.IO ----------- #
+SOCKET_IO_BASE_URL = os.getenv("SOCKET_IO_BASE_URL")
+
 # API safe methods.
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
