@@ -1,8 +1,10 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from crater.creator import models
 from users import models as user_models
 from users import serializers as user_serializers
+from crater.creator import constants
 
 
 class CreatorSerializer(serializers.ModelSerializer):
@@ -13,6 +15,8 @@ class CreatorSerializer(serializers.ModelSerializer):
     default_community = serializers.SerializerMethodField(read_only=True)
     is_follower = serializers.SerializerMethodField(read_only=True)
     is_subscriber = serializers.SerializerMethodField(read_only=True)
+
+    point_of_contact_detail = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
 
@@ -34,6 +38,8 @@ class CreatorSerializer(serializers.ModelSerializer):
             "video_poster",
             "show_analytics",
             "is_subscriber",
+            "point_of_contact",
+            "point_of_contact_detail",
         )
         extra_kwargs = {
             "subscriber_count": {
@@ -107,6 +113,18 @@ class CreatorSerializer(serializers.ModelSerializer):
             return None
 
         return CommunitySerializer(community).data
+
+    @staticmethod
+    def get_point_of_contact_detail(obj):
+        if obj.point_of_contact:
+            return user_serializers.UserDetailSerializer(obj.point_of_contact).data
+
+        try:
+            default_poc_user = get_user_model().objects.get(email=constants.DEFAULT_POC_EMAIL)
+        except get_user_model().DoesNotExist:
+            return None
+
+        return user_serializers.UserDetailSerializer(default_poc_user).data
 
 
 class CreatorProfileListSerializer(serializers.ModelSerializer):
