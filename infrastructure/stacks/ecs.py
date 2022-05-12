@@ -141,8 +141,7 @@ class FargateApiServiceStack(NestedStack):
             "DYTE_APP_ID",
             "STRIPE_PUBLISHABLE_KEY",
             "STRIPE_SECRET_KEY",
-            "DEFAULT_FROM_EMAIL",
-            "SOCKET_IO_BASE_URL"
+            "DEFAULT_FROM_EMAIL"
         ]
 
         params = {
