@@ -11,7 +11,6 @@ from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
-from freelance.settings import DEFAULT_FROM_EMAIL
 from integrations.dyte import models as dyte_models
 from users import models, constants
 from utils.one_signal_service import os_service
@@ -46,7 +45,7 @@ def send_email(
     reply_to = kwargs.get('reply_to', [])
     cc = kwargs.get('cc', [])
     bcc = kwargs.get('bcc', [])
-    from_email = kwargs.get('from_email', DEFAULT_FROM_EMAIL)
+    from_email = kwargs.get('from_email', settings.DEFAULT_FROM_EMAIL)
 
     msg = EmailMessage(
         subject=subject,
