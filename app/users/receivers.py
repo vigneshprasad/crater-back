@@ -8,6 +8,7 @@ from django.utils import timezone
 from utils.socket_io_service import socket_io_service
 from users import signals
 from users import models
+from users import tasks
 from wn_analytics import constants as analytics_constants
 
 
@@ -136,11 +137,10 @@ def create_profile_on_user_creation(sender, user, *args, **kwargs):
         user(User): User object that got created.
 
     """
-    try:
-        models.Profile.objects.get_or_create(user=user)
-    except Exception as e:
-        LOGGER.error(str(e))
-        return
+    tasks.create_profile_on_user_creation.apply_async(
+        args=(user.pk,),
+        countdown=60
+    )
 
 
 @receiver(signals.user_created)
