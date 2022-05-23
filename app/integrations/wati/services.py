@@ -1,6 +1,7 @@
 import logging
 
 import requests
+from django.conf import settings
 
 from integrations.wati import constants
 
@@ -103,5 +104,5 @@ class WatiWhatsappService:
 
 
 wati_service = WatiWhatsappService(
-    access_token=constants.WATI_ACCESS_TOKEN
+    access_token=settings.WATI_ACCESS_TOKEN
 )
