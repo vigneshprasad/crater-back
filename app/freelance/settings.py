@@ -128,6 +128,7 @@ INSTALLED_APPS = [
     "integrations.dyte",
     "integrations.retool",
     "integrations.firebase",
+    "integrations.wati",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",

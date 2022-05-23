@@ -17,6 +17,7 @@ from integrations.freshchat import constants as freshchat_constants
 from integrations.freshchat import public as freshchat_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
+from integrations.wati import public as wati_public
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -151,9 +152,10 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
 
     for webinar in webinars:
         # Send whatsapp reminder for webinar to attendees.
-        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(
-            webinar
-        )
+        # freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(
+        #     webinar
+        # )
+        wati_public.send_stream_reminder_messages_for_group(webinar)
 
 
 @periodic_task(run_every=crontab(minute="*/15"))

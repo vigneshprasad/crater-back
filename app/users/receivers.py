@@ -93,6 +93,7 @@ def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
     socket_io_service.send_user_permission(instance)
 
 
+# TODO(Nishant): Not being user remove.
 @receiver(pre_save, sender=get_user_model())
 def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
     """Checks if a user's name is populated for the first time.

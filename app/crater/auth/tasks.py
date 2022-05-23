@@ -1,7 +1,7 @@
 from celery.task import task
 from django.contrib.auth import get_user_model
 
-from integrations.freshchat import public as freshchat_public
+from integrations.wati import public as wati_public
 
 
 @task
@@ -17,4 +17,4 @@ def send_welcome_crater_whatsapp(user_pk):
     except get_user_model().DoesNotExist:
         return
 
-    freshchat_public.send_welcome_crater_whatsapp(user)
+    wati_public.send_welcome_crater_whatsapp(user)

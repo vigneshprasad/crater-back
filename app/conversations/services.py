@@ -632,7 +632,7 @@ def get_average_engagement(user=None):
     )
 
     if not past_streams:
-        return None
+        return 0
 
     past_stream_ids = past_streams.values_list("id", flat=True)
 
