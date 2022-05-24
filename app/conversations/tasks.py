@@ -151,10 +151,7 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     )
 
     for webinar in webinars:
-        # Send whatsapp reminder for webinar to attendees.
-        # freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(
-        #     webinar
-        # )
+        # Send reminders for followers and attendees.
         wati_public.send_stream_reminder_messages_for_group(webinar)
 
 
