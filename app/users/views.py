@@ -147,7 +147,9 @@ class ProfileViewSet(
             profile=instance
         )
 
-        return Response(data)
+        return Response(data, headers={
+            "Cache-Control": "max-age=1"
+        })
 
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
