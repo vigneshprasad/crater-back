@@ -68,10 +68,11 @@ def send_stream_reminder_messages_for_followers(followers, group):
     creator_name = group.host.display_name
     try:
         topic_image_url = group.topic.image.url
-        public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
+        # TODO(Nishant): Remove this if topic_image_url works.
+        # public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
-        public_topic_image_url = ""
+        topic_image_url = ""
 
     stream_title = group.topic.name
     receivers = []
@@ -83,7 +84,7 @@ def send_stream_reminder_messages_for_followers(followers, group):
         data = {
             "whatsappNumber": follower.get_phone_number(),
             "customParams": [
-                {"name": "stream_image", "value": public_topic_image_url},
+                {"name": "stream_image", "value": topic_image_url},
                 {"name": "creator_name", "value": creator_name},
                 {"name": "stream_starting", "value": constants.STREAM_STARTING_DURATION},
                 {"name": "stream_title", "value": stream_title},
@@ -117,10 +118,10 @@ def send_stream_reminder_messages_for_attendees(attendees, group):
     creator_name = group.host.display_name
     try:
         topic_image_url = group.topic.image.url
-        public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
+        # public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
-        public_topic_image_url = ""
+        topic_image_url = ""
 
     receivers = []
     for attendee in attendees:
@@ -131,7 +132,7 @@ def send_stream_reminder_messages_for_attendees(attendees, group):
         data = {
             "whatsappNumber": attendee.get_phone_number(),
             "customParams": [
-                {"name": "stream_image", "value": public_topic_image_url},
+                {"name": "stream_image", "value": topic_image_url},
                 {"name": "creator_name", "value": creator_name},
                 {"name": "stream_starting", "value": constants.STREAM_STARTING_DURATION},
                 {"name": "session_id", "value": group.id}
@@ -161,13 +162,13 @@ def send_stream_reminder_message_to_attendee(user, group):
     creator_name = group.host.display_name
     try:
         topic_image_url = group.topic.image.url
-        public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
+        # public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
-        public_topic_image_url = ""
+        topic_image_url = ""
 
     template_data = [
-        {"name": "stream_image", "value": public_topic_image_url},
+        {"name": "stream_image", "value": topic_image_url},
         {"name": "creator_name", "value": creator_name},
         {"name": "stream_starting", "value": constants.STREAM_STARTING_DURATION},
         {"name": "session_id", "value": group.id}
