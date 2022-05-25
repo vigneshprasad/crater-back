@@ -57,7 +57,8 @@ class WatiWhatsappService:
             ),
             headers=self._get_authorization_headers()
         )
-        return response.text
+        print(response.text)
+        return True
 
     def send_template_message(
             self,
@@ -80,7 +81,8 @@ class WatiWhatsappService:
             headers=self._get_authorization_headers(),
             json=data
         )
-        return response.text
+        print(response.text)
+        return True
 
     def send_template_messages(
             self,
@@ -100,7 +102,8 @@ class WatiWhatsappService:
             headers=self._get_authorization_headers(),
             json=data
         )
-        return response.text
+        print(response.text)
+        return True
 
 
 wati_service = WatiWhatsappService(
