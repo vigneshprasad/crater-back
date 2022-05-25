@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from integrations.wati import constants, private
 from integrations.wati.services import wati_service
@@ -39,7 +40,8 @@ def send_stream_reminder_messages_for_group(group):
 
     if creator:
         # Add users followers if creator is present.
-        followers = creator.followers.filter(notify=True)
+        user_ids = creator.followers.filter(notify=True).values_list("user_id", flat=True)
+        followers = get_user_model().objects.filter(pk__in=user_ids)
 
     # Get attendees for the group.
     attendees = group.attendees.all()
