@@ -260,6 +260,10 @@ def publish_group_recordings(group_recording_ids):
     """Uploads dyte recording to media/live_stream_recordings/ for
         a streams. Marks the group recording as published.
 
+    Args:
+        group_recording_ids(list/queryset): Group recordings we want to mark
+            published.
+
     Note:
         If a group recording is already published, this doesn't change
             the state.
@@ -304,6 +308,71 @@ def publish_group_recordings(group_recording_ids):
         group_recording.is_published = True
         group_recording.published_at = datetime.datetime.now()
         group_recording.save()
+
+
+@periodic_task(run_every=crontab(hour="*/3"))
+def upload_valid_recordings_for_streams(groups=None):
+    """Uploads valid recordings for streams to group_recordings.
+
+    Args:
+        groups(list/queryset): List of groups we want to publish
+            recordings for.
+
+    Note:
+        Only publishes recordings if the recording size is >150 MB.
+
+    """
+    end_time = timezone.now() - timezone.timedelta(hours=3)
+    start_time = end_time - timezone.timedelta(hours=3)
+
+    groups = models.Group.objects.filter(
+        start__gte=start_time,
+        start__lte=end_time,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ) if not groups else groups
+
+    # Get all group recordings for groups.
+    group_recordings = models.GroupRecording.objects.filter(
+        group__in=groups
+    )
+
+    # Get the session for S3.
+    session = boto3.Session(
+        aws_access_key_id=settings.DYTE_AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.DYTE_AWS_SECRET_ACCESS_KEY
+    )
+    # Then use the session to get the resource
+    s3 = session.resource("s3")
+
+    valid_group_recordings = []
+    for group_recording in group_recordings:
+        # If the recording is published continue.
+        if group_recording.is_published:
+            continue
+
+        dyte_rec = group_recording.dyte_recordings.last()
+        if not dyte_rec:
+            continue
+
+        try:
+            recording_object_s3 = s3.Object(settings.AWS_STORAGE_BUCKET_NAME, dyte_rec.storage_key_name)
+            size_in_bytes = recording_object_s3.content_length
+        except Exception as e:
+            logging.error(
+                "Exception happened when uploading recording: {} - {}".format(
+                    e, group_recording.id
+                )
+            )
+            continue
+
+        size_in_megabytes = size_in_bytes / (1024 * 1024)
+        # If the size is less than 150 MB, don't publish.
+        if not (size_in_megabytes >= 150):
+            continue
+        valid_group_recordings.append(group_recording.id)
+
+    # Publish all valid group recordings.
+    publish_group_recordings.delay(valid_group_recordings)
 
 
 @periodic_task(run_every=crontab(hour=5, minute=30))
