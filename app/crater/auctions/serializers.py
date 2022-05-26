@@ -99,3 +99,21 @@ class CoinPriceLogSerializer(serializers.ModelSerializer):
             "created_at",
             "price",
         )
+
+
+class RewardAuctionListSerializer(RewardAuctionBaseSerializer):
+    reward_detail = reward_serializers.RewardDetailWithCreatorAndTypeSerializer(source="reward", read_only=True)
+
+    class Meta:
+        model = models.RewardAuction
+        fields = (
+            "id",
+            "reward",
+            "reward_detail",
+            "start",
+            "end",
+            "is_closed",
+            "is_active",
+            "base_price",
+            "minimum_bid",
+        )
