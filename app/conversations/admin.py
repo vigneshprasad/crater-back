@@ -15,10 +15,20 @@ class SuggestedTopicAdmin(admin.ModelAdmin):
 
 @admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "parent", "image", "is_active")
+    list_display = ("id", "name", "image", "is_active")
+    fields = (
+        "name",
+        "image",
+        "description",
+        "is_active",
+        "is_approved",
+        "is_suggested",
+        "parent"
+    )
+    list_editable = ("name", )
     raw_id_fields = ("parent", )
     search_fields = ("name",)
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    exclude = ("creator", "article", "created_at", "deleted_at", "updated_at", "is_deleted")
 
 
 @admin.register(models.Category)

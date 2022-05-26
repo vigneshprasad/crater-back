@@ -236,7 +236,7 @@ def send_meeting_request_declined_message(sender, meeting_request, *args, **kwar
     pass
 
 
-@receiver(conversation_signals.attendee_added_to_group)
+# @receiver(conversation_signals.attendee_added_to_group)
 def send_whatsapp_for_webinar_rsvp_to_attendee(sender, group, user, *args, **kwargs):
     """Send whatsapp to attendee for RSVPing to the webinar.
 

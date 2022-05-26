@@ -88,10 +88,16 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
         # If there are no online logs, calculate time based on
         # old approach.
+        if not (online_logs or self.last_online_at):
+            return minutes_spent
+
+        # If not online logs are there and last_online_at is present,
+        # calculate minutes the old way.
         if not online_logs:
             time_spent = self.last_online_at - self.dyte_meeting.group.start
             minutes_spent = time_spent.seconds // 60 % 60
 
+        # If logs are present calculate minutes from logs.
         for log in online_logs:
             minutes_spent += log.online_time
 

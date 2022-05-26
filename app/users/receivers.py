@@ -8,6 +8,9 @@ from django.utils import timezone
 from utils.socket_io_service import socket_io_service
 from users import signals
 from users import models
+from users import tasks
+from wn_analytics import constants as analytics_constants
+
 
 User = get_user_model()
 LOGGER = logging.getLogger(__name__)
@@ -74,8 +77,10 @@ def send_signal_on_user_creation(sender, instance, *args, **kwargs):
         user=instance
     )
 
+
 @receiver(pre_save, sender=models.UserPermission)
 def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
+    """Send a request to socket.io if a User permission is updated."""
     if instance._state.adding:
         return
 
@@ -88,6 +93,8 @@ def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
 
     socket_io_service.send_user_permission(instance)
 
+
+# TODO(Nishant): Not being user remove.
 @receiver(pre_save, sender=get_user_model())
 def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
     """Checks if a user's name is populated for the first time.
@@ -131,11 +138,10 @@ def create_profile_on_user_creation(sender, user, *args, **kwargs):
         user(User): User object that got created.
 
     """
-    try:
-        models.Profile.objects.get_or_create(user=user)
-    except Exception as e:
-        LOGGER.error(str(e))
-        return
+    tasks.create_profile_on_user_creation.apply_async(
+        args=(user.pk,),
+        countdown=60
+    )
 
 
 @receiver(signals.user_created)

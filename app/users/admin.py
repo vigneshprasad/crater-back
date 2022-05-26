@@ -162,6 +162,10 @@ class UserReferralAdmin(admin.ModelAdmin):
 
     list_display = ("id", "user", "referrer", "stream", "amount", "status")
     raw_id_fields = ("user", "referrer", "stream")
+    list_filter = (
+        "status",
+        AutocompleteFilterFactory("Referrer", "referrer")
+    )
     search_fields = (
         "user__username",
         "user__name",

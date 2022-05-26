@@ -34,6 +34,7 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "participant",
         "joined_stream",
         "last_online_at",
+        "total_minutes_watched",
         "dyte_meeting"
     )
     raw_id_fields = ("participant", "dyte_meeting")

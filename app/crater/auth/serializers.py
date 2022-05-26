@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from crater.auth import models, private, constants
 from users import models as user_models, services as user_services
+from wn_analytics import constants as analytics_constants
 from wn_analytics import models as analytics_models
 
 
@@ -80,7 +81,9 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         phone_number = validated_data.get("phone_number")
 
-        validated_data["otp"] = "1111" if (constants.DEBUG or phone_number in constants.TEST_PHONE_NUMBERS) else private.generate_otp()
+        validated_data["otp"] = "1111" if (
+                constants.DEBUG or phone_number in constants.TEST_PHONE_NUMBERS
+        ) else private.generate_otp()
         # When a new OTP is created mark the old ones as expired.
         models.PhoneOtp.objects.filter(phone_number=phone_number).update(is_expired=True)
 
@@ -107,6 +110,15 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 utm_medium=utm_medium,
                 referrer=referrer
             )
+
+        if utm_source == analytics_constants.IGC_SOURCE and is_new_user:
+            # Get profile for user.
+            user = instance.user
+            user.refresh_from_db()
+            profile = user.profile
+            # Opt out IGC users from whatsapp messages.
+            profile.opt_out_of_whatsapp()
+            return instance
 
         # If the referrer user is a creator don't create user referral.
         if referrer and not referrer.is_creator and is_new_user:

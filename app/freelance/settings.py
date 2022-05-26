@@ -128,6 +128,7 @@ INSTALLED_APPS = [
     "integrations.dyte",
     "integrations.retool",
     "integrations.firebase",
+    "integrations.wati",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -451,7 +452,7 @@ if SENTRY_DSN:
         send_default_pii=True
     )
 
-# ----------- FRESHCHAT ---------#
+# ----------- FRESHCHAT --------- #
 ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
 FRESHCHAT_BASE_URL = "https://api.in.freshchat.com/v2"
 FRESHCHAT_USER_CREATION_ALLOWED = False if os.getenv("FRESHCHAT_USER_CREATION_ALLOWED", True) == "False" else True
@@ -459,6 +460,10 @@ FRESHCHAT_APP_ID = os.getenv("FRESHCHAT_APP_ID")
 FRESHCHAT_MESSAGING_PHONE_NUMBER = os.getenv("FRESHCHAT_MESSAGING_PHONE_NUMBER")
 FRESHCHAT_WHATSAPP_NAMESPACE = os.getenv("FRESHCHAT_WHATSAPP_NAMESPACE")
 FRESHCHAT_ACCESS_TOKEN = os.getenv("FRESHCHAT_ACCESS_TOKEN")
+
+# ----------- WATI ------------ #
+WATI_BASE_URL = "https://live-server-9501.wati.io/api/v1/"
+WATI_ACCESS_TOKEN = os.getenv("WATI_ACCESS_TOKEN")
 
 # -------------- GOOGLE ------------ #
 GOOGLE_API_ACCOUNT_TYPE = os.getenv("GOOGLE_API_ACCOUNT_TYPE", "")
@@ -517,6 +522,9 @@ STRIPE_SECRET_KEY = os.environ.get(
     "STRIPE_SECRET_KEY",
     "sk_test_51K3b69SEKv2Ym9yY2iHp4gY7IS4fPzhWjMMcrF2RRllNsfCWPyUwtNTCnqoFeJMuCKzljR5y8p7eLATF0lByhd7M00BBpRPjZM"
 )
+
+# ----------- SOCKET.IO ----------- #
+SOCKET_IO_BASE_URL = os.getenv("SOCKET_IO_BASE_URL")
 
 # API safe methods.
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
