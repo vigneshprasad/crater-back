@@ -1,7 +1,7 @@
 import datetime
 
 from celery.schedules import crontab
-from celery.task import periodic_task
+from celery.task import periodic_task, task
 from django.utils import timezone
 
 from conversations import models as conversations_models
@@ -95,6 +95,71 @@ def get_minutes_for_all_streams_for_the_day():
     )
 
     for group in groups_in_the_last_day:
+        stats = dyte_service.get_stats_for_meeting(group)
+        total_minutes_spent_by_attendees = 0
+        total_minutes_spent_by_host = 0
+
+        if not stats:
+            continue
+
+        host_total_minutes = 0
+        for stat in stats:
+            if stat["clientSpecificId"] != str(group.host_id):
+                continue
+            host_total_minutes = round(stat.get("totalMinutes", 0), 2)
+
+        # If there are no host minutes, don't calculate minutes for
+        # stream.
+        if not host_total_minutes:
+            continue
+
+        for stat in stats:
+            user_pk = stat["clientSpecificId"]
+            total_minutes = round(stat.get("totalMinutes", 0), 2)
+            try:
+                dyte_participant = models.DyteMeetingParticipant.objects.get(
+                    dyte_meeting__group=group,
+                    participant_id=user_pk
+                )
+            except models.DyteMeetingParticipant.DoesNotExist:
+                continue
+
+            total_minutes = min(total_minutes, host_total_minutes)
+            # Add dyte minutes to the dyte participant object.
+            dyte_participant.minutes_spent = total_minutes
+            dyte_participant.save()
+
+            # Add host and attendee minutes separately.
+            if dyte_participant.participant == group.host:
+                total_minutes_spent_by_host += total_minutes
+            else:
+                total_minutes_spent_by_attendees += total_minutes
+
+        # Add these minutes to the group object.
+        group.total_minutes_spent_by_attendees = total_minutes_spent_by_attendees
+        group.total_minutes_spent_by_host = total_minutes_spent_by_host
+        group.save()
+
+
+@task()
+def recalculate_minutes_for_groups(group_ids):
+    """Get minutes of live streams from Dyte's end and update on
+        our models.
+
+    Args:
+        group_ids(list/queryset): Group ids we want to recalculate
+            minutes for.
+
+    Note:
+        Updates the DyteMeetingParticipant and stream.total_minutes
+            from Dyte's end.
+
+    """
+    groups = conversations_models.Group.objects.filter(
+        id__in=group_ids
+    )
+
+    for group in groups:
         stats = dyte_service.get_stats_for_meeting(group)
         total_minutes_spent_by_attendees = 0
         total_minutes_spent_by_host = 0
