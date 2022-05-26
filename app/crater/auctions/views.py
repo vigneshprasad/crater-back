@@ -4,7 +4,7 @@ from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from crater.auctions import constants, models, serializers, filters, exceptions
+from crater.auctions import constants, models, serializers, filters, exceptions, paginators
 from users import permissions as user_permissions
 
 
@@ -58,6 +58,34 @@ class AuctionViewSet(
 
         serialized = self.get_serializer(auctions[0])
         return Response(serialized.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        queryset=models.RewardAuction.objects.filter(
+            is_active=True,
+            is_closed=False,
+            end__gt=timezone.now()
+        ).select_related(
+            "reward",
+            "reward__creator"
+        ).order_by(
+            "-start"
+        ),
+        permission_classes=[user_permissions.IsAuthenticatedOrReadOnly],
+        serializer_class=serializers.RewardAuctionListSerializer,
+        pagination_class=paginators.RewardAuctionPagination,
+    )
+    def all(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class BidViewSet(
