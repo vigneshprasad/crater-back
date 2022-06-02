@@ -15,5 +15,5 @@ def send_welcome_crater_whatsapp(sender, user, *args, **kwargs):
     """
     tasks.send_welcome_crater_whatsapp.apply_async(
         args=(user.pk,),
-        countdown=300
+        countdown=120
     )

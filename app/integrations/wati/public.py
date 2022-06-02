@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from integrations.wati import constants, private
@@ -70,8 +69,6 @@ def send_stream_reminder_messages_for_followers(followers, group):
     creator_name = group.host.display_name
     try:
         topic_image_url = group.topic.image.url
-        # TODO(Nishant): Remove this if topic_image_url works.
-        # public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
         topic_image_url = ""
@@ -120,7 +117,6 @@ def send_stream_reminder_messages_for_attendees(attendees, group):
     creator_name = group.host.display_name
     try:
         topic_image_url = group.topic.image.url
-        # public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
         topic_image_url = ""
@@ -164,7 +160,6 @@ def send_stream_reminder_message_to_attendee(user, group):
     creator_name = group.host.display_name
     try:
         topic_image_url = group.topic.image.url
-        # public_topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
         topic_image_url = ""
