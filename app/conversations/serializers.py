@@ -521,11 +521,11 @@ class StreamListHostSerializer(serializers.ModelSerializer):
 class StreamPastListSerializer(serializers.ModelSerializer):
     """List serializer for Past Streams.
 
-        Note:
-            This only returns data required over a /list calls
-                for calls the stream.
+    Note:
+        This only returns data required over a /list calls
+            for calls the stream.
 
-        """
+    """
     topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
     host_detail = StreamListHostSerializer(source="host", read_only=True)
     is_past = serializers.SerializerMethodField(read_only=True)

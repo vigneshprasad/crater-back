@@ -86,6 +86,7 @@ class CreatorSerializer(serializers.ModelSerializer):
             }
         }
 
+    #TODO(Abhishek): depricate value and move to new value in fornt end.
     def get_is_follower(self, creator):
         """Returns True if the requesting user is
             following the creator.
