@@ -53,7 +53,8 @@ def send_stream_reminder_messages_for_group(group):
     # Filter out followers who have watched two plus streams.
     for follower in followers_list:
         streams_watched = follower.dyte_participant.filter(
-            dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM
+            dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
+            last_online_at__isnull=False
         ).count()
         if streams_watched < 2:
             continue
