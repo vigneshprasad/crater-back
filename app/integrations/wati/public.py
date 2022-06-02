@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from integrations.wati import constants, private
 from integrations.wati.services import wati_service
 from crater.creator import public as creator_public
+from conversations import constants as conversation_constants
 
 
 LOGGER = logging.getLogger(__name__)
@@ -47,9 +48,20 @@ def send_stream_reminder_messages_for_group(group):
     # This is the list that has followed the creator but not
     # rsvp'd to the stream.
     followers_list = list(set(followers) - set(attendees))
+    followers_list_with_two_plus_streams = []
+
+    # Filter out followers who have watched two plus streams.
+    for follower in followers_list:
+        streams_watched = follower.dyte_participant.filter(
+            dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
+            last_online_at__isnull=False
+        ).count()
+        if streams_watched < 2:
+            continue
+        followers_list_with_two_plus_streams.append(follower)
 
     # Send follower message to followers.
-    send_stream_reminder_messages_for_followers(followers_list, group)
+    send_stream_reminder_messages_for_followers(followers_list_with_two_plus_streams, group)
     # Send reminder message to attendees.
     send_stream_reminder_messages_for_attendees(attendees, group)
 
