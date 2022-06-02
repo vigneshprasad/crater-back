@@ -39,6 +39,7 @@ def update_user_leaderboards():
             user_leaderboard.save()
 
         leaderboard.last_calculated_at = timezone.now()
+        leaderboard.save()
 
 
 @task()
@@ -74,6 +75,7 @@ def recalculate_leaderboards(leaderboard_ids):
             user_leaderboard.save()
 
         leaderboard.last_calculated_at = timezone.now()
+        leaderboard.save()
 
 
 @task()
