@@ -5,6 +5,7 @@ from django_admin_row_actions import AdminRowActionsMixin
 from rangefilter import filter
 
 from conversations import models, tasks
+from integrations.dyte import tasks as dyte_tasks
 
 
 @admin.register(models.SuggestedTopic)
@@ -55,7 +56,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_rescheduled",
         "is_obs"
     )
-    actions = ("add_previous_webinar_attendees",)
+    actions = ("add_previous_webinar_attendees", "recalculate_minutes_for_groups")
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
         "closed_at",
@@ -136,6 +137,37 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         )
 
     add_previous_webinar_attendees.short_description = "Add previous attendees"
+
+    def recalculate_minutes_for_groups(self, request, queryset):
+        """Recalculate minutes for groups.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of streams we want to
+                recalculate minutes for.
+
+        """
+        # Delay the task for recalculating minutes.
+        group_ids = list(queryset.values_list("id", flat=True))
+        dyte_tasks.recalculate_minutes_for_groups.delay(group_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["recalculate_minutes_for_groups"]}}]
+            )
+
+        self.message_user(
+            request,
+            "Recalculated minutes for groups: {}".format(
+                ", ".join([str(group.id) for group in queryset])
+            ),
+            messages.SUCCESS
+        )
+
+    recalculate_minutes_for_groups.short_description = "Recalculate minutes"
 
     @staticmethod
     def all_speakers(obj):
