@@ -1,7 +1,7 @@
 import csv
+import datetime
 
 from django.contrib.auth import get_user_model
-from django.db.models import F
 from django.http import HttpResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,6 +10,7 @@ from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import Sum, F, Q
 
 from crater.creator import exceptions
 from crater.creator import models
@@ -96,6 +97,26 @@ class CreatorViewSet(
     def with_coins(self, request, *args, **kwargs):
         queryset = self.get_queryset().exclude(coin=None)
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        serializer_class=serializers.CreatorRankingSerializer,
+        methods=["GET"],
+        detail=False
+    )
+    def ranking(self, request, *args, **kwargs):
+        end = datetime.datetime.now()
+        start = end - datetime.timedelta(days=30)
+
+        creators = self.get_queryset().annotate(
+            watch_time=Sum(
+                'user__groups_hosted__total_minutes_spent_by_attendees',
+                filter=Q(user__groups_hosted__start__gte=start, user__groups_hosted__end__lte=end)
+            )
+        ).filter(watch_time__isnull=False).order_by("-watch_time")
+        print(creators)
+
+        serializer = self.get_serializer(creators[:10], many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

@@ -261,3 +261,44 @@ class CoinSerializer(serializers.ModelSerializer):
                 "read_only": True
             }
         }
+
+
+class CreatorRankingSerializer(serializers.ModelSerializer):
+    profile_detail = CreatorProfileListSerializer(source="user.profile", read_only=True)
+    watch_time = serializers.DecimalField(max_digits=10, decimal_places=2)
+    is_follower = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Creator
+        fields = (
+            "id",
+            "user",
+            "slug",
+            "subscriber_count",
+            "profile_detail",
+            "watch_time",
+            "is_follower"
+        )
+
+    def get_is_follower(self, creator):
+        """Returns True if the requesting user is
+            following the creator.
+
+        """
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+        # If the user is the same as the creator. Return True
+        if user.pk == creator.user.pk:
+            return True
+
+        return creator.followers.filter(user=user).exists()
+
+
+
+
+

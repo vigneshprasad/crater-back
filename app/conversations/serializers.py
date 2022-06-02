@@ -518,6 +518,59 @@ class StreamListHostSerializer(serializers.ModelSerializer):
         return user.profile.get_introduction() if user.has_profile else None
 
 
+class StreamPastListSerializer(serializers.ModelSerializer):
+    """List serializer for Past Streams.
+
+        Note:
+            This only returns data required over a /list calls
+                for calls the stream.
+
+        """
+    topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
+    host_detail = StreamListHostSerializer(source="host", read_only=True)
+    is_past = serializers.SerializerMethodField(read_only=True)
+    has_rsvp = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Group
+        fields = (
+            "id",
+            "topic_detail",
+            "host_detail",
+            "start",
+            "is_live",
+            "is_past",
+            "has_rsvp",
+            "recording"
+        )
+
+    @staticmethod
+    def get_is_past(group):
+        """Return True if the meeting was in the past."""
+        if group.is_live:
+            return False
+
+        now = timezone.now() - datetime.timedelta(hours=6)
+        return now >= group.start
+
+    def get_has_rsvp(self, group):
+        request = self.context.get("request")
+
+        if not request:
+            return None
+
+        user = request.user
+
+        if user.is_anonymous:
+            return None
+
+        try:
+            group.requests.get(requester=user)
+            return True
+        except models.Request.DoesNotExist:
+            return False
+
+
 class StreamListSerializer(serializers.ModelSerializer):
     """List serializer for Streams.
 
@@ -529,6 +582,7 @@ class StreamListSerializer(serializers.ModelSerializer):
     topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
     host_detail = StreamListHostSerializer(source="host", read_only=True)
     is_past = serializers.SerializerMethodField(read_only=True)
+    has_rsvp = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -539,6 +593,7 @@ class StreamListSerializer(serializers.ModelSerializer):
             "start",
             "is_live",
             "is_past",
+            "has_rsvp"
         )
 
     @staticmethod
@@ -549,6 +604,23 @@ class StreamListSerializer(serializers.ModelSerializer):
 
         now = timezone.now() - datetime.timedelta(hours=6)
         return now >= group.start
+
+    def get_has_rsvp(self, group):
+        request = self.context.get("request")
+
+        if not request:
+            return None
+
+        user = request.user
+
+        if user.is_anonymous:
+            return None
+
+        try:
+            group.requests.get(requester=user)
+            return True
+        except models.Request.DoesNotExist:
+            return False
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):

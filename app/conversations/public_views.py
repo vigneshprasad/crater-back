@@ -185,7 +185,7 @@ class GroupWebinarPublicViewSet(
             the groups.
 
         """
-        queryset = self.filter_queryset(self._get_upcoming_webinars()).order_by("start")
+        queryset = self.filter_queryset(self._get_upcoming_webinars()).order_by("start", "-created_at")
         page = self.paginate_queryset(queryset)
 
         if page is None:
@@ -243,7 +243,7 @@ class GroupWebinarPublicViewSet(
             "host__profile",
             "host__creator"
         ).order_by("-start"),
-        serializer_class=serializers.StreamListSerializer,
+        serializer_class=serializers.StreamPastListSerializer,
         filterset_fields=["host", "categories"],
     )
     def past(self, request):
