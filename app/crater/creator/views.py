@@ -110,11 +110,10 @@ class CreatorViewSet(
 
         creators = self.get_queryset().annotate(
             watch_time=Sum(
-                'user__groups_hosted__total_minutes_spent_by_attendees',
+                "user__groups_hosted__total_minutes_spent_by_attendees",
                 filter=Q(user__groups_hosted__start__gte=start, user__groups_hosted__end__lte=end)
             )
         ).filter(watch_time__isnull=False).order_by("-watch_time")
-        print(creators)
 
         serializer = self.get_serializer(creators[:10], many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

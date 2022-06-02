@@ -102,7 +102,7 @@ class CreatorSerializer(serializers.ModelSerializer):
         if user.pk == creator.user.pk:
             return True
 
-        return creator.followers.filter(user=user).exists()
+        return creator.followers.filter(user=user, notify=True).exists()
 
     def get_is_subscriber(self, creator):
         """Returns True if the requesting user has
@@ -296,7 +296,7 @@ class CreatorRankingSerializer(serializers.ModelSerializer):
         if user.pk == creator.user.pk:
             return True
 
-        return creator.followers.filter(user=user).exists()
+        return creator.followers.filter(user=user, notify=True).exists()
 
 
 
