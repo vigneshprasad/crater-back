@@ -146,9 +146,8 @@ class ProfileViewSet(
             sender=instance.__class__,
             profile=instance
         )
-        return Response(data, headers={
-            "Cache-Control": "public, max-age=0, must-revalidate"
-        })
+
+        return Response(data)
 
 
     def list(self, request, *args, **kwargs):
