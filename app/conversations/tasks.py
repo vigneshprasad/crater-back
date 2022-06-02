@@ -310,7 +310,7 @@ def publish_group_recordings(group_recording_ids):
         group_recording.save()
 
 
-@periodic_task(run_every=crontab(hour="*/3"))
+@periodic_task(run_every=crontab(minute=0, hour="*/3"))
 def upload_valid_recordings_for_streams(groups=None):
     """Uploads valid recordings for streams to group_recordings.
 
@@ -333,7 +333,8 @@ def upload_valid_recordings_for_streams(groups=None):
 
     # Get all group recordings for groups.
     group_recordings = models.GroupRecording.objects.filter(
-        group__in=groups
+        group__in=groups,
+        is_published=False
     )
 
     # Get the session for S3.
