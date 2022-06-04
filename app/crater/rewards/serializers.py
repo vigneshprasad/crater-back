@@ -111,3 +111,20 @@ class SubRewardAuctionSerializer(serializers.ModelSerializer):
             return obj.base_price
 
         return auction_constants.get_amount_with_bid_multiplier(highest_bid.bid_price)
+
+
+class RewardDetailWithCreatorAndTypeSerializer(serializers.ModelSerializer):
+    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator", read_only=True)
+    type_detail = RewardTypeSerializer(source="type", read_only=True)
+
+    class Meta:
+        model = models.Reward
+        fields = (
+            "id",
+            "creator",
+            "name",
+            "title",
+            "type",
+            "creator_detail",
+            "type_detail",
+        )
