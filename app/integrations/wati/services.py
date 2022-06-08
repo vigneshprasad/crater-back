@@ -3,8 +3,6 @@ import logging
 import requests
 from django.conf import settings
 
-from integrations.wati import constants
-
 LOGGER = logging.getLogger(__name__)
 
 GET_MESSAGE_FOR_WHATSAPP_NUMBER = "get_messages_by_whatsapp_number"
@@ -29,7 +27,8 @@ class WatiWhatsappService:
         SEND_TEMPLATE_MESSAGES: "sendTemplateMessages"
     }
 
-    def __init__(self, access_token):
+    def __init__(self, access_token, base_url):
+        self.base_url = base_url
         self.access_token = access_token
 
     def _get_authorization_headers(self):
@@ -52,7 +51,7 @@ class WatiWhatsappService:
         """
         response = requests.request(
             "GET",
-            url=constants.WATI_API_ENDPOINT + self.API_ENDPOINTS[GET_MESSAGE_FOR_WHATSAPP_NUMBER].format(
+            url=self.base_url + self.API_ENDPOINTS[GET_MESSAGE_FOR_WHATSAPP_NUMBER].format(
                 whatsappNumber=user.get_phone_number()
             ),
             headers=self._get_authorization_headers()
@@ -75,7 +74,7 @@ class WatiWhatsappService:
 
         response = requests.request(
             "POST",
-            url=constants.WATI_API_ENDPOINT + self.API_ENDPOINTS[SEND_TEMPLATE_MESSAGE].format(
+            url=self.base_url + self.API_ENDPOINTS[SEND_TEMPLATE_MESSAGE].format(
                 user.get_phone_number()
             ),
             headers=self._get_authorization_headers(),
@@ -98,7 +97,7 @@ class WatiWhatsappService:
 
         response = requests.request(
             "POST",
-            url=constants.WATI_API_ENDPOINT + self.API_ENDPOINTS[SEND_TEMPLATE_MESSAGES],
+            url=self.base_url + self.API_ENDPOINTS[SEND_TEMPLATE_MESSAGES],
             headers=self._get_authorization_headers(),
             json=data
         )
@@ -106,6 +105,13 @@ class WatiWhatsappService:
         return True
 
 
-wati_service = WatiWhatsappService(
-    access_token=settings.WATI_ACCESS_TOKEN
+wati_service_9051 = WatiWhatsappService(
+    base_url=settings.WATI_9051_BASE_URL,
+    access_token=settings.WATI_9051_ACCESS_TOKEN
+)
+
+
+wati_service_8953 = WatiWhatsappService(
+    base_url=settings.WATI_8953_BASE_URL,
+    access_token=settings.WATI_8953_ACCESS_TOKEN
 )

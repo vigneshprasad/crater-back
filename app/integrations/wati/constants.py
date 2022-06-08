@@ -1,9 +1,16 @@
-from django.conf import settings
 
-WATI_API_ENDPOINT = settings.WATI_BASE_URL
-
+# WATI 9051 account templates
 STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE = "reminder_msg"
 STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE = "follower_stream"
 CRATER_WELCOME_TEMPLATE = "welcome_crater"
+CREATOR_REMINDER_TEMPLATE = "creator_reminder"
+
+# WATI 8953 account templates
 
 STREAM_STARTING_DURATION = "10 minutes"
+
+WATI_9051_ACCOUNT_ENUM = 2
+WATI_8953_ACCOUNT_ENUM = 3
+
+DEFAULT_POC_NAME = "Vivan"
+DEFAULT_POC_NUMBER = "+919930474469"
