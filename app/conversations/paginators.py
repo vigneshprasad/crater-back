@@ -32,3 +32,18 @@ class WebinarPagination(PageNumberPagination):
             ("previous", self.get_previous_link()),
             ("results", data)
         ]))
+
+
+class GroupQuestionPagination(PageNumberPagination):
+
+    page_size = 10
+    page_size_query_param = "page_size"
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ("count", self.page.paginator.count),
+            ("current_page", int(self.request.query_params.get("page", 1))),
+            ("next", self.get_next_link()),
+            ("previous", self.get_previous_link()),
+            ("results", data)
+        ]))

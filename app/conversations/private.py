@@ -195,3 +195,62 @@ def create_webinar(
     group.categories.add(*categories)
 
     return group
+
+
+def get_group_question(question_id):
+    """Returns a group question for a question id
+
+    Args:
+        question_id(int): Group question id
+
+    """
+
+    try:
+        group_question = models.GroupQuestion.objects.get(id=question_id)
+    except models.GroupQuestion.DoesNotExist:
+        return None
+
+    return group_question
+
+
+def get_question_upvote(question, user):
+    """Returns a question upvote for a question and user.
+
+    Args:
+        question(GroupQuestion): question to be upvoted
+        user(User): user who upvotes
+
+    """
+
+    try:
+        question_upvote = models.QuestionUpvote.objects.get(
+            question=question,
+            user=user
+        )
+    except models.QuestionUpvote.DoesNotExist:
+        return None
+
+    return question_upvote
+
+
+def create_or_update_question_upvote(question, user):
+    """Create or update group question upvote.
+
+    Args:
+        question(GroupQuestion): question to be upvoted
+        user(User): user who upvotes
+
+    """
+    question_upvote, created = models.QuestionUpvote.objects.get_or_create(
+        question=question,
+        user=user,
+        defaults={
+            "upvote": True
+        }
+    )
+
+    if not created:
+        question_upvote.upvote = not question_upvote.upvote
+        question_upvote.save()
+
+    return question_upvote

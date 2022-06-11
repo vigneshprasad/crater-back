@@ -841,3 +841,50 @@ class Series(base_model.BaseModel):
         display_time = self.get_display_start_time()
         display_date = self.get_display_day()
         return "{} @ {}".format(display_date, display_time)
+
+
+class GroupQuestion(base_model.BaseModel):
+    """
+    Question for the group.
+    """
+    question = models.TextField()
+    group = models.ForeignKey(
+        Group,
+        related_name="questions",
+        on_delete=models.CASCADE
+    )
+    sender = models.ForeignKey(
+        get_user_model(),
+        related_name="questions",
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.pk}-{self.sender.__str__()}"
+
+
+class QuestionUpvote(base_model.BaseModel):
+    """
+    Upvote for the group question.
+    """
+    question = models.ForeignKey(
+        GroupQuestion,
+        related_name="question_upvotes",
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        related_name="user_upvotes",
+        on_delete=models.CASCADE
+    )
+    upvote = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.pk}-{self.user.__str__()}"
+
