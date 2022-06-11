@@ -755,3 +755,48 @@ class SeriesRequestViewSet(
 
         serializer = self.get_serializer(series_requests, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class GroupQuestionViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.GroupQuestionListSerializer
+    queryset = models.GroupQuestion.objects.all().prefetch_related("question_upvotes")
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = paginators.GroupQuestionPagination
+    filterset_fields = ["group"]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(sender=user)
+
+    @action(
+        methods=["POST"],
+        detail=False,
+        queryset=models.QuestionUpvote.objects.all(),
+        serializer_class=serializers.QuestionUpvoteSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def upvote(self, request):
+        user = request.user
+        question = request.data.get("question")
+
+        if not question:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate question
+        group_question = private.get_group_question(question_id=question)
+        if not group_question:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Create question upvote if not present and set upvote to true or false
+        question_upvote = private.create_or_update_question_upvote(
+            question=group_question,
+            user=user
+        )
+
+        serializer = self.get_serializer(question_upvote)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

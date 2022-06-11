@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from community.mixins import SetCreatorRequestDataMixin
-from conversations import constants, exceptions, models, services
+from conversations import constants, exceptions, models, services, private
 from crater.creator import serializers as creator_serializers
 from integrations.dyte import public as dyte_public, serializers as dyte_serializers
 from resources.curated_articles import serializers as articles_serializer
@@ -773,3 +773,67 @@ class StreamWithRecordingListSerializer(StreamListSerializer):
             "is_past",
             "recording_details",
         )
+
+
+class GroupQuestionUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name",
+        )
+
+
+class GroupQuestionListSerializer(serializers.ModelSerializer):
+    sender_detail = GroupQuestionUserSerializer(source="sender", read_only=True)
+    upvotes = serializers.SerializerMethodField(read_only=True)
+    upvote = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.GroupQuestion
+        fields = (
+            "id",
+            "question",
+            "group",
+            "sender",
+            "upvotes",
+            "upvote",
+            "sender_detail",
+            "created_at",
+        )
+        read_only_fields = ["sender"]
+
+    @staticmethod
+    def get_upvotes(group_question):
+        return group_question.question_upvotes.filter(upvote=True).count()
+
+    def get_upvote(self, group_question):
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+
+        question_upvote = private.get_question_upvote(
+            question=group_question,
+            user=user
+        )
+        if not question_upvote:
+            return False
+
+        return question_upvote.upvote
+
+
+class QuestionUpvoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.QuestionUpvote
+        fields = (
+            "id",
+            "question",
+            "user",
+            "upvote",
+        )
+        read_only_fields = ["user", "upvote"]
