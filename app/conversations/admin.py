@@ -411,3 +411,33 @@ class SeriesAdmin(admin.ModelAdmin):
         ("start", filter.DateRangeFilter),
     )
     list_editable = ("is_published",)
+
+
+@admin.register(models.GroupQuestion)
+class GroupQuestion(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "sender",
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("group", "sender",)
+    search_fields = (
+        "question",
+        "sender__name",
+        "sender__email",
+        "sender__username"
+    )
+    list_filter = ("group",)
+
+
+@admin.register(models.QuestionUpvote)
+class QuestionUpvoteAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "question",
+        "user",
+        "upvote",
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("question", "user",)
