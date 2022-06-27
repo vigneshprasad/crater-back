@@ -171,7 +171,7 @@ class Group(base_model.BaseModel):
     )
 
     type = models.PositiveIntegerField(
-        default=constants.GROUP_TYPE_GENERIC_ENUM,
+        default=constants.GROUP_TYPE_WEBINAR_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     # TODO(Nishant): Have to get options for this.
@@ -196,7 +196,7 @@ class Group(base_model.BaseModel):
         related_name="groups_speaker"
     )
     # Attendees are users who can join the call but are not the
-    # speakers on it i.e just listen/chat.
+    # speakers on it, i.e. just listen/chat.
     attendees = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Attendees"),
