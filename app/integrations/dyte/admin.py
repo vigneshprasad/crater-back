@@ -92,7 +92,7 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
     raw_id_fields = ("dyte_meeting", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
-        "dyte_meeting__group",
+        AutocompleteFilterFactory("Group", "dyte_meeting__group"),
         "status"
     )
     search_fields = (
