@@ -387,7 +387,7 @@ def upload_valid_recordings_for_streams(groups=None):
 
         size_in_megabytes = size_in_bytes / (1024 * 1024)
         # If the size is less than 150 MB, don't publish.
-        if not (size_in_megabytes >= 150):
+        if not (size_in_megabytes >= 100):
             continue
         valid_group_recordings.append(group_recording.id)
 
