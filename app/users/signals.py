@@ -61,3 +61,8 @@ referal_success_points_signal = Signal(providing_args=[
 profile_requested = Signal(providing_args=[
     "profile"
 ])
+
+user_logout = Signal(providing_args=[
+    "user",
+    "os_id",
+])

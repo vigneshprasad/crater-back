@@ -24,7 +24,7 @@ from conversations import models as conversation_models
 from payment import models as payment_models, serializers as payment_serializers
 from payment.tasks import charge_subscription_payment
 from resources.meetings import models as meeting_models
-from users import permissions, services, utils
+from users import permissions, services, utils, signals
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, constants
@@ -257,6 +257,7 @@ class LogoutView(RestLogoutView):
     serializer_class = serializers.LogoutSerializer
 
     def logout(self, request):
+        user = request.user
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         os_id = serializer.validated_data.get("os_id", "")
@@ -265,6 +266,11 @@ class LogoutView(RestLogoutView):
                 device = models.Device.objects.get(user=self.request.user, os_id=os_id)
                 device.is_active = False
                 device.save()
+                signals.user_logout.send(
+                    sender=self.__class__,
+                    user=user,
+                    os_id=os_id
+                )
             except models.Device.DoesNotExist:
                 pass
         return super().logout(request)
