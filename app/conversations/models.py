@@ -612,6 +612,7 @@ class GroupRecording(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     recording = models.FileField(
+        max_length=255,
         upload_to=recording_storage_path,
         blank=True,
         null=True,
