@@ -548,6 +548,11 @@ class Profile(models.Model):
         null=True,
         max_length=255,
     )
+    metamask_id = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
 
     class Meta:
         verbose_name = _("Profile")
