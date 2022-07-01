@@ -699,7 +699,7 @@ class GroupRecording(base_model.BaseModel):
             my_bucket.copy(source, "media/" + destination)
         except Exception as e:
             logging.error(
-                "Exception happened when publishing recording: {} - {}".format(
+                "Exception happened when publishing (publish) recording: {} - {}".format(
                     e, group_recording.id
                 )
             )
