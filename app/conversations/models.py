@@ -1,21 +1,23 @@
-import boto3
 import datetime
-import pytz
-from celery.task import task
+import logging
 
-from django.db import models
-from django.core import exceptions
+import boto3
+import pytz
+from botocore import exceptions as botocore_exceptions
+from celery.task import task
 from django.conf import settings
-from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.core import exceptions
+from django.core.validators import FileExtensionValidator
+from django.db import models
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from conversations import constants
-from conversations import signals
+from conversations import constants, signals
+from integrations.dyte import constants as dyte_constants
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
 
@@ -638,23 +640,32 @@ class GroupRecording(base_model.BaseModel):
                 recording is present.
 
         """
-        if not self.recording:
-            # If there is not dyte recording also, throw and exception.
-            last_recording = self.dyte_recordings.last()
-            if not last_recording:
-                raise exceptions.ValidationError("Dyte Recording must be present to publish.")
-            # Create recording from dyte recording.
-            self.upload_dyte_recording_to_live_stream.delay(self.id)
+        if self.recording:
+            # If there is a recording present and recording
+            # is not published, mark it published.
+            if not self.is_published:
+                self.is_published = True
+                self.published_at = timezone.now()
+                self.save()
 
-        self.is_published = True
-        self.published_at = datetime.datetime.now()
-        self.save()
+            return
+
+        # If there is not dyte recording also, throw and exception.
+        last_recording = self.dyte_recordings.last()
+        if not last_recording:
+            raise exceptions.ValidationError("Dyte Recording must be present to publish.")
+        # Create recording from dyte recording.
+        self.upload_dyte_recording_to_live_stream.delay(self.id)
 
     @staticmethod
     @task()
     def upload_dyte_recording_to_live_stream(group_recording_id):
         """Uploads dyte recording to media/live_stream/ for
             a stream.
+
+        Args:
+            group_recording_id(int): Group recording ID the we are
+                uploading recording for.
 
         """
         group_recording = GroupRecording.objects.get(id=group_recording_id)
@@ -669,17 +680,36 @@ class GroupRecording(base_model.BaseModel):
 
         dyte_rec = group_recording.dyte_recordings.last()
         file_name = dyte_rec.file_name
-
-        source = {
-            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
-            "Key": dyte_rec.storage_key_name
-        }
         destination = recording_storage_path(group_recording, file_name)
-        # Copy dyte recording to the live_stream folder.
-        my_bucket.copy(source, "media/" + destination)
+
+        try:
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": dyte_rec.storage_key_name
+            }
+            my_bucket.copy(source, "media/" + destination)
+        except botocore_exceptions.ClientError as e:
+            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+                group_id=group_recording.group_id
+            )
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": path + "/" + dyte_rec.file_name
+            }
+            my_bucket.copy(source, "media/" + destination)
+        except Exception as e:
+            logging.error(
+                "Exception happened when publishing recording: {} - {}".format(
+                    e, group_recording.id
+                )
+            )
+            return
 
         # Update the recording.
         group_recording.recording.name = destination
+        # Update published.
+        group_recording.is_published = True
+        group_recording.published_at = datetime.datetime.now()
         group_recording.save()
 
 
