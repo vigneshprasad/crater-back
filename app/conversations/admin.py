@@ -46,7 +46,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "id",
         "topic",
         "type",
-        "all_speakers",
+        "host",
+        # "all_speakers",
         "attendees_count",
         "start",
         "is_featured",
@@ -54,7 +55,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "closed",
         "is_published",
         "is_rescheduled",
-        "is_obs"
+        "is_obs",
+        "host_poc",
     )
     actions = ("add_previous_webinar_attendees", "recalculate_minutes_for_groups")
     raw_id_fields = ("speakers", "attendees", "host", "categories")
@@ -172,6 +174,14 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     @staticmethod
     def all_speakers(obj):
         return [speaker.__str__() for speaker in obj.speakers.all()]
+
+    @staticmethod
+    def host_poc(obj):
+        if not obj.host:
+            return ""
+        if not obj.host.is_creator:
+            return ""
+        return obj.host.creator.point_of_contact
 
     @staticmethod
     def speaker_count(obj):

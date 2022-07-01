@@ -44,11 +44,14 @@ def update_user_leaderboards():
 
 @task()
 def recalculate_leaderboards(leaderboard_ids):
-    """Update user leaderboards total minutes every
-        15 minutes.
+    """Recalculate leaderboard minutes for provided
+        leaderboard ids.
+
+    Args:
+        leaderboard_ids(list/queryset): ID's of
+            leaderboards that have to be updated.
 
     """
-    # Get all active leaderboards.
     leaderboards = models.Leaderboard.objects.filter(
         id__in=leaderboard_ids
     )
