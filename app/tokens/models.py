@@ -105,9 +105,21 @@ class UserTokenHoldingLog(base_models.BaseModel):
         (2, "Redeemed")
     )
 
-    user_token = models.ForeignKey(
-        UserToken,
+    user = models.ForeignKey(
+        get_user_model(),
         on_delete=models.CASCADE
+    )
+    tokens = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    learn_tokens = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
     )
     type = models.PositiveSmallIntegerField(
         choices=TRANSACTION_TYPE,
