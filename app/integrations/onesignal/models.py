@@ -15,7 +15,7 @@ class OneSignalDevice(base_models.BaseModel):
     )
 
     def delete(self, soft=True):
-        super(OneSignalDevice).delete(soft=False)
+        super(OneSignalDevice, self).delete(soft=False)
 
     class Meta:
         unique_together = ('user', 'os_id')

@@ -24,13 +24,13 @@ class OneSignalDeviceViewSet(GenericViewSet):
     def register(self, request):
         data = request.data
         os_id = data.get("os_id")
-        user = data.get("user")
+        user = data.get("user", None)
 
         try:
             device, _ = models.OneSignalDevice.objects.update_or_create(
                 os_id=os_id,
                 defaults={
-                    "user": user
+                    "user_id": user
                 }
             )
             serialized = self.get_serializer(device)

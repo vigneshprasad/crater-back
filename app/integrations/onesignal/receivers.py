@@ -6,7 +6,7 @@ from integrations.onesignal import models
 
 
 @receiver(user_signals.user_logout)
-def delete_onesignal_device(sender, instance, user, os_id, *args, **kwargs):
+def delete_onesignal_device(sender, user, os_id, *args, **kwargs):
     try:
         device = models.OneSignalDevice.objects.get(
             user=user,
