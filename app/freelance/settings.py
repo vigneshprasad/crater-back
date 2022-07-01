@@ -129,6 +129,7 @@ INSTALLED_APPS = [
     "integrations.retool",
     "integrations.firebase",
     "integrations.wati",
+    "integrations.onesignal",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
