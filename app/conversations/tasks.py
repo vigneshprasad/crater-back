@@ -2,21 +2,18 @@ import datetime
 import logging
 
 import boto3
+from botocore import exceptions as botocore_exceptions
 from celery.schedules import crontab
-from celery.task import periodic_task
-from celery.task import task
+from celery.task import periodic_task, task
 from django.conf import settings
 from django.utils import timezone
 
-from conversations import constants
-from conversations import models
+from conversations import constants, models
 from crater.creator import public as creator_public
-from integrations.dyte import models as dyte_models
-from integrations.dyte import public as dyte_public
-from integrations.freshchat import constants as freshchat_constants
-from integrations.freshchat import public as freshchat_public
+from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
+from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
 from integrations.wati import public as wati_public
 
 
@@ -289,17 +286,30 @@ def publish_group_recordings(group_recording_ids):
             continue
 
         file_name = dyte_rec.file_name
-
-        source = {
-            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
-            "Key": dyte_rec.storage_key_name
-        }
         destination = models.recording_storage_path(group_recording, file_name)
 
         # Copy dyte recording to the live_stream folder.
         try:
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": dyte_rec.storage_key_name
+            }
             my_bucket.copy(source, "media/" + destination)
-        except Exception:
+        except botocore_exceptions.ClientError as e:
+            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+                group_id=group_recording.group_id
+            )
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": path + "/" + dyte_rec.file_name
+            }
+            my_bucket.copy(source, "media/" + destination)
+        except Exception as e:
+            logging.error(
+                "Exception happened when publishing recording: {} - {}".format(
+                    e, group_recording.id
+                )
+            )
             continue
 
         # Update the recording.
@@ -358,6 +368,15 @@ def upload_valid_recordings_for_streams(groups=None):
         try:
             recording_object_s3 = s3.Object(settings.AWS_STORAGE_BUCKET_NAME, dyte_rec.storage_key_name)
             size_in_bytes = recording_object_s3.content_length
+        except botocore_exceptions.ClientError as e:
+            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+                group_id=group_recording.group_id
+            )
+            recording_object_s3 = s3.Object(
+                settings.AWS_STORAGE_BUCKET_NAME,
+                path + "/" + dyte_rec.file_name
+            )
+            size_in_bytes = recording_object_s3.content_length
         except Exception as e:
             logging.error(
                 "Exception happened when uploading recording: {} - {}".format(
@@ -368,7 +387,7 @@ def upload_valid_recordings_for_streams(groups=None):
 
         size_in_megabytes = size_in_bytes / (1024 * 1024)
         # If the size is less than 150 MB, don't publish.
-        if not (size_in_megabytes >= 150):
+        if not (size_in_megabytes >= 100):
             continue
         valid_group_recordings.append(group_recording.id)
 
@@ -453,7 +472,7 @@ def follow_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+# @periodic_task(run_every=crontab(minute="*/5"))
 def referral_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,

@@ -21,6 +21,8 @@ DATE_JOINED_DURATION_CHOICES = [
     30 * 24
 ]
 
+ONLINE_COUNT_CHOICES = [1, 2, 3]
+
 # Default start date in case not provided.
 DEFAULT_START_DATE = datetime.datetime(2021, 1, 1)
 # Start of streams (We are treating this as global start date for all metrics)
