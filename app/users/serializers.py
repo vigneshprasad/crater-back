@@ -557,7 +557,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "stage_of_company_detail",
             "companies_invested_detail",
             "is_creator",
-            "groups"
+            "groups",
+            "metamask_id"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}

@@ -282,6 +282,12 @@ class User(AbstractUser):
     def is_creator(self):
         return bool(hasattr(self, "creator") and self.creator)
 
+    def get_devices(self):
+        """
+            Returns(OnesignalDevices): Returns list of Onesignal devices registered to current user.
+        """
+        return self.os_devices.all()
+
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
@@ -538,6 +544,11 @@ class Profile(models.Model):
         choices=COMPANIES_INVESTED_CHOICES
     )
     other_tag = models.TextField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
+    metamask_id = models.CharField(
         blank=True,
         null=True,
         max_length=255,
