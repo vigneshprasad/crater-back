@@ -279,7 +279,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "group__host__name",
     )
     list_filter = (
-        AutocompleteFilterFactory("group", "Group"),
+        AutocompleteFilterFactory("Group", "group"),
         "featured",
         "is_published"
     )
