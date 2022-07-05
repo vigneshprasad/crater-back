@@ -207,7 +207,8 @@ class UserPermissionAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserCategory)
 class UserCategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "followed")
+    raw_id_fields = ("user", "category")
+    list_display = ("id", "user", "category", "followed", "followed_at", "unfollowed_at")
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
     list_filter = ("category",)
     search_fields = (
