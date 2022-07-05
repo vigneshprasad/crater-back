@@ -787,19 +787,21 @@ class UserPermission(base_models.BaseModel):
 
 class UserCategory(base_models.BaseModel):
     """Category user has followed."""
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         "users.User",
         related_name="categories_followed",
         on_delete=models.CASCADE,
         verbose_name=_("User")
     )
-    category = models.OneToOneField(
+    category = models.ForeignKey(
         "conversations.Category",
         related_name="users_following",
         on_delete=models.CASCADE,
         verbose_name=_("Category")
     )
     followed = models.BooleanField(default=False)
+    followed_at = models.DateTimeField(null=True, blank=True)
+    unfollowed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user} - {self.category}"
