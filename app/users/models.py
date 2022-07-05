@@ -785,6 +785,30 @@ class UserPermission(base_models.BaseModel):
     allow_chat = models.BooleanField(default=True)
 
 
+class UserCategory(base_models.BaseModel):
+    """Category user has followed."""
+    user = models.OneToOneField(
+        "users.User",
+        related_name="categories_followed",
+        on_delete=models.CASCADE,
+        verbose_name=_("User")
+    )
+    category = models.OneToOneField(
+        "conversations.Category",
+        related_name="users_following",
+        on_delete=models.CASCADE,
+        verbose_name=_("Category")
+    )
+    followed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user} - {self.category}"
+
+    class Meta:
+        verbose_name = _("User Category")
+        verbose_name_plural = _("User Categories")
+
+
 # TODO(Nishant): Remove this.
 @receiver(post_save, sender=CoverFile)
 def profile_post_save(sender, instance, created, *args, **kwargs):
