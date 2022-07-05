@@ -203,3 +203,14 @@ class UserPermissionAdmin(admin.ModelAdmin):
         "user__username",
         "user__name",
     )
+
+
+@admin.register(models.UserCategory)
+class UserCategoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "followed")
+    exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
+    list_filter = ("category",)
+    search_fields = (
+        "user__username",
+        "user__name",
+    )
