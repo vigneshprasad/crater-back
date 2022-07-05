@@ -262,13 +262,12 @@ class LogoutView(RestLogoutView):
         serializer.is_valid(raise_exception=True)
         os_id = serializer.validated_data.get("os_id", "")
 
-        if os_id:
-            signals.user_logout.send(
-                sender=self.__class__,
-                user=user,
-                os_id=os_id,
-            )
-
+        # Send user logout signal.
+        signals.user_logout.send(
+            sender=self.__class__,
+            user=user,
+            os_id=os_id,
+        )
         return super().logout(request)
 
 
