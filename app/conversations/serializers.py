@@ -554,21 +554,16 @@ class StreamPastListSerializer(serializers.ModelSerializer):
         return now >= group.start
 
     def get_has_rsvp(self, group):
-        request = self.context.get("request")
 
+        request = self.context.get("request")
         if not request:
             return None
 
         user = request.user
-
         if user.is_anonymous:
             return None
-
-        try:
-            group.requests.get(requester=user)
-            return True
-        except models.Request.DoesNotExist:
-            return False
+        # Check if rsvp exists for this user and group.
+        return group.requests.filter(requester=user).exists()
 
 
 class StreamListSerializer(serializers.ModelSerializer):
@@ -606,21 +601,16 @@ class StreamListSerializer(serializers.ModelSerializer):
         return now >= group.start
 
     def get_has_rsvp(self, group):
-        request = self.context.get("request")
 
+        request = self.context.get("request")
         if not request:
             return None
 
         user = request.user
-
         if user.is_anonymous:
             return None
-
-        try:
-            group.requests.get(requester=user)
-            return True
-        except models.Request.DoesNotExist:
-            return False
+        # Check if rsvp exists for this user and group.
+        return group.requests.filter(requester=user).exists()
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):
