@@ -626,6 +626,9 @@ def get_wau_for_duration(start_date=None, end_date=None):
     all_rsvps = 0
     start = start_datetime
 
+    if not weeks:
+        return all_rsvps
+
     for i in range(0, weeks):
         end = start + timezone.timedelta(days=7)
         unique_rsvps = models.Request.objects.filter(
