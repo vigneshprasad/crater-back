@@ -8,6 +8,8 @@ from django.db.models.functions import Coalesce
 from users import models
 from users import constants
 from tags import models as tag_models
+from conversations import models as conversation_models
+from conversations import private as conversation_private
 
 from resources.meetings import models as meeting_models
 
@@ -277,3 +279,23 @@ def get_referrals_summary(user_referrals):
     )
 
     return referrals_summary
+
+
+def get_user_category(user, category):
+    """Return user category.
+
+    Args:
+        user(User): user who wants to follow/unfollow a category.
+        category(Category): category to be followed/unfollowed.
+
+    """
+
+    try:
+        user_category = models.UserCategory.objects.get(
+            user=user,
+            category=category
+        )
+    except models.UserCategory.DoesNotExist:
+        return None
+
+    return user_category
