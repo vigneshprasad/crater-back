@@ -34,7 +34,6 @@ def calculate_tokens_earned(streams=None):
     ) if not streams else streams
 
     total_watch_time = streams_for_today.aggregate(total_minutes=Sum("total_minutes_watched_by_attendees"))
-    total_stream_time = streams_for_today.aggregate(total_minutes=Sum("total_minutes_watched_by_host"))
 
     total_engagement = conversations_models.GroupMessage.objects.filter(
         group__in=streams_for_today,
@@ -43,21 +42,11 @@ def calculate_tokens_earned(streams=None):
     )
 
     # Calculate token data per day for all attendees.
-    token_data_per_day_attendees = models.TokenDataPerDay(
-        day=datetime.date.today(),
+    token_data_per_day = models.TokenDataPerDay(
+        date=datetime.date.today(),
         time_spent=total_watch_time,
         engagement=total_engagement,
-        tokens=total_watch_time + (total_engagement * 2),
-        type=models.TokenDataPerDay.TRANSACTION_TYPE[0][0]
-    )
-
-    # Calculate token data per day for all streamers.
-    token_data_per_day_streamers = models.TokenDataPerDay(
-        day=datetime.date.today(),
-        time_spent=total_stream_time,
-        engagement=total_engagement,
-        tokens=total_watch_time + (total_engagement * 2),
-        type=models.TokenDataPerDay.TRANSACTION_TYPE[1][0]
+        tokens=total_watch_time + (total_engagement * 2)
     )
 
     for stream in streams_for_today:
@@ -67,7 +56,7 @@ def calculate_tokens_earned(streams=None):
         if host.is_creator:
             creator = host.creator
 
-        streamer_time_spent = stream.total_minutes_spent_by_host
+        streamer_time_spent = stream.total_minutes_spent_by_attendees
         if not streamer_time_spent:
             continue
         streamer_engagement = conversations_models.GroupMessage.objects.filter(
@@ -81,20 +70,21 @@ def calculate_tokens_earned(streams=None):
             time_spent=streamer_time_spent,
             engagement=streamer_engagement,
             tokens=streamer_time_spent + (streamer_engagement * 2),
-            type=models.TokenDataPerDay.TRANSACTION_TYPE[1][0]
+            type=models.TokenLogDataPerUser.TRANSACTION_TYPE[1][0]
         )
 
         # Calculate learn tokens by using crater tokens.
-        user_token_holding = models.UserTokenHolding.objects.get_or_create(
+        user_token_holding_log = models.UserTokenHoldingLog.objects.create(
             user=host
         )
-        user_token_holding.tokens += token_data_per_user.tokens
-        user_token_holding.learn_tokens = (
-                token_data_per_day_streamers.tokens / token_data_per_day_attendees.tokens
+        user_token_holding_log.tokens += token_data_per_user.tokens
+        user_token_holding_log.learn_tokens = (
+                token_data_per_user.tokens / token_data_per_day.tokens
                 * 20 / 100
                 * 1000
         )
-        user_token_holding.save()
+        user_token_holding_log.type = models.UserTokenHoldingLog.TRANSACTION_TYPE[0][0]
+        user_token_holding_log.save()
 
         # Calculate tokens for all attendees.
         attendees = stream.attendees.all()
@@ -119,17 +109,18 @@ def calculate_tokens_earned(streams=None):
                 time_spent=attendee_time_spent,
                 engagement=attendee_engagement,
                 tokens=attendee_time_spent + (attendee_engagement * 2),
-                type=models.TokenDataPerDay.TRANSACTION_TYPE[0][0]
+                type=models.TokenLogDataPerUser.TRANSACTION_TYPE[0][0]
             )
 
             # Calculate learn tokens by using crater tokens.
-            user_token_holding = models.UserTokenHolding.objects.get_or_create(
+            user_token_holding_log = models.UserTokenHoldingLog.objects.get_or_create(
                 user_id=attendee
             )
-            user_token_holding.tokens += token_data_per_user.tokens
-            user_token_holding.learn_tokens = (
-                    token_data_per_user.tokens / token_data_per_day_attendees.tokens
+            user_token_holding_log.tokens += token_data_per_user.tokens
+            user_token_holding_log.learn_tokens = (
+                    token_data_per_user.tokens / token_data_per_day.tokens
                     * 80 / 100
                     * 1000
             )
-            user_token_holding.save()
+            user_token_holding_log.type = models.UserTokenHoldingLog.TRANSACTION_TYPE[0][0]
+            user_token_holding_log.save()

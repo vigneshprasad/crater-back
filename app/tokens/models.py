@@ -5,12 +5,10 @@ from base import models as base_models
 
 
 class TokenDataPerDay(base_models.BaseModel):
+    """Calculates token distribution per day
+        for creators eligible for tokens.
 
-    TRANSACTION_TYPE = (
-        (1, "Attendee"),
-        (2, "Streamer")
-    )
-
+    """
     time_spent = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -19,17 +17,13 @@ class TokenDataPerDay(base_models.BaseModel):
     )
     # Chat message user sent on the stream.
     engagement = models.PositiveIntegerField(default=0)
-    type = models.PositiveSmallIntegerField(
-        choices=TRANSACTION_TYPE,
-        default=TRANSACTION_TYPE[0][0]
-    )
     tokens = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
         blank=True
     )
-    day = models.DateField(auto_now_add=True)
+    date = models.DateField(auto_now_add=True)
 
 
 class TokenLogDataPerUser(base_models.BaseModel):
@@ -99,6 +93,14 @@ class UserTokenHolding(base_models.BaseModel):
 
 
 class UserTokenHoldingLog(base_models.BaseModel):
+    """Create each addition to token as a log.
+
+    Note:
+        Each token acquired/redeemed will be
+            recorded. This is how we calculate
+            the total tokens a user is holding.
+
+    """
 
     TRANSACTION_TYPE = (
         (1, "Acquired"),
