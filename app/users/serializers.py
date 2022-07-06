@@ -1008,3 +1008,17 @@ class UserPermissionSerializer(serializers.ModelSerializer):
             "allow_create_stream",
             "allow_chat"
         )
+
+
+class UserCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserCategory
+        fields = (
+            "id",
+            "user",
+            "category",
+            "followed",
+            "followed_at",
+            "unfollowed_at",
+        )
