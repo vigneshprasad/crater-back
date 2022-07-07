@@ -1497,7 +1497,6 @@ def _get_minutes_spent_by_hosts_on_stream(group):
         time_spent = host.last_online_at - group.start
         minutes = time_spent.seconds // 60 % 60
 
-
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:
             continue
