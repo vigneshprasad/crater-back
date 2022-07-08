@@ -1006,5 +1006,6 @@ class UserPermissionSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "allow_create_stream",
-            "allow_chat"
+            "allow_chat",
+            "show_viewer_count"
         )
