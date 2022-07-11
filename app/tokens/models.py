@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 from base import models as base_models
+from tokens import constants
 
 
 class TokenDataPerDay(base_models.BaseModel):
@@ -17,20 +18,20 @@ class TokenDataPerDay(base_models.BaseModel):
     )
     # Chat message user sent on the stream.
     engagement = models.PositiveIntegerField(default=0)
-    tokens = models.DecimalField(
+    amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
         blank=True
     )
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField()
 
 
-class TokenLogDataPerUser(base_models.BaseModel):
+class TokenTransaction(base_models.BaseModel):
 
-    TRANSACTION_TYPE = (
-        (1, "Attendee"),
-        (2, "Streamer")
+    USER_TYPE = (
+        (constants.USER_TYPE_ATTENDEE_ENUM, constants.USER_TYPE_ATTENDEE),
+        (constants.USER_TYPE_STREAMER_ENUM, constants.USER_TYPE_STREAMER)
     )
 
     user = models.ForeignKey(
@@ -58,7 +59,7 @@ class TokenLogDataPerUser(base_models.BaseModel):
     )
     # Chat message user sent on the stream.
     engagement = models.PositiveIntegerField(default=0)
-    tokens = models.DecimalField(
+    amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
@@ -67,57 +68,37 @@ class TokenLogDataPerUser(base_models.BaseModel):
     # Type of transaction log, whether the user streamed,
     # or watched a stream.
     type = models.PositiveSmallIntegerField(
-        choices=TRANSACTION_TYPE,
-        default=TRANSACTION_TYPE[0][0]
+        choices=USER_TYPE,
+        default=constants.USER_TYPE_ATTENDEE_ENUM
     )
+    date = models.DateField()
+
+    class Meta:
+        unique_together = ("user", "stream")
 
 
-class UserTokenHolding(base_models.BaseModel):
+class UserTokenLog(base_models.BaseModel):
 
-    user = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE
-    )
-    tokens = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True
-    )
-    learn_tokens = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True
-    )
-
-
-class UserTokenHoldingLog(base_models.BaseModel):
-    """Create each addition to token as a log.
-
-    Note:
-        Each token acquired/redeemed will be
-            recorded. This is how we calculate
-            the total tokens a user is holding.
-
-    """
-
+    # Whether the token was acquired or redeemed.
     TRANSACTION_TYPE = (
-        (1, "Acquired"),
-        (2, "Redeemed")
+        (constants.TRANSACTION_TYPE_ACQUIRED_ENUM, constants.TRANSACTION_TYPE_ACQUIRED),
+        (constants.TRANSACTION_TYPE_REDEEMED_ENUM, constants.TRANSACTION_TYPE_REDEEMED)
     )
 
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE
     )
-    tokens = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    # Transaction associated with the
+    # token log.  In case of redemption it
+    # won't be present.
+    transaction = models.ForeignKey(
+        TokenTransaction,
+        on_delete=models.CASCADE,
         null=True,
         blank=True
     )
-    learn_tokens = models.DecimalField(
+    amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
@@ -125,5 +106,5 @@ class UserTokenHoldingLog(base_models.BaseModel):
     )
     type = models.PositiveSmallIntegerField(
         choices=TRANSACTION_TYPE,
-        default=TRANSACTION_TYPE[0][0]
+        default=constants.TRANSACTION_TYPE_ACQUIRED_ENUM
     )

@@ -42,11 +42,11 @@ def calculate_tokens_earned(streams=None):
     )
 
     # Calculate token data per day for all attendees.
-    token_data_per_day = models.TokenDataPerDay(
+    models.TokenDataPerDay(
         date=datetime.date.today(),
         time_spent=total_watch_time,
         engagement=total_engagement,
-        tokens=total_watch_time + (total_engagement * 2)
+        amount=total_watch_time + (total_engagement * 2)
     )
 
     for stream in streams_for_today:
@@ -63,34 +63,23 @@ def calculate_tokens_earned(streams=None):
             group=stream
         ).count()
 
-        token_data_per_user = models.TokenLogDataPerUser.objects.filter(
+        # Create token transaction for host and stream.
+        models.TokenTransaction.objects.get_or_create(
             user=host,
             creator=creator,
             stream=stream,
             time_spent=streamer_time_spent,
             engagement=streamer_engagement,
-            tokens=streamer_time_spent + (streamer_engagement * 2),
-            type=models.TokenLogDataPerUser.TRANSACTION_TYPE[1][0]
+            amount=streamer_time_spent + (streamer_engagement * 2),
+            type=models.TokenTransaction.USER_TYPE[1][0],
+            date=datetime.date.today()
         )
-
-        # Calculate learn tokens by using crater tokens.
-        user_token_holding_log = models.UserTokenHoldingLog.objects.create(
-            user=host
-        )
-        user_token_holding_log.tokens += token_data_per_user.tokens
-        user_token_holding_log.learn_tokens = (
-                token_data_per_user.tokens / token_data_per_day.tokens
-                * 20 / 100
-                * 1000
-        )
-        user_token_holding_log.type = models.UserTokenHoldingLog.TRANSACTION_TYPE[0][0]
-        user_token_holding_log.save()
 
         # Calculate tokens for all attendees.
         attendees = stream.attendees.all()
         # Get all participants that attended the meeting.
         dyte_participants = dyte_models.DyteMeetingParticipant.objects.filter(
-            group=stream,
+            dyte_meeting__group=stream,
             participant__in=attendees,
             last_online_at__isnull=False
         )
@@ -103,24 +92,14 @@ def calculate_tokens_earned(streams=None):
                 group=stream
             ).count()
 
-            token_data_per_user = models.TokenLogDataPerUser.objects.filter(
+            # Create a token transaction for each user and stream.
+            models.TokenTransaction.objects.get_or_create(
                 user=attendee,
                 stream=stream,
+                creator=creator,
                 time_spent=attendee_time_spent,
                 engagement=attendee_engagement,
-                tokens=attendee_time_spent + (attendee_engagement * 2),
-                type=models.TokenLogDataPerUser.TRANSACTION_TYPE[0][0]
+                amount=attendee_time_spent + (attendee_engagement * 2),
+                type=models.TokenTransaction.USER_TYPE[0][0],
+                date=datetime.date.today()
             )
-
-            # Calculate learn tokens by using crater tokens.
-            user_token_holding_log = models.UserTokenHoldingLog.objects.get_or_create(
-                user_id=attendee
-            )
-            user_token_holding_log.tokens += token_data_per_user.tokens
-            user_token_holding_log.learn_tokens = (
-                    token_data_per_user.tokens / token_data_per_day.tokens
-                    * 80 / 100
-                    * 1000
-            )
-            user_token_holding_log.type = models.UserTokenHoldingLog.TRANSACTION_TYPE[0][0]
-            user_token_holding_log.save()
