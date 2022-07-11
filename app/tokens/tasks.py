@@ -33,16 +33,16 @@ def calculate_tokens_earned(streams=None):
         host__creator__learn_tokens_enabled=True,
     ) if not streams else streams
 
-    total_watch_time = streams_for_today.aggregate(total_minutes=Sum("total_minutes_watched_by_attendees"))
+    total_watch_time = streams_for_today.aggregate(total_minutes=Sum("total_minutes_spent_by_attendees"))["total_minutes"]
 
     total_engagement = conversations_models.GroupMessage.objects.filter(
         group__in=streams_for_today,
         created_at__gte=today_start,
         created_at__lte=today_end,
-    )
+    ).count()
 
     # Calculate token data per day for all attendees.
-    models.TokenDataPerDay(
+    models.TokenDataPerDay.objects.create(
         date=datetime.date.today(),
         time_spent=total_watch_time,
         engagement=total_engagement,

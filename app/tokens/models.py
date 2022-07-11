@@ -26,6 +26,9 @@ class TokenDataPerDay(base_models.BaseModel):
     )
     date = models.DateField()
 
+    def __str__(self):
+        return "{} - {}".format(self.date, self.amount)
+
 
 class TokenTransaction(base_models.BaseModel):
 
@@ -76,6 +79,9 @@ class TokenTransaction(base_models.BaseModel):
     class Meta:
         unique_together = ("user", "stream")
 
+    def __str__(self):
+        return "{} - {}".format(self.user, self.stream.id)
+
 
 class UserTokenLog(base_models.BaseModel):
 
@@ -87,7 +93,8 @@ class UserTokenLog(base_models.BaseModel):
 
     user = models.ForeignKey(
         get_user_model(),
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="token_logs"
     )
     # Transaction associated with the
     # token log.  In case of redemption it
@@ -96,7 +103,7 @@ class UserTokenLog(base_models.BaseModel):
         TokenTransaction,
         on_delete=models.CASCADE,
         null=True,
-        blank=True
+        blank=True,
     )
     amount = models.DecimalField(
         max_digits=10,
@@ -108,3 +115,6 @@ class UserTokenLog(base_models.BaseModel):
         choices=TRANSACTION_TYPE,
         default=constants.TRANSACTION_TYPE_ACQUIRED_ENUM
     )
+
+    def __str__(self):
+        return "{} - {} [{}]".format(self.user, self.amount, self.type)

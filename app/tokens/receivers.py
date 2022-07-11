@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from tokens import models
+from tokens import constants
 
 
 @receiver(post_save, sender=models.TokenTransaction)
@@ -17,6 +18,6 @@ def create_token_log_for_token_transaction(sender, instance, *args, **kwargs):
         user=transaction.user,
         transaction=transaction
     )
-    user_token_log.tokens += transaction.amount
-    user_token_log.type = models.UserTokenLog.TRANSACTION_TYPE[0][0]
+    user_token_log.amount = transaction.amount
+    user_token_log.type = constants.TRANSACTION_TYPE_ACQUIRED_ENUM
     user_token_log.save()

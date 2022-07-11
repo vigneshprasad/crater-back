@@ -9,4 +9,3 @@ class TokensConfig(AppConfig):
 
     def ready(self):
         import tokens.receivers
-
