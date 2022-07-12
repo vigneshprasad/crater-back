@@ -783,6 +783,7 @@ class UserPermission(base_models.BaseModel):
     )
     allow_create_stream = models.BooleanField(default=False)
     allow_chat = models.BooleanField(default=True)
+    show_viewer_count = models.BooleanField(default=False)
 
 
 # TODO(Nishant): Remove this.
