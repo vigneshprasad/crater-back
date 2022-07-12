@@ -1,17 +1,12 @@
 import datetime
-import logging
 
-import boto3
 from celery.schedules import crontab
 from celery.task import periodic_task
-from celery.task import task
-from django.conf import settings
 from django.db.models import Sum
-from django.utils import timezone
 
 from conversations import models as conversations_models
-from tokens import models
 from integrations.dyte import models as dyte_models
+from tokens import models
 
 
 @periodic_task(run_every=crontab(hour=18, minute=15))
@@ -22,6 +17,7 @@ def calculate_tokens_earned(streams=None):
         streams(queryset/list): Streams we want to calculate tokens for.
 
     """
+    today = datetime.date.today()
     today_start = datetime.datetime.combine(datetime.date.today(), datetime.time())
     today_end = datetime.datetime.combine(datetime.date.today(), datetime.time(11, 59))
 
@@ -72,7 +68,7 @@ def calculate_tokens_earned(streams=None):
             engagement=streamer_engagement,
             amount=streamer_time_spent + (streamer_engagement * 2),
             type=models.TokenTransaction.USER_TYPE[1][0],
-            date=datetime.date.today()
+            date=today
         )
 
         # Calculate tokens for all attendees.
@@ -101,5 +97,5 @@ def calculate_tokens_earned(streams=None):
                 engagement=attendee_engagement,
                 amount=attendee_time_spent + (attendee_engagement * 2),
                 type=models.TokenTransaction.USER_TYPE[0][0],
-                date=datetime.date.today()
+                date=today
             )

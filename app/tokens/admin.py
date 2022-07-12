@@ -19,6 +19,6 @@ class TokenTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserTokenLog)
 class UserTokenLogAdmin(admin.ModelAdmin):
-    list_display = ("user", "transaction", "amount", "type")
+    list_display = ("user", "transaction", "amount", "type", "date")
     raw_id_fields = ("user", "transaction")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

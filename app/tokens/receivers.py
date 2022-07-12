@@ -1,10 +1,7 @@
-from django.db.models.signals import m2m_changed, post_save
-from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils import timezone
 
-from tokens import models
-from tokens import constants
+from tokens import models, constants
 
 
 @receiver(post_save, sender=models.TokenTransaction)
@@ -16,7 +13,8 @@ def create_token_log_for_token_transaction(sender, instance, *args, **kwargs):
     # Calculate learn tokens by using crater tokens.
     user_token_log = models.UserTokenLog.objects.create(
         user=transaction.user,
-        transaction=transaction
+        transaction=transaction,
+        date=transaction.date
     )
     user_token_log.amount = transaction.amount
     user_token_log.type = constants.TRANSACTION_TYPE_ACQUIRED_ENUM

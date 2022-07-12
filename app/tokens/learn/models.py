@@ -4,12 +4,16 @@ from django.db import models
 # Create your models here.
 from base import models as base_models
 from tokens import models as token_models
+from tokens.learn import constants
 
 
 class LearnDailyTokenAllocation(base_models.BaseModel):
     """Daily allocation of learn."""
-    learn = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField(default=1000)
     date = models.DateField()
+
+    def __str__(self):
+        return "{} - {}".format(self.date, self.amount)
 
 
 class LearnToken(base_models.BaseModel):
@@ -23,15 +27,15 @@ class LearnToken(base_models.BaseModel):
     """
 
     TRANSACTION_TYPE = (
-        (1, "Acquired"),
-        (2, "Redeemed")
+        (constants.TRANSACTION_TYPE_ACQUIRED_ENUM, constants.TRANSACTION_TYPE_ACQUIRED),
+        (constants.TRANSACTION_TYPE_REDEEMED_ENUM, constants.TRANSACTION_TYPE_REDEEMED)
     )
 
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE
     )
-    # Token log this learn tokens were generated from.
+    # Token log these learn tokens were generated from.
     token_log = models.ForeignKey(
         token_models.UserTokenLog,
         on_delete=models.CASCADE
@@ -44,5 +48,9 @@ class LearnToken(base_models.BaseModel):
     )
     type = models.PositiveSmallIntegerField(
         choices=TRANSACTION_TYPE,
-        default=TRANSACTION_TYPE[0][0]
+        default=constants.TRANSACTION_TYPE_ACQUIRED_ENUM
     )
+    date = models.DateField()
+
+    def __str__(self):
+        return "{} - {}".format(self.user, self.amount, self.type)

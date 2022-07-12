@@ -102,6 +102,7 @@ class UserTokenLog(base_models.BaseModel):
     transaction = models.ForeignKey(
         TokenTransaction,
         on_delete=models.CASCADE,
+        related_name="token_log",
         null=True,
         blank=True,
     )
@@ -115,6 +116,7 @@ class UserTokenLog(base_models.BaseModel):
         choices=TRANSACTION_TYPE,
         default=constants.TRANSACTION_TYPE_ACQUIRED_ENUM
     )
+    date = models.DateField()
 
     def __str__(self):
         return "{} - {} [{}]".format(self.user, self.amount, self.type)
