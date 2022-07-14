@@ -45,14 +45,6 @@ class TokenTransaction(base_models.BaseModel):
         "conversations.Group",
         on_delete=models.CASCADE
     )
-    # Creator for which the points were earned
-    # from.
-    creator = models.ForeignKey(
-        "creator.Creator",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
     # Time spent by the user of the stream.
     time_spent = models.DecimalField(
         max_digits=10,
@@ -81,6 +73,17 @@ class TokenTransaction(base_models.BaseModel):
 
     def __str__(self):
         return "{} - {}".format(self.user, self.stream.id)
+
+    @property
+    def creator(self):
+        """Returns creator for the host of the group."""
+        if not self.stream:
+            return ""
+        host = self.stream.host
+        if not host:
+            return ""
+
+        return host.creator if hasattr(host, "creator") else ""
 
 
 class UserTokenLog(base_models.BaseModel):

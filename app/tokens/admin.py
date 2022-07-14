@@ -13,7 +13,7 @@ class TokenDataPerDayAdmin(admin.ModelAdmin):
 @admin.register(models.TokenTransaction)
 class TokenTransactionAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "creator", "time_spent", "engagement", "amount", "date", "type")
-    raw_id_fields = ("user", "creator", "stream")
+    raw_id_fields = ("user", "stream")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
