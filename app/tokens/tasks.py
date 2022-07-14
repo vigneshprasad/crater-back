@@ -26,7 +26,7 @@ def calculate_tokens_earned(streams=None):
         start__gte=today_start,
         end__lte=today_end,
         host__creator__isnull=False,
-        host__creator__learn_tokens_enabled=True,
+        host__creator__tokens_enabled=True,
     ) if not streams else streams
 
     total_watch_time = streams_for_today.aggregate(total_minutes=Sum("total_minutes_spent_by_attendees"))["total_minutes"]

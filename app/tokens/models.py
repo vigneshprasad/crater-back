@@ -116,7 +116,7 @@ class UserTokenLog(base_models.BaseModel):
         choices=TRANSACTION_TYPE,
         default=constants.TRANSACTION_TYPE_ACQUIRED_ENUM
     )
-    date = models.DateField()
+    date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return "{} - {} [{}]".format(self.user, self.amount, self.type)

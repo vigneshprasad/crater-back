@@ -60,10 +60,11 @@ class CreatorAdmin(admin.ModelAdmin):
         "show_club_members",
         "point_of_contact",
         "prospector",
-        "show_analytics"
+        "show_analytics",
+        "tokens_enabled"
     )
     raw_id_fields = ("user", "point_of_contact", "prospector")
-    list_editable = ("order", "certified", "is_active", "show_club_members", "show_analytics")
+    list_editable = ("order", "certified", "is_active", "show_club_members", "show_analytics", "tokens_enabled")
     list_filter = ("certified", "is_active", POCFilter, ProspectorFilter)
     search_fields = (
         "user__name",

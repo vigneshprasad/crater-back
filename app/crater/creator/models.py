@@ -61,6 +61,7 @@ class Creator(base_models.BaseModel):
         on_delete=models.SET_NULL
     )
     show_analytics = models.BooleanField(default=False)
+    tokens_enabled = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-order"]
