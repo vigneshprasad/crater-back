@@ -16,7 +16,7 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from conversations import constants, signals
+from conversations import constants, signals, private
 from integrations.dyte import constants as dyte_constants
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
@@ -131,6 +131,7 @@ class Category(base_model.BaseModel):
     is_active = models.BooleanField(default=True)
     show_on_home_page = models.BooleanField(default=True)
     tagline = models.TextField(null=True, blank=True)
+    slug = models.SlugField(unique=True)
 
     class Meta:
         ordering = ["order"]
@@ -153,6 +154,12 @@ class Category(base_model.BaseModel):
             self.color,
             "COLOR EXAMPLE"
         )
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.slug:
+            self.slug = private.generate_unique_slug_for_category(self)
+        return super(Category, self).save(force_insert, force_update, using, update_fields)
 
 
 class Group(base_model.BaseModel):
