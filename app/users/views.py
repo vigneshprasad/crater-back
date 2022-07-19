@@ -626,8 +626,8 @@ class UserCategoryViewSet(
         data = request.data
 
         # Category validation
-        category = conversation_private.get_category_for_id(
-           category_id=data.get("category")
+        category = conversation_private.get_category_by_slug(
+           slug=data.get("category")
         )
         if not category:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -669,8 +669,8 @@ class UserCategoryViewSet(
         data = request.data
 
         # Category validation
-        category = conversation_private.get_category_for_id(
-            category_id=data.get("category")
+        category = conversation_private.get_category_by_slug(
+            slug=data.get("category")
         )
         if not category:
             return Response(status=status.HTTP_400_BAD_REQUEST)
