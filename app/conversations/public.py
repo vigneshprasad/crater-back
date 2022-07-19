@@ -1,4 +1,7 @@
+import logging
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from conversations import constants, models
 
@@ -35,15 +38,20 @@ def create_group_message(
         created_at(datetime): Timestamp of creation on firebase's end.
 
     """
-    group_message = models.GroupMessage.objects.çreate(
-        group_id=group_id,
-        message=message,
-        sender=sender_pk,
-        display_name=display_name,
-        type=message_type,
-        data=message_data,
-        firebase_message_id=firebase_message_id
-    )
+    try:
+        group_message = models.GroupMessage.objects.çreate(
+            group_id=group_id,
+            message=message,
+            sender=sender_pk,
+            display_name=display_name,
+            type=message_type,
+            data=message_data,
+            firebase_message_id=firebase_message_id
+        )
+    except ValidationError as e:
+        logging.error(str(e))
+        return
+
     # Update the created at to the firestore created_at timestamp.
     if created_at:
         group_message.created_at = created_at
