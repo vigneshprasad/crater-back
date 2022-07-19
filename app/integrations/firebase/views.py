@@ -6,6 +6,7 @@ from users import permissions
 from conversations import serializers as conversation_serializers
 
 from integrations.firebase.service import firebase_service
+from conversations import public as conversation_public
 
 
 class FirebaseViewSet(GenericViewSet):
@@ -28,3 +29,36 @@ class FirebaseViewSet(GenericViewSet):
         )
 
         return Response({"token": token})
+
+
+class FirebaseMessageViewSet(GenericViewSet):
+
+    permission_classes = [permissions.AllowAny]
+
+    @action(
+        methods=["POST"],
+        detail=False
+    )
+    def collect(self, request):
+
+        data = request.data
+        sender_pk = data.get("sender")
+        message = data.get("message")
+        display_name = data.get("display_name")
+        group_id = data.get("group")
+        message_type = data.get("type")
+        message_data = data.get("data")
+        firebase_message_id = data.get("id")
+        created_at = data.get("created_at")
+
+        # Create group message for the details provided.
+        conversation_public.create_group_message(
+            sender_pk=sender_pk,
+            group_id=group_id,
+            message=message,
+            display_name=display_name,
+            message_type=message_type,
+            message_data=message_data,
+            firebase_message_id=firebase_message_id,
+            created_at=created_at
+        )
