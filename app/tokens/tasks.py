@@ -59,10 +59,6 @@ def calculate_tokens_earned(date=None):
     for stream in streams_for_today:
         # Calculate tokens distributed for the streamer first.
         host = stream.host
-        creator = None
-        if host.is_creator:
-            creator = host.creator
-
         streamer_time_spent = stream.total_minutes_spent_by_attendees
         if not streamer_time_spent:
             continue
