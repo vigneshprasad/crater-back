@@ -101,22 +101,41 @@ class CreatorViewSet(
 
     @action(
         serializer_class=serializers.CreatorRankingSerializer,
+        pagination_class=paginators.CreatorRankingPagination,
         methods=["GET"],
         detail=False
     )
     def ranking(self, request, *args, **kwargs):
+        category = request.query_params.get("category")
         end = datetime.datetime.now()
         start = end - datetime.timedelta(days=30)
+
+        if category:
+            queryset_filter = Q(
+                user__groups_hosted__start__gte=start,
+                user__groups_hosted__end__lte=end,
+                user__groups_hosted__categories__in=[category]
+            )
+        else:
+            queryset_filter = Q(
+                user__groups_hosted__start__gte=start,
+                user__groups_hosted__end__lte=end,
+            )
 
         creators = self.get_queryset().annotate(
             watch_time=Sum(
                 "user__groups_hosted__total_minutes_spent_by_attendees",
-                filter=Q(user__groups_hosted__start__gte=start, user__groups_hosted__end__lte=end)
+                filter=queryset_filter
             )
         ).filter(watch_time__isnull=False).order_by("-watch_time")
 
-        serializer = self.get_serializer(creators[:10], many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(creators)
+        if page is None:
+            serializer = self.get_serializer(creators, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class CreatorSlugViewSet(
