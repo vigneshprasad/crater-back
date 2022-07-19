@@ -7,12 +7,25 @@ from integrations.onesignal import models
 
 @receiver(user_signals.user_logout)
 def delete_onesignal_device(sender, user, os_id, *args, **kwargs):
+    """Deletes one signal device on logout.
+
+    Args:
+        sender(class): Sender class for serializer.
+        user(User): User that performed the logout.
+        os_id(str): OS ID for the device.
+
+    """
+    if not os_id:
+        return
+
     try:
         device = models.OneSignalDevice.objects.get(
             user=user,
             os_id=os_id,
         )
-        device.delete()
-
     except models.OneSignalDevice.DoesNotExist:
-        logging.log("OneSignal Device not found")
+        logging.info("OneSignal Device not found: {}".format(os_id))
+        return
+
+    # Delete the device on logout.
+    device.delete()

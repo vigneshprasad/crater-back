@@ -158,7 +158,9 @@ INSTALLED_APPS = [
     "crater.exchange",
     "crater.payments",
     # "crater.gateways",
-    "crater.gateways.stripe_payments"
+    "crater.gateways.stripe_payments",
+
+    "tokens"
 ]
 
 

@@ -202,7 +202,7 @@ def create_calendar_event_for_webinar_host(group):
 
 
 def create_calendar_event_for_webinar_speakers(speakers, group):
-    """Create calendar event for a live stream an speaker.
+    """Create calendar event for a live stream a speaker.
 
     Args:
         group(Group): Group the user joined into.

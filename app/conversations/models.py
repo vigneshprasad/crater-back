@@ -625,7 +625,7 @@ class GroupRecording(base_model.BaseModel):
         upload_to=recording_storage_path,
         blank=True,
         null=True,
-        validators=[validator_utils.SizeValidator(size=512)]
+        validators=[validator_utils.SizeValidator(size=1024)]
     )
 
     # All dyte recordings for this GroupRecording.

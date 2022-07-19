@@ -196,8 +196,8 @@ class ReferrerBlacklistAdmin(admin.ModelAdmin):
 @admin.register(models.UserPermission)
 class UserPermissionAdmin(admin.ModelAdmin):
     raw_id_fields = ("user",)
-    list_display = ("id", "user", "allow_create_stream", "allow_chat")
-    list_editable = ("allow_create_stream", "allow_chat")
+    list_display = ("id", "user", "allow_create_stream", "allow_chat", "show_viewer_count")
+    list_editable = ("allow_create_stream", "allow_chat", "show_viewer_count")
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
     search_fields = (
         "user__username",

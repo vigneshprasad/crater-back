@@ -49,5 +49,5 @@ def run(leaderboard_id, start_date=None, end_date=None, dry_run=True):
         leaderboard.participants.add(*leaderboard_participants)
         print("Added all participants")
         print("Recalculating leaderboard")
-        tasks.recalculate_leaderboards(leaderboard.id)
+        tasks.recalculate_leaderboards([leaderboard.id])
         print("Recalculation done")

@@ -32,7 +32,8 @@ class SocketIOService:
             "user_id": str(data.user.pk),
             "id": data.id,
             "allow_create_stream": data.allow_create_stream,
-            "allow_chat": data.allow_chat
+            "allow_chat": data.allow_chat,
+            "show_viewer_count": data.show_viewer_count,
         }
 
         # Raise exception if the request fails for some reason.
