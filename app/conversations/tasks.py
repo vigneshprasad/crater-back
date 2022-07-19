@@ -1,5 +1,6 @@
 import datetime
 import logging
+from itertools import chain
 
 import boto3
 from botocore import exceptions as botocore_exceptions
@@ -8,7 +9,8 @@ from celery.task import periodic_task, task
 from django.conf import settings
 from django.utils import timezone
 
-from conversations import constants, models
+from conversations import constants, models, services
+from users import models as user_models
 from crater.creator import public as creator_public
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
@@ -568,4 +570,50 @@ def download_app_action_message():
             data=data,
             group_id=stream.id,
             sender=admin_uid
+        )
+
+
+@periodic_task(run_every=crontab(minute="0", hour="13"))
+def send_top_stream_message():
+    # Get all users who has followed a category
+    user_categories = user_models.UserCategory.objects.filter(
+        followed=True
+    )
+
+    # Group all categories followed by users
+    categories_followed = list(user_categories.values_list(
+        "category", flat=True
+    ).distinct())
+    followers = None
+
+    top_streams = services.get_top_streams_by_categories(
+        categories=categories_followed
+    )
+
+    for stream in top_streams:
+        if not followers:
+            followers = user_categories.filter(
+                category=stream["category"]
+            )
+        else:
+            followers = user_categories.filter(
+                category=stream["category"]
+            ).exclude(
+                user__in=followers.values_list("user")
+            )
+
+        # Add recent users who has watched this category stream
+        users = services.get_stream_viewers_by_category(
+            category=stream["category"]
+        )
+
+        # Create a list of unique user ids who will receive category message
+        final_user_ids = set(chain(
+            followers.values_list("user", flat=True),
+            users.values_list("participant", flat=True)
+        ))
+
+        wati_public.send_top_stream_message(
+            stream=stream,
+            user_ids=final_user_ids
         )
