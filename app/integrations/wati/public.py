@@ -246,3 +246,9 @@ def send_stream_reminder_messages_for_attendees(attendees, group, account=consta
             receivers=receivers,
             broadcast_name=constants.STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE + "_{}".format(group.id)
         )
+
+
+# TODO(Sanjeev): Add logic after WATI template is approved.
+def send_top_stream_message(stream, user_ids):
+    # Filter users
+    pass
