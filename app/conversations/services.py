@@ -17,6 +17,7 @@ from conversations import signals
 from conversations import serializers
 
 from crater.creator import models as creator_models
+from integrations.dyte import models as dyte_models
 from rest_framework.exceptions import ValidationError
 
 
@@ -858,3 +859,77 @@ def get_rsvp_count_by_month_and_year(user, start_datetime, end_datetime):
     [x.update({"rsvp_at": x["rsvp_at"].strftime("%b %Y")}) for x in rsvp_count_by_month_and_year]
 
     return rsvp_count_by_month_and_year
+
+
+def get_top_streams_by_categories(categories):
+    """Return top upcoming stream for each of the given category.
+
+    Args:
+        categories(list(int)): List of category ids
+
+    """
+    now = datetime.datetime.now()
+    top_streams = []
+
+    for category in categories:
+        stream = models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True,
+            is_live=False,
+            closed=False,
+            start__gt=now,
+            categories__in=[category]
+        ).values(
+            "id",
+            "start",
+            topic_title=F("topic__name"),
+            topic_image=F("topic__image")
+        ).annotate(
+            rsvp_count=Count("requests", distinct=True)
+        ).order_by(
+            "-rsvp_count"
+        )[:1]
+
+        if not stream:
+            continue
+
+        top_stream = stream[0]
+        top_stream["category"] = category
+
+        top_streams.append(top_stream)
+
+    # Sort top streams by rsvp count
+    top_streams = sorted(top_streams, key=lambda d: d["rsvp_count"], reverse=True)
+
+    return top_streams
+
+
+def get_stream_viewers_by_category(category):
+    """Return the users who watched a stream in the
+        given category.
+
+    Args:
+        category(int): Category id
+
+    """
+    now = datetime.datetime.now()
+
+    dyte_meetings = dyte_models.DyteMeeting.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__is_live=False,
+        group__closed=True,
+        group__start__lt=now,
+        group__categories__in=[category],
+    )
+
+    hosts = dyte_meetings.values_list("group__host").distinct()
+
+    viewers = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__in=dyte_meetings,
+        last_online_at__isnull=False
+    ).exclude(
+        participant__in=hosts
+    ).distinct()
+
+    return viewers
