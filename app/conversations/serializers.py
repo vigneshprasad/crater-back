@@ -64,6 +64,7 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         ref_name = "group_category"
         model = models.Category
@@ -76,6 +77,30 @@ class CategorySerializer(serializers.ModelSerializer):
             "tagline",
             "show_on_home_page"
         )
+
+    def get_is_follower(self, category):
+        """Returns True if the requesting user is
+            following the category.
+
+        Args:
+            category(Category): Category for which we are
+                checking following status for.
+
+        """
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+
+        user_category = category.users_following.filter(
+            user=user,
+            category=category,
+            followed=True
+        )
+        return user_category.exist()
 
 
 class TopicSerializer(serializers.ModelSerializer):

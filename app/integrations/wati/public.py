@@ -37,6 +37,8 @@ def send_stream_reminder_messages_for_group(group):
     followers = []
     host = group.host
     creator = creator_public.get_creator_for_user(host)
+    print(creator)
+    print(group)
 
     if creator:
         # Add users followers if creator is present.
@@ -64,6 +66,7 @@ def send_stream_reminder_messages_for_group(group):
     send_stream_reminder_messages_for_followers(followers_list_with_two_plus_streams, group)
     # Send reminder message to attendees.
     send_stream_reminder_messages_for_attendees(attendees, group)
+
 
 
 def send_stream_reminder_messages_for_followers(followers, group):
@@ -123,6 +126,7 @@ def send_stream_reminder_messages_for_attendees(attendees, group):
         group(Group): Stream we are sending reminder for.
 
     """
+    print(attendees)
     if not attendees:
         return
 
@@ -132,6 +136,9 @@ def send_stream_reminder_messages_for_attendees(attendees, group):
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
         topic_image_url = ""
+
+    print(creator_name)
+    print(topic_image_url)
 
     receivers = []
     for attendee in attendees:
