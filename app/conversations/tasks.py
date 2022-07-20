@@ -1,5 +1,6 @@
 import datetime
 import logging
+from itertools import chain
 
 import boto3
 from botocore import exceptions as botocore_exceptions
@@ -8,7 +9,8 @@ from celery.task import periodic_task, task
 from django.conf import settings
 from django.utils import timezone
 
-from conversations import constants, models
+from conversations import constants, models, services
+from users import models as user_models
 from crater.creator import public as creator_public
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
@@ -568,4 +570,61 @@ def download_app_action_message():
             data=data,
             group_id=stream.id,
             sender=admin_uid
+        )
+
+
+# TODO(Sanjeev): Clean this up
+# @periodic_task(run_every=crontab(minute="0", hour="13"))
+def send_top_stream_message():
+    # Get all users who has followed a category
+    user_categories = user_models.UserCategory.objects.filter(
+        followed=True
+    )
+
+    # Filter all active categories
+    categories = models.Category.objects.filter(
+        is_active=True
+    )
+
+    # Get top streams from each category
+    top_streams = services.get_top_streams_by_categories(
+        categories=categories
+    )
+
+    followers = None
+    for stream in top_streams:
+        if not followers:
+            # Filter category followers
+            followers = user_categories.filter(
+                category=stream["category"]
+            )
+        else:
+            # Filter unique category followers who
+            # has not received a top stream message yet.
+            followers = user_categories.filter(
+                category=stream["category"]
+            ).exclude(
+                user__in=followers.values_list("user")
+            )
+
+        # Add recent users who has watched a stream in
+        # this category
+        users = services.get_stream_viewers_by_category(
+            category=stream["category"]
+        )
+
+        # Create a list of unique user ids who will receive
+        # the top stream message
+        final_user_ids = set(chain(
+            followers.values_list("user", flat=True),
+            users.values_list("participant", flat=True)
+        ))
+
+        # Remove stream host from list if present
+        if stream.host in final_user_ids:
+            final_user_ids.remove(stream.host)
+
+        wati_public.send_top_stream_message(
+            stream=stream,
+            user_ids=final_user_ids
         )

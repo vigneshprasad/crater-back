@@ -148,6 +148,7 @@ INSTALLED_APPS = [
     "conversations",
     "conversations.dashboard",
     "communications.notifications",
+    "communications.whatsapp",
     "devices",
 
     "crater.auth",
@@ -465,8 +466,11 @@ FRESHCHAT_WHATSAPP_NAMESPACE = os.getenv("FRESHCHAT_WHATSAPP_NAMESPACE")
 FRESHCHAT_ACCESS_TOKEN = os.getenv("FRESHCHAT_ACCESS_TOKEN")
 
 # ----------- WATI ------------ #
-WATI_BASE_URL = "https://live-server-9501.wati.io/api/v1/"
-WATI_ACCESS_TOKEN = os.getenv("WATI_ACCESS_TOKEN")
+WATI_9051_BASE_URL = "https://live-server-9501.wati.io/api/v1/"
+WATI_9051_ACCESS_TOKEN = os.getenv("WATI_9051_ACCESS_TOKEN", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzOWU4MGUyNi00ZTllLTQwMmQtOWI0Ni1jZWJkZmUxMDUwYWQiLCJ1bmlxdWVfbmFtZSI6InZpZ25lc2hAQ1JBVEVSLkNMVUIiLCJuYW1laWQiOiJ2aWduZXNoQENSQVRFUi5DTFVCIiwiZW1haWwiOiJ2aWduZXNoQENSQVRFUi5DTFVCIiwiYXV0aF90aW1lIjoiMDUvMTkvMjAyMiAxMzo1MDozMyIsImRiX25hbWUiOiI5NTAxIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQURNSU5JU1RSQVRPUiIsImV4cCI6MjUzNDAyMzAwODAwLCJpc3MiOiJDbGFyZV9BSSIsImF1ZCI6IkNsYXJlX0FJIn0.XP1d80sruwpN7YEVMSRUKs8uUdAwg1LUCHUssrvbBpc")
+
+WATI_8953_BASE_URL = "https://live-server-8953.wati.io/api/v1/"
+WATI_8953_ACCESS_TOKEN = os.getenv("WATI_8953_ACCESS_TOKEN", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZTgzZDVjZi1hYjVkLTRkNDctODEwNy0yNDEyZWJjYjcwM2UiLCJ1bmlxdWVfbmFtZSI6Im5pc2hhbnRrcGFyYXNoYXJAZ21haWwuY29tIiwibmFtZWlkIjoibmlzaGFudGtwYXJhc2hhckBnbWFpbC5jb20iLCJlbWFpbCI6Im5pc2hhbnRrcGFyYXNoYXJAZ21haWwuY29tIiwiYXV0aF90aW1lIjoiMDYvMDcvMjAyMiAxMjoyMjowMCIsImRiX25hbWUiOiI4OTUzIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiQURNSU5JU1RSQVRPUiIsImV4cCI6MjUzNDAyMzAwODAwLCJpc3MiOiJDbGFyZV9BSSIsImF1ZCI6IkNsYXJlX0FJIn0.xtnyZfKuinP8KDhE-EdoqR9GzhPxgmyRvshnLzmNxdY")
 
 # -------------- GOOGLE ------------ #
 GOOGLE_API_ACCOUNT_TYPE = os.getenv("GOOGLE_API_ACCOUNT_TYPE", "")

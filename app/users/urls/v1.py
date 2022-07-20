@@ -15,6 +15,7 @@ register_router.register("verify", views.VerificationView, base_name="verify")
 register_router.register("users/permission", views.UserPermissionViewSet, base_name="user-permission")
 register_router.register("users", views.UserViewSet, base_name="users-view")
 register_router.register("referrals", views.UserReferralViewSet, base_name="referrals-view")
+register_router.register("category", views.UserCategoryViewSet, base_name="user-category-view")
 
 
 router = routers.SimpleRouter()
@@ -62,6 +63,8 @@ auth_urlpatterns = [
     path("network/", views.NetworkView.as_view(), name="network"),
     path("network/<pk>/", views.NetworkView.as_view(), name="other-profile"),
     path("referer/", views.RefererEmailView.as_view(), name="referer"),
+
+    # path("category/", views.UserCategoryViewSet.as_view(), name="user-category"),
 
     path("", include(router.urls)),
     path("public/", include(public_router.urls))

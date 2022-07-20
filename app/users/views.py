@@ -1,3 +1,5 @@
+import datetime
+
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth import views as auth_views, get_user_model
@@ -21,10 +23,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from conversations import models as conversation_models
+from conversations import private as conversation_private
 from payment import models as payment_models, serializers as payment_serializers
 from payment.tasks import charge_subscription_payment
 from resources.meetings import models as meeting_models
-from users import permissions, services, utils, signals
+from users import permissions, services, utils, signals, exceptions
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, constants
@@ -600,3 +603,99 @@ class UserPermissionViewSet(viewsets.GenericViewSet):
 
         data = self.get_serializer(obj).data
         return Response(data, status=status.HTTP_200_OK)
+
+
+class UserCategoryViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.UserCategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.UserCategory.objects.all()
+
+    @action(
+        methods=["POST"],
+        detail=False,
+    )
+    def follow(self, request):
+        user = request.user
+        data = request.data
+
+        # Category validation
+        category = conversation_private.get_category_by_slug(
+           slug=data.get("category")
+        )
+        if not category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user_category = services.get_user_category(
+            user=user,
+            category=category
+        )
+        if user_category and user_category.followed:
+            category_already_followed_exception = exceptions.CategoryAlreadyFollowed()
+            return Response(
+                category_already_followed_exception.get_error_body(),
+                status=category_already_followed_exception.status_code
+            )
+
+        data = {
+            "user": user.pk,
+            "category": category.id,
+            "followed": True,
+            "followed_at": datetime.datetime.now()
+        }
+
+        if user_category:
+            serializer = self.get_serializer(data=data, instance=user_category, partial=True)
+        else:
+            serializer = self.get_serializer(data=data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["POST"],
+        detail=False,
+    )
+    def unfollow(self, request):
+        user = request.user
+        data = request.data
+
+        # Category validation
+        category = conversation_private.get_category_by_slug(
+            slug=data.get("category")
+        )
+        if not category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user_category = services.get_user_category(
+            user=user,
+            category=category
+        )
+        if not user_category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if not user_category.followed:
+            category_already_unfollowed_exception = exceptions.CategoryAlreadyUnfollowed()
+            return Response(
+                category_already_unfollowed_exception.get_error_body(),
+                status=category_already_unfollowed_exception.status_code
+            )
+
+        data = {
+            "user": user.pk,
+            "category": category.id,
+            "followed": False,
+            "unfollowed_at": datetime.datetime.now()
+        }
+        serializer = self.get_serializer(data=data, instance=user_category, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

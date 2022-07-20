@@ -1,9 +1,12 @@
 import logging
+import random
+import string
 from urllib.request import urlopen
 
 from celery.task import task
 from django.contrib.auth import get_user_model
 from django.core.files import File
+from django.utils.text import slugify
 from django.core.files.temp import NamedTemporaryFile
 
 from conversations import constants
@@ -83,6 +86,23 @@ def get_category_for_id(category_id):
     try:
         category = models.Category.objects.get(
             id=category_id
+        )
+    except models.Category.DoesNotExist:
+        return None
+
+    return category
+
+
+def get_category_by_slug(slug):
+    """Returns a category object for a given category slug.
+
+    Args:
+        slug(str): Slug of the category.
+
+    """
+    try:
+        category = models.Category.objects.get(
+            slug=slug
         )
     except models.Category.DoesNotExist:
         return None
@@ -254,3 +274,28 @@ def create_or_update_question_upvote(question, user):
         question_upvote.save()
 
     return question_upvote
+
+
+def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
+    return "".join(random.choice(chars) for _ in range(size))
+
+
+def generate_unique_slug_for_category(category, new_slug=None):
+    """Generate a unique slug for a category."""
+
+    slug = new_slug if new_slug is not None else slugify(category.name.lower())
+
+    Klass = category.__class__
+    qs_exists = Klass.objects.filter(slug=slug).exists()
+    if not qs_exists:
+        return slug
+
+    new_slug = "{slug}-{random_str}".format(
+        slug=slug,
+        random_str=random_string_generator(size=4)
+    )
+
+    # Generate a unique slug again.
+    return generate_unique_slug_for_category(
+        category, new_slug=new_slug
+    )

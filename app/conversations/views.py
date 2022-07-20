@@ -800,3 +800,13 @@ class GroupQuestionViewSet(
 
         serializer = self.get_serializer(question_upvote)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CategorySlugViewSet(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.CategorySerializer
+    queryset = models.Category.objects.all()
+    lookup_field = "slug"
