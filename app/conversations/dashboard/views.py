@@ -1,6 +1,7 @@
 import datetime
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from rest_framework import status
 from rest_framework import viewsets
@@ -139,12 +140,25 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
                     "message": "Invalid Host PK"
                 }, status=status.HTTP_400_BAD_REQUEST
             )
+        except ValidationError as e:
+            return Response(
+                {
+                    "message": str(e),
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # List of speaker ids.
         speakers_ids = post_data.get("speakers", [])
         # Add host to speakers as well.
         speakers_ids.append(host_id)
-        speakers = get_user_model().objects.filter(pk__in=speakers_ids)
+        try:
+            speakers = get_user_model().objects.filter(pk__in=speakers_ids)
+        except ValidationError as e:
+            return Response(
+                {
+                    "message": str(e)
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
         topic_id = post_data.get("topic")
         topic_details = post_data.get("topic_details")
@@ -217,9 +231,7 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
             is_published=published
         )
 
-        return Response({
-            "id": group.id
-        }, status=status.HTTP_200_OK)
+        return Response({"id": group.id}, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(viewsets.GenericViewSet):

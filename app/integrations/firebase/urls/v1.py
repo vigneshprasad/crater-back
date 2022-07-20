@@ -8,6 +8,7 @@ app_name = "firebase"
 router = routers.SimpleRouter()
 
 router.register("", views.FirebaseViewSet, base_name="firebase")
+router.register("message", views.FirebaseMessageViewSet, base_name="firebase")
 
 urlpatterns = [
     path("", include(router.urls))
