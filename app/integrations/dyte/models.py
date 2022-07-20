@@ -68,6 +68,10 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     @property
     def latest_join_time(self):
+        """Returns datetime after which we are calculating minutes
+            spent on a stream for a user.
+
+        """
         return self.dyte_meeting.group.start - timezone.timedelta(minutes=5)
 
     @property
@@ -115,7 +119,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     def mark_online(self):
         """Mark a dyte participant online."""
-
         online_time = max(timezone.now(), self.latest_join_time)
         self.is_online = True
         self.last_online_at = online_time
