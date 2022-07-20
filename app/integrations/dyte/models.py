@@ -67,16 +67,16 @@ class DyteMeetingParticipant(base_model.BaseModel):
         unique_together = ["dyte_meeting", "participant"]
 
     @property
+    def latest_join_time(self):
+        return self.dyte_meeting.group.start - timezone.timedelta(minutes=5)
+
+    @property
     def joined_group(self):
         """Returns if the user joined the stream."""
-        if not self.last_online_at:
-            return False
+        if self.total_minutes_watched:
+            return True
 
-        # The user can sit on the stream 5 minutes before the stream
-        # TODO(Nishant): Check the front end logic here.
-        latest_group_join_time = self.dyte_meeting.group.start - datetime.timedelta(minutes=5)
-        return latest_group_join_time <= self.last_online_at
-        # return DyteParticipantOnlineLog.objects.filter(dyte_meeting_participant_id=self.id).exists()
+        return False
 
     @property
     def total_minutes_watched(self):
@@ -94,7 +94,10 @@ class DyteMeetingParticipant(base_model.BaseModel):
         # If not online logs are there and last_online_at is present,
         # calculate minutes the old way.
         if not online_logs:
-            time_spent = self.last_online_at - (self.dyte_meeting.group.start - timezone.timedelta(minutes=5))
+            time_spent = max(
+                (self.last_online_at - self.latest_join_time),
+                timezone.timedelta()
+            )
             minutes_spent = time_spent.seconds // 60 % 60
 
         # If logs are present calculate minutes from logs.
@@ -113,10 +116,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
     def mark_online(self):
         """Mark a dyte participant online."""
 
-        online_time = max(
-            timezone.now(),
-            self.dyte_meeting.group.start - timezone.timedelta(minutes=5)
-        )
+        online_time = max(timezone.now(), self.latest_join_time)
         self.is_online = True
         self.last_online_at = online_time
         self.save()
@@ -129,10 +129,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     def mark_offline(self):
         """Mark a dyte participant offline."""
-        offline_time = max(
-            timezone.now(),
-            self.dyte_meeting.group.start - timezone.timedelta(minutes=5)
-        )
+        offline_time = max(timezone.now(), self.latest_join_time)
         self.is_online = False
         self.last_online_at = offline_time
         self.save()
@@ -166,16 +163,13 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
             return 0
 
         last_online_at = self.offline_at if self.offline_at else timezone.now()
-        time_spent = last_online_at - self.online_at
+        time_spent = max((last_online_at - self.online_at), timezone.timedelta())
         minutes = time_spent.seconds // 60 % 60
         return minutes
 
     def mark_offline(self):
         """Mark the online log offline when the user leaves."""
-        offline_time = max(
-            timezone.now(),
-            self.dyte_meeting_participant.dyte_meeting.group.start - timezone.timedelta(minutes=5)
-        )
+        offline_time = max(timezone.now(), self.dyte_meeting_participant.latest_join_time)
         self.offline_at = offline_time
         self.is_offline = True
         self.save()
