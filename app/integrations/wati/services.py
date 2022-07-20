@@ -95,7 +95,6 @@ class WatiWhatsappService:
             "receivers": receivers,
         }
 
-        print(data)
         response = requests.request(
             "POST",
             url=self.base_url + self.API_ENDPOINTS[SEND_TEMPLATE_MESSAGES],

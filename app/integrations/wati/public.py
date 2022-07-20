@@ -102,8 +102,6 @@ def send_stream_reminder_messages_for_group(
     followers = []
     host = group.host
     creator = creator_public.get_creator_for_user(host)
-    print(creator)
-    print(group)
 
     if creator:
         # Add users followers if creator is present.
@@ -206,7 +204,6 @@ def send_stream_reminder_messages_for_attendees(attendees, group, account=consta
         account(int): Which account to send the whatsapp from.
 
     """
-    print(attendees)
     if not attendees:
         return
 
@@ -216,9 +213,6 @@ def send_stream_reminder_messages_for_attendees(attendees, group, account=consta
     except (ValueError, AttributeError) as e:
         LOGGER.error("Topic image unavailable: {}".format(group.id))
         topic_image_url = ""
-
-    print(creator_name)
-    print(topic_image_url)
 
     receivers = []
     for attendee in attendees:
