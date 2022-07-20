@@ -119,22 +119,22 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     def mark_online(self):
         """Mark a dyte participant online."""
-        online_time = max(timezone.now(), self.latest_join_time)
+        online_at = max(timezone.now(), self.latest_join_time)
         self.is_online = True
-        self.last_online_at = online_time
+        self.last_online_at = online_at
         self.save()
 
         # Create online logs.
         online_log = DyteParticipantOnlineLog.objects.create(
             dyte_meeting_participant_id=self.id,
-            online_time=online_time
+            online_at=online_at
         )
 
     def mark_offline(self):
         """Mark a dyte participant offline."""
-        offline_time = max(timezone.now(), self.latest_join_time)
+        offline_at = max(timezone.now(), self.latest_join_time)
         self.is_online = False
-        self.last_online_at = offline_time
+        self.last_online_at = offline_at
         self.save()
 
         # Update the online log to offline.
@@ -172,8 +172,8 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
 
     def mark_offline(self):
         """Mark the online log offline when the user leaves."""
-        offline_time = max(timezone.now(), self.dyte_meeting_participant.latest_join_time)
-        self.offline_at = offline_time
+        offline_at = max(timezone.now(), self.dyte_meeting_participant.latest_join_time)
+        self.offline_at = offline_at
         self.is_offline = True
         self.save()
 
