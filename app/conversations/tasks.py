@@ -573,7 +573,8 @@ def download_app_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="0", hour="13"))
+# TODO(Sanjeev): Clean this up
+# @periodic_task(run_every=crontab(minute="0", hour="13"))
 def send_top_stream_message():
     # Get all users who has followed a category
     user_categories = user_models.UserCategory.objects.filter(
