@@ -94,7 +94,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
         # If not online logs are there and last_online_at is present,
         # calculate minutes the old way.
         if not online_logs:
-            time_spent = self.last_online_at - self.dyte_meeting.group.start
+            time_spent = self.last_online_at - (self.dyte_meeting.group.start - timezone.timedelta(minutes=5))
             minutes_spent = time_spent.seconds // 60 % 60
 
         # If logs are present calculate minutes from logs.
@@ -111,18 +111,30 @@ class DyteMeetingParticipant(base_model.BaseModel):
         )
 
     def mark_online(self):
+        """Mark a dyte participant online."""
+
+        online_time = max(
+            timezone.now(),
+            self.dyte_meeting.group.start - timezone.timedelta(minutes=5)
+        )
         self.is_online = True
-        self.last_online_at = datetime.datetime.now()
+        self.last_online_at = online_time
         self.save()
 
         # Create online logs.
-        DyteParticipantOnlineLog.objects.create(
-            dyte_meeting_participant_id=self.id
+        online_log = DyteParticipantOnlineLog.objects.create(
+            dyte_meeting_participant_id=self.id,
+            online_time=online_time
         )
 
     def mark_offline(self):
+        """Mark a dyte participant offline."""
+        offline_time = max(
+            timezone.now(),
+            self.dyte_meeting.group.start - timezone.timedelta(minutes=5)
+        )
         self.is_online = False
-        self.last_online_at = datetime.datetime.now()
+        self.last_online_at = offline_time
         self.save()
 
         # Update the online log to offline.
@@ -143,19 +155,28 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
         "dyte.DyteMeetingParticipant",
         on_delete=models.CASCADE
     )
-    online_at = models.DateTimeField(auto_now_add=True)
+    online_at = models.DateTimeField(null=True, blank=True)
     offline_at = models.DateTimeField(null=True, blank=True)
     is_offline = models.BooleanField(default=False)
 
     @property
     def online_time(self):
+        """Get online time for a log."""
+        if not self.online_at:
+            return 0
+
         last_online_at = self.offline_at if self.offline_at else timezone.now()
         time_spent = last_online_at - self.online_at
         minutes = time_spent.seconds // 60 % 60
         return minutes
 
     def mark_offline(self):
-        self.offline_at = timezone.now()
+        """Mark the online log offline when the user leaves."""
+        offline_time = max(
+            timezone.now(),
+            self.dyte_meeting_participant.dyte_meeting.group.start - timezone.timedelta(minutes=5)
+        )
+        self.offline_at = offline_time
         self.is_offline = True
         self.save()
 
