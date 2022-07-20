@@ -145,7 +145,8 @@ class GroupAdmin(GroupAdmin):
 @admin.register(models.CoverFile)
 class CoverFileAdmin(util_mixins.ViewActionMixin, admin.ModelAdmin):
     icon_name = "person"
-    list_display = ["user", "file"]
+    list_display = ("id", "user", "file")
+    raw_id_fields = ("user", )
     list_display_links = None
 
     def get_queryset(self, request):
