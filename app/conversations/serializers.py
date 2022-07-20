@@ -104,7 +104,7 @@ class CategorySerializer(serializers.ModelSerializer):
             category=category,
             followed=True
         )
-        return user_category.exist()
+        return user_category.exists()
 
 
 class TopicSerializer(serializers.ModelSerializer):
