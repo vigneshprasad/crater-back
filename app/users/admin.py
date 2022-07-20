@@ -143,11 +143,14 @@ class GroupAdmin(GroupAdmin):
 
 
 @admin.register(models.CoverFile)
-class CoverFileAdmin(util_mixins.ViewActionMixin, admin.ModelAdmin):
+class CoverFileAdmin(admin.ModelAdmin):
     icon_name = "person"
     list_display = ("id", "user", "file")
     raw_id_fields = ("user", )
-    list_display_links = None
+    search_fields = ("id", "user__username", "user__name")
+    list_filter = (
+        AutocompleteFilterFactory("User", "user"),
+    )
 
     def get_queryset(self, request):
         return super().get_queryset(request).all()
