@@ -35,14 +35,14 @@ def create_group_message(
         message_type(int): Type of message that was sent.
         message_data(dict): Extra message data like image url etc.
         firebase_message_id(str): ID of the message in firestore.
-        created_at(datetime): Timestamp of creation on firebase's end.
+        created_at(datetime.datetime): Timestamp of creation on firebase's end.
 
     """
     try:
-        group_message = models.GroupMessage.objects.çreate(
+        group_message = models.GroupMessage.objects.create(
             group_id=group_id,
             message=message,
-            sender=sender_pk,
+            sender_id=sender_pk,
             display_name=display_name,
             type=message_type,
             data=message_data,
