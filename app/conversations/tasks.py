@@ -580,38 +580,48 @@ def send_top_stream_message():
         followed=True
     )
 
-    # Group all categories followed by users
-    categories_followed = list(user_categories.values_list(
-        "category", flat=True
-    ).distinct())
-    followers = None
-
-    top_streams = services.get_top_streams_by_categories(
-        categories=categories_followed
+    # Filter all active categories
+    categories = models.Category.objects.filter(
+        is_active=True
     )
 
+    # Get top streams from each category
+    top_streams = services.get_top_streams_by_categories(
+        categories=categories
+    )
+
+    followers = None
     for stream in top_streams:
         if not followers:
+            # Filter category followers
             followers = user_categories.filter(
                 category=stream["category"]
             )
         else:
+            # Filter unique category followers who
+            # has not received a top stream message yet.
             followers = user_categories.filter(
                 category=stream["category"]
             ).exclude(
                 user__in=followers.values_list("user")
             )
 
-        # Add recent users who has watched this category stream
+        # Add recent users who has watched a stream in
+        # this category
         users = services.get_stream_viewers_by_category(
             category=stream["category"]
         )
 
-        # Create a list of unique user ids who will receive category message
+        # Create a list of unique user ids who will receive
+        # the top stream message
         final_user_ids = set(chain(
             followers.values_list("user", flat=True),
             users.values_list("participant", flat=True)
         ))
+
+        # Remove stream host from list if present
+        if stream.host in final_user_ids:
+            final_user_ids.remove(stream.host)
 
         wati_public.send_top_stream_message(
             stream=stream,

@@ -896,9 +896,11 @@ def get_top_streams_by_categories(categories):
         top_stream = stream[0]
         top_stream["category"] = category
 
-        top_streams.append(top_stream)
+        # Avoid duplicates in top streams list
+        if top_stream not in top_streams:
+            top_streams.append(top_stream)
 
-    # Sort top streams by rsvp count
+    # Sort top streams in descending order by rsvp count
     top_streams = sorted(top_streams, key=lambda d: d["rsvp_count"], reverse=True)
 
     return top_streams
@@ -914,6 +916,7 @@ def get_stream_viewers_by_category(category):
     """
     now = datetime.datetime.now()
 
+    # Filter dyte meetings for past streams by given category
     dyte_meetings = dyte_models.DyteMeeting.objects.filter(
         group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
         group__is_published=True,
@@ -923,8 +926,10 @@ def get_stream_viewers_by_category(category):
         group__categories__in=[category],
     )
 
+    # Filter stream hosts
     hosts = dyte_meetings.values_list("group__host").distinct()
 
+    # Filter all viewers except stream hosts
     viewers = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__in=dyte_meetings,
         last_online_at__isnull=False
