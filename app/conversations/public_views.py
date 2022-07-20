@@ -247,6 +247,34 @@ class GroupWebinarPublicViewSet(
         filterset_fields=["host", "categories"],
     )
     def past(self, request):
+        """Returns past webinars."""
+        queryset = self.filter_queryset(self._get_past_webinars_with_recordings())
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        pagination_class=paginators.WebinarPagination,
+        queryset=models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True
+        ).select_related(
+            "topic",
+            "host__profile",
+            "host__creator",
+            "recording"
+        ).order_by("-start"),
+        serializer_class=serializers.StreamWithRecordingListSerializer,
+        filterset_fields=["host", "categories"],
+    )
+    def videos(self, request):
         """Returns past webinars with published recordings."""
         queryset = self.filter_queryset(self._get_past_webinars_with_recordings())
         page = self.paginate_queryset(queryset)

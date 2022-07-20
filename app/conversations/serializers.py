@@ -65,17 +65,21 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
 
+    is_follower = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         ref_name = "group_category"
         model = models.Category
         fields = (
             "pk",
             "name",
+            "slug",
             "color",
             "photo",
             "order",
             "tagline",
-            "show_on_home_page"
+            "show_on_home_page",
+            "is_follower",
         )
 
     def get_is_follower(self, category):
