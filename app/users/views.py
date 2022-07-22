@@ -608,8 +608,6 @@ class UserPermissionViewSet(viewsets.GenericViewSet):
 class UserCategoryViewSet(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.UserCategorySerializer
@@ -699,3 +697,27 @@ class UserCategoryViewSet(
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def follower(self, request):
+        user = request.user
+        slug = request.query_params.get("category")
+
+        # Category validation
+        category = conversation_private.get_category_by_slug(
+            slug=slug
+        )
+        if not category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user_category = services.get_user_category(
+            user=user,
+            category=category
+        )
+        if not user_category:
+            return Response({"is_follower": False}, status=status.HTTP_200_OK)
+
+        return Response({"is_follower": user_category.followed}, status=status.HTTP_200_OK)
