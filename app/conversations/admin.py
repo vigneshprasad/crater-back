@@ -383,7 +383,9 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "sender__email",
         "sender__username"
     )
-    list_filter = ("group",)
+    list_filter = (
+        AutocompleteFilterFactory("Group", "group", use_pk_exact=True),
+    )
     exclude = ("updated_at",)
 
     def delete_queryset(self, request, queryset):

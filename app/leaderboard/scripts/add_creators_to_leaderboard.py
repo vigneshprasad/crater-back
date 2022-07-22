@@ -31,9 +31,17 @@ def run(leaderboard_id, start_date=None, end_date=None, dry_run=True):
     for host in hosts:
         host_groups = groups.filter(host=host)
         group_count = host_groups.count()
-        minutes_watched = host_groups.aggregate(minutes=Sum("total_minutes_spent_by_attendees"))["minutes"] or 0
-        # if group_count < 2:
-        #     continue
+        minutes_watched = host_groups.aggregate(
+            minutes=Sum("total_minutes_spent_by_attendees")
+        )["minutes"] or 0
+
+        # If the creator hasn't streamed minimum of two times, don't
+        # add the creator to the leaderboard.
+        if group_count < 2:
+            continue
+
+        # If the creators watch time is less than 1000, don't add creator
+        # to the leaderboard.
         if minutes_watched < 1000:
             continue
 
