@@ -237,9 +237,9 @@ def send_stream_reminder_messages_for_attendees(attendees, group, account=consta
 
     if account == constants.WATI_9051_ACCOUNT_ENUM:
         return wati_service_9051.send_template_messages(
-            template_name=constants.STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE,
+            template_name=constants.STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE_9501,
             receivers=receivers,
-            broadcast_name=constants.STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE + "_{}".format(group.id)
+            broadcast_name=constants.STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE_9501 + "_{}".format(group.id)
         )
     elif account == constants.WATI_8953_ACCOUNT_ENUM:
         return wati_service_8953.send_template_messages(
