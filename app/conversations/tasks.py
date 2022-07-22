@@ -160,7 +160,7 @@ def send_whatsapp_reminder_for_webinar_host(groups=None):
 
     Note:
         Sends reminder to host of webinar which is
-            starting 15 minutes from now.
+            starting 20 minutes from now.
 
     """
     now_time = datetime.datetime.now()
