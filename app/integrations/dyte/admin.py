@@ -74,7 +74,8 @@ class DyteParticipantOnlineLogAdmin(admin.ModelAdmin):
     raw_id_fields = ("dyte_meeting_participant", )
     list_filter = (
         "is_offline",
-        AutocompleteFilterFactory("Dyte Meeting Participant", "dyte_meeting_participant"),
+        AutocompleteFilterFactory("By Participant", "dyte_meeting_participant__participant"),
+        AutocompleteFilterFactory("By Group", "dyte_meeting_participant__dyte_meeting__group"),
     )
 
 

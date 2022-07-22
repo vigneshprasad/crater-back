@@ -33,7 +33,7 @@ class DyteMeeting(base_model.BaseModel):
     room_name = models.CharField(max_length=128)
 
     def __str__(self):
-        return "{} - {}".format(self.dyte_meeting_id, (self.meeting or self.group))
+        return "{} - {}".format(self.room_name, (self.meeting_id or self.group_id))
 
 
 class DyteMeetingParticipant(base_model.BaseModel):
@@ -65,6 +65,12 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     class Meta:
         unique_together = ["dyte_meeting", "participant"]
+
+    def __str__(self):
+        return "{} - {}".format(
+            self.dyte_meeting,
+            self.participant
+        )
 
     @property
     def latest_join_time(self):
@@ -109,13 +115,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
             minutes_spent += log.online_time
 
         return minutes_spent
-
-    def __str__(self):
-        return "{} - {} [{}]".format(
-            self.dyte_meeting.id,
-            self.dyte_meeting.dyte_meeting_id,
-            self.participant.username
-        )
 
     def mark_online(self):
         """Mark a dyte participant online."""

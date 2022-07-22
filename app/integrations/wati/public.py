@@ -113,7 +113,7 @@ def send_stream_reminder_messages_for_group(
     # This is the list that has followed the creator but not
     # rsvp'd to the stream.
     followers_list = list(set(followers) - set(attendees))
-    followers_list_with_two_plus_streams = []
+    followers_list_with_one_plus_streams = []
 
     # Filter out followers who have watched two plus streams.
     for follower in followers_list:
@@ -121,13 +121,13 @@ def send_stream_reminder_messages_for_group(
             dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
             last_online_at__isnull=False
         ).count()
-        if streams_watched < 2:
+        if not streams_watched:
             continue
-        followers_list_with_two_plus_streams.append(follower)
+        followers_list_with_one_plus_streams.append(follower)
 
     # Send follower message to followers.
     send_stream_reminder_messages_for_followers(
-        followers_list_with_two_plus_streams,
+        followers_list_with_one_plus_streams,
         group,
         account=follower_account
     )
@@ -135,7 +135,8 @@ def send_stream_reminder_messages_for_group(
     send_stream_reminder_messages_for_attendees(
         attendees,
         group,
-        account=attendee_account)
+        account=attendee_account
+    )
 
 
 def send_stream_reminder_messages_for_followers(followers, group, account=constants.WATI_9051_ACCOUNT_ENUM):
