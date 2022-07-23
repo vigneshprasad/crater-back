@@ -299,3 +299,23 @@ def get_user_category(user, category):
         return None
 
     return user_category
+
+
+def user_category_followed(user, category):
+    """Returns user category followed status.
+
+    Args:
+        user(User): User who has followed the category
+        category(Category): Category followed by user
+
+    """
+
+    user_category = get_user_category(
+        user=user,
+        category=category
+    )
+
+    if not user_category:
+        return False
+
+    return user_category.followed

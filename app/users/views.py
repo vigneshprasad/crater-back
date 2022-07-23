@@ -713,11 +713,10 @@ class UserCategoryViewSet(
         if not category:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        user_category = services.get_user_category(
+        # Check user category followed status
+        is_follower = services.user_category_followed(
             user=user,
             category=category
         )
-        if not user_category:
-            return Response({"is_follower": False}, status=status.HTTP_200_OK)
 
-        return Response({"is_follower": user_category.followed}, status=status.HTTP_200_OK)
+        return Response({"is_follower": is_follower}, status=status.HTTP_200_OK)
