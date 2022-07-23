@@ -16,8 +16,8 @@ def get_link_for_webinar(group):
 
 
 def create_group_message(
-        sender_pk,
-        group_id,
+        sender,
+        group,
         display_name,
         message,
         message_type=constants.CHAT_MESSAGE_TYPE_TEXT_ENUM,
@@ -28,8 +28,8 @@ def create_group_message(
     """Create group message in the DB.
 
     Args:
-        sender_pk(str): UUID str for the user who sent the message.
-        group_id(int): ID of stream on which the message was sent.
+        sender(User): User (object) who sent the message.
+        group(Group): Stream on which the message was sent.
         display_name(str): Display name used by the sender.
         message(text): Message sent by the user.
         message_type(int): Type of message that was sent.
@@ -40,9 +40,9 @@ def create_group_message(
     """
     try:
         group_message = models.GroupMessage.objects.create(
-            group_id=group_id,
+            group=group,
+            sender=sender,
             message=message,
-            sender_id=sender_pk,
             display_name=display_name,
             type=message_type,
             data=message_data,
