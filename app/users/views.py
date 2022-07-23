@@ -608,8 +608,6 @@ class UserPermissionViewSet(viewsets.GenericViewSet):
 class UserCategoryViewSet(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
     serializer_class = serializers.UserCategorySerializer
@@ -635,29 +633,22 @@ class UserCategoryViewSet(
             user=user,
             category=category
         )
-        if user_category and user_category.followed:
+        if user_category:
             category_already_followed_exception = exceptions.CategoryAlreadyFollowed()
             return Response(
                 category_already_followed_exception.get_error_body(),
                 status=category_already_followed_exception.status_code
             )
 
-        data = {
-            "user": user.pk,
-            "category": category.id,
-            "followed": True,
-            "followed_at": datetime.datetime.now()
-        }
+        user_category = services.update_or_create_user_category(
+            user=user,
+            category=category,
+            follow=True
+        )
 
-        if user_category:
-            serializer = self.get_serializer(data=data, instance=user_category, partial=True)
-        else:
-            serializer = self.get_serializer(data=data)
+        data = self.get_serializer(user_category).data
 
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data, status=status.HTTP_201_CREATED)
 
     @action(
         methods=["POST"],
@@ -678,24 +669,43 @@ class UserCategoryViewSet(
             user=user,
             category=category
         )
-        if not user_category:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        if not user_category.followed:
+        if not user_category:
             category_already_unfollowed_exception = exceptions.CategoryAlreadyUnfollowed()
             return Response(
                 category_already_unfollowed_exception.get_error_body(),
                 status=category_already_unfollowed_exception.status_code
             )
 
-        data = {
-            "user": user.pk,
-            "category": category.id,
-            "followed": False,
-            "unfollowed_at": datetime.datetime.now()
-        }
-        serializer = self.get_serializer(data=data, instance=user_category, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        user_category = services.update_or_create_user_category(
+            user=user,
+            category=category,
+            follow=False
+        )
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        data = self.get_serializer(user_category).data
+
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def follower(self, request):
+        user = request.user
+        slug = request.query_params.get("category")
+
+        # Category validation
+        category = conversation_private.get_category_by_slug(
+            slug=slug
+        )
+        if not category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Check user category followed status
+        is_follower = services.user_category_followed(
+            user=user,
+            category=category
+        )
+
+        return Response({"is_follower": is_follower}, status=status.HTTP_200_OK)
