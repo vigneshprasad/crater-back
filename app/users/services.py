@@ -293,7 +293,8 @@ def get_user_category(user, category):
     try:
         user_category = models.UserCategory.objects.get(
             user=user,
-            category=category
+            category=category,
+            followed=True
         )
     except models.UserCategory.DoesNotExist:
         return None
@@ -318,4 +319,30 @@ def user_category_followed(user, category):
     if not user_category:
         return False
 
-    return user_category.followed
+    return True
+
+
+def update_or_create_user_category(user, category, follow):
+    """Update or create user category object.
+
+    Args:
+        user(User): User who wants to follow/unfollow
+        category(Category): Category to be followed/unfollowed
+        follow(boolean): follow/unfollow status
+
+    """
+    defaults = {"followed": follow}
+    now = datetime.datetime.now()
+
+    if follow:
+        defaults["followed_at"] = now
+    else:
+        defaults["unfollowed_at"] = now
+
+    user_category, _ = models.UserCategory.objects.update_or_create(
+        user=user,
+        category=category,
+        defaults=defaults
+    )
+
+    return user_category
