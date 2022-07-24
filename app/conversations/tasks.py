@@ -1,6 +1,10 @@
 import datetime
 import logging
+import json
 from itertools import chain
+
+from django.db.models import Count
+from rest_framework.renderers import JSONRenderer
 
 import boto3
 from botocore import exceptions as botocore_exceptions
@@ -17,6 +21,7 @@ from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
 from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
 from integrations.wati import public as wati_public
+from conversations import serializers
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -454,10 +459,14 @@ def follow_action_message():
     for stream in live_streams:
         action_time = stream.start + datetime.timedelta(minutes=10)
         end_time = stream.start + datetime.timedelta(minutes=13)
+
+        action_time2 = stream.start + datetime.timedelta(minutes=20)
+        end_time2 = stream.start + datetime.timedelta(minutes=23)
         now = timezone.now()
 
         if not action_time <= now < end_time:
-            continue
+            if not action_time2 <= now < end_time2:
+                continue
 
         admin_uid = firebase_private.get_or_register_admin()
 
@@ -508,6 +517,38 @@ def referral_action_message():
 
 
 @periodic_task(run_every=crontab(minute="*/5"))
+def chat_prompt_message():
+    live_streams = models.Group.objects.filter(
+        is_live=True,
+        closed=False,
+    )
+
+    if not live_streams:
+        return
+
+    for stream in live_streams:
+        action_time = stream.start + datetime.timedelta(minutes=5)
+        end_time = stream.start + datetime.timedelta(minutes=8)
+        now = timezone.now()
+
+        if not action_time <= now < end_time:
+            continue
+
+        admin_uid = firebase_private.get_or_register_admin()
+
+        data = {
+            "message": constants.CHAT_PROMPT_MESSAGE,
+            "type": int(constants.CHAT_MESSAGE_TYPE_PROMPT_ENUM),
+        }
+
+        firebase_service.send_message(
+            data=data,
+            group_id=stream.id,
+            sender=admin_uid
+        )
+
+
+@periodic_task(run_every=crontab(minute="*/5"))
 def streams_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
@@ -521,16 +562,38 @@ def streams_action_message():
         action_time = stream.start + datetime.timedelta(minutes=25)
         end_time = stream.start + datetime.timedelta(minutes=28)
         now = timezone.now()
+        future_streams = models.Group.objects.filter(
+            start=stream.start + datetime.timedelta(minutes=60),
+            categories__in=stream.categories,
+        )
+
+        if not future_streams:
+            future_streams = models.Group.objects.filter(
+                start__lte=stream.start + datetime.timedelta(hours=24),
+                categories__in=stream.categories,
+            )
+
+        if not future_streams:
+            continue
 
         if not action_time <= now < end_time:
             continue
 
         admin_uid = firebase_private.get_or_register_admin()
 
+        future_stream = future_streams.annotate(
+            rsvps=Count("requests")
+        ).order_by("-rsvps").first()
+
+        stream_data = serializers.GroupSerializer(future_stream).data
+
         data = {
             "message": constants.CHAT_ACTION_STREAMS_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
-            "action": int(constants.CHAT_ACTION_TYPE_STREAMS_ENUM)
+            "action": int(constants.CHAT_ACTION_TYPE_STREAMS_ENUM),
+            "data": {
+                "stream": json.loads(JSONRenderer().render(stream_data).decode('utf8'))
+            }
         }
 
         firebase_service.send_message(
@@ -540,7 +603,7 @@ def streams_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+# @periodic_task(run_every=crontab(minute="*/5"))
 def download_app_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,

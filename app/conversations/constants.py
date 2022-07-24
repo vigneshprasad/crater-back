@@ -29,6 +29,7 @@ DEFAULT_MAX_SPEAKERS = 6
 CHAT_MESSAGE_TYPE_TEXT_ENUM = 1
 CHAT_MESSAGE_TYPE_REACTION_ENUM = 2
 CHAT_MESSAGE_TYPE_ACTION_ENUM = 3
+CHAT_MESSAGE_TYPE_PROMPT_ENUM = 5
 
 CHAT_MESSAGE_TYPE_TEXT = "text"
 CHAT_MESSAGE_TYPE_REACTION = "reaction"
@@ -115,3 +116,5 @@ CHAT_ACTION_FOLLOW_MESSAGE = "Hey there! If you like this stream, follow me to n
 CHAT_ACTION_REFERRAL_MESSAGE = "Earn ₹100 for each friend that joins & watches a stream on Crater."
 CHAT_ACTION_STREAMS_MESSAGE = "Explore other upcoming live streams on Crater"
 CHAT_ACTION_DOWNLOAD_APP_MESSAGE = "Download the Crater app on android and iOS"
+
+CHAT_PROMPT_MESSAGE = "I am here to learn about"
