@@ -33,7 +33,7 @@ class DyteMeeting(base_model.BaseModel):
     room_name = models.CharField(max_length=128)
 
     def __str__(self):
-        return "{} - {}".format(self.dyte_meeting_id, (self.meeting or self.group))
+        return "{} - {}".format(self.room_name, (self.meeting_id or self.group_id))
 
 
 class DyteMeetingParticipant(base_model.BaseModel):
@@ -65,6 +65,12 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     class Meta:
         unique_together = ["dyte_meeting", "participant"]
+
+    def __str__(self):
+        return "{} - {}".format(
+            self.dyte_meeting,
+            self.participant
+        )
 
     @property
     def latest_join_time(self):
@@ -110,13 +116,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
         return minutes_spent
 
-    def __str__(self):
-        return "{} - {} [{}]".format(
-            self.dyte_meeting.id,
-            self.dyte_meeting.dyte_meeting_id,
-            self.participant.username
-        )
-
     def mark_online(self):
         """Mark a dyte participant online."""
         online_at = max(timezone.now(), self.latest_join_time)
@@ -125,9 +124,12 @@ class DyteMeetingParticipant(base_model.BaseModel):
         self.save()
 
         # Create online logs.
-        online_log = DyteParticipantOnlineLog.objects.create(
+        online_log, _ = DyteParticipantOnlineLog.objects.get_or_create(
             dyte_meeting_participant_id=self.id,
-            online_at=online_at
+            is_offline=False,
+            defaults={
+                "online_at": online_at
+            }
         )
 
     def mark_offline(self):
@@ -141,7 +143,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
         online_log = DyteParticipantOnlineLog.objects.filter(
             dyte_meeting_participant=self,
             is_offline=False
-        ).first()
+        ).last()
         if not online_log:
             LOGGER.error("Went offline without online log. {}".format(self.id))
             return None
@@ -165,8 +167,12 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
         if not self.online_at:
             return 0
 
-        last_online_at = self.offline_at if self.offline_at else timezone.now()
-        time_spent = max((last_online_at - self.online_at), timezone.timedelta())
+        # TODD(Nishant): See if we should do this.
+        # In case the group start has changed and online_at is before the group
+        # start, we need to make corrections for the same.
+        # online_at = max(self.online_at, self.dyte_meeting_participant.latest_join_time)
+        offline_at = self.offline_at if self.offline_at else timezone.now()
+        time_spent = max((offline_at - self.online_at), timezone.timedelta())
         minutes = time_spent.seconds // 60 % 60
         return minutes
 

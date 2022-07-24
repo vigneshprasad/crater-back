@@ -1,21 +1,20 @@
 import datetime
-import json
 
+from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from users import permissions
+from rest_framework.viewsets import GenericViewSet
 
-from conversations import serializers as conversation_serializers
-
+from conversations import serializers as conversation_serializers, public as conversation_public, \
+    models as conversation_models
 from integrations.firebase.service import firebase_service
-from conversations import public as conversation_public
+from users import permissions as user_permissions
 
 
 class FirebaseViewSet(GenericViewSet):
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
 
     @action(
         methods=["GET"],
@@ -37,7 +36,7 @@ class FirebaseViewSet(GenericViewSet):
 
 class FirebaseMessageViewSet(GenericViewSet):
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [user_permissions.AllowAny]
 
     @action(
         methods=["POST"],
@@ -66,10 +65,20 @@ class FirebaseMessageViewSet(GenericViewSet):
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            sender = get_user_model().objects.get(pk=sender_pk)
+        except get_user_model().DoesNotExist as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            group = conversation_models.Group.objects.get(id=group_id)
+        except conversation_models.Group.DoesNotExist as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
         # Create group message for the details provided.
         conversation_public.create_group_message(
-            sender_pk=sender_pk,
-            group_id=group_id,
+            sender=sender,
+            group=group,
             message=message,
             display_name=display_name,
             message_type=message_type,

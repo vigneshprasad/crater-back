@@ -129,18 +129,18 @@ def start_recording_for_webinars(groups=None):
         )
 
 
-@periodic_task(run_every=crontab(minute="*/10"))
+@periodic_task(run_every=crontab(minute="*/5"))
 def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     """Send whatsapp reminder to all attendees for Webinar
 
     Note:
         Sends reminder to attendees of webinar which is
-            starting 10 minutes from now.
+            starting 5 minutes from now.
 
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=10))
+    end_datetime = (now_time + datetime.timedelta(minutes=5))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
@@ -154,19 +154,19 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
         wati_public.send_stream_reminder_messages_for_group(webinar)
 
 
-@periodic_task(run_every=crontab(minute="*/15"))
+@periodic_task(run_every=crontab(minute="*/20"))
 def send_whatsapp_reminder_for_webinar_host(groups=None):
     """Send webinar reminder whatsapp for the host.
 
     Note:
         Sends reminder to host of webinar which is
-            starting 15 minutes from now.
+            starting 20 minutes from now.
 
     """
     now_time = datetime.datetime.now()
 
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=15))
+    end_datetime = (now_time + datetime.timedelta(minutes=20))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
