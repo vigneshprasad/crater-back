@@ -564,13 +564,13 @@ def streams_action_message():
         now = timezone.now()
         future_streams = models.Group.objects.filter(
             start=stream.start + datetime.timedelta(minutes=60),
-            categories__in=stream.categories,
+            categories__in=stream.categories.all(),
         )
 
         if not future_streams:
             future_streams = models.Group.objects.filter(
                 start__lte=stream.start + datetime.timedelta(hours=24),
-                categories__in=stream.categories,
+                categories__in=stream.categories.all(),
             )
 
         if not future_streams:
@@ -580,7 +580,6 @@ def streams_action_message():
             continue
 
         admin_uid = firebase_private.get_or_register_admin()
-
         future_stream = future_streams.annotate(
             rsvps=Count("requests")
         ).order_by("-rsvps").first()

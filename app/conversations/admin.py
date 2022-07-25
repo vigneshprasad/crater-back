@@ -56,6 +56,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_published",
         "is_rescheduled",
         "is_obs",
+        "viewer_count",
         "host_poc",
     )
     actions = ("add_previous_webinar_attendees", "recalculate_minutes_for_groups")
@@ -182,6 +183,15 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if not obj.host.is_creator:
             return ""
         return obj.host.creator.point_of_contact
+
+    def viewer_count(self, obj):
+        if not obj.host:
+            return False
+        if not hasattr(obj.host, "permission"):
+            return False
+        return obj.host.permission.show_viewer_count
+
+    viewer_count.boolean = True
 
     @staticmethod
     def speaker_count(obj):
