@@ -386,9 +386,14 @@ MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
 ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
+
+# ------------- TWILIO CREDENTIALS ------------- #
 DEFAULT_SMS_PHONE_NUMBER = os.getenv("DEFAULT_SMS_PHONE_NUMBER", "")
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "example")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "example")
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+
+
+# ------------ ONE SIGNAL -------------------- #
 ONESIGNAL_APP_ID = os.getenv("ONESIGNAL_APP_ID", "07ed4c08-3698-4fdd-80c5-2de973b851ef")
 ONESIGNAL_APIKEY = os.getenv("ONESIGNAL_APIKEY", "MThiOWYzOWYtOThkMC00MGI1LWJiMzMtM2QwNDMwYmE1Mzlh")
 
