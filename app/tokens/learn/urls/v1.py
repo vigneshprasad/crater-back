@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from tokens.learn import views
 
-app_name = "agora"
+app_name = "learn_tokens"
 
 router = routers.SimpleRouter()
 

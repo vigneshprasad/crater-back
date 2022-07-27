@@ -23,7 +23,3 @@ class UserTokenLogViewSet(GenericViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = models.UserTokenLog.objects.all()
     serializer_class = serializers.UserTokenLogSerializer
-
-
-
-
