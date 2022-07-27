@@ -22,5 +22,6 @@ urlpatterns = [
     path("integrations/", include("integrations.urls.v1")),
     path("analytics/", include("wn_analytics.urls.v1")),
     path("crater/", include("crater.urls.v1", namespace="crater")),
-    path("leaderboard/", include("leaderboard.urls.v1", namespace="leaderboard"))
+    path("leaderboard/", include("leaderboard.urls.v1", namespace="leaderboard")),
+    path("tokens/", include("tokens.urls.v1"))
 ]
