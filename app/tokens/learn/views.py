@@ -10,6 +10,8 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 from rest_framework import mixins
 
+from tokens.learn import constants
+
 
 class UserLearnMetaViewSet(
     mixins.ListModelMixin,
@@ -19,17 +21,21 @@ class UserLearnMetaViewSet(
     queryset = None
 
     def list(self, request, *args, **kwargs):
+
         user = request.user
         now = datetime.datetime.now()
-        token_start_date = datetime.datetime(2022, 7, 27)
+        token_start_date = constants.LEARN_TOKEN_START_DATE
 
         if user.is_creator:
-            return Response({
-                "total_time_spent": 0,
-                "interactions": 0,
-                "learn_earned": 0,
-                "daily_learn_earned": 0,
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "total_time_spent": 0,
+                    "interactions": 0,
+                    "learn_earned": 0,
+                    "daily_learn_earned": 0,
+                },
+                status=status.HTTP_200_OK
+            )
 
         participants = dyte_models.DyteMeetingParticipant.objects.filter(
             dyte_meeting__group__host__creator__tokens_enabled=True,
