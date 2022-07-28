@@ -21,9 +21,20 @@ class UserLearnMetaViewSet(
     def list(self, request, *args, **kwargs):
         user = request.user
         now = datetime.datetime.now()
+        token_start_date = datetime.datetime(2022, 7, 27)
+
+        if user.is_creator:
+            return Response({
+                "total_time_spent": 0,
+                "interactions": 0,
+                "learn_earned": 0,
+                "daily_learn_earned": 0,
+            }, status=status.HTTP_200_OK)
+
         participants = dyte_models.DyteMeetingParticipant.objects.filter(
             dyte_meeting__group__host__creator__tokens_enabled=True,
-            participant=user
+            participant=user,
+            dyte_meeting__group__start__gte=token_start_date
         )
 
         daily_participants = participants.filter(
@@ -42,12 +53,14 @@ class UserLearnMetaViewSet(
         interactions = conversation_models.GroupMessage.objects.filter(
             group__host__creator__tokens_enabled=True,
             sender=user,
+            group__start__gte=token_start_date
         ).count()
 
         daily_interactions = conversation_models.GroupMessage.objects.filter(
             group__host__creator__tokens_enabled=True,
             sender=user,
-            created_at__date=now.date()
+            created_at__date=now.date(),
+            group__start__gte=token_start_date
         ).count()
 
         learn_earned = total_time_spent + (2 * interactions)
