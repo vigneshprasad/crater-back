@@ -375,3 +375,16 @@ REFERRAL_STATUS_USER_ACTION_PENDING = "Yet to watch"
 REFERRAL_STATUS_PAYMENT_DUE = "Due"
 REFERRAL_STATUS_PAID = "Paid"
 REFERRAL_STATUS_PAYMENT_CANCELLED = "Cancelled"
+
+
+PROFILE_COMPLETION_PERCENT = {
+    "name": 20,
+    "photo": 20,
+    "primary_url": 15,
+    "introduction": 10,
+    "linkedin": 10,
+    "twitter": 10,
+    "cover": 5,
+    "instagram": 5,
+    "metamask": 5,
+}
