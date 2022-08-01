@@ -572,6 +572,31 @@ class Profile(models.Model):
         self.opted_in_for_whatsapp = False
         self.save()
 
+    @property
+    def percentage_complete(self):
+        completed = 0
+
+        if self.user.name:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("name")
+        if self.photo:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("photo")
+        if self.primary_url:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("primary_url")
+        if self.introduction:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("introduction")
+        if self.cover:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("cover")
+        if self.linkedin_url:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("linkedin")
+        if self.twitter:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("twitter")
+        if self.instagram:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("instagram")
+        if self.metamask_id:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("metamask")
+
+        return completed
+
 
 class ProfileExtraInfoMeta(models.Model):
     question = models.TextField(max_length=800)
