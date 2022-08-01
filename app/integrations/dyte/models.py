@@ -108,7 +108,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
                 (self.last_online_at - self.latest_join_time),
                 timezone.timedelta()
             )
-            minutes_spent = time_spent.seconds // 60 % 60
+            minutes_spent = round(time_spent.seconds / 60)
 
         # If logs are present calculate minutes from logs.
         for log in online_logs:
@@ -173,8 +173,8 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
         # online_at = max(self.online_at, self.dyte_meeting_participant.latest_join_time)
         offline_at = self.offline_at if self.offline_at else timezone.now()
         time_spent = max((offline_at - self.online_at), timezone.timedelta())
-        minutes = time_spent.seconds // 60 % 60
-        return minutes
+        minutes = time_spent.seconds / 60
+        return round(minutes)
 
     def mark_offline(self):
         """Mark the online log offline when the user leaves."""
