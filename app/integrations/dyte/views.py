@@ -1,19 +1,13 @@
 import datetime
 
 import pytz
-from rest_framework import status
-from rest_framework import mixins
+from rest_framework import status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from integrations.dyte import private
-from integrations.dyte import models
-from integrations.dyte import serializers
-from integrations.dyte import public
-from integrations.dyte import constants
 from conversations import models as conversation_models
-
+from integrations.dyte import private, models, serializers, public, constants
 from users import permissions
 
 
@@ -31,10 +25,14 @@ class DyteMeetingViewSet(
         permission_classes=[permissions.AllowAny]
     )
     def ended(self, request):
-        """Webhook for meeting end from Dyte meeting."""
+        """Webhook for meeting end from Dyte's end.
+
+        Notes:
+            Marks Group.is_closed for streams on our end.
+
+        """
 
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
         dyte_meeting_details = data.get("meeting")
 
         dyte_meeting_id = dyte_meeting_details.get("id")
@@ -136,12 +134,13 @@ class DyteParticipantViewSet(
         """Webhook from dyte if a participant joins a dyte call.
 
          Note:
-             Fires everytime a participant joins a call.
+             Fires everytime a participant joins a call. Marks
+                participants DyteParticipant.is_online
+                 on our end.
 
          """
 
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
         dyte_meeting_details = data.get("meeting")
         dyte_participant_details = data.get("participant")
 
@@ -193,12 +192,13 @@ class DyteParticipantViewSet(
         """Webhook from dyte if a participant leave a dyte call.
 
         Note:
-            Fires everytime a participant leaves a call.
+            Fires everytime a participant leaves a call. Marks
+                participant DyteParticipant.is_online
+                False on our end.
 
         """
 
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
         dyte_meeting_details = data.get("meeting")
         dyte_participant_details = data.get("participant")
 
@@ -248,10 +248,11 @@ class DyteMeetingRecordingViewSet(
         """Webhook from dyte if there is a status update for
             a meeting recording.
 
+        Note:
+            Changes recording status on our end.
+
         """
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
-
         dyte_recording_details = data.get("recording")
 
         recording_id = dyte_recording_details.get("recordingId")
