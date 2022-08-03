@@ -248,8 +248,6 @@ class DyteService:
             return None
 
         participant_data = response_json["data"]["authResponse"]
-        # TODO(Nishant): Can we get authToken expiry here, in case we want to move this
-        # to a task.
         auth_token = participant_data["authToken"]
 
         dyte_participant, _ = models.DyteMeetingParticipant.objects.update_or_create(

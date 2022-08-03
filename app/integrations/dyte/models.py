@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from django.conf import settings
@@ -92,27 +91,30 @@ class DyteMeetingParticipant(base_model.BaseModel):
     def total_minutes_watched(self):
         """Total minutes spent on the stream."""
         minutes_spent = 0
-        online_logs = DyteParticipantOnlineLog.objects.filter(
-            dyte_meeting_participant_id=self.id
-        )
+        online_logs = DyteParticipantOnlineLog.objects.filter(dyte_meeting_participant_id=self.id)
 
-        # If there are no online logs, calculate time based on
-        # old approach.
-        if not (online_logs or self.last_online_at):
+        # If there is no last_online_at return 0.
+        if not self.last_online_at:
             return minutes_spent
 
         # If not online logs are there and last_online_at is present,
         # calculate minutes the old way.
         if not online_logs:
+            group = self.dyte_meeting.group
+            last_live_time_for_group = min(
+                self.last_online_at, group.last_live_at
+            ) if group else self.last_online_at
+
+            # Calculate time spent based on the last live at for group.
             time_spent = max(
-                (self.last_online_at - self.latest_join_time),
+                (last_live_time_for_group - self.latest_join_time),
                 timezone.timedelta()
             )
             minutes_spent = round(time_spent.seconds / 60)
-
-        # If logs are present calculate minutes from logs.
-        for log in online_logs:
-            minutes_spent += log.online_time
+        else:
+            # If logs are present calculate minutes from logs.
+            for log in online_logs:
+                minutes_spent += log.online_time
 
         return minutes_spent
 

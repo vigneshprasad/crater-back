@@ -262,14 +262,14 @@ class Group(base_model.BaseModel):
     approved_at = models.DateTimeField(null=True, blank=True)
     is_published = models.BooleanField(default=False)
 
-    # Total minutes spent by attendees on the call (Total).
+    # Total minutes spent by attendees on the stream (Total).
     total_minutes_spent_by_attendees = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
         blank=True
     )
-    # Total minutes spent by host on the call.
+    # Total minutes spent by host on the stream.
     total_minutes_spent_by_host = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -351,7 +351,7 @@ class Group(base_model.BaseModel):
         """
 
         # Mark the meeting as inactive first.
-        self.mark_inactive(user=user)
+        self.is_live = False
         self.closed = True
         self.closed_at = datetime.datetime.now()
         self.save()

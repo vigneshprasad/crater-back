@@ -1,10 +1,10 @@
 import datetime
-import warnings
 import time
+import warnings
 
 from dateutil import relativedelta
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from conversations import constants, models
@@ -176,6 +176,7 @@ def get_data_for_groups_by_duration(start_date=None, end_date=None):
         for category in categories:
             categories_str += category.name + ", "
 
+        # TODO(Nishant): Change this to backend calculations.
         dyte_data = dyte_service.get_stats_for_meeting(group)
         dyte_online = len(dyte_data)
         dyte_time_spent = 0

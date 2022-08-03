@@ -1,7 +1,9 @@
 import datetime
 
+import pytz
 from celery.schedules import crontab
 from celery.task import periodic_task
+from django.conf import settings
 from django.db.models import Sum
 
 from conversations import models as conversations_models
@@ -22,17 +24,24 @@ def calculate_tokens_earned(date=None):
     if not date:
         today = datetime.date.today()
         today_start = datetime.datetime.combine(datetime.date.today(), datetime.time())
-        today_end = datetime.datetime.combine(datetime.date.today(), datetime.time(11, 59))
+        today_end = datetime.datetime.combine(datetime.date.today(), datetime.time(23, 59))
+        # Make datetime timezone aware.
+        timezone = pytz.timezone(settings.TIME_ZONE)
+        today_start = timezone.localize(today_start)
+        today_end = timezone.localize(today_end)
     else:
         today = datetime.datetime.strptime(date, "%Y-%m-%d").date()
         today_start = datetime.datetime.combine(today, datetime.time())
-        today_end = datetime.datetime.combine(today, datetime.time(11, 59))
+        today_end = datetime.datetime.combine(today, datetime.time(23, 59))
+        # Make datetime timezone aware.
+        timezone = pytz.timezone(settings.TIME_ZONE)
+        today_start = timezone.localize(today_start)
+        today_end = timezone.localize(today_end)
 
     # Only get streams whose hosts are eligible for learn tokens.
     streams_for_today = conversations_models.Group.objects.filter(
         start__gte=today_start,
         end__lte=today_end,
-        host__creator__isnull=False,
         host__creator__tokens_enabled=True,
     )
 
