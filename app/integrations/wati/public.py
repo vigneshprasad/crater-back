@@ -237,13 +237,19 @@ def send_stream_reminder_messages_for_followers(
         return wati_service_9051.send_template_messages(
             template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE,
             receivers=receivers,
-            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}".format(group.id)
+            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}_{}".format(
+                creator_name,
+                group.id
+            )
         )
     elif account == constants.WATI_8953_ACCOUNT_ENUM:
         return wati_service_8953.send_template_messages(
             template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE,
             receivers=receivers,
-            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}".format(group.id)
+            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}_{}".format(
+                creator_name,
+                group.id
+            )
         )
 
 
