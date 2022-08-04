@@ -99,12 +99,13 @@ def send_stream_reminder_messages_for_group(
 
     """
     # Get attendees for the group.
-    attendees = group.attendees.all()
+    attendees = list(group.attendees.all())
     send_stream_reminder_messages_for_followers(
         attendees,
         group,
         account=attendee_account
     )
+    users_to_exclude = attendees
     logging.info("Sent reminder to attendees: {}".format(group.id))
 
     host = group.host
@@ -114,13 +115,13 @@ def send_stream_reminder_messages_for_group(
     if creator:
         # Add users followers if creator is present.
         host_followers_user_ids = creator.followers.filter(notify=True).values_list("user_id", flat=True)
-        host_followers = get_user_model().objects.filter(pk__in=host_followers_user_ids)
+        host_followers = list(get_user_model().objects.filter(pk__in=host_followers_user_ids))
 
     # This is the list that has followed the creator but not
     # rsvp'd to the stream.
-    host_followers_list = list(set(host_followers) - set(attendees))
+    host_followers_list = list(set(host_followers) - set(users_to_exclude))
     host_followers_list_with_one_plus_streams = []
-
+    users_to_exclude += host_followers
     # Filter out followers who have watched two plus streams.
     for follower in host_followers_list:
         streams_watched = follower.dyte_participant.filter(
@@ -153,12 +154,13 @@ def send_stream_reminder_messages_for_group(
         speaker_follower_user_ids = speaker_creator.followers.filter(
             notify=True
         ).values_list("user_id", flat=True)
-        speaker_followers = get_user_model().objects.filter(pk__in=speaker_follower_user_ids)
+        speaker_followers = list(get_user_model().objects.filter(pk__in=speaker_follower_user_ids))
         # This is the list that has followed the creator but not
         # rsvp'd to the stream.
-        speaker_followers_list = list(set(speaker_followers) - set(attendees))
+        speaker_followers_list = list(set(speaker_followers) - set(users_to_exclude))
         speaker_followers_list_with_one_plus_streams = []
         # Filter out followers who have watched two plus streams.
+        users_to_exclude += speaker_followers
         for follower in speaker_followers_list:
             streams_watched = follower.dyte_participant.filter(
                 dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
