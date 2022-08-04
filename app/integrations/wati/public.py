@@ -107,67 +107,69 @@ def send_stream_reminder_messages_for_group(
     )
     logging.info("Sent reminder to attendees: {}".format(group.id))
 
-    followers = []
     host = group.host
     creator = creator_public.get_creator_for_user(host)
+    host_followers = []
 
     if creator:
         # Add users followers if creator is present.
-        user_ids = creator.followers.filter(notify=True).values_list("user_id", flat=True)
-        followers = get_user_model().objects.filter(pk__in=user_ids)
+        host_followers_user_ids = creator.followers.filter(notify=True).values_list("user_id", flat=True)
+        host_followers = get_user_model().objects.filter(pk__in=host_followers_user_ids)
 
-    all_followers = list(set(followers))
     # This is the list that has followed the creator but not
     # rsvp'd to the stream.
-    followers_list = list(set(all_followers) - set(attendees))
-    followers_list_with_one_plus_streams = []
+    host_followers_list = list(set(host_followers) - set(attendees))
+    host_followers_list_with_one_plus_streams = []
 
     # Filter out followers who have watched two plus streams.
-    for follower in followers_list:
+    for follower in host_followers_list:
         streams_watched = follower.dyte_participant.filter(
             dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
             last_online_at__isnull=False
         ).count()
         if not streams_watched:
             continue
-        followers_list_with_one_plus_streams.append(follower)
+        host_followers_list_with_one_plus_streams.append(follower)
 
-    # Send follower message to followers.
+    # Send follower message to host followers.
     send_stream_reminder_messages_for_followers(
-        followers_list_with_one_plus_streams,
+        host_followers_list_with_one_plus_streams,
         group,
         account=follower_account
     )
     logging.info("Sent reminder to host followers: {}".format(group.id))
 
-    # Send stream reminder to speakers followers.
+    # Send stream reminder to speakers/co-host followers.
     speakers = group.speakers.all().exclude(pk=host.pk)
     speaker_creators = []
 
     for speaker in speakers:
         speaker_creator = creator_public.get_creator_for_user(speaker)
+        if not speaker_creator:
+            continue
         speaker_creators.append(speaker_creator)
 
     for speaker_creator in speaker_creators:
-        user_ids = speaker_creator.followers.filter(
+        speaker_follower_user_ids = speaker_creator.followers.filter(
             notify=True
         ).values_list("user_id", flat=True)
-        followers = get_user_model().objects.filter(pk__in=user_ids)
+        speaker_followers = get_user_model().objects.filter(pk__in=speaker_follower_user_ids)
         # This is the list that has followed the creator but not
         # rsvp'd to the stream.
-        followers_list = list(set(followers) - set(attendees))
+        speaker_followers_list = list(set(speaker_followers) - set(attendees))
+        speaker_followers_list_with_one_plus_streams = []
         # Filter out followers who have watched two plus streams.
-        for follower in followers_list:
+        for follower in speaker_followers_list:
             streams_watched = follower.dyte_participant.filter(
                 dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
                 last_online_at__isnull=False
             ).count()
             if not streams_watched:
                 continue
-            followers_list_with_one_plus_streams.append(follower)
+            speaker_followers_list_with_one_plus_streams.append(follower)
 
         send_stream_reminder_messages_for_followers(
-            followers_list_with_one_plus_streams,
+            speaker_followers_list_with_one_plus_streams,
             group,
             creator=speaker_creator,
             account=follower_account
