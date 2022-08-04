@@ -33,6 +33,9 @@ def run_with_wati(
         creator_name = creator.user.display_name
 
     topic_image_url = group.topic.image.url
+    if "1worknetwork-prod" not in topic_image_url:
+        topic_image_url = "https://1worknetwork-prod.s3.ap-south-1.amazonaws.com" + group.topic.image.url
+
     stream_title = group.topic.name
 
     # Print all the data.
@@ -63,8 +66,10 @@ def run_with_wati(
     print(receivers)
 
     if not dry_run:
+        response = None
         if account == constants.WATI_9051_ACCOUNT_ENUM:
-            wati_service_9051.send_template_messages(
+            print("9051")
+            response = wati_service_9051.send_template_messages(
                 template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE,
                 receivers=receivers,
                 broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}_{}".format(
@@ -73,7 +78,8 @@ def run_with_wati(
                 )
             )
         elif account == constants.WATI_8953_ACCOUNT_ENUM:
-            wati_service_8953.send_template_messages(
+            print("8953")
+            response = wati_service_8953.send_template_messages(
                 template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE,
                 receivers=receivers,
                 broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}_{}".format(
@@ -81,6 +87,7 @@ def run_with_wati(
                     group.id
                 )
             )
+        print(response)
         print("Sent reminder message")
 
     print("******")
