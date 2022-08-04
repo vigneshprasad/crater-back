@@ -100,7 +100,7 @@ def send_stream_reminder_messages_for_group(
     """
     # Get attendees for the group.
     attendees = list(group.attendees.all())
-    send_stream_reminder_messages_for_followers(
+    send_stream_reminder_messages_for_attendees(
         attendees,
         group,
         account=attendee_account
