@@ -268,7 +268,6 @@ class FreshChatWhatsappService:
         }
 
         if not self._can_send_message_to_user(user):
-            # TODO(Nishant): Add logging for debugging.
             return False
 
         if rich_template_data:
@@ -303,6 +302,65 @@ class FreshChatWhatsappService:
                     "status_code": response.status_code,
                 }
             )
+            return False
+
+    def send_outbound_message_to_phone_number(
+            self,
+            phone_number,
+            template_name,
+            template_data,
+            rich_template_data=None
+    ):
+        """Sends a single outbound message through Freshchat for whatsapp.
+
+        Args:
+            phone_number(str): Phone number, with extension, we are seding the
+                message to.
+            template_name(str): Template name as exists on Whatsapp.
+            template_data(list(dict)): List of dicts, containing context
+                for the template.
+            rich_template_data(list(dict)): List of dicts, containing media
+                for the template.
+
+        Returns:
+            Response object.
+
+        """
+
+        data = {
+            "from": {"phone_number": self.from_phone_number},
+            "to": [{"phone_number": phone_number}],
+            "provider": self.provider,
+            "data": {
+                "message_template": {
+                    "storage": "none",
+                    "template_name": template_name,
+                    "namespace": self.namespace,
+                    "language": self._get_default_language_header(),
+                    "template_data": template_data,
+                }
+            }
+        }
+
+        if rich_template_data:
+            data["data"]["message_template"] = rich_template_data
+
+        response = requests.post(
+            url=constants.FRESHCHAT_BASE_URL + self.API_ENDPOINTS[SEND_OUTBOUND_MESSAGE_ENDPOINT],
+            headers=self._get_authorization_headers(),
+            json=data
+        )
+
+        try:
+            response_json = response.json()
+        except JSONDecodeError:
+            response_json = {}
+
+        request_id = response_json.get("request_id")
+
+        if response.status_code == constants.FRESHCHAT_STATUS_ACCEPTED:
+            return True
+        else:
             return False
 
 

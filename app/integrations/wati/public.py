@@ -5,8 +5,7 @@ from django.contrib.auth import get_user_model
 from conversations import constants as conversation_constants
 from crater.creator import public as creator_public
 from integrations.wati import constants, private
-from integrations.wati.services import wati_service_9051
-from integrations.wati.services import wati_service_8953
+from integrations.wati.services import wati_service_9051, wati_service_8953
 
 LOGGER = logging.getLogger(__name__)
 
@@ -99,60 +98,113 @@ def send_stream_reminder_messages_for_group(
         follower_account(int): Which account to send the follower reminder from.
 
     """
-    followers = []
+    # Get attendees for the group.
+    attendees = list(group.attendees.all())
+    send_stream_reminder_messages_for_followers(
+        attendees,
+        group,
+        account=attendee_account
+    )
+    users_to_exclude = attendees
+    logging.info("Sent reminder to attendees: {}".format(group.id))
+
     host = group.host
     creator = creator_public.get_creator_for_user(host)
+    host_followers = []
 
     if creator:
         # Add users followers if creator is present.
-        user_ids = creator.followers.filter(notify=True).values_list("user_id", flat=True)
-        followers = get_user_model().objects.filter(pk__in=user_ids)
+        host_followers_user_ids = creator.followers.filter(notify=True).values_list("user_id", flat=True)
+        host_followers = list(get_user_model().objects.filter(pk__in=host_followers_user_ids))
 
-    # Get attendees for the group.
-    attendees = group.attendees.all()
     # This is the list that has followed the creator but not
     # rsvp'd to the stream.
-    followers_list = list(set(followers) - set(attendees))
-    followers_list_with_one_plus_streams = []
-
+    host_followers_list = list(set(host_followers) - set(users_to_exclude))
+    host_followers_list_with_one_plus_streams = []
+    users_to_exclude += host_followers
     # Filter out followers who have watched two plus streams.
-    for follower in followers_list:
+    for follower in host_followers_list:
         streams_watched = follower.dyte_participant.filter(
             dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
             last_online_at__isnull=False
         ).count()
         if not streams_watched:
             continue
-        followers_list_with_one_plus_streams.append(follower)
+        host_followers_list_with_one_plus_streams.append(follower)
 
-    # Send follower message to followers.
+    # Send follower message to host followers.
     send_stream_reminder_messages_for_followers(
-        followers_list_with_one_plus_streams,
+        host_followers_list_with_one_plus_streams,
         group,
         account=follower_account
     )
-    # Send reminder message to attendees.
-    send_stream_reminder_messages_for_attendees(
-        attendees,
+    logging.info("Sent reminder to host followers: {}".format(group.id))
+
+    # Send stream reminder to speakers/co-host followers.
+    speakers = group.speakers.all().exclude(pk=host.pk)
+    speaker_creators = []
+
+    for speaker in speakers:
+        speaker_creator = creator_public.get_creator_for_user(speaker)
+        if not speaker_creator:
+            continue
+        speaker_creators.append(speaker_creator)
+
+    for speaker_creator in speaker_creators:
+        speaker_follower_user_ids = speaker_creator.followers.filter(
+            notify=True
+        ).values_list("user_id", flat=True)
+        speaker_followers = list(get_user_model().objects.filter(pk__in=speaker_follower_user_ids))
+        # This is the list that has followed the creator but not
+        # rsvp'd to the stream.
+        speaker_followers_list = list(set(speaker_followers) - set(users_to_exclude))
+        speaker_followers_list_with_one_plus_streams = []
+        # Filter out followers who have watched two plus streams.
+        users_to_exclude += speaker_followers
+        for follower in speaker_followers_list:
+            streams_watched = follower.dyte_participant.filter(
+                dyte_meeting__group__type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
+                last_online_at__isnull=False
+            ).count()
+            if not streams_watched:
+                continue
+            speaker_followers_list_with_one_plus_streams.append(follower)
+
+        send_stream_reminder_messages_for_followers(
+            speaker_followers_list_with_one_plus_streams,
+            group,
+            creator=speaker_creator,
+            account=follower_account
+        )
+        logging.info("Sent reminder to co-hosts followers: {} - {}".format(group.id, speaker_creator))
+
+
+def send_stream_reminder_messages_for_followers(
+        followers,
         group,
-        account=attendee_account
-    )
-
-
-def send_stream_reminder_messages_for_followers(followers, group, account=constants.WATI_9051_ACCOUNT_ENUM):
+        creator=None,
+        account=constants.WATI_9051_ACCOUNT_ENUM
+):
     """Send stream reminder message to a user for stream.
 
     Args:
-        followers(Queryset(Users)): User who we are sending whatsapp reminder
-            to and are follower of the creator doing the stream.
+        followers(Queryset(Users)): User who we are sending
+            whatsapp reminder to and are follower of the
+            creator doing the stream.
         group(Group): Stream we are sending reminder for.
+        creator(Creator): Creator whose followers we are sending
+            message to.
         account(int): Which account to send the whatsapp from.
 
     """
     if not followers:
         return
 
-    creator_name = group.host.display_name
+    if not creator:
+        creator_name = group.host.display_name
+    else:
+        creator_name = creator.user.display_name
+
     try:
         topic_image_url = group.topic.image.url
     except (ValueError, AttributeError) as e:
@@ -185,13 +237,19 @@ def send_stream_reminder_messages_for_followers(followers, group, account=consta
         return wati_service_9051.send_template_messages(
             template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE,
             receivers=receivers,
-            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}".format(group.id)
+            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}_{}".format(
+                creator_name,
+                group.id
+            )
         )
     elif account == constants.WATI_8953_ACCOUNT_ENUM:
         return wati_service_8953.send_template_messages(
             template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE,
             receivers=receivers,
-            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}".format(group.id)
+            broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}_{}".format(
+                creator_name,
+                group.id
+            )
         )
 
 
