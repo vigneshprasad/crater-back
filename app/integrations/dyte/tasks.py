@@ -58,8 +58,8 @@ def get_minutes_for_live_streams():
             dyte_participant.save()
 
         # Add attendees and host minutes to the group.
-        group.total_minutes_spent_by_attendees = host_total_minutes
-        group.total_minutes_spent_by_host = minutes_spent_by_attendees
+        group.total_minutes_spent_by_attendees = minutes_spent_by_attendees
+        group.total_minutes_spent_by_host = host_total_minutes
         group.save()
 
 
@@ -112,8 +112,8 @@ def get_minutes_for_all_streams_for_the_day():
             dyte_participant.save()
 
         # Add attendees and host minutes to the group.
-        group.total_minutes_spent_by_attendees = host_total_minutes
-        group.total_minutes_spent_by_host = minutes_spent_by_attendees
+        group.total_minutes_spent_by_attendees = minutes_spent_by_attendees
+        group.total_minutes_spent_by_host = host_total_minutes
         group.save()
 
 
@@ -165,6 +165,6 @@ def recalculate_minutes_for_groups(group_ids):
             dyte_participant.save()
 
         # Add attendees and host minutes to the group.
-        group.total_minutes_spent_by_attendees = host_total_minutes
-        group.total_minutes_spent_by_host = minutes_spent_by_attendees
+        group.total_minutes_spent_by_attendees = minutes_spent_by_attendees
+        group.total_minutes_spent_by_host = host_total_minutes
         group.save()
