@@ -765,11 +765,11 @@ class DyteService:
         """
         url = self.DYTE_API_ENDPOINTS["add_preset"].format(org_id=self.org_id)
         # Post data.
-        properties["name"] = preset_name
         data = {
             "name": preset_name,
             "description": "",
-            "preset": properties
+            "preset": properties,
+            "version": "0.5.0"
         }
         response = requests.request(
             "POST",
