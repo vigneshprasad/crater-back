@@ -32,6 +32,9 @@ class DyteService:
         "get_all_recordings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings",
 
         "get_stats_for_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/analytics",
+
+        "get_preset": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/presets",
+        "add_preset": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/preset"
     }
 
     def __init__(self, org_id, app_id):
@@ -88,8 +91,12 @@ class DyteService:
                 "closed": False
             }
         }
-        response = requests.request("POST", create_meeting_endpoint, headers=self._get_authorization_headers(),
-                                    json=data)
+        response = requests.request(
+            "POST",
+            create_meeting_endpoint,
+            headers=self._get_authorization_headers(),
+            json=data
+        )
 
         try:
             response_json = response.json()
@@ -717,6 +724,65 @@ class DyteService:
             data += stats
 
         return data
+
+    def get_all_presets(self):
+        """Gets all data related to present from Dyte's end."""
+        url = self.DYTE_API_ENDPOINTS["get_preset"].format(
+            org_id=self.org_id,
+        )
+        response = requests.request(
+            "GET",
+            url,
+            headers=self._get_authorization_headers()
+        )
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            LOGGER.error("Dyte get recordings failed.")
+            return None
+
+        presets_info = response_json["data"]["presets"]
+        for preset in presets_info:
+            print("ID: {}".format(preset["id"]))
+            print("Name: {}".format(preset["name"]))
+            print("Settings URL: {}".format(preset["s3URL"]))
+            print("Description: {}".format(preset["description"]))
+            print("************")
+
+        return True
+
+    def add_update_preset(self, preset_name, properties):
+        """Adds or updates a preset on Dyte's end.
+
+        Args:
+            preset_name(str): Name of the preset we are creating
+                or updating.
+            properties(dict): Properties we want to assign to the
+                preset.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["add_preset"].format(org_id=self.org_id)
+        # Post data.
+        data = {
+            "name": preset_name,
+            "description": "",
+            "preset": properties,
+            "version": "0.5.0"
+        }
+        response = requests.request(
+            "POST",
+            url,
+            json=data,
+            headers=self._get_authorization_headers()
+        )
+        print(response)
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            return None
+
+        print(response_json)
+        return True
 
 
 dyte_service = DyteService(
