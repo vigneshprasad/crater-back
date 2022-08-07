@@ -137,6 +137,41 @@ class CreatorViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[user_permissions.IsAuthenticated],
+    )
+    def stats(self, request):
+        user = request.user
+
+        # Get total followers
+        follower_count = private.get_follower_count(user=user)
+
+        # Get creator stream stats
+        stats = private.get_creator_stream_stats(user=user)
+
+        response = [
+            {
+                "name": "Followers",
+                "value": follower_count
+            },
+            {
+                "name": "Total Streams",
+                "value": stats.get("total_streams", 0)
+            },
+            {
+                "name": "Upcoming Streams",
+                "value": stats.get("total_upcoming_streams", 0)
+            },
+            {
+                "name": "Past Streams",
+                "value": stats.get("total_past_streams", 0)
+            }
+        ]
+
+        return Response(response, status=status.HTTP_200_OK)
+
 
 class CreatorSlugViewSet(
     mixins.RetrieveModelMixin,
