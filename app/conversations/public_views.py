@@ -4,11 +4,12 @@ from random import randint
 from django.contrib.auth import get_user_model
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from conversations import constants, models, paginators, serializers
+from conversations import constants, models, paginators, serializers, filters
 from users import permissions as user_permissions
 
 User = get_user_model()
@@ -34,6 +35,8 @@ class GroupWebinarPublicViewSet(
         Prefetch("speakers", User.objects.select_related("profile")),
     )
     permission_classes = [user_permissions.AllowAny]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = filters.AllWebinarsFilters
     filterset_fields = ["categories"]
 
     def _get_upcoming_webinars(self):
