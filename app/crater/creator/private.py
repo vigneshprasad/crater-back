@@ -3,7 +3,7 @@ import datetime
 from crater.creator import models
 from crater.creator import signals
 
-from django.db.models import F, Count, Value, Window, Case, When
+from django.db.models import F, Count, Value, Window, Case, When, Q
 from django.db.models.functions import DenseRank
 
 
@@ -302,3 +302,50 @@ def get_percentage_creator_followers_from_crater(user):
     )
 
     return percentage_creator_followers_from_crater
+
+
+def get_creator_stream_stats(user):
+    """Returns count for total streams, upcoming streams
+     and past streams
+
+    Args:
+         user(User): User instance of a creator
+
+    """
+    now = datetime.datetime.now()
+
+    stats = list(models.Creator.objects.filter(
+        is_active=True,
+        user=user
+    ).annotate(
+        total_streams=Count("user__groups_hosted"),
+        total_upcoming_streams=Count(
+            "user__groups_hosted",
+            Q(
+                user__groups_hosted__is_published=True,
+                user__groups_hosted__is_live=False,
+                user__groups_hosted__closed=False,
+                user__groups_hosted__start__gte=now
+            )
+        ),
+        total_past_streams=Count(
+            "user__groups_hosted",
+            Q(
+                user__groups_hosted__is_published=True,
+                user__groups_hosted__is_live=False,
+                user__groups_hosted__closed=True,
+                user__groups_hosted__start__lt=now
+            )
+        )
+    ).values(
+        "total_streams",
+        "total_upcoming_streams",
+        "total_past_streams"
+    ))
+
+    if stats:
+        stats = stats[0]
+    else:
+        stats = {}
+
+    return stats

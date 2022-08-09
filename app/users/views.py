@@ -152,7 +152,6 @@ class ProfileViewSet(
 
         return Response(data)
 
-
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
@@ -190,6 +189,18 @@ class ProfileViewSet(
         serialized = self.get_serializer(unique_connections_with_profile, many=True)
 
         return Response(serialized.data)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def status(self, request):
+        user = request.user
+
+        # Get profile completed percentage
+        percentage_complete = user.profile.percentage_complete
+
+        return Response({"percent": percentage_complete}, status=status.HTTP_200_OK)
 
 
 class BankDetailViewSet(mixins.CreateModelMixin,
