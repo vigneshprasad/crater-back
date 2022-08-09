@@ -61,6 +61,7 @@ class CreatorSerializer(serializers.ModelSerializer):
             "is_subscriber",
             "point_of_contact",
             "point_of_contact_detail",
+            "tokens_enabled",
         )
         extra_kwargs = {
             "subscriber_count": {
