@@ -322,6 +322,7 @@ def get_creator_stream_stats(user):
         total_upcoming_streams=Count(
             "user__groups_hosted",
             Q(
+                user__groups_hosted__is_published=True,
                 user__groups_hosted__is_live=False,
                 user__groups_hosted__closed=False,
                 user__groups_hosted__start__gte=now
@@ -330,6 +331,7 @@ def get_creator_stream_stats(user):
         total_past_streams=Count(
             "user__groups_hosted",
             Q(
+                user__groups_hosted__is_published=True,
                 user__groups_hosted__is_live=False,
                 user__groups_hosted__closed=True,
                 user__groups_hosted__start__lt=now
