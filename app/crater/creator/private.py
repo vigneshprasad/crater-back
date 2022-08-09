@@ -341,6 +341,11 @@ def get_creator_stream_stats(user):
         "total_streams",
         "total_upcoming_streams",
         "total_past_streams"
-    ))[0]
+    ))
+
+    if stats:
+        stats = stats[0]
+    else:
+        stats = {}
 
     return stats
