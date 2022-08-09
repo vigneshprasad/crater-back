@@ -118,3 +118,9 @@ CHAT_ACTION_STREAMS_MESSAGE = "Explore other upcoming live streams on Crater"
 CHAT_ACTION_DOWNLOAD_APP_MESSAGE = "Download the Crater app on android and iOS"
 
 CHAT_PROMPT_MESSAGE = "I am here to learn about"
+
+SORT_BY_TODAY = "today"
+SORT_BY_THIS_WEEK = "this_week"
+SORT_BY_NEXT_WEEK = "next_week"
+SORT_BY_THIS_MONTH = "this_month"
+SORT_BY_RECENTLY_ADDED = "recently_added"
