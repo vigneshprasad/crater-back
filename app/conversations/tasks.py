@@ -516,7 +516,7 @@ def referral_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+# @periodic_task(run_every=crontab(minute="*/5"))
 def chat_prompt_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
