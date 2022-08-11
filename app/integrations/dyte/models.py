@@ -8,7 +8,6 @@ from django.utils.html import format_html
 from base import models as base_model
 from integrations.dyte import constants
 
-
 LOGGER = logging.getLogger(__name__)
 
 
