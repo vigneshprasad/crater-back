@@ -9,7 +9,13 @@ from crater.auctions import signals
 
 
 class Auction(base_models.BaseModel):
-    """Base Auction Abstract model class"""
+    """Base Auction Abstract model class
+
+    Note:
+        This is base auction model for auctioning
+            anything on the platform.
+
+    """
 
     # Duration of the auction.
     start = models.DateTimeField()
@@ -40,7 +46,15 @@ class Auction(base_models.BaseModel):
 
 
 class RewardAuction(Auction):
-    """Creator auctions for their Tokens."""
+    """Auctions for creator rewards.
+
+    Note:
+        This is an auction for a reward, you can place bid
+            for a reward purchase, but has to be accepted
+            before payment is done. Can't be bought
+            directly
+
+    """
 
     reward = models.ForeignKey(
         "crater_rewards.Reward",

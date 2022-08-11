@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from django.conf import settings
@@ -8,7 +7,6 @@ from django.utils.html import format_html
 
 from base import models as base_model
 from integrations.dyte import constants
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -93,7 +91,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
         """Total minutes spent on the stream."""
         minutes_spent = 0
         online_logs = DyteParticipantOnlineLog.objects.filter(
-            dyte_meeting_participant_id=self.id
+            dyte_meeting_participant=self
         )
 
         # If there are no online logs, calculate time based on
@@ -121,23 +119,23 @@ class DyteMeetingParticipant(base_model.BaseModel):
         online_at = max(timezone.now(), self.latest_join_time)
         self.is_online = True
         self.last_online_at = online_at
-        self.save()
 
         # Create online logs.
         online_log, _ = DyteParticipantOnlineLog.objects.get_or_create(
-            dyte_meeting_participant_id=self.id,
+            dyte_meeting_participant=self,
             is_offline=False,
             defaults={
                 "online_at": online_at
             }
         )
 
+        self.save()
+
     def mark_offline(self):
         """Mark a dyte participant offline."""
         offline_at = max(timezone.now(), self.latest_join_time)
         self.is_online = False
         self.last_online_at = offline_at
-        self.save()
 
         # Update the online log to offline.
         online_log = DyteParticipantOnlineLog.objects.filter(
@@ -149,6 +147,8 @@ class DyteMeetingParticipant(base_model.BaseModel):
             return None
 
         online_log.mark_offline()
+
+        self.save()
 
 
 class DyteParticipantOnlineLog(base_model.BaseModel):

@@ -139,7 +139,6 @@ class DyteParticipantViewSet(
              Fires everytime a participant joins a call.
 
          """
-
         data = request.data
         # TODO(Sanjeev): Verify webhook using signature
         dyte_meeting_details = data.get("meeting")
