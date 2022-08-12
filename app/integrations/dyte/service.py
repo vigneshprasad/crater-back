@@ -3,6 +3,7 @@ import json
 import requests
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from integrations.dyte import constants
 from integrations.dyte import models
@@ -704,10 +705,13 @@ class DyteService:
         data = []
         for stat in stats:
             user_pk = stat["clientSpecificId"]
-            data.append({
-                "clientSpecificId": user_pk,
-                "totalMinutes": stat["totalMinutes"] if stat["totalMinutes"] < 300 else 0
-            })
+            data.append(
+                {
+                    "clientSpecificId": user_pk,
+                    "user": get_user_model().objects.get(pk=user_pk).__str__(),
+                    "totalMinutes": stat["totalMinutes"] if stat["totalMinutes"] < 300 else 0
+                }
+            )
 
         return data
 
