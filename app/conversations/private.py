@@ -207,9 +207,11 @@ def create_webinar(
         description=description,
         type=group_type,
         is_featured=is_featured,
-        is_published=is_published,
         closed=is_closed
     )
+
+    if is_published:
+        group.mark_published()
 
     group.speakers.add(*speakers)
     group.categories.add(*categories)

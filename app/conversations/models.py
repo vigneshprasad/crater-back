@@ -260,7 +260,9 @@ class Group(base_model.BaseModel):
     # group is visible in all conversations etc.
     is_approved = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
+    # Whether the group can be shown on the site.
     is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
 
     # Total minutes spent by attendees on the call (Total).
     total_minutes_spent_by_attendees = models.DecimalField(
@@ -303,6 +305,15 @@ class Group(base_model.BaseModel):
     def approve(self):
         self.is_approved = True
         self.approved_at = datetime.datetime.now()
+        self.save()
+
+    def mark_published(self):
+        self.is_published = True
+        # Only set published at the first time the group
+        # is marked published.
+        if not self.published_at:
+            self.published_at = datetime.datetime.now()
+
         self.save()
 
     def mark_live(self, user=None):
@@ -718,6 +729,12 @@ class GroupRecording(base_model.BaseModel):
         group_recording.is_published = True
         group_recording.published_at = datetime.datetime.now()
         group_recording.save()
+
+        # Send recording published signal.
+        signals.group_recording_published(
+            sender=group_recording.__class__,
+            recording=group_recording
+        )
 
 
 class GroupRtmp(base_model.BaseModel):

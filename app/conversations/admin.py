@@ -108,6 +108,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             if cleaned_data["is_rescheduled"]:
                 obj.mark_rescheduled(user=request.user)
 
+        if "is_published" in fields_changed:
+            if cleaned_data["is_published"]:
+                obj.mark_published()
+
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
     def add_previous_webinar_attendees(self, request, queryset):

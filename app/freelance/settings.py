@@ -149,6 +149,7 @@ INSTALLED_APPS = [
     "conversations.dashboard",
     "communications.notifications",
     "communications.whatsapp",
+    "communications.emails",
     "devices",
 
     "crater.auth",

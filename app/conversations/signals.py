@@ -59,3 +59,11 @@ attendee_added_to_series = Signal(providing_args=[
     "series_requests",
     "user"
 ])
+
+group_recording_published = Signal(providing_args=[
+    "recording"
+])
+
+group_marked_published = Signal(providing_args=[
+    "group"
+])

@@ -21,7 +21,7 @@ from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
 from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
 from integrations.wati import public as wati_public
-from conversations import serializers
+from conversations import serializers, signals
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -325,6 +325,12 @@ def publish_group_recordings(group_recording_ids):
         group_recording.is_published = True
         group_recording.published_at = datetime.datetime.now()
         group_recording.save()
+
+        # Send recording published signal.
+        signals.group_recording_published(
+            sender=group_recording.__class__,
+            recording=group_recording
+        )
 
 
 @periodic_task(run_every=crontab(minute=0, hour="*/3"))
