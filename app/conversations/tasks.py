@@ -715,7 +715,7 @@ def send_stream_analytics_emails_to_creators(groups=None):
     groups = models.Group.objects.filter(
         start__gte=start_time,
         start__lte=end_time,
-        is_closed=True,
+        closed=True,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     ) if not groups else groups
 
