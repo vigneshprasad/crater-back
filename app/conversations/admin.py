@@ -65,6 +65,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "closed_at",
         "approved_at",
         "last_live_at",
+        "rescheduled_at",
+        "published_at",
         "total_minutes_spent_by_attendees",
         "total_minutes_spent_by_host"
     )
@@ -82,7 +84,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_published",
         ("start", filter.DateRangeFilter),
     )
-    exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
+    exclude = (
+        "interests",
+        "created_at",
+        "deleted_at",
+        "updated_at",
+        "is_deleted"
+    )
 
     def save_model(self, request, obj, form, change):
         if not change:

@@ -1,7 +1,7 @@
 from celery.task import task
 
 from communications.emails import private, constants
-from conversations import models as conversation_models
+from conversations import models as conversation_models, public as conversation_public
 
 
 @task
@@ -21,15 +21,16 @@ def send_stream_setup_email_to_creator(group_id):
         to_email:
             {
                 "date": group.get_display_start(),
-                "session_page": "https://crater.club/session/{}".format(group.id),
-                "stream_page": "https://crater.club/livestream/{}".format(group.id)
+                "session_img": group.topic.image.url,
+                "session_page": conversation_public.get_session_link_for_webinar(group),
+                "stream_page": conversation_public.get_livestream_link_for_webinar(group)
             }
     }
 
-    private.send_email(
+    private.send_email_for_user(
         subject="Your stream on Crater is setup!",
-        to=[to_email],
+        user=host,
         template_name=constants.CREATOR_STREAM_SETUP_TEMPLATE,
         merge_vars=merge_vars,
-        from_email=""
+        from_email="hello@worknetwork.in"
     )

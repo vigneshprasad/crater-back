@@ -1,27 +1,26 @@
 import datetime
-import logging
 import json
+import logging
 from itertools import chain
-
-from django.db.models import Count
-from rest_framework.renderers import JSONRenderer
 
 import boto3
 from botocore import exceptions as botocore_exceptions
 from celery.schedules import crontab
 from celery.task import periodic_task, task
 from django.conf import settings
+from django.db.models import Count
 from django.utils import timezone
+from rest_framework.renderers import JSONRenderer
 
-from conversations import constants, models, services
-from users import models as user_models
+from communications.emails import public as emails_public
+from conversations import constants, models, services, serializers, signals
 from crater.creator import public as creator_public
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
 from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
 from integrations.wati import public as wati_public
-from conversations import serializers, signals
+from users import models as user_models
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -696,3 +695,39 @@ def send_top_stream_message():
             stream=stream,
             user_ids=final_user_ids
         )
+
+
+@periodic_task(run_every=crontab(minute=0, hour="*/3"))
+def send_stream_analytics_emails_to_creators(groups=None):
+    """Uploads valid recordings for streams to group_recordings.
+
+    Args:
+        groups(list/queryset): List of groups we want to publish
+            recordings for.
+
+    Note:
+        Only publishes recordings if the recording size is >150 MB.
+
+    """
+    end_time = timezone.now() - timezone.timedelta(hours=3)
+    start_time = end_time - timezone.timedelta(hours=3)
+
+    groups = models.Group.objects.filter(
+        start__gte=start_time,
+        start__lte=end_time,
+        is_closed=True,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ) if not groups else groups
+
+    for group in groups:
+        host = group.host
+        host_dyte_participant = dyte_models.DyteMeetingParticipant.objects.filter(
+            group=group,
+            participant=host,
+            last_online_at__isnull=False
+        ).last()
+        if not host_dyte_participant:
+            continue
+
+        # Send email for the groups that went live.
+        emails_public.send_email_for_group_analytics_to_creator(group)

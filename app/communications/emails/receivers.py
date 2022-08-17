@@ -1,7 +1,7 @@
 from django.dispatch import receiver
 
 from communications.emails import constants, private, tasks
-from conversations import signals as conversations_signals
+from conversations import signals as conversations_signals, public as conversations_public
 from crater.creator import signals as creator_signals, public as creator_public
 
 
@@ -18,7 +18,6 @@ def send_email_to_creator_for_recording_published(sender, recording, *args, **kw
     group = recording.group
     host = group.host
     to_email = host.email
-    # TODO(Nishant): What to do here is creator is not present.
     creator = host.creator if hasattr("creator", host) else None
     if not creator:
         return None
@@ -26,17 +25,17 @@ def send_email_to_creator_for_recording_published(sender, recording, *args, **kw
     merge_vars = {
         to_email:
             {
-                "creator_page": "https://crater.club/creator/{}".format(creator.slug),
-                "video_page": "https://crater.club/video/{}".format(group.id)
+                "creator_page": creator.get_page_link(),
+                "video_page": conversations_public.get_video_page_for_webinar(group)
             }
     }
 
-    private.send_email(
+    private.send_email_for_user(
         subject="Video for stream on: {}".format(group.topic.name),
-        to=[host.email],
+        user=host,
         template_name=constants.CREATOR_RECORDING_PUBLISHED_TEMPLATE,
         merge_vars=merge_vars,
-        from_email=""
+        from_email="hello@worknetwork.in"
     )
 
 
@@ -47,10 +46,9 @@ def send_email_for_50_subscribers_to_creator(sender, follower, *args, **kwargs):
     if subscriber_count != 50:
         return
 
-    to_email = creator.user.email
-    private.send_email(
+    private.send_email_for_user(
         subject="You have gained 50 followers on Crater!",
-        to=[to_email],
+        user=creator.user,
         template_name=constants.CREATOR_50_FOLLOWERS_TEMPLATE,
         merge_vars={},
         from_email=""

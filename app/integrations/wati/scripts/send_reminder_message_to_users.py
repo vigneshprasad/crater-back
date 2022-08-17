@@ -117,7 +117,7 @@ def run_with_freshchat(phone_number_name_list, group, creator=None, dry_run=Fals
             attendee_name = freshchat_constants.PLACEHOLDER_NAME_FOR_WHATSAPP
         print("Attendee Name: {}".format(attendee_name))
         topic_name = group.topic.name
-        stream_link = conversation_public.get_link_for_webinar(group)
+        stream_link = conversation_public.get_livestream_link_for_webinar(group)
 
         data_2 = freshchat_constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
             creator_name=creator_name,

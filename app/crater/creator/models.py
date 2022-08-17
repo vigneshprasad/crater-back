@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
@@ -5,7 +6,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
-from crater.creator import services
+from crater.creator import services, constants
 
 
 class Creator(base_models.BaseModel):
@@ -83,6 +84,13 @@ class Creator(base_models.BaseModel):
 
     def delete(self, soft=True):
         super(Creator, self).delete(soft=False)
+
+    def get_page_link(self):
+        """Returns link to creator's page on the web."""
+        front_url = settings.CRATER_FRONT_URL
+        return front_url + constants.CREATOR_PAGE_URL_WITH_SLUG.format(
+            slug=self.slug
+        )
 
 
 class Community(base_models.BaseModel):

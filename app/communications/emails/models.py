@@ -2,25 +2,30 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 
-# Create your models here.
-
 from base import models as base_models
+from communications.emails import constants
 
 
-class EmailTemplates(base_models.BaseModel):
+class EmailTemplate(base_models.BaseModel):
 
-    SERVICE_TYPES = (
-        (0, "Mandrill"),
+    EMAIL_SERVICE_PROVIDERS = (
+        (constants.EMAIL_SERVICE_PROVIDER_MAILCHIMP_ENUM, constants.EMAIL_SERVICE_PROVIDER_MAILCHIMP),
     )
 
     name = models.CharField(max_length=512)
-    service = models.PositiveSmallIntegerField(default=0, choices=SERVICE_TYPES)
+    service = models.PositiveSmallIntegerField(
+        default=constants.EMAIL_SERVICE_PROVIDER_MAILCHIMP_ENUM,
+        choices=EMAIL_SERVICE_PROVIDERS
+    )
+
+    def __str__(self):
+        return self.name
 
 
-class EmailLogs(base_models.BaseModel):
+class EmailLog(base_models.BaseModel):
 
     email_template = models.ForeignKey(
-        EmailTemplates,
+        EmailTemplate,
         related_name="logs",
         on_delete=models.CASCADE
     )
@@ -31,3 +36,11 @@ class EmailLogs(base_models.BaseModel):
     )
     send_at = models.DateTimeField(auto_now_add=True)
     metadata = JSONField(null=True, blank=True)
+    # Message ID from the provider's end.
+    email_message_id = models.CharField(
+        max_length=256,
+        null=True,
+        blank=True
+    )
+    status = models.CharField(max_length=32, null=True, blank=True)
+

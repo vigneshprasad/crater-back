@@ -1,3 +1,15 @@
-from django.contrib import admin
+from django.contrib.admin import ModelAdmin, register
 
-# Register your models here.
+from communications.emails import models
+
+
+@register(models.EmailTemplate)
+class EmailTemplateAdmin(ModelAdmin):
+    list_display = ("id", "name", "service")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
+@register(models.EmailLog)
+class EmailLogAdmin(ModelAdmin):
+    list_display = ("id", "user", "email_template", "email_message_id", "send_at")
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
