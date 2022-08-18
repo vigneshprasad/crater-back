@@ -49,6 +49,8 @@ class DyteMeetingViewSet(
         if datetime.datetime.now(tz=utc) > group.start:
             # Mark group as closed on meeting end.
             group.mark_closed(user=group.host)
+            # Mark all participants offline on meeting end.
+            private.mark_participants_offline_for_group.delay(group)
 
         return Response(status=status.HTTP_200_OK)
 
