@@ -1065,7 +1065,7 @@ def get_completion_rate_for_streams(host, streams):
                 continue
 
             total_online += 1
-            if (host.last_online_at - participant.last_online_at).total_seconds() < 600:
+            if (host.total_minutes_watched - participant.total_minutes_watched) < 10:
                 completion += 1
 
         completion_data.append(
