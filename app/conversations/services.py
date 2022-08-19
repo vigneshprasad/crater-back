@@ -1071,7 +1071,7 @@ def get_completion_rate_for_streams(host, streams):
         if total_online:
             completion_data.append(
                 {
-                    "key": stream_start,
+                    "key": stream_start.strftime("%d/%m/%y"),
                     "value": round((completion / total_online) * 100, 2)
                 }
             )
