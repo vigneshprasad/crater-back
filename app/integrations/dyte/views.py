@@ -107,7 +107,7 @@ class DyteParticipantViewSet(
             if not is_obs else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME
 
         if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and \
-            conversation_public.check_if_attendee_in_group:
+            not conversation_public.check_if_attendee_in_group:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if (group.host_id == user.pk) or (user in group.speakers.all()):
