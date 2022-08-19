@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -56,4 +57,25 @@ class RewardSale(Sale):
 
 
 class RewardSaleLog(base_models.BaseModel):
-    pass
+
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE
+    )
+    reward_sale = models.ForeignKey(
+        RewardSale,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    is_processed = models.BooleanField(default=False)
+    payment = models.ForeignKey(
+        "crater_payments.Payment",
+        related_name="bid",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
