@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 # Create your models here.
 from base import models as base_models
+from crater.sales import constants, signals
 
 
 class Sale(base_models.BaseModel):
@@ -19,6 +20,7 @@ class Sale(base_models.BaseModel):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
     quantity_sold = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
@@ -58,6 +60,11 @@ class RewardSale(Sale):
 
 class RewardSaleLog(base_models.BaseModel):
 
+    SALE_STATUS_CHOICES = (
+        (constants.SALE_PAYMENT_PENDING_ENUM, constants.SALE_PAYMENT_PENDING),
+        (constants.SALE_PAYMENT_CONFIRMED_ENUM, constants.SALE_PAYMENT_CONFIRMED),
+    )
+
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE
@@ -68,10 +75,22 @@ class RewardSaleLog(base_models.BaseModel):
         null=True,
         blank=True
     )
+    # Purchased quantity of a reward.
     quantity = models.PositiveIntegerField()
+    # Price paid for the reward (single) buy.
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
+    # What is the status of the bid. Accepted status of bid
+    # makes the exchange or coins.
+    status = models.PositiveIntegerField(
+        default=constants.SALE_PAYMENT_PENDING_ENUM,
+        choices=SALE_STATUS_CHOICES
+    )
+
+    # If the reward sale log is processed, that means transaction
+    # is complete for the reward.
     is_processed = models.BooleanField(default=False)
+    # Payment object associated with the reward sale.
     payment = models.ForeignKey(
         "crater_payments.Payment",
         related_name="bid",
@@ -79,3 +98,20 @@ class RewardSaleLog(base_models.BaseModel):
         null=True,
         blank=True
     )
+
+    def __str__(self):
+        return "{} - {}".format(self.user, self.reward_sale)
+
+    @property
+    def amount(self):
+        return self.quantity * self.price
+
+    def mark_payment_confirmed(self):
+        """Mark the bid accepted."""
+        self.status = constants.SALE_PAYMENT_CONFIRMED_ENUM
+        self.save()
+        # Send bid accepted signal.
+        signals.sale_payment_confirmed.send(
+            sender=self.__class__,
+            sale_log=self
+        )
