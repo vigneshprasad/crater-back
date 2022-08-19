@@ -1068,11 +1068,12 @@ def get_completion_rate_for_streams(host, streams):
             if (dmp_host.total_minutes_watched - dmp.total_minutes_watched) < 10:
                 completion += 1
 
-        completion_data.append(
-            {
-                "key": stream_start,
-                "value": round(completion / total_online, 2)
-            }
-        )
+        if total_online:
+            completion_data.append(
+                {
+                    "key": stream_start,
+                    "value": round(completion / total_online, 2)
+                }
+            )
 
     return completion_data
