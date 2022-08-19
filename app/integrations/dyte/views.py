@@ -106,11 +106,12 @@ class DyteParticipantViewSet(
         participant_preset = constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME \
             if not is_obs else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME
 
+        if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and \
+            not conversation_public.check_if_attendee_in_group:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         if (group.host_id == user.pk) or (user in group.speakers.all()):
             result = public.add_participant_to_meeting(dyte_meeting, user, host_preset)
-        else if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and \
-            conversation_public.check_if_attendee_in_group:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
         else:
             result = public.add_participant_to_meeting(dyte_meeting, user, participant_preset)
 
