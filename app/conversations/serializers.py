@@ -361,6 +361,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "recording_details",
             "speakers",
             "speakers_detail_list",
+            "attendees",
             # "rtmp_detail",
             "rtmp_link",
             "series",

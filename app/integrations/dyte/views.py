@@ -13,6 +13,8 @@ from integrations.dyte import serializers
 from integrations.dyte import public
 from integrations.dyte import constants
 from conversations import models as conversation_models
+from conversations import constants as conversation_constants
+from conversations import public as conversation_public
 
 from users import permissions
 
@@ -103,6 +105,10 @@ class DyteParticipantViewSet(
             if not is_obs else constants.WEBINAR_OBS_HOST_PRESET_NAME
         participant_preset = constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME \
             if not is_obs else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME
+
+        if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and \
+            conversation_public.check_if_attendee_in_group:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if (group.host_id == user.pk) or (user in group.speakers.all()):
             result = public.add_participant_to_meeting(dyte_meeting, user, host_preset)
