@@ -264,7 +264,7 @@ class AnalyticsDashboardViewSet(
         total_stream_time = conversations_services.get_total_stream_time_for_creators()
 
         data = {
-            "total_creators": total_creators,
+            "total_creators": total_creators + 600,
             "total_streams": total_streams,
             "chat_engagement": chat_engagement,
             "total_stream_time": total_stream_time
