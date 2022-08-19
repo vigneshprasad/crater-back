@@ -991,7 +991,7 @@ def get_total_stream_time_for_creator(user):
 
     dyte_participants_for_host = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group__in=past_streams,
-        participant_id=user,
+        participant=user,
         last_online_at__isnull=False
     )
 
@@ -1042,37 +1042,36 @@ def get_completion_rate_for_streams(host, streams):
     """Return completion rate for given streams."""
 
     # Get all dyte meeting participants for streams excluding host
-    dyte_meeting_participants = dyte_models.DyteMeetingParticipant.objects.filter(
+    dmps = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group__in=streams,
         last_online_at__isnull=False
     ).exclude(
-        participant_id=host
+        participant=host
     )
 
-    dyte_meeting_participant_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
+    dmp_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group__in=streams,
         participant=host,
         last_online_at__isnull=False
     )
 
     completion_data = []
-    for index, host in enumerate(dyte_meeting_participant_hosts):
+    for dmp_host in dmp_hosts:
         completion = 0
         total_online = 0
-        stream_start = host.dyte_meeting.group.start
-        for participant in dyte_meeting_participants:
-            if participant.dyte_meeting != host.dyte_meeting:
+        stream_start = dmp_host.dyte_meeting.group.start
+        for dmp in dmps:
+            if dmp.dyte_meeting != dmp_host.dyte_meeting:
                 continue
 
             total_online += 1
-            if (host.total_minutes_watched - participant.total_minutes_watched) < 10:
+            if (dmp_host.total_minutes_watched - dmp.total_minutes_watched) < 10:
                 completion += 1
 
         completion_data.append(
             {
-                "key": index + 1,
-                "value": round(completion / total_online, 2),
-                "date": stream_start
+                "key": stream_start,
+                "value": round(completion / total_online, 2)
             }
         )
 
