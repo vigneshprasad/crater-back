@@ -323,7 +323,7 @@ class AnalyticsDashboardViewSet(
         methods=["GET"],
         detail=False
     )
-    def completion_rate(self, request):
+    def stream_completion(self, request):
         user = request.user
 
         # Get recent 5 past streams of user
