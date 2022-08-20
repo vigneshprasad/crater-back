@@ -28,7 +28,7 @@ def send_stream_setup_email_to_creator(group_id):
     }
 
     private.send_email_for_user(
-        subject="Your stream on Crater is setup!",
+        subject=constants.CREATOR_STREAM_SETUP_TEMPLATE_SUBJECT,
         user=host,
         template_name=constants.CREATOR_STREAM_SETUP_TEMPLATE,
         merge_vars=merge_vars,

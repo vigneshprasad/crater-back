@@ -11,7 +11,7 @@ def send_email_for_group_analytics_to_creator(group):
 
     """
     private.send_email_for_user(
-        subject="Analytics on your stream are available.",
+        subject=constants.CREATOR_STREAM_ANALYTICS_TEMPLATE_SUBJECT,
         to=group.host,
         template_name=constants.CREATOR_STREAM_ANALYTICS_TEMPLATE,
         merge_vars={},

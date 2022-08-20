@@ -32,7 +32,7 @@ def send_email_to_creator_for_recording_published(sender, recording, *args, **kw
     }
 
     private.send_email_for_user(
-        subject="Video for stream on: {}".format(group.topic.name),
+        subject=constants.CREATOR_RECORDING_PUBLISHED_TEMPLATE_SUBJECT,
         user=host,
         template_name=constants.CREATOR_RECORDING_PUBLISHED_TEMPLATE,
         merge_vars=merge_vars,
@@ -51,7 +51,7 @@ def send_email_for_50_subscribers_to_creator(sender, creator, *args, **kwargs):
 
     """
     private.send_email_for_user(
-        subject="You have gained 50 followers on Crater!",
+        subject=constants.CREATOR_50_FOLLOWERS_TEMPLATE_SUBJECT,
         user=creator.user,
         template_name=constants.CREATOR_50_FOLLOWERS_TEMPLATE,
         merge_vars={},
