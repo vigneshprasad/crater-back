@@ -95,6 +95,8 @@ def calculate_tokens_earned(date=None):
             dyte_meeting__group=stream,
             participant__in=attendees,
             last_online_at__isnull=False
+        ).exclude(
+            participant=stream.host
         )
 
         for dyte_participant in dyte_participants:

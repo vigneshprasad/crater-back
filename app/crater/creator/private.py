@@ -1,10 +1,11 @@
 import datetime
 
+from dateutil.relativedelta import relativedelta
+from django.db.models import F, Count, Value, Window, Case, When, Q, DateField
+from django.db.models.functions import DenseRank, TruncMonth
+
 from crater.creator import models
 from crater.creator import signals
-
-from django.db.models import F, Count, Value, Window, Case, When, Q
-from django.db.models.functions import DenseRank
 
 
 def create_default_community_for_creator(creator):
@@ -349,3 +350,58 @@ def get_creator_stream_stats(user):
         stats = {}
 
     return stats
+
+
+def get_total_creators():
+    """Return total number of active creators."""
+
+    return models.Creator.objects.filter(
+        is_active=True
+    ).count()
+
+
+def get_follower_count_by_month_and_year(user, start, end):
+    """Return creator follower count by month and year.
+
+    Args:
+        user(User): User instance of creator
+        start(DateTime): Start datetime
+        end(DateTime): End datetime
+
+    """
+    follower_count_data = models.Follower.objects.filter(
+        unfollowed=False,
+        notify=True,
+        creator__user=user,
+        followed_at__date__gte=start
+    ).values(
+        key=TruncMonth(
+            F("followed_at"),
+            output_field=DateField()
+        )
+    ).annotate(
+        value=Count("key")
+    )
+
+    follower_count_by_month_and_year = list(follower_count_data)
+
+    # Followed at dates which has follower count
+    present_dates = follower_count_data.values_list("key", flat=True)
+
+    delta = (end.year - start.year) * 12 + (end.month - start.month)
+
+    for i in range(1, delta + 1):
+        date = (start + relativedelta(months=i)).date()
+        if date not in present_dates:
+            follower_count_by_month_and_year.append({
+                "key": date,
+                "value": 0
+            })
+
+    # Sort by rsvp_at date
+    follower_count_by_month_and_year.sort(key=lambda x: x["key"])
+
+    # Format rsvp_at date
+    [x.update({"key": x["key"].strftime("%b %Y")}) for x in follower_count_by_month_and_year]
+
+    return follower_count_by_month_and_year
