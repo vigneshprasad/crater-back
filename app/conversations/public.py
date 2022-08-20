@@ -94,3 +94,19 @@ def create_group_message(
         group_message.save()
 
     return group_message
+
+
+def check_if_attendee_in_group(user, group):
+    """Return if the user is an attendee or speaker
+        in the given group.
+
+    Args:
+        user(User): User object who we are checking for
+        group(Group): Stream on which we are checking if the user is a part
+    
+    """
+
+    if user in group.get_all_users():
+        return True
+    
+    return False
