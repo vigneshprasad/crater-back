@@ -6,7 +6,7 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Q, F, Count, DateField, Sum
+from django.db.models import Q, F, Count, DateField, Case, When, Value
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
@@ -16,7 +16,6 @@ from conversations import models
 from conversations import signals
 from conversations import serializers
 
-from users import models as user_models
 from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
 from rest_framework.exceptions import ValidationError
@@ -943,44 +942,56 @@ def get_stream_viewers_by_category(category):
 
 def calculate_total_minutes_on_stream(dyte_participants):
     """Return total minutes spent on stream for
-        given dyte participants.
+        given dyte participants and total number
+        of hosts joined.
 
     Args:
         dyte_participants(list): List of DyteParticipant objects
 
     """
     total_minutes_spent = 0
+    participants_joined = 0
+
     for participant in dyte_participants:
-        total_minutes_spent += participant.total_minutes_watched
+        if not participant.last_online_at:
+            continue
 
-    return total_minutes_spent
+        if participant.last_online_at < participant.dyte_meeting.group.start:
+            continue
+        time_spent = participant.last_online_at - participant.dyte_meeting.group.start
+        minutes = time_spent.seconds // 60 % 60
+
+        if not minutes and minutes > 300:
+            continue
+
+        participants_joined += 1
+        total_minutes_spent += minutes
+
+    return total_minutes_spent, participants_joined
 
 
-def get_total_stream_time_for_creators():
-    """Return total stream time spent by all creators."""
+def get_avg_stream_length_for_creators():
+    """Return average stream length for creators."""
 
     # Get all past streams
     past_streams = get_past_streams()
 
-    # Get all speakers from past streams
-    speakers = past_streams.values_list("speakers", flat=True)
-
-    # Get unique speakers
-    users = user_models.User.objects.filter(pk__in=speakers).distinct()
-
-    dyte_participants_for_host = dyte_models.DyteMeetingParticipant.objects.filter(
+    # Filter all dyte meeting participant for hosts
+    dmps_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group__in=past_streams,
-        participant_id__in=users,
-        last_online_at__isnull=False
+        participant=F("dyte_meeting__group__host")
     )
 
-    total_stream_time_for_creators = calculate_total_minutes_on_stream(dyte_participants_for_host)
+    total_stream_time_for_creators, hosts_joined = calculate_total_minutes_on_stream(dmps_hosts)
 
-    return total_stream_time_for_creators
+    avg_stream_length = round(total_stream_time_for_creators / hosts_joined, 2)
+
+    return avg_stream_length
 
 
-def get_total_stream_time_for_creator(user):
-    """Return total stream time for a given creator.
+def get_avg_stream_length_for_creator(user):
+    """Return average stream length and total
+        stream time for a given creator.
 
     Args:
         user(User): User object of a creator
@@ -989,15 +1000,15 @@ def get_total_stream_time_for_creator(user):
     # Get all past streams by user
     past_streams = get_past_streams(user=user)
 
-    dyte_participants_for_host = dyte_models.DyteMeetingParticipant.objects.filter(
+    dmps_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group__in=past_streams,
-        participant=user,
-        last_online_at__isnull=False
+        participant=F("dyte_meeting__group__host")
     )
 
-    total_stream_time_for_creator = calculate_total_minutes_on_stream(dyte_participants_for_host)
+    total_stream_time_for_creator, hosts_joined = calculate_total_minutes_on_stream(dmps_hosts)
+    avg_stream_length = round(total_stream_time_for_creator / hosts_joined, 2)
 
-    return total_stream_time_for_creator
+    return avg_stream_length, total_stream_time_for_creator
 
 
 def get_stream_category_distribution():
@@ -1065,7 +1076,7 @@ def get_completion_rate_for_streams(host, streams):
                 continue
 
             total_online += 1
-            if (dmp_host.total_minutes_watched - dmp.total_minutes_watched) < 10:
+            if (dmp_host.last_online_at - dmp.last_online_at).total_seconds() / 60 < 10:
                 completion += 1
 
         if total_online:
@@ -1077,3 +1088,62 @@ def get_completion_rate_for_streams(host, streams):
             )
 
     return completion_data
+
+
+def get_past_streams_by_date(start, end, user=None):
+    """Returns all past streams with optional host filter.
+
+    Args:
+        start(date): Start date
+        end(date): End date
+        user(User): User instance of a creator
+    """
+
+    # Filter creator's past streams with given date range
+    past_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
+        is_live=False,
+        closed=True,
+        start__date__range=[start, end]
+    )
+
+    if user:
+        past_streams = past_streams.filter(
+            host=user
+        )
+
+    return past_streams
+
+
+def get_traffic_sources_for_creator(user):
+    """Returns creator followers count by various
+        traffic sources for current month.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    now = datetime.datetime.now()
+    traffic_source_data = models.Request.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__host=user,
+        group__is_live=False,
+        group__closed=True,
+        group__start__lt=now,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+        status=constants.REQUEST_STATUS_ACCEPTED_ENUM
+    ).values(
+        source_name=Case(
+            When(
+                requester__user_source__referrer__pk=user.pk,
+                then=F("requester__user_source__utm_source")
+            ),
+            default=Value("Crater")
+        )
+    ).annotate(
+        count=Count("id", distinct=True)
+    )
+
+    return traffic_source_data

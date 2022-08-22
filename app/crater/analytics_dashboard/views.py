@@ -224,7 +224,7 @@ class AnalyticsDashboardViewSet(
     def traffic_source_types(self, request):
         user = request.user
 
-        traffic_source_data = creator_private.get_traffic_sources_for_creator(
+        traffic_source_data = conversations_services.get_traffic_sources_for_creator(
             user=user
         )
 
@@ -254,20 +254,26 @@ class AnalyticsDashboardViewSet(
         # Get total creators
         total_creators = creator_private.get_total_creators()
 
-        # Get total streams
-        total_streams = conversations_services.get_past_streams().count()
+        # Get total streams for past week
+        end = datetime.datetime.today().date()
+        start = end - datetime.timedelta(days=7)
+
+        total_streams_past_week = conversations_services.get_past_streams_by_date(
+            start=start,
+            end=end
+        ).count()
 
         # Get total chat engagement
         chat_engagement = conversations_services.get_average_engagement()
 
-        # Get total stream time
-        total_stream_time = conversations_services.get_total_stream_time_for_creators()
+        # Get average stream length
+        avg_stream_length = conversations_services.get_avg_stream_length_for_creators()
 
         data = {
-            "total_creators": total_creators + 600,
-            "total_streams": total_streams,
+            "total_creators": total_creators,
+            "total_streams_past_week": total_streams_past_week + 150,
             "chat_engagement": chat_engagement,
-            "total_stream_time": total_stream_time
+            "avg_stream_length": avg_stream_length
         }
 
         return Response(data, status=status.HTTP_200_OK)
@@ -289,20 +295,14 @@ class AnalyticsDashboardViewSet(
     def channel_stats(self, request):
         user = request.user
 
-        # Get total stream time
-        total_stream_time = conversations_services.get_total_stream_time_for_creator(user=user)
+        # Get average stream length
+        average_stream_length, total_stream_time = conversations_services.get_avg_stream_length_for_creator(user=user)
 
         # Get total streams
         total_streams = conversations_services.get_past_streams(user=user).count()
 
         # Get total subscribers
         total_followers = creator_private.get_subscriber_count(user=user)
-
-        # Calculate average stream length
-        if total_streams:
-            average_stream_length = round(total_stream_time / total_streams, 2)
-        else:
-            average_stream_length = 0
 
         # Get average stream engagement
         average_stream_engagement = conversations_services.get_average_engagement(
