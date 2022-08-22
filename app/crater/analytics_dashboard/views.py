@@ -224,7 +224,7 @@ class AnalyticsDashboardViewSet(
     def traffic_source_types(self, request):
         user = request.user
 
-        traffic_source_data = creator_private.get_traffic_sources_for_creator(
+        traffic_source_data = conversations_services.get_traffic_sources_for_creator(
             user=user
         )
 

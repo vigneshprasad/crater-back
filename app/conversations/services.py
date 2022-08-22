@@ -6,7 +6,7 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Q, F, Count, DateField, Sum
+from django.db.models import Q, F, Count, DateField, Case, When, Value
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
@@ -16,7 +16,6 @@ from conversations import models
 from conversations import signals
 from conversations import serializers
 
-from users import models as user_models
 from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
 from rest_framework.exceptions import ValidationError
@@ -1077,7 +1076,7 @@ def get_completion_rate_for_streams(host, streams):
                 continue
 
             total_online += 1
-            if (dmp_host.total_minutes_watched - dmp.total_minutes_watched) < 10:
+            if (dmp_host.last_online_at - dmp.last_online_at).total_seconds() / 60 < 10:
                 completion += 1
 
         if total_online:
@@ -1115,3 +1114,36 @@ def get_past_streams_by_date(start, end, user=None):
         )
 
     return past_streams
+
+
+def get_traffic_sources_for_creator(user):
+    """Returns creator followers count by various
+        traffic sources for current month.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    now = datetime.datetime.now()
+    traffic_source_data = models.Request.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__host=user,
+        group__is_live=False,
+        group__closed=True,
+        group__start__lt=now,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+        status=constants.REQUEST_STATUS_ACCEPTED_ENUM
+    ).values(
+        source_name=Case(
+            When(
+                requester__user_source__referrer__pk=user.pk,
+                then=F("requester__user_source__utm_source")
+            ),
+            default=Value("Crater")
+        )
+    ).annotate(
+        count=Count("id", distinct=True)
+    )
+
+    return traffic_source_data
