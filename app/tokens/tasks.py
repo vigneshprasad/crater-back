@@ -22,11 +22,11 @@ def calculate_tokens_earned(date=None):
     if not date:
         today = datetime.date.today()
         today_start = datetime.datetime.combine(datetime.date.today(), datetime.time())
-        today_end = datetime.datetime.combine(datetime.date.today(), datetime.time(11, 59))
+        today_end = datetime.datetime.combine(datetime.date.today(), datetime.time(23, 59))
     else:
         today = datetime.datetime.strptime(date, "%Y-%m-%d").date()
         today_start = datetime.datetime.combine(today, datetime.time())
-        today_end = datetime.datetime.combine(today, datetime.time(11, 59))
+        today_end = datetime.datetime.combine(today, datetime.time(23, 59))
 
     # Only get streams whose hosts are eligible for learn tokens.
     streams_for_today = conversations_models.Group.objects.filter(
@@ -86,6 +86,8 @@ def calculate_tokens_earned(date=None):
             dyte_meeting__group=stream,
             participant__in=attendees,
             last_online_at__isnull=False
+        ).exclude(
+            participant=stream.host
         )
 
         for dyte_participant in dyte_participants:
