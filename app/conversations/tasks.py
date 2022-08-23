@@ -326,7 +326,7 @@ def publish_group_recordings(group_recording_ids):
         group_recording.save()
 
         # Send recording published signal.
-        signals.group_recording_published(
+        signals.group_recording_published.send(
             sender=group_recording.__class__,
             recording=group_recording
         )
@@ -722,7 +722,7 @@ def send_stream_analytics_emails_to_creators(groups=None):
     for group in groups:
         host = group.host
         host_dyte_participant = dyte_models.DyteMeetingParticipant.objects.filter(
-            group=group,
+            dyte_meeting__group=group,
             participant=host,
             last_online_at__isnull=False
         ).last()

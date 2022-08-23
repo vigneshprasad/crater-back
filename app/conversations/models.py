@@ -731,7 +731,7 @@ class GroupRecording(base_model.BaseModel):
         group_recording.save()
 
         # Send recording published signal.
-        signals.group_recording_published(
+        signals.group_recording_published.send(
             sender=group_recording.__class__,
             recording=group_recording
         )
