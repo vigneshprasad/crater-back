@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 import pytz
 from rest_framework import status
@@ -16,21 +17,23 @@ from conversations import models as conversation_models
 from conversations import constants as conversation_constants
 from conversations import public as conversation_public
 
-from users import permissions
+from users import permissions as user_permissions
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DyteMeetingViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
     queryset = models.DyteMeeting.objects.all()
     serializer_class = serializers.DyteMeetingSerializer
 
     @action(
         methods=["POST"],
         detail=False,
-        permission_classes=[permissions.AllowAny]
+        permission_classes=[user_permissions.AllowAny]
     )
     def ended(self, request):
         """Webhook for meeting end from Dyte meeting."""
@@ -61,7 +64,7 @@ class DyteParticipantViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
     queryset = models.DyteMeetingParticipant.objects.only(
         "dyte_meeting",
         "participant",
@@ -136,7 +139,7 @@ class DyteParticipantViewSet(
     @action(
         methods=["POST"],
         detail=False,
-        permission_classes=[permissions.AllowAny]
+        permission_classes=[user_permissions.AllowAny]
     )
     def joined(self, request):
         """Webhook from dyte if a participant joins a dyte call.
@@ -193,7 +196,7 @@ class DyteParticipantViewSet(
     @action(
         methods=["POST"],
         detail=False,
-        permission_classes=[permissions.AllowAny]
+        permission_classes=[user_permissions.AllowAny]
     )
     def left(self, request):
         """Webhook from dyte if a participant leave a dyte call.
@@ -241,14 +244,14 @@ class DyteMeetingRecordingViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticated]
     queryset = models.DyteMeetingRecording.objects.all()
     serializer_class = serializers.DyteMeetingRecordingSerializer
 
     @action(
         methods=["POST"],
         detail=False,
-        permission_classes=[permissions.AllowAny]
+        permission_classes=[user_permissions.AllowAny]
     )
     def status(self, request):
         """Webhook from dyte if there is a status update for
@@ -260,7 +263,7 @@ class DyteMeetingRecordingViewSet(
 
         dyte_recording_details = data.get("recording")
 
-        recording_id = dyte_recording_details.get("recordingId")
+        recording_id = dyte_recording_details.get("id")
         recording_status = dyte_recording_details.get("status")
         started_at = dyte_recording_details.get("startedTime")
         stopped_at = dyte_recording_details.get("stoppedTime")
@@ -269,6 +272,7 @@ class DyteMeetingRecordingViewSet(
             recording_id=recording_id
         )
         if not dyte_meeting_recording:
+            LOGGER.error("Dyte meeting recording not found: {}".format(recording_id))
             return Response(status=status.HTTP_200_OK)
 
         # Update recording status only if it has changed.
