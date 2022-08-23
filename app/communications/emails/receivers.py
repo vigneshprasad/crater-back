@@ -1,3 +1,5 @@
+import pytz
+from django.conf import settings
 from django.dispatch import receiver
 from django.utils import timezone
 
@@ -72,7 +74,13 @@ def send_email_for_stream_setup_to_creator(sender, group, *args, **kwargs):
     group.refresh_from_db()
 
     group_start = group.start
+    if not timezone.is_aware(group_start):
+        group_start = timezone.make_aware(group_start, timezone=pytz.timezone(settings.TIME_ZONE))
+
     now_time = timezone.now()
+    if not timezone.is_aware(now_time):
+        now_time = timezone.make_aware(now_time, timezone=pytz.timezone(settings.TIME_ZONE))
+
     # Don't send the email if the group start is less than now time.
     if group_start <= now_time:
         return

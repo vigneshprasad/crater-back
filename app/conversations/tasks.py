@@ -731,16 +731,3 @@ def send_stream_analytics_emails_to_creators(groups=None):
 
         # Send email for the groups that went live.
         emails_public.send_email_for_group_analytics_to_creator(group)
-
-
-@task
-def mark_group_published(group_id):
-    """Marks a group published.
-
-    Args:
-        group_id(int): ID of the group we want
-            to publish.
-
-    """
-    group = models.Group.objects.get(id=group_id)
-    group.mark_published()

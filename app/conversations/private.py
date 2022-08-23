@@ -9,7 +9,7 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.text import slugify
 
-from conversations import constants, models, signals, tasks
+from conversations import constants, models, signals
 
 User = get_user_model()
 
@@ -212,10 +212,7 @@ def create_webinar(
     group.categories.add(*categories)
 
     if is_published:
-        tasks.mark_group_published.apply_async(
-            args=(group.id, ),
-            countdown=60
-        )
+        group.mark_published()
 
     return group
 
