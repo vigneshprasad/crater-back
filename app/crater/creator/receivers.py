@@ -56,6 +56,7 @@ def update_follower_count(sender, follower, *args, **kwargs):
         # Marking certified True for creator's it's not marked
         # on creation.
         creator.certified = True
+
     creator.save()
 
     # If subscriber count reaches 50, send a signal.
