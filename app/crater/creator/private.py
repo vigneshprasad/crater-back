@@ -249,32 +249,6 @@ def get_top_creators_by_date_range(start_date, end_date, count=5, user=None):
     return top_creators, requested_creator_rank
 
 
-def get_traffic_sources_for_creator(user):
-    """Returns creator followers count by various
-        traffic sources for current month.
-
-    Args:
-        user(User): User instance of a creator
-
-    """
-    traffic_source_data = models.Follower.objects.filter(
-        creator__user=user,
-        unfollowed=False
-    ).values(
-        source_name=Case(
-            When(
-                user__user_source__referrer__pk=user.pk,
-                then=F("user__user_source__utm_source")
-            ),
-            default=Value("Crater")
-        )
-    ).annotate(
-        count=Count("id", distinct=True)
-    )
-
-    return traffic_source_data
-
-
 def get_percentage_creator_followers_from_crater(user):
     """Returns percentage of creator's followers from Crater.
 
