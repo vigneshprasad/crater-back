@@ -12,7 +12,7 @@ def send_email_for_group_analytics_to_creator(group):
     """
     private.send_email_for_user(
         subject=constants.CREATOR_STREAM_ANALYTICS_TEMPLATE_SUBJECT,
-        to=group.host,
+        user=group.host,
         template_name=constants.CREATOR_STREAM_ANALYTICS_TEMPLATE,
         merge_vars={},
         from_email=constants.CREATOR_STREAM_ANALYTICS_FROM_EMAIL
