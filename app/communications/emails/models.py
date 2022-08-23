@@ -12,7 +12,12 @@ class EmailTemplate(base_models.BaseModel):
         (constants.EMAIL_SERVICE_PROVIDER_MAILCHIMP_ENUM, constants.EMAIL_SERVICE_PROVIDER_MAILCHIMP),
     )
 
+    # Template name from the service provider.
     name = models.CharField(max_length=512)
+    # Subject for the emailer.
+    subject = models.TextField(null=True, blank=True)
+    # From email for the emailer.
+    from_email = models.EmailField(max_length=64, null=True, blank=True)
     service = models.PositiveSmallIntegerField(
         default=constants.EMAIL_SERVICE_PROVIDER_MAILCHIMP_ENUM,
         choices=EMAIL_SERVICE_PROVIDERS

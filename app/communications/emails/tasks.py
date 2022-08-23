@@ -32,5 +32,5 @@ def send_stream_setup_email_to_creator(group_id):
         user=host,
         template_name=constants.CREATOR_STREAM_SETUP_TEMPLATE,
         merge_vars=merge_vars,
-        from_email="hello@worknetwork.in"
+        from_email=constants.CREATOR_STREAM_SETUP_FROM_EMAIL
     )

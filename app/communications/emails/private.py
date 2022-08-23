@@ -4,7 +4,7 @@ from celery.task import task
 from django.conf import settings
 from django.core.mail import EmailMessage
 
-from communications.emails import models
+from communications.emails import models, constants
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,10 +31,19 @@ def send_email_for_user(
     for merge_var in merge_vars.values():
         merge_var.update({"front_url": settings.FRONT_URL})
 
+    # Get email template object.
+    email_template, _ = models.EmailTemplate.objects.get_or_create(
+        name=template_name,
+        defaults={
+            "subject": subject,
+            "from_email": from_email
+        }
+    )
+
     # Create email message.
     email_message = EmailMessage(
-        subject=subject,
-        from_email=from_email,
+        subject=email_template.subject or subject,
+        from_email=email_template.from_email or from_email,
         to=[to_email],
         cc=cc,
         bcc=bcc,
@@ -43,11 +52,6 @@ def send_email_for_user(
     email_message.template_name = template_name
     email_message.template_content = content
     email_message.merge_vars = merge_vars
-
-    # Get email template object.
-    email_template, _ = models.EmailTemplate.objects.get_or_create(
-        name=template_name
-    )
 
     # Create email log for the email.
     email_log = models.EmailLog.objects.create(

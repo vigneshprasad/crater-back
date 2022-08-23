@@ -15,5 +15,5 @@ def send_email_for_group_analytics_to_creator(group):
         to=group.host,
         template_name=constants.CREATOR_STREAM_ANALYTICS_TEMPLATE,
         merge_vars={},
-        from_email="hello@worknetwork.in"
+        from_email=constants.CREATOR_STREAM_ANALYTICS_FROM_EMAIL
     )

@@ -5,7 +5,7 @@ from communications.emails import models
 
 @register(models.EmailTemplate)
 class EmailTemplateAdmin(ModelAdmin):
-    list_display = ("id", "name", "service")
+    list_display = ("id", "name", "subject", "from_email", "service")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 

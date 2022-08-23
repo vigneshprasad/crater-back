@@ -36,7 +36,7 @@ def send_email_to_creator_for_recording_published(sender, recording, *args, **kw
         user=host,
         template_name=constants.CREATOR_RECORDING_PUBLISHED_TEMPLATE,
         merge_vars=merge_vars,
-        from_email="hello@worknetwork.in"
+        from_email=constants.CREATOR_RECORDING_PUBLISHED_FROM_EMAIL
     )
 
 
@@ -55,7 +55,7 @@ def send_email_for_50_subscribers_to_creator(sender, creator, *args, **kwargs):
         user=creator.user,
         template_name=constants.CREATOR_50_FOLLOWERS_TEMPLATE,
         merge_vars={},
-        from_email=""
+        from_email=constants.CREATOR_50_FOLLOWERS_FROM_EMAIL
     )
 
 
