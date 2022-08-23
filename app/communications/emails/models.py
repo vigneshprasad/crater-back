@@ -39,7 +39,7 @@ class EmailLog(base_models.BaseModel):
         related_name="email_logs",
         on_delete=models.CASCADE
     )
-    send_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
     metadata = JSONField(null=True, blank=True)
     # Message ID from the provider's end.
     email_message_id = models.CharField(

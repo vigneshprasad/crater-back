@@ -667,7 +667,7 @@ def send_top_stream_message():
             )
         else:
             # Filter unique category followers who
-            # has not received a top stream message yet.
+            # have not received a top stream message yet.
             followers = user_categories.filter(
                 category=stream["category"]
             ).exclude(
