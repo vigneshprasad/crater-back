@@ -19,7 +19,7 @@ def send_email_to_creator_for_recording_published(sender, recording, *args, **kw
     group = recording.group
     host = group.host
     to_email = host.email
-    creator = host.creator if hasattr("creator", host) else None
+    creator = host.creator if hasattr(host, "creator") else None
     if not creator:
         return None
 
