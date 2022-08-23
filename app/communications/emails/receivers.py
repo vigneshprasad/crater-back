@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from communications.emails import constants, private, tasks
 from conversations import signals as conversations_signals, public as conversations_public
-from crater.creator import signals as creator_signals, public as creator_public
+from crater.creator import signals as creator_signals
 
 
 @receiver(conversations_signals.group_recording_published)
@@ -68,6 +68,9 @@ def send_email_for_stream_setup_to_creator(sender, group, *args, **kwargs):
         group(Group): Group that was marked published.
 
     """
+    # Refresh the group from DB.
+    group.refresh_from_db()
+
     group_start = group.start
     now_time = timezone.now()
     # Don't send the email if the group start is less than now time.
