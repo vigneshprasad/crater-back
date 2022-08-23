@@ -1,38 +1,44 @@
-import logging
 import json
-import requests
+import logging
 
+import requests
 from django.conf import settings
 
-from integrations.dyte import constants
-from integrations.dyte import models
+from integrations.dyte import constants, models
 
 LOGGER = logging.getLogger(__name__)
 
 
 class DyteService:
+
     DYTE_API_ENDPOINTS = {
         "join_meeting": constants.DYTE_JOIN_MEETING_BASE_URL + "/meeting/join/{room_name}",
+
         # Meeting endpoints.
         "create_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meeting",
         "get_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{dyte_meeting_id}",
         "get_all_meetings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings",
+
         # Participant addition endpoint.
         "add_participant": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/participant",
+
         # Webhook endpoints.
         "create_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhook",
         "update_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks/{webhook_id}",
         "get_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks/{webhook_id}",
         "delete_webhook": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks/{webhook_id}",
         "get_all_webhooks": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/webhooks",
+
         # Recording endpoints.
         "start_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recording",
         "stop_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings/{recording_id}",
         "get_recording": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings/{recording_id}",
         "get_all_recordings": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/recordings",
 
+        # Stats for meeting endpoints.
         "get_stats_for_meeting": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/meetings/{meeting_id}/analytics",
 
+        # Preset adding/updating endpoints.
         "get_preset": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/presets",
         "add_preset": constants.DYTE_PROD_BASE_URL + "/v1/organizations/{org_id}/preset"
     }
@@ -247,7 +253,7 @@ class DyteService:
             LOGGER.error("Dyte add participant failed")
             return None
 
-        success = response_json["success"]
+        success = response_json.get("success")
         if not success:
             LOGGER.error("Dyte add participant failed: {}".format(
                 response_json.get("message")
@@ -255,8 +261,6 @@ class DyteService:
             return None
 
         participant_data = response_json["data"]["authResponse"]
-        # TODO(Nishant): Can we get authToken expiry here, in case we want to move this
-        # to a task.
         auth_token = participant_data["authToken"]
 
         dyte_participant, _ = models.DyteMeetingParticipant.objects.update_or_create(

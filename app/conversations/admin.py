@@ -65,6 +65,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "closed_at",
         "approved_at",
         "last_live_at",
+        "rescheduled_at",
+        "published_at",
         "total_minutes_spent_by_attendees",
         "total_minutes_spent_by_host"
     )
@@ -82,7 +84,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_published",
         ("start", filter.DateRangeFilter),
     )
-    exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
+    exclude = (
+        "interests",
+        "created_at",
+        "deleted_at",
+        "updated_at",
+        "is_deleted"
+    )
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -107,6 +115,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if "is_rescheduled" in fields_changed:
             if cleaned_data["is_rescheduled"]:
                 obj.mark_rescheduled(user=request.user)
+
+        if "is_published" in fields_changed:
+            if cleaned_data["is_published"]:
+                obj.mark_published()
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
