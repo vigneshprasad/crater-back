@@ -1006,6 +1006,10 @@ def get_avg_stream_length_for_creator(user):
     )
 
     total_stream_time_for_creator, hosts_joined = calculate_total_minutes_on_stream(dmps_hosts)
+
+    if not hosts_joined:
+        return 0, total_stream_time_for_creator
+
     avg_stream_length = round(total_stream_time_for_creator / hosts_joined, 2)
 
     return avg_stream_length, total_stream_time_for_creator
