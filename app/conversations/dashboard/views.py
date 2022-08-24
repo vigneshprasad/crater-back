@@ -183,7 +183,7 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Get display keys values.
-        published = post_data.get("published", True)
+        published = post_data.get("published", False)
         closed = post_data.get("closed", False)
         featured = post_data.get("featured", False)
 

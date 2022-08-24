@@ -3,7 +3,7 @@ from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
 from conversations import constants, models, signals
-from integrations.dyte import public as dyte_public, signals as dyte_signals, tasks as dyte_tasks
+from integrations.dyte import tasks as dyte_tasks, public as dyte_public, signals as dyte_signals
 from matching import private as matching_private
 from resources.curated_articles import signals as article_signals
 from resources.meetings import signals as meeting_signals

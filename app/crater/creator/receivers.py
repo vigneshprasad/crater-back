@@ -59,6 +59,13 @@ def update_follower_count(sender, follower, *args, **kwargs):
 
     creator.save()
 
+    # If subscriber count reaches 50, send a signal.
+    if creator.subscriber_count == 50:
+        signals.creator_50_subscribers.send(
+            sender=creator.__class__,
+            creator=creator
+        )
+
     return creator
 
 

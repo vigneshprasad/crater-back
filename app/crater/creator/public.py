@@ -16,6 +16,20 @@ def get_creator_for_user(user):
         return None
 
 
+def get_subscriber_count_for_creator(creator):
+    """Returns count of subscribers a creator has.
+
+    Args:
+        creator(Creator): Creator on the platform.
+
+    """
+    return models.Follower.objects.filter(
+        creator=creator,
+        unfollowed=False,
+        notify=True
+    ).count()
+
+
 def get_subscribed_creators(user):
     """Return creators users has subscribed to (notify).
 
