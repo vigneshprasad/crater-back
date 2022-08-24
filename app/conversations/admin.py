@@ -98,6 +98,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
         fields_changed = form.changed_data
         cleaned_data = form.cleaned_data
+
         if "is_approved" in fields_changed:
             if cleaned_data["is_approved"]:
                 obj.approve()

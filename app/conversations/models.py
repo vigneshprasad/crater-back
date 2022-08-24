@@ -308,11 +308,18 @@ class Group(base_model.BaseModel):
         self.save()
 
     def mark_published(self):
+        """Marks a group published."""
         self.is_published = True
         # Only set published at the first time the group
         # is marked published.
         if not self.published_at:
             self.published_at = datetime.datetime.now()
+            # Send signal only the first time the group is
+            # marked published.
+            signals.group_marked_published.send(
+                sender=self.__class__,
+                group=self
+            )
 
         self.save()
 
