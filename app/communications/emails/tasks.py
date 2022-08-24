@@ -1,4 +1,5 @@
 from celery.task import task
+from django.utils import timezone
 
 from communications.emails import private, constants
 from conversations import models as conversation_models, public as conversation_public
@@ -13,6 +14,25 @@ def send_stream_setup_email_to_creator(group_id):
 
     """
     group = conversation_models.Group.objects.get(id=group_id)
+
+    group_start = group.start
+    if not timezone.is_aware(group_start):
+        group_start = timezone.make_aware(group_start, timezone=pytz.timezone(settings.TIME_ZONE))
+
+    now_time = timezone.now()
+    if not timezone.is_aware(now_time):
+        now_time = timezone.make_aware(now_time, timezone=pytz.timezone(settings.TIME_ZONE))
+
+    # Don't send the email if the group start is less than now time.
+    if group_start <= now_time:
+        return
+
+    diff = now_time - group_start
+    diff_minutes = diff.seconds / 60
+    # If the group is marked published within 30 minutes of group start
+    # don't send the published email.
+    if diff_minutes < 30:
+        return
 
     host = group.host
     to_email = host.email

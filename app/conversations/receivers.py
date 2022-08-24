@@ -1,16 +1,12 @@
-from django.db.models.signals import m2m_changed, post_save, pre_save
 from django.contrib.auth import get_user_model
+from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
-from django.utils import timezone
 
-from conversations import constants
-from conversations import models
-from conversations import signals
-from integrations.dyte import public as dyte_public
-from integrations.dyte import signals as dyte_signals
+from conversations import constants, models, signals
+from integrations.dyte import public as dyte_public, signals as dyte_signals
 from matching import private as matching_private
-from resources.meetings import signals as meeting_signals
 from resources.curated_articles import signals as article_signals
+from resources.meetings import signals as meeting_signals
 
 
 @receiver(post_save, sender=models.Group)
@@ -28,46 +24,6 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
         return
 
     signals.webinar_created.send(sender=instance.__class__, group=instance)
-
-
-@receiver(pre_save, sender=models.Group)
-def send_group_marked_published_signal(sender, instance, *args, **kwargs):
-
-    if instance._state.adding:
-        return
-
-    previous_instance = models.Group.objects.get(id=instance.id)
-    # If the previous_instance was published, don't send the published signal.
-    if previous_instance.published_at:
-        return
-
-    # If in the current instance published_at is not set, don't send published signal.
-    if not instance.published_at:
-        return
-
-    # If the is_published state is same, don't send the signal.
-    if instance.is_published == previous_instance.is_published:
-        return
-
-    # Send the group marked published signal.
-    signals.group_marked_published.send(
-        sender=instance.__class__,
-        group=instance
-    )
-
-
-@receiver(post_save, sender=models.Group)
-def send_group_marked_published_signal_on_creation(sender, instance, *args, **kwargs):
-    if not kwargs["created"]:
-        return
-
-    if not (instance.is_published and instance.published_at):
-        return
-
-    signals.group_marked_published.send(
-        sender=instance.__class__,
-        group=instance
-    )
 
 
 # @receiver(signals.group_marked_live)
