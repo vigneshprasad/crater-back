@@ -7,13 +7,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from users import permissions as user_permissions
-from conversations import models as conversations_models
-from conversations import services as conversations_services
-from conversations import constants as conversations_constants
+from conversations import models as conversations_models, services as conversations_services, \
+    constants as conversations_constants
+from crater.analytics_dashboard import serializers, constants
 from crater.creator import private as creator_private
 from integrations.dyte import models as dyte_models
-from crater.analytics_dashboard import serializers
+from users import permissions as user_permissions
 
 
 class AnalyticsDashboardViewSet(
@@ -270,7 +269,7 @@ class AnalyticsDashboardViewSet(
         avg_stream_length = conversations_services.get_avg_stream_length_for_creators()
 
         data = {
-            "total_creators": total_creators,
+            "total_creators": total_creators + constants.TOTAL_CREATORS_CORRECTION,
             "total_streams_past_week": total_streams_past_week + 150,
             "chat_engagement": chat_engagement,
             "avg_stream_length": avg_stream_length
