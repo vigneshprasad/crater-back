@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from django.conf import settings
@@ -8,7 +7,6 @@ from django.utils.html import format_html
 
 from base import models as base_model
 from integrations.dyte import constants
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -92,27 +90,30 @@ class DyteMeetingParticipant(base_model.BaseModel):
     def total_minutes_watched(self):
         """Total minutes spent on the stream."""
         minutes_spent = 0
-        online_logs = DyteParticipantOnlineLog.objects.filter(
-            dyte_meeting_participant_id=self.id
-        )
+        online_logs = self.online_logs.all()
 
-        # If there are no online logs, calculate time based on
-        # old approach.
-        if not (online_logs or self.last_online_at):
+        # If there is no last_online_at return 0.
+        if not self.last_online_at:
             return minutes_spent
 
         # If not online logs are there and last_online_at is present,
         # calculate minutes the old way.
         if not online_logs:
+            group = self.dyte_meeting.group
+            last_live_time_for_group = min(
+                self.last_online_at, group.last_live_at
+            ) if group else self.last_online_at
+
+            # Calculate time spent based on the last live at for group.
             time_spent = max(
-                (self.last_online_at - self.latest_join_time),
+                (last_live_time_for_group - self.latest_join_time),
                 timezone.timedelta()
             )
             minutes_spent = round(time_spent.seconds / 60)
-
-        # If logs are present calculate minutes from logs.
-        for log in online_logs:
-            minutes_spent += log.online_time
+        else:
+            # If logs are present calculate minutes from logs.
+            for log in online_logs:
+                minutes_spent += log.online_time
 
         return minutes_spent
 
@@ -121,7 +122,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
         online_at = max(timezone.now(), self.latest_join_time)
         self.is_online = True
         self.last_online_at = online_at
-        self.save()
 
         # Create online logs.
         online_log, _ = DyteParticipantOnlineLog.objects.get_or_create(
@@ -132,29 +132,29 @@ class DyteMeetingParticipant(base_model.BaseModel):
             }
         )
 
+        self.save()
+
     def mark_offline(self):
         """Mark a dyte participant offline."""
         offline_at = max(timezone.now(), self.latest_join_time)
         self.is_online = False
         self.last_online_at = offline_at
-        self.save()
 
         # Update the online log to offline.
-        online_log = DyteParticipantOnlineLog.objects.filter(
-            dyte_meeting_participant=self,
-            is_offline=False
-        ).last()
-        if not online_log:
+        online_log = self.online_logs.filter(is_offline=False).last()
+        if online_log:
+            online_log.mark_offline()
+        else:
             LOGGER.error("Went offline without online log. {}".format(self.id))
-            return None
 
-        online_log.mark_offline()
+        self.save()
 
 
 class DyteParticipantOnlineLog(base_model.BaseModel):
 
     dyte_meeting_participant = models.ForeignKey(
         "dyte.DyteMeetingParticipant",
+        related_name="online_logs",
         on_delete=models.CASCADE
     )
     online_at = models.DateTimeField(null=True, blank=True)

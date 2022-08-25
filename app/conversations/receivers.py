@@ -3,7 +3,7 @@ from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
 from conversations import constants, models, signals
-from integrations.dyte import public as dyte_public, signals as dyte_signals
+from integrations.dyte import tasks as dyte_tasks, public as dyte_public, signals as dyte_signals
 from matching import private as matching_private
 from resources.curated_articles import signals as article_signals
 from resources.meetings import signals as meeting_signals
@@ -34,6 +34,11 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
 # @receiver(signals.group_marked_closed)
 # def remove_webinar_cache(sender, group, *args, **kwargs):
 #     services.remove_cached_live_webinar(group=group)
+
+
+@receiver(signals.group_marked_closed)
+def recalculate_minutes_for_groups(sender, group, *args, **kwargs):
+    dyte_tasks.recalculate_minutes_for_groups([group.id])
 
 
 # @receiver(m2m_changed, sender=models.Group.speakers.through)

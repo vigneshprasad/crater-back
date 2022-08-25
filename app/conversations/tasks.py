@@ -573,6 +573,7 @@ def streams_action_message():
 
         if not future_streams:
             future_streams = models.Group.objects.filter(
+                start__gte=stream.start,
                 start__lte=stream.start + datetime.timedelta(hours=24),
                 categories__in=stream.categories.all(),
             )

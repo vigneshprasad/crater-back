@@ -1,7 +1,9 @@
 import datetime
 
+import pytz
 from celery.schedules import crontab
 from celery.task import periodic_task
+from django.conf import settings
 from django.db.models import Sum
 
 from conversations import models as conversations_models
@@ -23,16 +25,23 @@ def calculate_tokens_earned(date=None):
         today = datetime.date.today()
         today_start = datetime.datetime.combine(datetime.date.today(), datetime.time())
         today_end = datetime.datetime.combine(datetime.date.today(), datetime.time(23, 59))
+        # Make datetime timezone aware.
+        timezone = pytz.timezone(settings.TIME_ZONE)
+        today_start = timezone.localize(today_start)
+        today_end = timezone.localize(today_end)
     else:
         today = datetime.datetime.strptime(date, "%Y-%m-%d").date()
         today_start = datetime.datetime.combine(today, datetime.time())
         today_end = datetime.datetime.combine(today, datetime.time(23, 59))
+        # Make datetime timezone aware.
+        timezone = pytz.timezone(settings.TIME_ZONE)
+        today_start = timezone.localize(today_start)
+        today_end = timezone.localize(today_end)
 
     # Only get streams whose hosts are eligible for learn tokens.
     streams_for_today = conversations_models.Group.objects.filter(
         start__gte=today_start,
         end__lte=today_end,
-        host__creator__isnull=False,
         host__creator__tokens_enabled=True,
     )
 
@@ -40,6 +49,20 @@ def calculate_tokens_earned(date=None):
         total_minutes=Sum("total_minutes_spent_by_attendees")
     )["total_minutes"] or 0
 
+    # New calculation for total watch time.
+    total_watch_time = 0
+
+    for stream in streams_for_today:
+        dyte_participants = dyte_models.DyteMeetingParticipant.objects.filter(
+            dyte_meeting__group=stream,
+            last_online_at__isnull=False,
+        ).exclude(
+            participant=stream.host
+        )
+        for dyte_participant in dyte_participants:
+            total_watch_time += dyte_participant.total_minutes_watched
+
+    # TODO(Nishant): Should we filter out prompts etc.
     total_engagement = conversations_models.GroupMessage.objects.filter(
         group__in=streams_for_today,
         created_at__gte=today_start,
@@ -59,9 +82,19 @@ def calculate_tokens_earned(date=None):
     for stream in streams_for_today:
         # Calculate tokens distributed for the streamer first.
         host = stream.host
-        streamer_time_spent = stream.total_minutes_spent_by_attendees
+        host_dyte_participant = dyte_models.DyteMeetingParticipant.objects.filter(
+            dyte_meeting__group=stream,
+            participant=stream.host,
+            last_online_at__isnull=False
+        ).last()
+        if not host_dyte_participant:
+            continue
+
+        streamer_time_spent = host_dyte_participant.total_minutes_watched
         if not streamer_time_spent:
             continue
+
+        # TODO(Nishant): Should we exclude creator messages from this.
         streamer_engagement = conversations_models.GroupMessage.objects.filter(
             group=stream
         ).count()
