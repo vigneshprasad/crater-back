@@ -716,7 +716,8 @@ def send_stream_analytics_emails_to_creators(groups=None):
         start__gte=start_time,
         start__lte=end_time,
         closed=True,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        host__creator__show_analytics=True,
     ) if not groups else groups
 
     for group in groups:
