@@ -93,7 +93,7 @@ def get_email_log_for_user_and_template(user, template_name):
 
     """
     try:
-        email_template, _ = models.EmailTemplate.objects.get(
+        email_template = models.EmailTemplate.objects.get(
             name=template_name
         )
     except models.EmailTemplate.DoesNotExist:
