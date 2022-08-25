@@ -366,7 +366,7 @@ class AnalyticsDashboardViewSet(
             last_online_at__isnull=False
         )
 
-        total_minutes = conversations_services.calculate_total_minutes_on_stream(
+        total_minutes, _ = conversations_services.calculate_total_minutes_on_stream(
             dyte_participants=dyte_participants_for_host
         )
 
