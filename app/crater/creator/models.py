@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
@@ -6,7 +8,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
-from crater.creator import services, constants
+from crater.creator import services, constants, signals
 
 
 class Creator(base_models.BaseModel):
@@ -61,7 +63,11 @@ class Creator(base_models.BaseModel):
         related_name="creator_prospector",
         on_delete=models.SET_NULL
     )
+    # Is analytics dashboard enabled for creators.
     show_analytics = models.BooleanField(default=False)
+    analytics_enabled_at = models.DateTimeField(null=True, blank=True)
+
+    # Are tokens enabled for the creator.
     tokens_enabled = models.BooleanField(default=False)
 
     class Meta:
@@ -91,6 +97,20 @@ class Creator(base_models.BaseModel):
         return front_url + constants.CREATOR_PAGE_URL_WITH_SLUG.format(
             slug=self.slug
         )
+
+    def enable_analytics(self):
+        """Enables analytics for a Creator."""
+        self.show_analytics = True
+
+        # If analytics enabled is not set, set it to now.
+        if not self.analytics_enabled_at:
+            self.analytics_enabled_at = datetime.datetime.now()
+            signals.analytics_enabled_for_creator.send(
+                sender=self.__class__,
+                creator=self
+            )
+
+        self.save()
 
 
 class Community(base_models.BaseModel):
