@@ -158,3 +158,8 @@ def mark_participants_offline_for_group(group):
         # If the dyte participant is not offline, mark it offline.
         if participant.is_online:
             participant.mark_offline()
+
+        # Mark all logs offline as well.
+        participant_online_logs = participant.online_logs.filter(is_offline=False)
+        for online_log in participant_online_logs:
+            online_log.mark_offline()
