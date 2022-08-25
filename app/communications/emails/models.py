@@ -23,6 +23,9 @@ class EmailTemplate(base_models.BaseModel):
         choices=EMAIL_SERVICE_PROVIDERS
     )
 
+    class Meta:
+        unique_together = ["name", "service"]
+
     def __str__(self):
         return self.name
 
@@ -48,4 +51,3 @@ class EmailLog(base_models.BaseModel):
         blank=True
     )
     status = models.CharField(max_length=32, null=True, blank=True)
-

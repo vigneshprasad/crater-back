@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from communications.emails import private, constants
 from conversations import models as conversation_models, public as conversation_public
+from crater.creator import models as creator_models
 
 
 @task
@@ -53,4 +54,25 @@ def send_stream_setup_email_to_creator(group_id):
         template_name=constants.CREATOR_STREAM_SETUP_TEMPLATE,
         merge_vars=merge_vars,
         from_email=constants.CREATOR_STREAM_SETUP_FROM_EMAIL
+    )
+
+
+@task
+def send_email_for_group_analytics_to_creator(creator_id):
+    """Sends email about group analytics for recently closed
+        group to the host of the group.
+
+    Args:
+        creator_id(int): ID for creator we are sending the
+            email to.
+
+    """
+    creator = creator_models.Creator.objects.get(id=creator_id)
+
+    private.send_email_for_user(
+        subject=constants.CREATOR_STREAM_ANALYTICS_TEMPLATE_SUBJECT,
+        user=creator.user,
+        template_name=constants.CREATOR_STREAM_ANALYTICS_TEMPLATE,
+        merge_vars={},
+        from_email=constants.CREATOR_STREAM_ANALYTICS_FROM_EMAIL
     )

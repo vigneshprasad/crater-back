@@ -4,7 +4,7 @@ from celery.task import task
 from django.conf import settings
 from django.core.mail import EmailMessage
 
-from communications.emails import models, constants
+from communications.emails import models
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,3 +81,30 @@ def send_email_for_user(
     email_log.save()
 
     return True
+
+
+def get_email_log_for_user_and_template(user, template_name):
+    """Returns email logs for a user and template.
+
+    Args:
+        user(User): User the email was sent to.
+        template_name(str): Template that was sent to
+            the user.
+
+    """
+    try:
+        email_template = models.EmailTemplate.objects.get(
+            name=template_name
+        )
+    except models.EmailTemplate.DoesNotExist:
+        return
+
+    # Get email log and confirm it was sent to the user.
+    # TODO(Nishant): Confirm whether we need to check status here.
+    email_log = models.EmailLog.objects.filter(
+        user=user,
+        email_template=email_template,
+        email_message_id__isnull=False,
+    ).last()
+
+    return email_log
