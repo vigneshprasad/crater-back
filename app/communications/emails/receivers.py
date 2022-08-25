@@ -49,6 +49,15 @@ def send_email_for_50_subscribers_to_creator(sender, creator, *args, **kwargs):
         creator(Group): Creator that has reached 50 subscribers.
 
     """
+    email_log = private.get_email_log_for_user_and_template(
+        user=creator.user,
+        template_name=constants.CREATOR_50_FOLLOWERS_TEMPLATE
+    )
+    # If the email was already sent to the user, don't send it again
+    # since it is a one time email.
+    if email_log:
+        return
+
     private.send_email_for_user(
         subject=constants.CREATOR_50_FOLLOWERS_TEMPLATE_SUBJECT,
         user=creator.user,
@@ -69,5 +78,21 @@ def send_email_for_stream_setup_to_creator(sender, group, *args, **kwargs):
     """
     tasks.send_stream_setup_email_to_creator.apply_async(
         args=(group.id, ),
+        countdown=120
+    )
+
+
+@receiver(creator_signals.analytics_enabled_for_creator)
+def send_email_for_stream_setup_to_creator(sender, creator, *args, **kwargs):
+    """Sends email once a creators stream is set up on the platform.
+
+    Args:
+        sender(Creator.__class__): Class repr of creator for which analytics
+            are enabled.
+        creator(Creator): Creator for which analytics are enabled.
+
+    """
+    tasks.send_email_for_group_analytics_to_creator.apply_async(
+        args=(creator.id, ),
         countdown=120
     )

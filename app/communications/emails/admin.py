@@ -11,5 +11,6 @@ class EmailTemplateAdmin(ModelAdmin):
 
 @register(models.EmailLog)
 class EmailLogAdmin(ModelAdmin):
-    list_display = ("id", "user", "email_template", "email_message_id", "sent_at")
+    list_display = ("id", "user", "email_template", "email_message_id", "status", "sent_at")
+    raw_id_fields = ("user", "email_template")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
