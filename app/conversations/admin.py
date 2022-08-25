@@ -99,8 +99,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             ("Logs", {
                 "fields": (
                     ("last_live_at", "closed_at"),
-                    ("approved_at", "rescheduled_at"),
                     "published_at",
+                    ("approved_at", "rescheduled_at"),
                 )
             }),
             ("Score", {
