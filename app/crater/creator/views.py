@@ -1,7 +1,7 @@
 import csv
+import datetime
 
 from django.contrib.auth import get_user_model
-from django.db.models import F
 from django.http import HttpResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,6 +10,7 @@ from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import Sum, F, Q
 
 from crater.creator import exceptions
 from crater.creator import models
@@ -97,6 +98,79 @@ class CreatorViewSet(
         queryset = self.get_queryset().exclude(coin=None)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        serializer_class=serializers.CreatorRankingSerializer,
+        pagination_class=paginators.CreatorRankingPagination,
+        methods=["GET"],
+        detail=False
+    )
+    def ranking(self, request, *args, **kwargs):
+        category = request.query_params.get("category")
+        end = datetime.datetime.now()
+        start = end - datetime.timedelta(days=30)
+
+        if category:
+            queryset_filter = Q(
+                user__groups_hosted__start__gte=start,
+                user__groups_hosted__end__lte=end,
+                user__groups_hosted__categories__in=[category]
+            )
+        else:
+            queryset_filter = Q(
+                user__groups_hosted__start__gte=start,
+                user__groups_hosted__end__lte=end,
+            )
+
+        creators = self.get_queryset().annotate(
+            watch_time=Sum(
+                "user__groups_hosted__total_minutes_spent_by_attendees",
+                filter=queryset_filter
+            )
+        ).filter(watch_time__isnull=False).order_by("-watch_time")
+
+        page = self.paginate_queryset(creators)
+        if page is None:
+            serializer = self.get_serializer(creators, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[user_permissions.IsAuthenticated],
+    )
+    def stats(self, request):
+        user = request.user
+
+        # Get total followers
+        follower_count = private.get_subscriber_count(user=user)
+
+        # Get creator stream stats
+        stats = private.get_creator_stream_stats(user=user)
+
+        response = [
+            {
+                "name": "Followers",
+                "value": follower_count
+            },
+            {
+                "name": "Total Streams",
+                "value": stats.get("total_streams", 0)
+            },
+            {
+                "name": "Upcoming Streams",
+                "value": stats.get("total_upcoming_streams", 0)
+            },
+            {
+                "name": "Past Streams",
+                "value": stats.get("total_past_streams", 0)
+            }
+        ]
+
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class CreatorSlugViewSet(

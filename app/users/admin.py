@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import GroupAdmin
@@ -7,11 +8,8 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from users import models
-from users.filters import GroupNameAdminFilter, GroupNameUserFilter, RefererFilter
-from users.forms import AdminCreationForm, ProfileForm, UserForm
-from users.models import Admin, CoverFile, Profile, Referral
-from utils.mixins import ViewActionMixin
+from users import models, filters, forms
+from utils import mixins as util_mixins
 
 admin.site.unregister(Group)
 
@@ -27,12 +25,12 @@ class SourceAdmin(admin.ModelAdmin):
 
 
 class ProfileAdmin(admin.StackedInline):
-    model = Profile
-    form = ProfileForm
+    model = models.Profile
+    form = forms.ProfileForm
 
 
 @admin.register(get_user_model())
-class UserAdmin(ViewActionMixin, admin.ModelAdmin):
+class UserAdmin(util_mixins.ViewActionMixin, admin.ModelAdmin):
     class Media:
         css = {
             "all": ("css/stacked-full-width.css",)
@@ -45,8 +43,8 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
     list_display = ("username", "name", "email", "group", "score", "date_joined", "is_active", "action")
     list_editable = ["is_active", ]
     search_fields = ("username", "name", "email", "phone_number")
-    list_filter = ("is_active", GroupNameUserFilter, )
-    form = UserForm
+    list_filter = ("is_active", filters.GroupNameUserFilter, )
+    form = forms.UserForm
     fieldsets = (
         ("Approvals", {
             "fields": (
@@ -75,15 +73,15 @@ class UserAdmin(ViewActionMixin, admin.ModelAdmin):
         return ", ".join([group.name for group in user.groups.all()])
 
 
-@admin.register(Admin)
-class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
+@admin.register(models.Admin)
+class AdminAdmin(util_mixins.ViewActionMixin, admin.ModelAdmin):
     list_action_text = _("View profile")
     edit_icon = "launch"
     icon_name = "verified_user"
 
-    form = AdminCreationForm
+    form = forms.AdminCreationForm
     list_display = ("name", "email", "is_superuser", "is_active", "all_groups", "action")
-    list_filter = ("is_superuser", GroupNameAdminFilter)
+    list_filter = ("is_superuser", filters.GroupNameAdminFilter)
     search_fields = ("name", "email")
     list_editable = ("name", "is_superuser")
 
@@ -95,12 +93,12 @@ class AdminAdmin(ViewActionMixin, admin.ModelAdmin):
         return super().get_queryset(request).filter(Q(is_superuser=True) | Q(is_staff=True))
 
 
-@admin.register(Referral)
-class ReferralAdmin(ViewActionMixin, admin.ModelAdmin):
+@admin.register(models.Referral)
+class ReferralAdmin(util_mixins.ViewActionMixin, admin.ModelAdmin):
     list_display = ["referer_name", "referral_name", "created", "amount", "is_paid", "is_rewarded", "action"]
     list_editable = ["amount", "is_paid", "is_rewarded"]
     readonly_fields = ["user"]
-    list_filter = ["is_paid", "is_rewarded", "created", RefererFilter]
+    list_filter = ["is_paid", "is_rewarded", "created", filters.RefererFilter]
     search_fields = ["user__name"]
     icon_name = "nature_people"
 
@@ -144,11 +142,15 @@ class GroupAdmin(GroupAdmin):
         return True
 
 
-@admin.register(CoverFile)
-class CoverFileAdmin(ViewActionMixin, admin.ModelAdmin):
+@admin.register(models.CoverFile)
+class CoverFileAdmin(admin.ModelAdmin):
     icon_name = "person"
-    list_display = ["user", "file"]
-    list_display_links = None
+    list_display = ("id", "user", "file")
+    raw_id_fields = ("user", )
+    search_fields = ("id", "user__username", "user__name")
+    list_filter = (
+        AutocompleteFilterFactory("User", "user"),
+    )
 
     def get_queryset(self, request):
         return super().get_queryset(request).all()
@@ -161,17 +163,59 @@ class ProfileExtraMetaAdmin(admin.ModelAdmin):
 
 @admin.register(models.UserReferral)
 class UserReferralAdmin(admin.ModelAdmin):
-    raw_id_fields = ("user", "referrer", "stream")
+
     list_display = ("id", "user", "referrer", "stream", "amount", "status")
-    search_fields = ("user__username", "user__name", "referrer__username", "referrer__name")
+    raw_id_fields = ("user", "referrer", "stream")
+    list_filter = (
+        "status",
+        AutocompleteFilterFactory("Referrer", "referrer")
+    )
+    search_fields = (
+        "user__username",
+        "user__name",
+        "referrer__username",
+        "referrer__name"
+    )
     readonly_fields = ("due_at", "paid_at")
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
+
+
+@admin.register(models.ReferrerBlacklist)
+class ReferrerBlacklistAdmin(admin.ModelAdmin):
+
+    list_display = ("id", "referrer", "blocked_at")
+    raw_id_fields = ("referrer", )
+    list_filter = (AutocompleteFilterFactory("User", "referrer"), )
+    exclude = ("updated_at", "deleted_at", "is_deleted")
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)
+
+    @staticmethod
+    def blocked_at(obj):
+        return obj.created_at
 
 
 @admin.register(models.UserPermission)
 class UserPermissionAdmin(admin.ModelAdmin):
     raw_id_fields = ("user",)
-    list_display = ("id", "user", "allow_create_stream", "allow_chat")
-    list_editable = ["allow_create_stream", "allow_chat"]
+    list_display = ("id", "user", "allow_create_stream", "allow_chat", "show_viewer_count")
+    list_editable = ("allow_create_stream", "allow_chat", "show_viewer_count")
     exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
-    search_fields = ("user__username", "user__name",)
+    search_fields = (
+        "user__username",
+        "user__name",
+    )
+
+
+@admin.register(models.UserCategory)
+class UserCategoryAdmin(admin.ModelAdmin):
+    raw_id_fields = ("user", "category")
+    list_display = ("id", "user", "category", "followed", "followed_at", "unfollowed_at")
+    exclude = ("created_at", "updated_at", "deleted_at", "is_deleted")
+    list_filter = ("category",)
+    search_fields = (
+        "user__username",
+        "user__name",
+    )

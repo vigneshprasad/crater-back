@@ -47,6 +47,9 @@ class PhoneNumberRegisterView(
             )
 
         # Validate serializer.
+        if "+994" in username:
+            return Response(status=400)
+
         data = {"username": username}
 
         serializer = self.get_serializer(data=data)

@@ -6,7 +6,7 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Q, F, Count, DateField
+from django.db.models import Q, F, Count, DateField, Case, When, Value
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
@@ -17,6 +17,7 @@ from conversations import signals
 from conversations import serializers
 
 from crater.creator import models as creator_models
+from integrations.dyte import models as dyte_models
 from rest_framework.exceptions import ValidationError
 
 
@@ -632,7 +633,7 @@ def get_average_engagement(user=None):
     )
 
     if not past_streams:
-        return None
+        return 0
 
     past_stream_ids = past_streams.values_list("id", flat=True)
 
@@ -858,3 +859,295 @@ def get_rsvp_count_by_month_and_year(user, start_datetime, end_datetime):
     [x.update({"rsvp_at": x["rsvp_at"].strftime("%b %Y")}) for x in rsvp_count_by_month_and_year]
 
     return rsvp_count_by_month_and_year
+
+
+def get_top_streams_by_categories(categories):
+    """Return top upcoming stream for each of the given category.
+
+    Args:
+        categories(list(int)): List of category ids
+
+    """
+    now = datetime.datetime.now()
+    top_streams = []
+
+    for category in categories:
+        stream = models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True,
+            is_live=False,
+            closed=False,
+            start__gt=now,
+            categories__in=[category]
+        ).values(
+            "id",
+            "start",
+            topic_title=F("topic__name"),
+            topic_image=F("topic__image")
+        ).annotate(
+            rsvp_count=Count("requests", distinct=True)
+        ).order_by(
+            "-rsvp_count"
+        )[:1]
+
+        if not stream:
+            continue
+
+        top_stream = stream[0]
+        top_stream["category"] = category
+
+        # Avoid duplicates in top streams list
+        if top_stream not in top_streams:
+            top_streams.append(top_stream)
+
+    # Sort top streams in descending order by rsvp count
+    top_streams = sorted(top_streams, key=lambda d: d["rsvp_count"], reverse=True)
+
+    return top_streams
+
+
+def get_stream_viewers_by_category(category):
+    """Return the users who watched a stream in the
+        given category.
+
+    Args:
+        category(int): Category id
+
+    """
+    now = datetime.datetime.now()
+
+    # Filter dyte meetings for past streams by given category
+    dyte_meetings = dyte_models.DyteMeeting.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__is_live=False,
+        group__closed=True,
+        group__start__lt=now,
+        group__categories__in=[category],
+    )
+
+    # Filter stream hosts
+    hosts = dyte_meetings.values_list("group__host").distinct()
+
+    # Filter all viewers except stream hosts
+    viewers = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__in=dyte_meetings,
+        last_online_at__isnull=False
+    ).exclude(
+        participant__in=hosts
+    ).distinct()
+
+    return viewers
+
+
+def calculate_total_minutes_on_stream(dyte_participants):
+    """Return total minutes spent on stream for
+        given dyte participants and total number
+        of hosts joined.
+
+    Args:
+        dyte_participants(list): List of DyteParticipant objects
+
+    """
+    total_minutes_spent = 0
+    participants_joined = 0
+
+    for participant in dyte_participants:
+        if not participant.last_online_at:
+            continue
+
+        if participant.last_online_at < participant.dyte_meeting.group.start:
+            continue
+        time_spent = participant.last_online_at - participant.dyte_meeting.group.start
+        minutes = time_spent.seconds // 60 % 60
+
+        if not minutes and minutes > 300:
+            continue
+
+        participants_joined += 1
+        total_minutes_spent += minutes
+
+    return total_minutes_spent, participants_joined
+
+
+def get_avg_stream_length_for_creators():
+    """Return average stream length for creators."""
+
+    # Get all past streams
+    past_streams = get_past_streams()
+
+    # Filter all dyte meeting participant for hosts
+    dmps_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=past_streams,
+        participant=F("dyte_meeting__group__host")
+    )
+
+    total_stream_time_for_creators, hosts_joined = calculate_total_minutes_on_stream(dmps_hosts)
+
+    avg_stream_length = round(total_stream_time_for_creators / hosts_joined, 2)
+
+    return avg_stream_length
+
+
+def get_avg_stream_length_for_creator(user):
+    """Return average stream length and total
+        stream time for a given creator.
+
+    Args:
+        user(User): User object of a creator
+
+    """
+    # Get all past streams by user
+    past_streams = get_past_streams(user=user)
+
+    dmps_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=past_streams,
+        participant=F("dyte_meeting__group__host")
+    )
+
+    total_stream_time_for_creator, hosts_joined = calculate_total_minutes_on_stream(dmps_hosts)
+
+    if not hosts_joined:
+        return 0, total_stream_time_for_creator
+
+    avg_stream_length = round(total_stream_time_for_creator / hosts_joined, 2)
+
+    return avg_stream_length, total_stream_time_for_creator
+
+
+def get_stream_category_distribution():
+    """Return stream category distribution."""
+    now = datetime.datetime.now()
+
+    # Get total streams
+    total_streams = get_past_streams().count()
+
+    # Filter all active categories with stream count
+    categories = models.Category.objects.filter(
+        is_active=True
+    ).values(
+        "id",
+        "name"
+    ).annotate(
+        total_streams=Count(
+            "group__id",
+            filter=Q(
+                group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+                group__is_published=True,
+                group__is_live=False,
+                group__closed=True,
+                group__start__lt=now
+            )
+        )
+    ).order_by("name")
+
+    stream_category_distribution = [
+        {
+            "id": category["id"],
+            "name": category["name"],
+            "value": round((category["total_streams"] / total_streams) * 100, 2)
+        }
+        for category in categories
+    ]
+
+    return stream_category_distribution
+
+
+def get_completion_rate_for_streams(host, streams):
+    """Return completion rate for given streams."""
+
+    # Get all dyte meeting participants for streams excluding host
+    dmps = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=streams,
+        last_online_at__isnull=False
+    ).exclude(
+        participant=host
+    )
+
+    dmp_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=streams,
+        participant=host,
+        last_online_at__isnull=False
+    )
+
+    completion_data = []
+    for dmp_host in dmp_hosts:
+        completion = 0
+        total_online = 0
+        stream_start = dmp_host.dyte_meeting.group.start
+        for dmp in dmps:
+            if dmp.dyte_meeting != dmp_host.dyte_meeting:
+                continue
+
+            total_online += 1
+            if (dmp_host.last_online_at - dmp.last_online_at).total_seconds() / 60 < 10:
+                completion += 1
+
+        if total_online:
+            completion_data.append(
+                {
+                    "key": stream_start.strftime("%d/%m/%y"),
+                    "value": round((completion / total_online) * 100, 2)
+                }
+            )
+
+    return completion_data
+
+
+def get_past_streams_by_date(start, end, user=None):
+    """Returns all past streams with optional host filter.
+
+    Args:
+        start(date): Start date
+        end(date): End date
+        user(User): User instance of a creator
+    """
+
+    # Filter creator's past streams with given date range
+    past_streams = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True,
+        is_live=False,
+        closed=True,
+        start__date__range=[start, end]
+    )
+
+    if user:
+        past_streams = past_streams.filter(
+            host=user
+        )
+
+    return past_streams
+
+
+def get_traffic_sources_for_creator(user):
+    """Returns creator followers count by various
+        traffic sources for current month.
+
+    Args:
+        user(User): User instance of a creator
+
+    """
+    now = datetime.datetime.now()
+    traffic_source_data = models.Request.objects.filter(
+        group__type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        group__is_published=True,
+        group__host=user,
+        group__is_live=False,
+        group__closed=True,
+        group__start__lt=now,
+        participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM,
+        status=constants.REQUEST_STATUS_ACCEPTED_ENUM
+    ).values(
+        source_name=Case(
+            When(
+                requester__user_source__referrer__pk=user.pk,
+                then=F("requester__user_source__utm_source")
+            ),
+            default=Value("Crater")
+        )
+    ).annotate(
+        count=Count("id", distinct=True)
+    )
+
+    return traffic_source_data

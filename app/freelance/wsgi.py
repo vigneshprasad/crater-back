@@ -12,9 +12,9 @@ import sentry_sdk
 from django.core.wsgi import get_wsgi_application
 from sentry_sdk.integrations.wsgi import SentryWsgiMiddleware
 
-sentry_sdk.init(dsn=os.getenv('SENTRY_DSN'))
+sentry_sdk.init(dsn=os.getenv("SENTRY_DSN"))
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'freelance.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "freelance.settings")
 
 application = get_wsgi_application()
 

@@ -34,6 +34,7 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "participant",
         "joined_stream",
         "last_online_at",
+        "total_minutes_watched",
         "dyte_meeting"
     )
     raw_id_fields = ("participant", "dyte_meeting")
@@ -73,7 +74,8 @@ class DyteParticipantOnlineLogAdmin(admin.ModelAdmin):
     raw_id_fields = ("dyte_meeting_participant", )
     list_filter = (
         "is_offline",
-        AutocompleteFilterFactory("Dyte Meeting Participant", "dyte_meeting_participant"),
+        AutocompleteFilterFactory("By Participant", "dyte_meeting_participant__participant"),
+        AutocompleteFilterFactory("By Group", "dyte_meeting_participant__dyte_meeting__group"),
     )
 
 
@@ -91,7 +93,7 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
     raw_id_fields = ("dyte_meeting", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
-        "dyte_meeting__group",
+        AutocompleteFilterFactory("Group", "dyte_meeting__group"),
         "status"
     )
     search_fields = (

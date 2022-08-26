@@ -282,6 +282,12 @@ class User(AbstractUser):
     def is_creator(self):
         return bool(hasattr(self, "creator") and self.creator)
 
+    def get_devices(self):
+        """
+            Returns(OnesignalDevices): Returns list of Onesignal devices registered to current user.
+        """
+        return self.os_devices.all()
+
 
 class Device(TimeStampedModel):
     user = models.ForeignKey(
@@ -542,6 +548,11 @@ class Profile(models.Model):
         null=True,
         max_length=255,
     )
+    metamask_id = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
 
     class Meta:
         verbose_name = _("Profile")
@@ -555,6 +566,36 @@ class Profile(models.Model):
 
     def get_photo_url(self):
         return self.photo.url if self.photo else self.photo_url
+
+    def opt_out_of_whatsapp(self):
+        """Opt user out of whatsapp messaging."""
+        self.opted_in_for_whatsapp = False
+        self.save()
+
+    @property
+    def percentage_complete(self):
+        completed = 0
+
+        if self.user.name:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("name", 0)
+        if self.photo:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("photo", 0)
+        if self.primary_url:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("primary_url", 0)
+        if self.introduction:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("introduction", 0)
+        if self.cover:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("cover", 0)
+        if self.linkedin_url:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("linkedin", 0)
+        if self.twitter:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("twitter", 0)
+        if self.instagram:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("instagram", 0)
+        if self.metamask_id:
+            completed += constants.PROFILE_COMPLETION_PERCENT.get("metamask", 0)
+
+        return completed
 
 
 class ProfileExtraInfoMeta(models.Model):
@@ -652,6 +693,22 @@ class UserReferral(base_models.BaseModel):
         self.save()
 
 
+class ReferrerBlacklist(base_models.BaseModel):
+    """User referred by referrer in this model will be
+        blocked on all permissions.
+
+    """
+    referrer = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="blacklist"
+    )
+
+    def delete(self, soft=True):
+        # Hard deleting the row.
+        super(ReferrerBlacklist, self).delete(soft=False)
+
+
 class Admin(User):
     proxy = True
 
@@ -739,6 +796,10 @@ class UserActivity(base_models.BaseModel):
 
 
 class UserPermission(base_models.BaseModel):
+    """Control permissions for user to do actions
+        on the platform.
+
+    """
     user = models.OneToOneField(
         "users.User",
         related_name="permission",
@@ -747,6 +808,33 @@ class UserPermission(base_models.BaseModel):
     )
     allow_create_stream = models.BooleanField(default=False)
     allow_chat = models.BooleanField(default=True)
+    show_viewer_count = models.BooleanField(default=False)
+
+
+class UserCategory(base_models.BaseModel):
+    """Category user has followed."""
+    user = models.ForeignKey(
+        "users.User",
+        related_name="categories_followed",
+        on_delete=models.CASCADE,
+        verbose_name=_("User")
+    )
+    category = models.ForeignKey(
+        "conversations.Category",
+        related_name="users_following",
+        on_delete=models.CASCADE,
+        verbose_name=_("Category")
+    )
+    followed = models.BooleanField(default=False)
+    followed_at = models.DateTimeField(null=True, blank=True)
+    unfollowed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.category}"
+
+    class Meta:
+        verbose_name = _("User Category")
+        verbose_name_plural = _("User Categories")
 
 
 # TODO(Nishant): Remove this.

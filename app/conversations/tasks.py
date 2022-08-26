@@ -1,19 +1,26 @@
 import datetime
+import json
 import logging
+from itertools import chain
 
 import boto3
+from botocore import exceptions as botocore_exceptions
 from celery.schedules import crontab
 from celery.task import periodic_task, task
 from django.conf import settings
+from django.db.models import Count
 from django.utils import timezone
+from rest_framework.renderers import JSONRenderer
 
 from communications.notifications import public as notifications_public
-from conversations import constants, models
+from conversations import constants, models, services, serializers, signals
 from crater.creator import public as creator_public
-from integrations.dyte import models as dyte_models, public as dyte_public
+from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
 from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
+from integrations.wati import public as wati_public
+from users import models as user_models
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -147,25 +154,25 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     )
 
     for webinar in webinars:
-        # Send whatsapp reminder for group's to attendees and followers.
-        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(webinar)
         # Send in app notifications to group's attendees and followers.
         notifications_public.send_reminder_notifications_for_stream(webinar)
+        # Send reminders for followers and attendees.
+        wati_public.send_stream_reminder_messages_for_group(webinar)
 
 
-@periodic_task(run_every=crontab(minute="*/15"))
+@periodic_task(run_every=crontab(minute="*/20"))
 def send_whatsapp_reminder_for_webinar_host(groups=None):
     """Send webinar reminder whatsapp for the host.
 
     Note:
         Sends reminder to host of webinar which is
-            starting 15 minutes from now.
+            starting 20 minutes from now.
 
     """
     now_time = datetime.datetime.now()
 
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=15))
+    end_datetime = (now_time + datetime.timedelta(minutes=20))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
@@ -258,6 +265,10 @@ def publish_group_recordings(group_recording_ids):
     """Uploads dyte recording to media/live_stream_recordings/ for
         a streams. Marks the group recording as published.
 
+    Args:
+        group_recording_ids(list/queryset): Group recordings we want to mark
+            published.
+
     Note:
         If a group recording is already published, this doesn't change
             the state.
@@ -283,17 +294,30 @@ def publish_group_recordings(group_recording_ids):
             continue
 
         file_name = dyte_rec.file_name
-
-        source = {
-            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
-            "Key": dyte_rec.storage_key_name
-        }
         destination = models.recording_storage_path(group_recording, file_name)
 
         # Copy dyte recording to the live_stream folder.
         try:
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": dyte_rec.storage_key_name
+            }
             my_bucket.copy(source, "media/" + destination)
-        except Exception:
+        except botocore_exceptions.ClientError as e:
+            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+                group_id=group_recording.group_id
+            )
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": path + "/" + dyte_rec.file_name
+            }
+            my_bucket.copy(source, "media/" + destination)
+        except Exception as e:
+            logging.error(
+                "Exception happened when publishing recording: {} - {}".format(
+                    e, group_recording.id
+                )
+            )
             continue
 
         # Update the recording.
@@ -302,6 +326,87 @@ def publish_group_recordings(group_recording_ids):
         group_recording.is_published = True
         group_recording.published_at = datetime.datetime.now()
         group_recording.save()
+
+        # Send recording published signal.
+        signals.group_recording_published.send(
+            sender=group_recording.__class__,
+            recording=group_recording
+        )
+
+
+@periodic_task(run_every=crontab(minute=0, hour="*/3"))
+def upload_valid_recordings_for_streams(groups=None):
+    """Uploads valid recordings for streams to group_recordings.
+
+    Args:
+        groups(list/queryset): List of groups we want to publish
+            recordings for.
+
+    Note:
+        Only publishes recordings if the recording size is >150 MB.
+
+    """
+    end_time = timezone.now() - timezone.timedelta(hours=3)
+    start_time = end_time - timezone.timedelta(hours=3)
+
+    groups = models.Group.objects.filter(
+        start__gte=start_time,
+        start__lte=end_time,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ) if not groups else groups
+
+    # Get all group recordings for groups.
+    group_recordings = models.GroupRecording.objects.filter(
+        group__in=groups,
+        is_published=False
+    )
+
+    # Get the session for S3.
+    session = boto3.Session(
+        aws_access_key_id=settings.DYTE_AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.DYTE_AWS_SECRET_ACCESS_KEY
+    )
+    # Then use the session to get the resource
+    s3 = session.resource("s3")
+
+    valid_group_recordings = []
+    for group_recording in group_recordings:
+        # If the recording is published continue.
+        if group_recording.is_published:
+            continue
+
+        dyte_rec = group_recording.dyte_recordings.last()
+        if not dyte_rec:
+            continue
+
+        try:
+            recording_object_s3 = s3.Object(settings.AWS_STORAGE_BUCKET_NAME, dyte_rec.storage_key_name)
+            size_in_bytes = recording_object_s3.content_length
+        except botocore_exceptions.ClientError as e:
+            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+                group_id=group_recording.group_id
+            )
+            recording_object_s3 = s3.Object(
+                settings.AWS_STORAGE_BUCKET_NAME,
+                path + "/" + dyte_rec.file_name
+            )
+            size_in_bytes = recording_object_s3.content_length
+        except Exception as e:
+            logging.error(
+                "Exception happened when uploading recording: {} - {}".format(
+                    e, group_recording.id
+                )
+            )
+            continue
+
+        size_in_megabytes = size_in_bytes / (1024 * 1024)
+        # If the size is less than 150 MB, don't publish.
+        if not (size_in_megabytes >= 100):
+            continue
+        valid_group_recordings.append(group_recording.id)
+
+    # Publish all valid group recordings.
+    publish_group_recordings.delay(valid_group_recordings)
 
 
 @periodic_task(run_every=crontab(hour=5, minute=30))
@@ -361,10 +466,14 @@ def follow_action_message():
     for stream in live_streams:
         action_time = stream.start + datetime.timedelta(minutes=10)
         end_time = stream.start + datetime.timedelta(minutes=13)
+
+        action_time2 = stream.start + datetime.timedelta(minutes=20)
+        end_time2 = stream.start + datetime.timedelta(minutes=23)
         now = timezone.now()
 
         if not action_time <= now < end_time:
-            continue
+            if not action_time2 <= now < end_time2:
+                continue
 
         admin_uid = firebase_private.get_or_register_admin()
 
@@ -381,7 +490,7 @@ def follow_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+# @periodic_task(run_every=crontab(minute="*/5"))
 def referral_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
@@ -414,6 +523,38 @@ def referral_action_message():
         )
 
 
+# @periodic_task(run_every=crontab(minute="*/5"))
+def chat_prompt_message():
+    live_streams = models.Group.objects.filter(
+        is_live=True,
+        closed=False,
+    )
+
+    if not live_streams:
+        return
+
+    for stream in live_streams:
+        action_time = stream.start + datetime.timedelta(minutes=5)
+        end_time = stream.start + datetime.timedelta(minutes=8)
+        now = timezone.now()
+
+        if not action_time <= now < end_time:
+            continue
+
+        admin_uid = firebase_private.get_or_register_admin()
+
+        data = {
+            "message": constants.CHAT_PROMPT_MESSAGE,
+            "type": int(constants.CHAT_MESSAGE_TYPE_PROMPT_ENUM),
+        }
+
+        firebase_service.send_message(
+            data=data,
+            group_id=stream.id,
+            sender=admin_uid
+        )
+
+
 @periodic_task(run_every=crontab(minute="*/5"))
 def streams_action_message():
     live_streams = models.Group.objects.filter(
@@ -428,16 +569,38 @@ def streams_action_message():
         action_time = stream.start + datetime.timedelta(minutes=25)
         end_time = stream.start + datetime.timedelta(minutes=28)
         now = timezone.now()
+        future_streams = models.Group.objects.filter(
+            start=stream.start + datetime.timedelta(minutes=60),
+            categories__in=stream.categories.all(),
+        )
+
+        if not future_streams:
+            future_streams = models.Group.objects.filter(
+                start__gte=stream.start,
+                start__lte=stream.start + datetime.timedelta(hours=24),
+                categories__in=stream.categories.all(),
+            )
+
+        if not future_streams:
+            continue
 
         if not action_time <= now < end_time:
             continue
 
         admin_uid = firebase_private.get_or_register_admin()
+        future_stream = future_streams.annotate(
+            rsvps=Count("requests")
+        ).order_by("-rsvps").first()
+
+        stream_data = serializers.GroupSerializer(future_stream).data
 
         data = {
             "message": constants.CHAT_ACTION_STREAMS_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
-            "action": int(constants.CHAT_ACTION_TYPE_STREAMS_ENUM)
+            "action": int(constants.CHAT_ACTION_TYPE_STREAMS_ENUM),
+            "data": {
+                "stream": json.loads(JSONRenderer().render(stream_data).decode('utf8'))
+            }
         }
 
         firebase_service.send_message(
@@ -447,7 +610,7 @@ def streams_action_message():
         )
 
 
-@periodic_task(run_every=crontab(minute="*/5"))
+# @periodic_task(run_every=crontab(minute="*/5"))
 def download_app_action_message():
     live_streams = models.Group.objects.filter(
         is_live=True,
@@ -477,4 +640,61 @@ def download_app_action_message():
             data=data,
             group_id=stream.id,
             sender=admin_uid
+        )
+
+
+# TODO(Sanjeev): Clean this up
+# @periodic_task(run_every=crontab(minute="0", hour="13"))
+def send_top_stream_message():
+    # Get all users who has followed a category
+    user_categories = user_models.UserCategory.objects.filter(
+        followed=True
+    )
+
+    # Filter all active categories
+    categories = models.Category.objects.filter(
+        is_active=True
+    )
+
+    # Get top streams from each category
+    top_streams = services.get_top_streams_by_categories(
+        categories=categories
+    )
+
+    followers = None
+    for stream in top_streams:
+        if not followers:
+            # Filter category followers
+            followers = user_categories.filter(
+                category=stream["category"]
+            )
+        else:
+            # Filter unique category followers who
+            # have not received a top stream message yet.
+            followers = user_categories.filter(
+                category=stream["category"]
+            ).exclude(
+                user__in=followers.values_list("user")
+            )
+
+        # Add recent users who has watched a stream in
+        # this category
+        users = services.get_stream_viewers_by_category(
+            category=stream["category"]
+        )
+
+        # Create a list of unique user ids who will receive
+        # the top stream message
+        final_user_ids = set(chain(
+            followers.values_list("user", flat=True),
+            users.values_list("participant", flat=True)
+        ))
+
+        # Remove stream host from list if present
+        if stream.host in final_user_ids:
+            final_user_ids.remove(stream.host)
+
+        wati_public.send_top_stream_message(
+            stream=stream,
+            user_ids=final_user_ids
         )

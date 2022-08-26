@@ -141,7 +141,10 @@ class FargateApiServiceStack(NestedStack):
             "DYTE_APP_ID",
             "STRIPE_PUBLISHABLE_KEY",
             "STRIPE_SECRET_KEY",
-            "DEFAULT_FROM_EMAIL"
+            "DEFAULT_FROM_EMAIL",
+            "SOCKET_IO_BASE_URL",
+            "WATI_9051_ACCESS_TOKEN",
+            "WATI_8953_ACCESS_TOKEN"
         ]
 
         params = {
@@ -209,8 +212,8 @@ class FargateApiServiceStack(NestedStack):
                 "Name": "datadog",
                 "dd_service": construct_id,
                 "dd_source": "httpd",
-                "dd_version": BUILD_VERSION,
-                "dd_env": environment_name,
+                # "dd_version": BUILD_VERSION,
+                # "dd_env": environment_name,
                 "provider": "ecs",
                 "apikey": dd_api_secret.secret_value.to_string(),
                 "Host": "http-intake.logs.datadoghq.eu",
@@ -432,8 +435,8 @@ class FargateServiceStack(NestedStack):
                     "Name": "datadog",
                     "dd_service": construct_id,
                     "dd_source": "httpd",
-                    "dd_version": BUILD_VERSION,
-                    "dd_env": environment_name,
+                    # "dd_version": BUILD_VERSION,
+                    # "dd_env": environment_name,
                     "provider": "ecs",
                     "apikey": dd_api_secret.secret_value.to_string(),
                     "Host": "http-intake.logs.datadoghq.eu",
@@ -462,8 +465,8 @@ class FargateServiceStack(NestedStack):
                         "Name": "datadog",
                         "dd_service": f"{construct_id}-beat",
                         "dd_source": "httpd",
-                        "dd_version": BUILD_VERSION,
-                        "dd_env": environment_name,
+                        # "dd_version": BUILD_VERSION,
+                        # "dd_env": environment_name,
                         "provider": "ecs",
                         "apikey": dd_api_secret.secret_value.to_string(),
                         "Host": "http-intake.logs.datadoghq.eu",

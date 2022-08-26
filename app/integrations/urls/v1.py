@@ -5,4 +5,5 @@ urlpatterns = [
     path("dyte/", include("integrations.dyte.urls.v1")),
     path("retool/", include("integrations.retool.urls.v1")),
     path("firebase/", include("integrations.firebase.urls.v1")),
+    path("onesignal/", include("integrations.onesignal.urls.v1")),
 ]

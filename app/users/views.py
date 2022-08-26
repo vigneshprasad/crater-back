@@ -1,3 +1,5 @@
+import datetime
+
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth import views as auth_views, get_user_model
@@ -21,10 +23,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from conversations import models as conversation_models
+from conversations import private as conversation_private
 from payment import models as payment_models, serializers as payment_serializers
 from payment.tasks import charge_subscription_payment
 from resources.meetings import models as meeting_models
-from users import permissions, services, utils
+from users import permissions, services, utils, signals, exceptions
 from utils import messages
 from utils.stripe_service import stripe_service
 from . import serializers, models, constants
@@ -187,6 +190,18 @@ class ProfileViewSet(
 
         return Response(serialized.data)
 
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def status(self, request):
+        user = request.user
+
+        # Get profile completed percentage
+        percentage_complete = user.profile.percentage_complete
+
+        return Response({"percent": percentage_complete}, status=status.HTTP_200_OK)
+
 
 class BankDetailViewSet(mixins.CreateModelMixin,
                         mixins.ListModelMixin,
@@ -256,16 +271,17 @@ class LogoutView(RestLogoutView):
     serializer_class = serializers.LogoutSerializer
 
     def logout(self, request):
+        user = request.user
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         os_id = serializer.validated_data.get("os_id", "")
-        if os_id:
-            try:
-                device = models.Device.objects.get(user=self.request.user, os_id=os_id)
-                device.is_active = False
-                device.save()
-            except models.Device.DoesNotExist:
-                pass
+
+        # Send user logout signal.
+        signals.user_logout.send(
+            sender=self.__class__,
+            user=user,
+            os_id=os_id,
+        )
         return super().logout(request)
 
 
@@ -584,6 +600,7 @@ class UserReferralViewSet(
 
 
 class UserPermissionViewSet(viewsets.GenericViewSet):
+
     serializer_class = serializers.UserPermissionSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = models.UserPermission.objects.all()
@@ -592,7 +609,114 @@ class UserPermissionViewSet(viewsets.GenericViewSet):
         user = request.user
         try:
             obj = self.get_queryset().get(user=user)
-            data = self.get_serializer(obj).data
-            return Response(data, status=status.HTTP_200_OK)
         except models.UserPermission.DoesNotExist:
-            return Response(None, status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        data = self.get_serializer(obj).data
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class UserCategoryViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = serializers.UserCategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = models.UserCategory.objects.all()
+
+    @action(
+        methods=["POST"],
+        detail=False,
+    )
+    def follow(self, request):
+        user = request.user
+        data = request.data
+
+        # Category validation
+        category = conversation_private.get_category_by_slug(
+           slug=data.get("category")
+        )
+        if not category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user_category = services.get_user_category(
+            user=user,
+            category=category
+        )
+        if user_category:
+            category_already_followed_exception = exceptions.CategoryAlreadyFollowed()
+            return Response(
+                category_already_followed_exception.get_error_body(),
+                status=category_already_followed_exception.status_code
+            )
+
+        user_category = services.update_or_create_user_category(
+            user=user,
+            category=category,
+            follow=True
+        )
+
+        data = self.get_serializer(user_category).data
+
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["POST"],
+        detail=False,
+    )
+    def unfollow(self, request):
+        user = request.user
+        data = request.data
+
+        # Category validation
+        category = conversation_private.get_category_by_slug(
+            slug=data.get("category")
+        )
+        if not category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user_category = services.get_user_category(
+            user=user,
+            category=category
+        )
+
+        if not user_category:
+            category_already_unfollowed_exception = exceptions.CategoryAlreadyUnfollowed()
+            return Response(
+                category_already_unfollowed_exception.get_error_body(),
+                status=category_already_unfollowed_exception.status_code
+            )
+
+        user_category = services.update_or_create_user_category(
+            user=user,
+            category=category,
+            follow=False
+        )
+
+        data = self.get_serializer(user_category).data
+
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def follower(self, request):
+        user = request.user
+        slug = request.query_params.get("category")
+
+        # Category validation
+        category = conversation_private.get_category_by_slug(
+            slug=slug
+        )
+        if not category:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Check user category followed status
+        is_follower = services.user_category_followed(
+            user=user,
+            category=category
+        )
+
+        return Response({"is_follower": is_follower}, status=status.HTTP_200_OK)

@@ -1,10 +1,11 @@
 import datetime
 
+from dateutil.relativedelta import relativedelta
+from django.db.models import F, Count, Value, Window, Case, When, Q, DateField
+from django.db.models.functions import DenseRank, TruncMonth
+
 from crater.creator import models
 from crater.creator import signals
-
-from django.db.models import F, Count, Value, Window, Case, When
-from django.db.models.functions import DenseRank
 
 
 def create_default_community_for_creator(creator):
@@ -248,32 +249,6 @@ def get_top_creators_by_date_range(start_date, end_date, count=5, user=None):
     return top_creators, requested_creator_rank
 
 
-def get_traffic_sources_for_creator(user):
-    """Returns creator followers count by various
-        traffic sources for current month.
-
-    Args:
-        user(User): User instance of a creator
-
-    """
-    traffic_source_data = models.Follower.objects.filter(
-        creator__user=user,
-        unfollowed=False
-    ).values(
-        source_name=Case(
-            When(
-                user__user_source__referrer__pk=user.pk,
-                then=F("user__user_source__utm_source")
-            ),
-            default=Value("Crater")
-        )
-    ).annotate(
-        count=Count("id", distinct=True)
-    )
-
-    return traffic_source_data
-
-
 def get_percentage_creator_followers_from_crater(user):
     """Returns percentage of creator's followers from Crater.
 
@@ -302,3 +277,105 @@ def get_percentage_creator_followers_from_crater(user):
     )
 
     return percentage_creator_followers_from_crater
+
+
+def get_creator_stream_stats(user):
+    """Returns count for total streams, upcoming streams
+     and past streams
+
+    Args:
+         user(User): User instance of a creator
+
+    """
+    now = datetime.datetime.now()
+
+    stats = list(models.Creator.objects.filter(
+        is_active=True,
+        user=user
+    ).annotate(
+        total_streams=Count("user__groups_hosted"),
+        total_upcoming_streams=Count(
+            "user__groups_hosted",
+            Q(
+                user__groups_hosted__is_published=True,
+                user__groups_hosted__is_live=False,
+                user__groups_hosted__closed=False,
+                user__groups_hosted__start__gte=now
+            )
+        ),
+        total_past_streams=Count(
+            "user__groups_hosted",
+            Q(
+                user__groups_hosted__is_published=True,
+                user__groups_hosted__is_live=False,
+                user__groups_hosted__closed=True,
+                user__groups_hosted__start__lt=now
+            )
+        )
+    ).values(
+        "total_streams",
+        "total_upcoming_streams",
+        "total_past_streams"
+    ))
+
+    if stats:
+        stats = stats[0]
+    else:
+        stats = {}
+
+    return stats
+
+
+def get_total_creators():
+    """Return total number of active creators."""
+
+    return models.Creator.objects.filter(
+        is_active=True
+    ).count()
+
+
+def get_follower_count_by_month_and_year(user, start, end):
+    """Return creator follower count by month and year.
+
+    Args:
+        user(User): User instance of creator
+        start(DateTime): Start datetime
+        end(DateTime): End datetime
+
+    """
+    follower_count_data = models.Follower.objects.filter(
+        unfollowed=False,
+        notify=True,
+        creator__user=user,
+        followed_at__date__gte=start
+    ).values(
+        key=TruncMonth(
+            F("followed_at"),
+            output_field=DateField()
+        )
+    ).annotate(
+        value=Count("key")
+    )
+
+    follower_count_by_month_and_year = list(follower_count_data)
+
+    # Followed at dates which has follower count
+    present_dates = follower_count_data.values_list("key", flat=True)
+
+    delta = (end.year - start.year) * 12 + (end.month - start.month)
+
+    for i in range(1, delta + 1):
+        date = (start + relativedelta(months=i)).date()
+        if date not in present_dates:
+            follower_count_by_month_and_year.append({
+                "key": date,
+                "value": 0
+            })
+
+    # Sort by rsvp_at date
+    follower_count_by_month_and_year.sort(key=lambda x: x["key"])
+
+    # Format rsvp_at date
+    [x.update({"key": x["key"].strftime("%b %Y")}) for x in follower_count_by_month_and_year]
+
+    return follower_count_by_month_and_year

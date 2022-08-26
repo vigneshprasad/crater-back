@@ -2,6 +2,8 @@ from django.db import models
 from colorfield import fields as color_fields
 
 # Create your models here.
+from django.utils import timezone
+
 from base import models as base_models
 from crater.rewards import constants
 from resources.meetings import services as meeting_services
@@ -19,7 +21,11 @@ class RewardType(base_models.BaseModel):
         blank=True,
         on_delete=models.CASCADE
     )
+    order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-order"]
 
     def __str__(self):
         return self.name
@@ -64,11 +70,20 @@ class Reward(base_models.BaseModel):
     class Meta:
         ordering = ["-order"]
 
+    def __str__(self):
+        return "{} - {}".format(self.creator, self.type.name)
+
     def get_active_auction(self):
-        return self.auctions.filter(is_closed=False).last()
+        """Returns active auctions for a reward."""
+        return self.auctions.filter(
+            is_closed=False,
+            is_active=True,
+            end__gt=timezone.now()
+        ).last()
 
 
 class Redemption(base_models.BaseModel):
+
     user = models.ForeignKey(
         "users.User",
         models.CASCADE

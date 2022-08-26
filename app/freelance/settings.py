@@ -128,6 +128,8 @@ INSTALLED_APPS = [
     "integrations.dyte",
     "integrations.retool",
     "integrations.firebase",
+    "integrations.wati",
+    "integrations.onesignal",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -146,6 +148,8 @@ INSTALLED_APPS = [
     "conversations",
     "conversations.dashboard",
     "communications.notifications",
+    "communications.whatsapp",
+    "communications.emails",
     "devices",
 
     "crater.auth",
@@ -155,7 +159,9 @@ INSTALLED_APPS = [
     "crater.exchange",
     "crater.payments",
     # "crater.gateways",
-    "crater.gateways.stripe_payments"
+    "crater.gateways.stripe_payments",
+
+    "tokens"
 ]
 
 
@@ -381,9 +387,14 @@ MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
 ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
+
+# ------------- TWILIO CREDENTIALS ------------- #
 DEFAULT_SMS_PHONE_NUMBER = os.getenv("DEFAULT_SMS_PHONE_NUMBER", "")
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "example")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "example")
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+
+
+# ------------ ONE SIGNAL -------------------- #
 ONESIGNAL_APP_ID = os.getenv("ONESIGNAL_APP_ID", "07ed4c08-3698-4fdd-80c5-2de973b851ef")
 ONESIGNAL_APIKEY = os.getenv("ONESIGNAL_APIKEY", "MThiOWYzOWYtOThkMC00MGI1LWJiMzMtM2QwNDMwYmE1Mzlh")
 
@@ -448,18 +459,26 @@ if SENTRY_DSN:
         environment=os.getenv("ENVIRONMENT"),
         integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
         attach_stacktrace=True,
-        send_default_pii=True,
-        # traces_sample_rate=1
+        send_default_pii=True
     )
 
-# ----------- FRESHCHAT ---------#
+
 ALLOW_WHATSAPP_SENDING = False if os.getenv("ALLOW_WHATSAPP_SENDING", True) == "False" else True
+
+# ----------- FRESHCHAT --------- #
 FRESHCHAT_BASE_URL = "https://api.in.freshchat.com/v2"
 FRESHCHAT_USER_CREATION_ALLOWED = False if os.getenv("FRESHCHAT_USER_CREATION_ALLOWED", True) == "False" else True
 FRESHCHAT_APP_ID = os.getenv("FRESHCHAT_APP_ID")
 FRESHCHAT_MESSAGING_PHONE_NUMBER = os.getenv("FRESHCHAT_MESSAGING_PHONE_NUMBER")
 FRESHCHAT_WHATSAPP_NAMESPACE = os.getenv("FRESHCHAT_WHATSAPP_NAMESPACE")
 FRESHCHAT_ACCESS_TOKEN = os.getenv("FRESHCHAT_ACCESS_TOKEN")
+
+# ----------- WATI ------------ #
+WATI_9051_BASE_URL = "https://live-server-9501.wati.io/api/v1/"
+WATI_9051_ACCESS_TOKEN = os.getenv("WATI_9051_ACCESS_TOKEN")
+
+WATI_8953_BASE_URL = "https://live-server-8953.wati.io/api/v1/"
+WATI_8953_ACCESS_TOKEN = os.getenv("WATI_8953_ACCESS_TOKEN")
 
 # -------------- GOOGLE ------------ #
 GOOGLE_API_ACCOUNT_TYPE = os.getenv("GOOGLE_API_ACCOUNT_TYPE", "")
@@ -518,6 +537,9 @@ STRIPE_SECRET_KEY = os.environ.get(
     "STRIPE_SECRET_KEY",
     "sk_test_51K3b69SEKv2Ym9yY2iHp4gY7IS4fPzhWjMMcrF2RRllNsfCWPyUwtNTCnqoFeJMuCKzljR5y8p7eLATF0lByhd7M00BBpRPjZM"
 )
+
+# ----------- SOCKET.IO ----------- #
+SOCKET_IO_BASE_URL = os.getenv("SOCKET_IO_BASE_URL")
 
 # API safe methods.
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")

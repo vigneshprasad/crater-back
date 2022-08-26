@@ -29,6 +29,7 @@ DEFAULT_MAX_SPEAKERS = 6
 CHAT_MESSAGE_TYPE_TEXT_ENUM = 1
 CHAT_MESSAGE_TYPE_REACTION_ENUM = 2
 CHAT_MESSAGE_TYPE_ACTION_ENUM = 3
+CHAT_MESSAGE_TYPE_PROMPT_ENUM = 5
 
 CHAT_MESSAGE_TYPE_TEXT = "text"
 CHAT_MESSAGE_TYPE_REACTION = "reaction"
@@ -97,6 +98,7 @@ INSTANT_CONVERSATION_TIME_SLOTS = [
 ]
 
 SESSION_URL_WITH_GROUP = "session/{group_id}"
+VIDEO_URL_WITH_GROUP = "video/{group_id}"
 LIVESTREAM_URL_WITH_GROUP = "livestream/{group_id}"
 PAST_STREAM_FEATURED_CATEGORIES = ["Design", "Finance", "Other"]
 
@@ -112,6 +114,14 @@ CHAT_ACTION_TYPE_STREAMS = "streams"
 CHAT_ACTION_TYPE_DOWNLOAD_APP = "download_app"
 
 CHAT_ACTION_FOLLOW_MESSAGE = "Hey there! If you like this stream, follow me to never miss out on my upcoming streams."
-CHAT_ACTION_REFERRAL_MESSAGE = "Earn up to ₹100 for each friend that joins & watches a stream on Crater."
+CHAT_ACTION_REFERRAL_MESSAGE = "Earn ₹100 for each friend that joins & watches a stream on Crater."
 CHAT_ACTION_STREAMS_MESSAGE = "Explore other upcoming live streams on Crater"
 CHAT_ACTION_DOWNLOAD_APP_MESSAGE = "Download the Crater app on android and iOS"
+
+CHAT_PROMPT_MESSAGE = "I am here to learn about"
+
+SORT_BY_TODAY = "today"
+SORT_BY_THIS_WEEK = "this_week"
+SORT_BY_NEXT_WEEK = "next_week"
+SORT_BY_THIS_MONTH = "this_month"
+SORT_BY_RECENTLY_ADDED = "recently_added"

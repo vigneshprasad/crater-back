@@ -16,7 +16,7 @@ class IsAuthenticated(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if not bool(request.user and request.user.is_authenticated):
-            raise AuthenticationFailed
+            raise AuthenticationFailed()
 
         return True
 
@@ -35,7 +35,7 @@ class IsAuthenticatedOrReadOnly(permissions.BasePermission):
             return True
 
         if not bool(request.user and request.user.is_authenticated):
-            raise AuthenticationFailed
+            raise AuthenticationFailed()
 
         return True
 

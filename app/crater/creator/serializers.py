@@ -1,8 +1,31 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_auth import serializers as rest_auth_serializers
 
 from crater.creator import models
+from crater.creator import constants
 from users import models as user_models
 from users import serializers as user_serializers
+
+
+class PointOfContactDetailSerializer(rest_auth_serializers.UserDetailsSerializer):
+    photo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "photo",
+            "email",
+            "name",
+            "phone_number",
+        )
+
+    @staticmethod
+    def get_photo(obj):
+        if not hasattr(obj, "profile"):
+            return None
+        return obj.profile.photo.url if obj.profile.photo else obj.profile.photo_url
 
 
 class CreatorSerializer(serializers.ModelSerializer):
@@ -13,6 +36,8 @@ class CreatorSerializer(serializers.ModelSerializer):
     default_community = serializers.SerializerMethodField(read_only=True)
     is_follower = serializers.SerializerMethodField(read_only=True)
     is_subscriber = serializers.SerializerMethodField(read_only=True)
+
+    point_of_contact_detail = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
 
@@ -34,6 +59,9 @@ class CreatorSerializer(serializers.ModelSerializer):
             "video_poster",
             "show_analytics",
             "is_subscriber",
+            "point_of_contact",
+            "point_of_contact_detail",
+            "tokens_enabled",
         )
         extra_kwargs = {
             "subscriber_count": {
@@ -59,6 +87,7 @@ class CreatorSerializer(serializers.ModelSerializer):
             }
         }
 
+    #TODO(Abhishek): depricate value and move to new value in fornt end.
     def get_is_follower(self, creator):
         """Returns True if the requesting user is
             following the creator.
@@ -75,7 +104,7 @@ class CreatorSerializer(serializers.ModelSerializer):
         if user.pk == creator.user.pk:
             return True
 
-        return creator.followers.filter(user=user).exists()
+        return creator.followers.filter(user=user, notify=True).exists()
 
     def get_is_subscriber(self, creator):
         """Returns True if the requesting user has
@@ -107,6 +136,18 @@ class CreatorSerializer(serializers.ModelSerializer):
             return None
 
         return CommunitySerializer(community).data
+
+    @staticmethod
+    def get_point_of_contact_detail(obj):
+        if obj.point_of_contact:
+            return PointOfContactDetailSerializer(obj.point_of_contact).data
+
+        try:
+            default_poc_user = get_user_model().objects.get(email=constants.DEFAULT_POC_EMAIL)
+        except get_user_model().DoesNotExist:
+            return None
+
+        return PointOfContactDetailSerializer(default_poc_user).data
 
 
 class CreatorProfileListSerializer(serializers.ModelSerializer):
@@ -222,3 +263,44 @@ class CoinSerializer(serializers.ModelSerializer):
                 "read_only": True
             }
         }
+
+
+class CreatorRankingSerializer(serializers.ModelSerializer):
+    profile_detail = CreatorProfileListSerializer(source="user.profile", read_only=True)
+    watch_time = serializers.DecimalField(max_digits=10, decimal_places=2)
+    is_follower = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Creator
+        fields = (
+            "id",
+            "user",
+            "slug",
+            "subscriber_count",
+            "profile_detail",
+            "watch_time",
+            "is_follower"
+        )
+
+    def get_is_follower(self, creator):
+        """Returns True if the requesting user is
+            following the creator.
+
+        """
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+        # If the user is the same as the creator. Return True
+        if user.pk == creator.user.pk:
+            return True
+
+        return creator.followers.filter(user=user, notify=True).exists()
+
+
+
+
+

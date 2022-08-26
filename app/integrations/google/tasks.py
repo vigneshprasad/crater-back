@@ -7,7 +7,7 @@ from integrations.google import private
 
 @task()
 def create_calendar_events_for_series_attendee(series_id, user_id):
-    """Creates calendar events for serie's groups for attendee"""
+    """Creates calendar events for series groups for attendee"""
 
     try:
         user = get_user_model().objects.get(uuid=user_id)

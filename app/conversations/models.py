@@ -1,21 +1,23 @@
-import boto3
 import datetime
-import pytz
-from celery.task import task
+import logging
 
-from django.db import models
-from django.core import exceptions
+import boto3
+import pytz
+from botocore import exceptions as botocore_exceptions
+from celery.task import task
 from django.conf import settings
-from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.core import exceptions
+from django.core.validators import FileExtensionValidator
+from django.db import models
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from conversations import constants
-from conversations import signals
+from conversations import constants, signals, private
+from integrations.dyte import constants as dyte_constants
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
 
@@ -129,6 +131,7 @@ class Category(base_model.BaseModel):
     is_active = models.BooleanField(default=True)
     show_on_home_page = models.BooleanField(default=True)
     tagline = models.TextField(null=True, blank=True)
+    slug = models.SlugField(unique=True)
 
     class Meta:
         ordering = ["order"]
@@ -152,8 +155,15 @@ class Category(base_model.BaseModel):
             "COLOR EXAMPLE"
         )
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.slug:
+            self.slug = private.generate_unique_slug_for_category(self)
+        return super(Category, self).save(force_insert, force_update, using, update_fields)
+
 
 class Group(base_model.BaseModel):
+
     GROUP_PRIVACY_CHOICES = (
         (constants.GROUP_PRIVACY_PUBLIC_ENUM, constants.GROUP_PRIVACY_PUBLIC),
         (constants.GROUP_PRIVACY_PRIVATE_ENUM, constants.GROUP_PRIVACY_PRIVATE)
@@ -171,7 +181,7 @@ class Group(base_model.BaseModel):
     )
 
     type = models.PositiveIntegerField(
-        default=constants.GROUP_TYPE_GENERIC_ENUM,
+        default=constants.GROUP_TYPE_WEBINAR_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     # TODO(Nishant): Have to get options for this.
@@ -196,7 +206,7 @@ class Group(base_model.BaseModel):
         related_name="groups_speaker"
     )
     # Attendees are users who can join the call but are not the
-    # speakers on it i.e just listen/chat.
+    # speakers on it, i.e. just listen/chat.
     attendees = models.ManyToManyField(
         get_user_model(),
         verbose_name=_("Attendees"),
@@ -222,7 +232,7 @@ class Group(base_model.BaseModel):
     max_attendees = models.PositiveIntegerField(null=True, blank=True)
 
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
-    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
+    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM)
 
     # Flags.
     is_featured = models.BooleanField(default=False)
@@ -251,16 +261,18 @@ class Group(base_model.BaseModel):
     # group is visible in all conversations etc.
     is_approved = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
+    # Whether the group can be shown on the site.
     is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
 
-    # Total minutes spent by attendees on the call (Total).
+    # Total minutes spent by attendees on the stream (Total).
     total_minutes_spent_by_attendees = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
         blank=True
     )
-    # Total minutes spent by host on the call.
+    # Total minutes spent by host on the stream.
     total_minutes_spent_by_host = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -294,6 +306,22 @@ class Group(base_model.BaseModel):
     def approve(self):
         self.is_approved = True
         self.approved_at = datetime.datetime.now()
+        self.save()
+
+    def mark_published(self):
+        """Marks a group published."""
+        self.is_published = True
+        # Only set published at the first time the group
+        # is marked published.
+        if not self.published_at:
+            self.published_at = datetime.datetime.now()
+            # Send signal only the first time the group is
+            # marked published.
+            signals.group_marked_published.send(
+                sender=self.__class__,
+                group=self
+            )
+
         self.save()
 
     def mark_live(self, user=None):
@@ -342,7 +370,7 @@ class Group(base_model.BaseModel):
         """
 
         # Mark the meeting as inactive first.
-        self.mark_inactive(user=user)
+        self.is_live = False
         self.closed = True
         self.closed_at = datetime.datetime.now()
         self.save()
@@ -399,6 +427,16 @@ class Group(base_model.BaseModel):
         """Return start in the local timezone."""
         return self.end.astimezone(pytz.timezone(settings.TIME_ZONE)) if self.end else None
 
+    def get_host_and_speakers(self):
+        """Return a list of hosts and speakers."""
+        users = [self.host]
+        speakers = self.speakers.all()
+        for speaker in speakers:
+            if speaker in users:
+                continue
+            users.append(speaker)
+        return users
+
     def get_all_users(self):
         """Returns all users that are part of the group."""
         users = [self.host]
@@ -408,6 +446,11 @@ class Group(base_model.BaseModel):
                 continue
             users.append(user)
         return users
+
+    def get_series(self):
+        """Return series of the group"""
+        series = self.series_groups.filter(is_published=True).first()
+        return series
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""
@@ -474,21 +517,6 @@ class Group(base_model.BaseModel):
 
         """
         return self.local_end.strftime("%I:%M %p") if self.local_end else None
-
-    def get_host_and_speakers(self):
-        """Return a list of hosts and speakers."""
-        users = [self.host]
-        speakers = self.speakers.all()
-        for speaker in speakers:
-            if speaker in users:
-                continue
-            users.append(speaker)
-        return users
-
-    def get_series(self):
-        """Return series of the group"""
-        series = self.series_groups.filter(is_published=True).first()
-        return series
 
 
 class Invite(base_model.BaseModel):
@@ -612,10 +640,11 @@ class GroupRecording(base_model.BaseModel):
         on_delete=models.CASCADE
     )
     recording = models.FileField(
+        max_length=255,
         upload_to=recording_storage_path,
         blank=True,
         null=True,
-        validators=[validator_utils.SizeValidator(size=512)]
+        validators=[validator_utils.SizeValidator(size=1024)]
     )
 
     # All dyte recordings for this GroupRecording.
@@ -637,23 +666,32 @@ class GroupRecording(base_model.BaseModel):
                 recording is present.
 
         """
-        if not self.recording:
-            # If there is not dyte recording also, throw and exception.
-            last_recording = self.dyte_recordings.last()
-            if not last_recording:
-                raise exceptions.ValidationError("Dyte Recording must be present to publish.")
-            # Create recording from dyte recording.
-            self.upload_dyte_recording_to_live_stream.delay(self.id)
+        if self.recording:
+            # If there is a recording present and recording
+            # is not published, mark it published.
+            if not self.is_published:
+                self.is_published = True
+                self.published_at = timezone.now()
+                self.save()
 
-        self.is_published = True
-        self.published_at = datetime.datetime.now()
-        self.save()
+            return
+
+        # If there is not dyte recording also, throw and exception.
+        last_recording = self.dyte_recordings.last()
+        if not last_recording:
+            raise exceptions.ValidationError("Dyte Recording must be present to publish.")
+        # Create recording from dyte recording.
+        self.upload_dyte_recording_to_live_stream.delay(self.id)
 
     @staticmethod
     @task()
     def upload_dyte_recording_to_live_stream(group_recording_id):
         """Uploads dyte recording to media/live_stream/ for
             a stream.
+
+        Args:
+            group_recording_id(int): Group recording ID the we are
+                uploading recording for.
 
         """
         group_recording = GroupRecording.objects.get(id=group_recording_id)
@@ -668,18 +706,43 @@ class GroupRecording(base_model.BaseModel):
 
         dyte_rec = group_recording.dyte_recordings.last()
         file_name = dyte_rec.file_name
-
-        source = {
-            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
-            "Key": dyte_rec.storage_key_name
-        }
         destination = recording_storage_path(group_recording, file_name)
-        # Copy dyte recording to the live_stream folder.
-        my_bucket.copy(source, "media/" + destination)
+
+        try:
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": dyte_rec.storage_key_name
+            }
+            my_bucket.copy(source, "media/" + destination)
+        except botocore_exceptions.ClientError as e:
+            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
+                group_id=group_recording.group_id
+            )
+            source = {
+                "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
+                "Key": path + "/" + dyte_rec.file_name
+            }
+            my_bucket.copy(source, "media/" + destination)
+        except Exception as e:
+            logging.error(
+                "Exception happened when publishing (publish) recording: {} - {}".format(
+                    e, group_recording.id
+                )
+            )
+            return
 
         # Update the recording.
         group_recording.recording.name = destination
+        # Update published.
+        group_recording.is_published = True
+        group_recording.published_at = datetime.datetime.now()
         group_recording.save()
+
+        # Send recording published signal.
+        signals.group_recording_published.send(
+            sender=group_recording.__class__,
+            recording=group_recording
+        )
 
 
 class GroupRtmp(base_model.BaseModel):
@@ -841,3 +904,50 @@ class Series(base_model.BaseModel):
         display_time = self.get_display_start_time()
         display_date = self.get_display_day()
         return "{} @ {}".format(display_date, display_time)
+
+
+class GroupQuestion(base_model.BaseModel):
+    """
+    Question for the group.
+    """
+    question = models.TextField()
+    group = models.ForeignKey(
+        Group,
+        related_name="questions",
+        on_delete=models.CASCADE
+    )
+    sender = models.ForeignKey(
+        get_user_model(),
+        related_name="questions",
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.pk}-{self.sender.__str__()}"
+
+
+class QuestionUpvote(base_model.BaseModel):
+    """
+    Upvote for the group question.
+    """
+    question = models.ForeignKey(
+        GroupQuestion,
+        related_name="question_upvotes",
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        related_name="user_upvotes",
+        on_delete=models.CASCADE
+    )
+    upvote = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.pk}-{self.user.__str__()}"
+

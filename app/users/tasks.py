@@ -7,16 +7,18 @@ from celery import shared_task
 from celery.schedules import crontab
 from celery.task import task, periodic_task
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.utils import timezone
+
+from integrations.dyte import models as dyte_models
+from users import models, constants
 from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
 
-from freelance.settings import DEFAULT_FROM_EMAIL
-from users import models
-from users import constants
-from integrations.dyte import models as dyte_models
+
+LOGGER = logging.getLogger(__name__)
 
 
 @shared_task(name="send_twilio_message")
@@ -43,7 +45,7 @@ def send_email(
     reply_to = kwargs.get('reply_to', [])
     cc = kwargs.get('cc', [])
     bcc = kwargs.get('bcc', [])
-    from_email = kwargs.get('from_email', DEFAULT_FROM_EMAIL)
+    from_email = kwargs.get('from_email', settings.DEFAULT_FROM_EMAIL)
 
     msg = EmailMessage(
         subject=subject,
@@ -139,3 +141,19 @@ def update_user_referrals_status():
 
         referral = dyte_meeting_participant.participant.referred_by
         referral.mark_payment_due()
+
+
+@task
+def create_profile_on_user_creation(user_pk):
+    """Create profile for new user.
+
+    Args:
+        user_pk(uuid): UUID for created user.
+
+    """
+    try:
+        user = get_user_model().objects.get(pk=user_pk)
+        models.Profile.objects.get_or_create(user=user)
+    except Exception as e:
+        LOGGER.error(str(e))
+        return

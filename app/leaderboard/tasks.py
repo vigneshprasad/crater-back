@@ -6,6 +6,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from conversations import models as conversations_models
+from integrations.dyte import tasks as dyte_tasks
 from leaderboard import constants, private, models
 
 
@@ -19,7 +20,6 @@ def update_user_leaderboards():
     leaderboards = private.get_active_leaderboards()
     # Get leaderboard that ended yesterday and update the final results.
     leaderboards_ended_yesterday = private.get_recently_ended_leaderboards()
-
     all_leaderboards_to_be_updated = leaderboards | leaderboards_ended_yesterday
 
     for leaderboard in all_leaderboards_to_be_updated:
@@ -39,9 +39,49 @@ def update_user_leaderboards():
             user_leaderboard.save()
 
         leaderboard.last_calculated_at = timezone.now()
+        leaderboard.save()
 
 
-@task
+@task()
+def recalculate_leaderboards(leaderboard_ids):
+    """Recalculate leaderboard minutes for provided
+        leaderboard ids.
+
+    Args:
+        leaderboard_ids(list/queryset): ID's of
+            leaderboards that have to be updated.
+
+    """
+    leaderboards = models.Leaderboard.objects.filter(
+        id__in=leaderboard_ids
+    )
+
+    for leaderboard in leaderboards:
+        user_leaderboards = leaderboard.user_leaderboards.filter(is_active=True)
+
+        for user_leaderboard in user_leaderboards:
+            host = user_leaderboard.user
+            groups = conversations_models.Group.objects.filter(
+                host=host,
+                start__gte=leaderboard.start,
+                end__lte=leaderboard.end
+            )
+            if not groups:
+                continue
+            # Recalculate minutes for all groups.
+            dyte_tasks.recalculate_minutes_for_groups(groups.values_list("id", flat=True))
+            groups_minute_aggregate = groups.aggregate(minutes=Sum("total_minutes_spent_by_attendees"))
+            minutes = groups_minute_aggregate["minutes"] or 0
+
+            user_leaderboard.total_minutes = round(minutes, 2)
+            user_leaderboard.last_calculated_at = timezone.now()
+            user_leaderboard.save()
+
+        leaderboard.last_calculated_at = timezone.now()
+        leaderboard.save()
+
+
+@task()
 def create_leaderboards_for_challenge(challenge_id):
     """Creates leaderboard on a Challenge creation for the provided durations.
 
@@ -66,7 +106,7 @@ def create_leaderboards_for_challenge(challenge_id):
         )
 
 
-@task
+@task()
 def create_user_leaderboards_for_leaderboard(leaderboard_id):
     """Creates leaderboard on a Challenge creation for the provided durations.
 
@@ -86,7 +126,7 @@ def create_user_leaderboards_for_leaderboard(leaderboard_id):
         )
 
 
-@task
+@task()
 def add_challenge_participants(leaderboard_ids):
     """Add challenge participants to leaderboard from challenge.
 

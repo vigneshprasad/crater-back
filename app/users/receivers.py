@@ -1,18 +1,62 @@
-import datetime
 import logging
 
-from django.db.models.signals import post_save
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.utils import timezone
 
+from utils.socket_io_service import socket_io_service
 from users import signals
 from users import models
+from users import tasks
+from wn_analytics import constants as analytics_constants
 
 
 User = get_user_model()
 LOGGER = logging.getLogger(__name__)
+
+
+@receiver(post_save, sender=models.ReferrerBlacklist)
+def block_referrals_on_blacklist_addition(sender, instance, *args, **kwargs):
+    """Block referrals from chat if the referrer is blacklisted."""
+    if not kwargs.get("created"):
+        return
+
+    referrer = instance.referrer
+    referred_users = referrer.referrals.values_list("user", flat=True)
+
+    # Disable chat for all referrals.
+    permissions = models.UserPermission.objects.filter(
+        user__in=referred_users,
+        allow_chat=True
+    )
+
+    for permission in permissions:
+        permission.allow_chat = False
+        permission.save()
+
+
+@receiver(post_save, sender=models.UserReferral)
+def block_permissions_for_referrer_blacklist(sender, instance, *args, **kwargs):
+    """Blocks chat permission for user if the referrer
+        is blacklisted.
+
+    """
+    if not kwargs.get("created"):
+        return
+
+    referred_user = instance.user
+    referrer = instance.referrer
+    # If the referrer is not blacklisted, return.
+    if not hasattr(referrer, "blacklist"):
+        return
+
+    if not hasattr(referred_user, "permission"):
+        return
+
+    user_permission = referred_user.permission
+    user_permission.allow_chat = False
+    user_permission.save()
 
 
 @receiver(post_save, sender=get_user_model())
@@ -34,6 +78,16 @@ def send_signal_on_user_creation(sender, instance, *args, **kwargs):
     )
 
 
+@receiver(post_save, sender=models.UserPermission)
+def check_if_chat_permission_changed(sender, instance, *args, **kwargs):
+    """Send a request to socket.io if a User permission is updated."""
+    # If the model is being created. Return from here.
+    if kwargs.get("created"):
+        return
+    socket_io_service.send_user_permission(instance)
+
+
+# TODO(Nishant): Not being user remove.
 @receiver(pre_save, sender=get_user_model())
 def check_if_user_name_is_populated(sender, instance, *args, **kwargs):
     """Checks if a user's name is populated for the first time.
@@ -77,11 +131,10 @@ def create_profile_on_user_creation(sender, user, *args, **kwargs):
         user(User): User object that got created.
 
     """
-    try:
-        models.Profile.objects.get_or_create(user=user)
-    except Exception as e:
-        LOGGER.error(str(e))
-        return
+    tasks.create_profile_on_user_creation.apply_async(
+        args=(user.pk,),
+        countdown=60
+    )
 
 
 @receiver(signals.user_created)

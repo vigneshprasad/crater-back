@@ -5,6 +5,7 @@ from rest_framework import status
 from users import permissions
 from rest_framework.response import Response
 
+from crater.gateways.stripe_payments import constants
 from crater.gateways.stripe_payments import models
 from crater.gateways.stripe_payments import serializers
 from crater.gateways.stripe_payments import public
@@ -23,6 +24,7 @@ class PaymentIntentViewSet(
     lookup_field = "client_secret"
 
     def create(self, request, *args, **kwargs):
+        """Create a Payment intent on our and Stripe's side."""
         user = request.user
         data = request.data
         customer = stripe_service.get_or_create_customer(user)
@@ -31,7 +33,7 @@ class PaymentIntentViewSet(
             customer=customer,
             payment_id=data.get("payment"),
             product_id=data.get("product_id"),
-            capture_method="manual",
+            capture_method=constants.DEFAULT_CAPTURE_METHOD,
         )
         serialized = self.get_serializer(intent)
         return Response(serialized.data, status=status.HTTP_201_CREATED)
@@ -43,6 +45,10 @@ class StripeWebhookViewSet(
 ):
 
     def create(self, request, *args, **kwargs):
+        """Webhook from Stripe which listen to change in
+            PaymentIntent and Charge state changes.
+
+        """
         data = request.data
         event_type = request.data.get("type")
         if not event_type:
@@ -61,6 +67,7 @@ class StripeWebhookViewSet(
             payment_intent.data = intent_object
             payment_intent.save()
 
+            # Update charges related to the Payment Intent.
             charges = intent_object["charges"]["data"]
             public.create_or_update_charges_list(charges)
 
@@ -69,12 +76,12 @@ class StripeWebhookViewSet(
             charge_data = data["data"]["object"]
             public.create_or_update_charge_object(charge_data)
 
-            if event_type == "charge.succeeded":
+            if event_type == constants.WEBHOOK_EVENT_TYPE_CHARGE_SUCCEEDED:
                 intent_id = charge_data["payment_intent"]
                 stripe_service.retrieve_and_update_payment_intent(intent_id)
                 public.handle_charge_succeeded(charge_data)
 
-            if event_type == "charge.captured":
+            if event_type == constants.WEBHOOK_EVENT_TYPE_CHARGE_CAPTURED:
                 public.handle_charge_captured(charge_data)
 
         return Response(status=status.HTTP_200_OK)

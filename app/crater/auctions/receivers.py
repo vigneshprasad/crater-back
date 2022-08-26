@@ -16,16 +16,21 @@ def send_bid_created(sender, instance, *args, **kwargs):
 
     signals.bid_placed.send(
         sender=instance.__class__,
-        instance=instance
+        bid=instance
     )
 
 
 @receiver(post_save, sender=models.RewardAuction)
 def send_auction_created_or_updated_signal(sender, instance, *args, **kwargs):
+    """Sends a signal on Reward auction creation."""
+
     now = timezone.now()
+    # If the auction is in the past or is not active, don't send creation signal.
     if instance.end < now and not instance.is_active:
         return
 
+    # TODO(Nishant): Need to change this to a separate create and update
+    # auction signals.
     signals.auction_created_or_updated.send(
         sender=instance.__class__,
         auction=instance
@@ -33,19 +38,19 @@ def send_auction_created_or_updated_signal(sender, instance, *args, **kwargs):
 
 
 @receiver(signals.bid_payment_charge_capture_setup)
-def bid_payment_capturable_updated_success(sender, bid, *args, **kwargs):
-    bid.status = constants.BID_STATUS_PENDING_ENUM
-    bid.save()
+def bid_payment_charge_success(sender, bid, *args, **kwargs):
+    """Updates bid status once Charge is created for a Bid."""
+    bid.mark_pending()
 
 
 @receiver(signals.bid_payment_charge_capture_success)
-def bid_payment_charge_catured(sender, bid, *args, **kwargs):
-    bid.status = constants.BID_STATUS_ACCEPTED_ENUM
-    bid.save()
+def bid_payment_charge_captured(sender, bid, *args, **kwargs):
+    """Updates the bid status once Charge is captured."""
+    bid.mark_accepted()
 
 
 @receiver(stripe_payment_signals.capture_payment_intent_success)
 def update_auction_quantity_on_capture_success(sender, bid, *args, **kwargs):
+    """Update auction quantity on Payment Intent capture."""
     auction = bid.auction
-    auction.quantity_sold += bid.quantity
-    auction.save()
+    auction.update_quantity(bid.quantity)

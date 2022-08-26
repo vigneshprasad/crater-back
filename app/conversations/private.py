@@ -1,14 +1,15 @@
 import logging
+import random
+import string
 from urllib.request import urlopen
 
 from celery.task import task
 from django.contrib.auth import get_user_model
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
+from django.utils.text import slugify
 
-from conversations import constants
-from conversations import models
-from conversations import signals
+from conversations import constants, models, signals
 
 User = get_user_model()
 
@@ -83,6 +84,23 @@ def get_category_for_id(category_id):
     try:
         category = models.Category.objects.get(
             id=category_id
+        )
+    except models.Category.DoesNotExist:
+        return None
+
+    return category
+
+
+def get_category_by_slug(slug):
+    """Returns a category object for a given category slug.
+
+    Args:
+        slug(str): Slug of the category.
+
+    """
+    try:
+        category = models.Category.objects.get(
+            slug=slug
         )
     except models.Category.DoesNotExist:
         return None
@@ -187,11 +205,97 @@ def create_webinar(
         description=description,
         type=group_type,
         is_featured=is_featured,
-        is_published=is_published,
         closed=is_closed
     )
 
     group.speakers.add(*speakers)
     group.categories.add(*categories)
 
+    if is_published:
+        group.mark_published()
+
     return group
+
+
+def get_group_question(question_id):
+    """Returns a group question for a question id
+
+    Args:
+        question_id(int): Group question id
+
+    """
+
+    try:
+        group_question = models.GroupQuestion.objects.get(id=question_id)
+    except models.GroupQuestion.DoesNotExist:
+        return None
+
+    return group_question
+
+
+def get_question_upvote(question, user):
+    """Returns a question upvote for a question and user.
+
+    Args:
+        question(GroupQuestion): question to be upvoted
+        user(User): user who upvotes
+
+    """
+
+    try:
+        question_upvote = models.QuestionUpvote.objects.get(
+            question=question,
+            user=user
+        )
+    except models.QuestionUpvote.DoesNotExist:
+        return None
+
+    return question_upvote
+
+
+def create_or_update_question_upvote(question, user):
+    """Create or update group question upvote.
+
+    Args:
+        question(GroupQuestion): question to be upvoted
+        user(User): user who upvotes
+
+    """
+    question_upvote, created = models.QuestionUpvote.objects.get_or_create(
+        question=question,
+        user=user,
+        defaults={
+            "upvote": True
+        }
+    )
+
+    if not created:
+        question_upvote.upvote = not question_upvote.upvote
+        question_upvote.save()
+
+    return question_upvote
+
+
+def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
+    return "".join(random.choice(chars) for _ in range(size))
+
+
+def generate_unique_slug_for_category(category, new_slug=None):
+    """Generate a unique slug for a category."""
+
+    slug = new_slug if new_slug is not None else slugify(category.name.lower())
+
+    Klass = category.__class__
+    qs_exists = Klass.objects.filter(slug=slug).exists()
+    if not qs_exists:
+        return slug
+
+    new_slug = "{slug}-{random_str}".format(
+        slug=slug,
+        random_str=random_string_generator(size=4)
+    )
+
+    # Generate a unique slug again.
+    return generate_unique_slug_for_category(
+        category, new_slug=new_slug
+    )

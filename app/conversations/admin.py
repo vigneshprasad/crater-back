@@ -5,6 +5,7 @@ from django_admin_row_actions import AdminRowActionsMixin
 from rangefilter import filter
 
 from conversations import models, tasks
+from integrations.dyte import tasks as dyte_tasks
 
 
 @admin.register(models.SuggestedTopic)
@@ -15,10 +16,20 @@ class SuggestedTopicAdmin(admin.ModelAdmin):
 
 @admin.register(models.Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "parent", "image", "is_active")
+    list_display = ("id", "name", "image", "is_active")
+    fields = (
+        "name",
+        "image",
+        "description",
+        "is_active",
+        "is_approved",
+        "is_suggested",
+        "parent"
+    )
+    list_editable = ("name", )
     raw_id_fields = ("parent", )
     search_fields = ("name",)
-    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    exclude = ("creator", "article", "created_at", "deleted_at", "updated_at", "is_deleted")
 
 
 @admin.register(models.Category)
@@ -35,7 +46,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "id",
         "topic",
         "type",
-        "all_speakers",
+        "host",
+        # "all_speakers",
         "attendees_count",
         "start",
         "is_featured",
@@ -43,14 +55,69 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "closed",
         "is_published",
         "is_rescheduled",
-        "is_obs"
+        "is_obs",
+        "viewer_count",
+        "host_poc",
     )
-    actions = ("add_previous_webinar_attendees",)
+    fieldsets = (
+        (
+            ("Display Details", {
+                "fields": (
+                    ("type", "categories"),
+                    "topic",
+                    "description",
+                    ("is_featured", "is_published"),
+                    "start",
+                    "end",
+                ),
+            }),
+            ("Members", {
+                "fields": (
+                    ("host", "speakers"),
+                    "attendees",
+                ),
+            }),
+            ("Status", {
+                "fields": (
+                    ("is_live", "closed"),
+                    ("is_rescheduled", "is_obs"),
+                    ("is_approved", "is_full")
+                )
+            }),
+            ("Privacy", {
+                "fields": (
+                    ("max_speakers", "max_attendees"),
+                    ("privacy", "medium")
+                )
+            }),
+            ("Stats", {
+                "fields": (
+                    "total_minutes_spent_by_attendees",
+                    "total_minutes_spent_by_host",
+                )
+            }),
+            ("Logs", {
+                "fields": (
+                    ("last_live_at", "closed_at"),
+                    "published_at",
+                    ("approved_at", "rescheduled_at"),
+                )
+            }),
+            ("Score", {
+                "fields": (
+                    ("calculate_score", "score"),
+                )
+            }),
+    ))
+    actions = ("add_previous_webinar_attendees", "recalculate_minutes_for_groups")
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
         "closed_at",
         "approved_at",
         "last_live_at",
+        "rescheduled_at",
+        "published_at",
+        "score",
         "total_minutes_spent_by_attendees",
         "total_minutes_spent_by_host"
     )
@@ -68,7 +135,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_published",
         ("start", filter.DateRangeFilter),
     )
-    exclude = ("interests", "created_at", "deleted_at", "updated_at", "is_deleted")
+    exclude = (
+        "interests",
+        "created_at",
+        "deleted_at",
+        "updated_at",
+        "is_deleted"
+    )
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -76,6 +149,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
         fields_changed = form.changed_data
         cleaned_data = form.cleaned_data
+
         if "is_approved" in fields_changed:
             if cleaned_data["is_approved"]:
                 obj.approve()
@@ -93,6 +167,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if "is_rescheduled" in fields_changed:
             if cleaned_data["is_rescheduled"]:
                 obj.mark_rescheduled(user=request.user)
+
+        if "is_published" in fields_changed:
+            if cleaned_data["is_published"]:
+                obj.mark_published()
 
         return super(GroupAdmin, self).save_model(request, obj, form, change)
 
@@ -127,9 +205,57 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
     add_previous_webinar_attendees.short_description = "Add previous attendees"
 
+    def recalculate_minutes_for_groups(self, request, queryset):
+        """Recalculate minutes for groups.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of streams we want to
+                recalculate minutes for.
+
+        """
+        # Delay the task for recalculating minutes.
+        group_ids = list(queryset.values_list("id", flat=True))
+        dyte_tasks.recalculate_minutes_for_groups.delay(group_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["recalculate_minutes_for_groups"]}}]
+            )
+
+        self.message_user(
+            request,
+            "Recalculated minutes for groups: {}".format(
+                ", ".join([str(group.id) for group in queryset])
+            ),
+            messages.SUCCESS
+        )
+
+    recalculate_minutes_for_groups.short_description = "Recalculate minutes"
+
     @staticmethod
     def all_speakers(obj):
         return [speaker.__str__() for speaker in obj.speakers.all()]
+
+    @staticmethod
+    def host_poc(obj):
+        if not obj.host:
+            return ""
+        if not obj.host.is_creator:
+            return ""
+        return obj.host.creator.point_of_contact
+
+    def viewer_count(self, obj):
+        if not obj.host:
+            return False
+        if not hasattr(obj.host, "permission"):
+            return False
+        return obj.host.permission.show_viewer_count
+
+    viewer_count.boolean = True
 
     @staticmethod
     def speaker_count(obj):
@@ -227,11 +353,9 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "group__host__name",
     )
     list_filter = (
-        "group",
+        AutocompleteFilterFactory("Group", "group"),
         "featured",
-        "is_published",
-        ("created_at", filter.DateRangeFilter),
-        ("group__start", filter.DateRangeFilter),
+        "is_published"
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
@@ -333,7 +457,9 @@ class GroupMessageAdmin(admin.ModelAdmin):
         "sender__email",
         "sender__username"
     )
-    list_filter = ("group",)
+    list_filter = (
+        AutocompleteFilterFactory("Group", "group", use_pk_exact=True),
+    )
     exclude = ("updated_at",)
 
     def delete_queryset(self, request, queryset):
@@ -369,3 +495,33 @@ class SeriesAdmin(admin.ModelAdmin):
         ("start", filter.DateRangeFilter),
     )
     list_editable = ("is_published",)
+
+
+@admin.register(models.GroupQuestion)
+class GroupQuestion(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "sender",
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("group", "sender",)
+    search_fields = (
+        "question",
+        "sender__name",
+        "sender__email",
+        "sender__username"
+    )
+    list_filter = ("group",)
+
+
+@admin.register(models.QuestionUpvote)
+class QuestionUpvoteAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "question",
+        "user",
+        "upvote",
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    raw_id_fields = ("question", "user",)

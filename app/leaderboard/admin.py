@@ -1,8 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 
-from leaderboard import models
-from leaderboard import tasks
+from leaderboard import models, tasks
 
 
 @admin.register(models.DurationType)
@@ -64,14 +63,14 @@ class LeaderboardAdmin(admin.ModelAdmin):
         AutocompleteFilterFactory("Challenge", "challenge"),
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
-    actions = ("add_challenge_participants", )
+    actions = ("add_challenge_participants", "recalculate_leaderboard")
 
     @staticmethod
     def all_participants(obj):
         return [participant.__str__() for participant in obj.participants.all()]
 
     def add_challenge_participants(self, request, queryset):
-
+        """Add challenge participants."""
         leaderboard_ids = list(queryset.values_list("id", flat=True))
         tasks.add_challenge_participants.delay(leaderboard_ids)
 
@@ -93,6 +92,29 @@ class LeaderboardAdmin(admin.ModelAdmin):
 
     add_challenge_participants.short_description = "Add all challenge participants"
 
+    def recalculate_leaderboard(self, request, queryset):
+        """Recalculate leaderboard."""
+        leaderboard_ids = list(queryset.values_list("id", flat=True))
+        tasks.recalculate_leaderboards.delay(leaderboard_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["recalculate_leaderboards"]}}]
+            )
+
+        self.message_user(
+            request,
+            "Recalculated leaderboards: {}".format(
+                ", ".join([str(leaderboard.id) for leaderboard in queryset])
+            ),
+            messages.SUCCESS
+        )
+
+    recalculate_leaderboard.short_description = "Recalculate minutes for Leaderboard"
+
     def delete_queryset(self, request, queryset):
         # Hard deleting follower objects.
         queryset.delete(soft=False)
@@ -102,8 +124,9 @@ class LeaderboardAdmin(admin.ModelAdmin):
 class UserLeaderboardAdmin(admin.ModelAdmin):
 
     model = models.UserLeaderboard
-    list_display = ("id", "leaderboard", "user", "total_minutes", "rank")
+    list_display = ("id", "leaderboard", "user", "total_minutes", "rank", "is_active")
     raw_id_fields = ("leaderboard", "user", )
+    list_editable = ("is_active", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         "leaderboard__duration_type",

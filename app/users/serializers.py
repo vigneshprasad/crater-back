@@ -557,7 +557,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "stage_of_company_detail",
             "companies_invested_detail",
             "is_creator",
-            "groups"
+            "groups",
+            "metamask_id"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
@@ -1005,5 +1006,20 @@ class UserPermissionSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "allow_create_stream",
-            "allow_chat"
+            "allow_chat",
+            "show_viewer_count"
+        )
+
+
+class UserCategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserCategory
+        fields = (
+            "id",
+            "user",
+            "category",
+            "followed",
+            "followed_at",
+            "unfollowed_at",
         )

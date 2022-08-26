@@ -27,6 +27,11 @@ def get_or_create_user(phone_number):
         }
     )
 
+    # Create profile with the user object.
+    profile, profile_created = models.Profile.objects.get_or_create(
+        user=user
+    )
+
     # Setting phone number for the user if phone number
     # is not present.
     if not user.get_phone_number():
@@ -126,7 +131,7 @@ def create_user(
     user.refresh_from_db()
 
     # Get or create profile for user.
-    profile = models.Profile.objects.get_or_create(
+    profile, _ = models.Profile.objects.get_or_create(
         user=user
     )
     profile.primary_url = primary_url

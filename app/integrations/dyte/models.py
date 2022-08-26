@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from django.conf import settings
@@ -8,7 +7,6 @@ from django.utils.html import format_html
 
 from base import models as base_model
 from integrations.dyte import constants
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +31,7 @@ class DyteMeeting(base_model.BaseModel):
     room_name = models.CharField(max_length=128)
 
     def __str__(self):
-        return "{} - {}".format(self.dyte_meeting_id, (self.meeting or self.group))
+        return "{} - {}".format(self.room_name, (self.meeting_id or self.group_id))
 
 
 class DyteMeetingParticipant(base_model.BaseModel):
@@ -66,83 +64,122 @@ class DyteMeetingParticipant(base_model.BaseModel):
     class Meta:
         unique_together = ["dyte_meeting", "participant"]
 
+    def __str__(self):
+        return "{} - {}".format(
+            self.dyte_meeting,
+            self.participant
+        )
+
+    @property
+    def latest_join_time(self):
+        """Returns datetime after which we are calculating minutes
+            spent on a stream for a user.
+
+        """
+        return self.dyte_meeting.group.start - timezone.timedelta(minutes=5)
+
     @property
     def joined_group(self):
         """Returns if the user joined the stream."""
+        if self.total_minutes_watched:
+            return True
+
+        return False
+
+    @property
+    def total_minutes_watched(self):
+        """Total minutes spent on the stream."""
+        minutes_spent = 0
+        online_logs = self.online_logs.all()
+
+        # If there is no last_online_at return 0.
         if not self.last_online_at:
-            return False
+            return minutes_spent
 
-        # The user can sit on the stream 5 minutes before the stream
-        # TODO(Nishant): Check the front end logic here.
-        latest_group_join_time = self.dyte_meeting.group.start - datetime.timedelta(minutes=5)
-        return latest_group_join_time <= self.last_online_at
-        # return DyteParticipantOnlineLog.objects.filter(dyte_meeting_participant_id=self.id).exists()
+        # If not online logs are there and last_online_at is present,
+        # calculate minutes the old way.
+        if not online_logs:
+            group = self.dyte_meeting.group
+            last_live_time_for_group = min(
+                self.last_online_at, group.last_live_at
+            ) if group else self.last_online_at
 
-    # @property
-    # def total_minutes(self):
-    #     """Total minutes spent on the stream."""
-    #     minutes_spent = 0
-    #     online_logs = DyteParticipantOnlineLog.objects.filter(
-    #         dyte_meeting_participant_id=self.id
-    #     )
-    #     for log in online_logs:
-    #         minutes_spent += log.online_time
-    #
-    #     return minutes_spent
+            # Calculate time spent based on the last live at for group.
+            time_spent = max(
+                (last_live_time_for_group - self.latest_join_time),
+                timezone.timedelta()
+            )
+            minutes_spent = round(time_spent.seconds / 60)
+        else:
+            # If logs are present calculate minutes from logs.
+            for log in online_logs:
+                minutes_spent += log.online_time
 
-    def __str__(self):
-        return "{} - {} [{}]".format(
-            self.dyte_meeting.id,
-            self.dyte_meeting.dyte_meeting_id,
-            self.participant.username
-        )
+        return minutes_spent
 
     def mark_online(self):
+        """Mark a dyte participant online."""
+        online_at = max(timezone.now(), self.latest_join_time)
         self.is_online = True
-        self.last_online_at = datetime.datetime.now()
-        self.save()
+        self.last_online_at = online_at
 
         # Create online logs.
-        DyteParticipantOnlineLog.objects.create(
-            dyte_meeting_participant_id=self.id
+        online_log, _ = DyteParticipantOnlineLog.objects.get_or_create(
+            dyte_meeting_participant_id=self.id,
+            is_offline=False,
+            defaults={
+                "online_at": online_at
+            }
         )
 
-    def mark_offline(self):
-        self.is_online = False
-        self.last_online_at = datetime.datetime.now()
         self.save()
 
-        # Update the online log to offline.
-        online_log = DyteParticipantOnlineLog.objects.filter(
-            dyte_meeting_participant=self,
-            is_offline=False
-        ).first()
-        if not online_log:
-            LOGGER.error("Went offline without online log. {}".format(self.id))
-            return None
+    def mark_offline(self):
+        """Mark a dyte participant offline."""
+        offline_at = max(timezone.now(), self.latest_join_time)
+        self.is_online = False
+        self.last_online_at = offline_at
 
-        online_log.mark_offline()
+        # Update the online log to offline.
+        online_log = self.online_logs.filter(is_offline=False).last()
+        if online_log:
+            online_log.mark_offline()
+        else:
+            LOGGER.error("Went offline without online log. {}".format(self.id))
+
+        self.save()
 
 
 class DyteParticipantOnlineLog(base_model.BaseModel):
 
     dyte_meeting_participant = models.ForeignKey(
         "dyte.DyteMeetingParticipant",
+        related_name="online_logs",
         on_delete=models.CASCADE
     )
-    online_at = models.DateTimeField(auto_now_add=True)
+    online_at = models.DateTimeField(null=True, blank=True)
     offline_at = models.DateTimeField(null=True, blank=True)
     is_offline = models.BooleanField(default=False)
 
     @property
     def online_time(self):
-        last_online_at = self.offline_at if self.offline_at else timezone.now()
-        time_spent = last_online_at - self.online_at
-        minutes = time_spent.seconds // 60 % 60
-        return minutes
+        """Get online time for a log."""
+        if not self.online_at:
+            return 0
+
+        # TODD(Nishant): See if we should do this.
+        # In case the group start has changed and online_at is before the group
+        # start, we need to make corrections for the same.
+        # online_at = max(self.online_at, self.dyte_meeting_participant.latest_join_time)
+        offline_at = self.offline_at if self.offline_at else timezone.now()
+        time_spent = max((offline_at - self.online_at), timezone.timedelta())
+        minutes = time_spent.seconds / 60
+        return round(minutes)
 
     def mark_offline(self):
-        self.offline_at = timezone.now()
+        """Mark the online log offline when the user leaves."""
+        offline_at = max(timezone.now(), self.dyte_meeting_participant.latest_join_time)
+        self.offline_at = offline_at
         self.is_offline = True
         self.save()
 

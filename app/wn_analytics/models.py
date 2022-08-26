@@ -34,7 +34,7 @@ class UserSource(BaseModel):
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
-        related_name='user_source'
+        related_name="user_source"
     )
     utm_source = models.CharField(max_length=120, null=True, blank=True)
     utm_campaign = models.CharField(max_length=120, null=True, blank=True)

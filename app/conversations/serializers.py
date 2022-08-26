@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from community.mixins import SetCreatorRequestDataMixin
-from conversations import constants, exceptions, models, services
+from conversations import constants, exceptions, models, services, private
 from crater.creator import serializers as creator_serializers
 from integrations.dyte import public as dyte_public, serializers as dyte_serializers
 from resources.curated_articles import serializers as articles_serializer
@@ -64,17 +64,19 @@ class SuggestedTopicSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         ref_name = "group_category"
         model = models.Category
         fields = (
             "pk",
             "name",
+            "slug",
             "color",
             "photo",
             "order",
             "tagline",
-            "show_on_home_page"
+            "show_on_home_page",
         )
 
 
@@ -359,6 +361,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             "recording_details",
             "speakers",
             "speakers_detail_list",
+            "attendees",
             # "rtmp_detail",
             "rtmp_link",
             "series",
@@ -423,7 +426,7 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get("request")
         user = request.user
-        tomorrow = timezone.now() + datetime.timedelta(hours=24)
+        start_at = timezone.now() + datetime.timedelta(minutes=15)
 
         # Raise an exception if the user already has a group
         # at the same time.
@@ -432,8 +435,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(exceptions.GroupCreatedAtTheSameTime().get_error_body())
         elif start < timezone.now():
             raise serializers.ValidationError(exceptions.GroupStartDateTimeNotInFuture().get_error_body())
-        elif start < tomorrow:
-            raise serializers.ValidationError(exceptions.GroupStartLessThan24Hours().get_error_body())
+        elif start < start_at:
+            raise serializers.ValidationError(exceptions.GroupStartLessThan15minutes().get_error_body())
 
         title = validated_data.pop("topic_title") if validated_data.get("topic_title") else None
         image = validated_data.pop("topic_image") if validated_data.get("topic_image") else None
@@ -518,6 +521,54 @@ class StreamListHostSerializer(serializers.ModelSerializer):
         return user.profile.get_introduction() if user.has_profile else None
 
 
+class StreamPastListSerializer(serializers.ModelSerializer):
+    """List serializer for Past Streams.
+
+    Note:
+        This only returns data required over a /list calls
+            for calls the stream.
+
+    """
+    topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
+    host_detail = StreamListHostSerializer(source="host", read_only=True)
+    is_past = serializers.SerializerMethodField(read_only=True)
+    has_rsvp = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Group
+        fields = (
+            "id",
+            "topic_detail",
+            "host_detail",
+            "start",
+            "is_live",
+            "is_past",
+            "has_rsvp",
+            "recording"
+        )
+
+    @staticmethod
+    def get_is_past(group):
+        """Return True if the meeting was in the past."""
+        if group.is_live:
+            return False
+
+        now = timezone.now() - datetime.timedelta(hours=6)
+        return now >= group.start
+
+    def get_has_rsvp(self, group):
+
+        request = self.context.get("request")
+        if not request:
+            return None
+
+        user = request.user
+        if user.is_anonymous:
+            return None
+        # Check if rsvp exists for this user and group.
+        return group.requests.filter(requester=user).exists()
+
+
 class StreamListSerializer(serializers.ModelSerializer):
     """List serializer for Streams.
 
@@ -529,6 +580,7 @@ class StreamListSerializer(serializers.ModelSerializer):
     topic_detail = StreamListTopicSerializer(source="topic", read_only=True)
     host_detail = StreamListHostSerializer(source="host", read_only=True)
     is_past = serializers.SerializerMethodField(read_only=True)
+    has_rsvp = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -539,6 +591,7 @@ class StreamListSerializer(serializers.ModelSerializer):
             "start",
             "is_live",
             "is_past",
+            "has_rsvp"
         )
 
     @staticmethod
@@ -549,6 +602,18 @@ class StreamListSerializer(serializers.ModelSerializer):
 
         now = timezone.now() - datetime.timedelta(hours=6)
         return now >= group.start
+
+    def get_has_rsvp(self, group):
+
+        request = self.context.get("request")
+        if not request:
+            return None
+
+        user = request.user
+        if user.is_anonymous:
+            return None
+        # Check if rsvp exists for this user and group.
+        return group.requests.filter(requester=user).exists()
 
 
 class GroupChatUserSerializer(serializers.ModelSerializer):
@@ -701,3 +766,67 @@ class StreamWithRecordingListSerializer(StreamListSerializer):
             "is_past",
             "recording_details",
         )
+
+
+class GroupQuestionUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name",
+        )
+
+
+class GroupQuestionListSerializer(serializers.ModelSerializer):
+    sender_detail = GroupQuestionUserSerializer(source="sender", read_only=True)
+    upvotes = serializers.SerializerMethodField(read_only=True)
+    upvote = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.GroupQuestion
+        fields = (
+            "id",
+            "question",
+            "group",
+            "sender",
+            "upvotes",
+            "upvote",
+            "sender_detail",
+            "created_at",
+        )
+        read_only_fields = ["sender"]
+
+    @staticmethod
+    def get_upvotes(group_question):
+        return group_question.question_upvotes.filter(upvote=True).count()
+
+    def get_upvote(self, group_question):
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+
+        question_upvote = private.get_question_upvote(
+            question=group_question,
+            user=user
+        )
+        if not question_upvote:
+            return False
+
+        return question_upvote.upvote
+
+
+class QuestionUpvoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.QuestionUpvote
+        fields = (
+            "id",
+            "question",
+            "user",
+            "upvote",
+        )
+        read_only_fields = ["user", "upvote"]

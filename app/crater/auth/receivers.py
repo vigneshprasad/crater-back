@@ -4,7 +4,7 @@ from crater.auth import tasks
 from users import signals as user_signals
 
 
-@receiver(user_signals.user_name_populated)
+# @receiver(user_signals.user_created)
 def send_welcome_crater_whatsapp(sender, user, *args, **kwargs):
     """Send crater welcome message on user's name population.
 
@@ -15,5 +15,5 @@ def send_welcome_crater_whatsapp(sender, user, *args, **kwargs):
     """
     tasks.send_welcome_crater_whatsapp.apply_async(
         args=(user.pk,),
-        countdown=300
+        countdown=120
     )

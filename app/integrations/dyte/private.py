@@ -1,7 +1,7 @@
+from celery.task import task
 from django.core.exceptions import ValidationError
 
-from integrations.dyte import constants
-from integrations.dyte import models
+from integrations.dyte import constants, models
 
 
 def get_dyte_participant_for_user_and_group(user, group):
@@ -137,3 +137,29 @@ def get_recording_to_stop_for_dyte_meeting(dyte_meeting):
         return None
 
     return recording_to_stop.recording_id
+
+
+@task
+def mark_participants_offline_for_group(group):
+    """Marks all dyte participants offline on our end once
+        the meeting ends.
+
+    Args:
+        group(Group): Group that was marked closed from Dyte's end.
+
+    """
+    dyte_meeting = group.dyte_webinar.last()
+    if not dyte_meeting:
+        return False
+
+    # Get all participants for the dyte meeting.
+    participants = dyte_meeting.meeting_participants.all()
+    for participant in participants:
+        # If the dyte participant is not offline, mark it offline.
+        if participant.is_online:
+            participant.mark_offline()
+
+        # Mark all logs offline as well.
+        participant_online_logs = participant.online_logs.filter(is_offline=False)
+        for online_log in participant_online_logs:
+            online_log.mark_offline()
