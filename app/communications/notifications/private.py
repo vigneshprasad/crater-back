@@ -67,7 +67,7 @@ def send_notification(user_pk, notification_json, data=None):
 
     """
     user = get_user_model().objects.get(pk=user_pk)
-    devices = user.devices.filter(is_active=True)
+    devices = user.get_devices()
     if not devices:
         return False
 
@@ -100,7 +100,7 @@ def send_bulk_notifications(user_pks, notification_json, data=None):
 
     user_os_ids = []
     for user in users:
-        devices = user.devices.filter(is_active=True)
+        devices = user.get_devices()
         for device in devices:
             user_os_ids.append(device.os_id)
 

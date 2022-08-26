@@ -268,6 +268,7 @@ class BankDetailViewSet(mixins.CreateModelMixin,
 
 
 class LogoutView(RestLogoutView):
+
     serializer_class = serializers.LogoutSerializer
 
     def logout(self, request):
