@@ -38,7 +38,7 @@ def get_minutes_for_live_streams():
             continue
 
         dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            group=group,
+            dyte_meeting__group=group,
             last_online_at__isnull=False
         ).exclude(id=dyte_participant_for_host.id)
 
@@ -92,7 +92,7 @@ def get_minutes_for_all_streams_for_the_day():
             continue
 
         dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            group=group,
+            dyte_meeting__group=group,
             last_online_at__isnull=False
         ).exclude(id=dyte_participant_for_host.id)
 
@@ -145,7 +145,7 @@ def recalculate_minutes_for_groups(group_ids):
             continue
 
         dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            group=group,
+            dyte_meeting__group=group,
             last_online_at__isnull=False
         ).exclude(id=dyte_participant_for_host.id)
 
