@@ -6,12 +6,10 @@ from urllib.request import urlopen
 from celery.task import task
 from django.contrib.auth import get_user_model
 from django.core.files import File
-from django.utils.text import slugify
 from django.core.files.temp import NamedTemporaryFile
+from django.utils.text import slugify
 
-from conversations import constants
-from conversations import models
-from conversations import signals
+from conversations import constants, models, signals
 
 User = get_user_model()
 
@@ -207,12 +205,14 @@ def create_webinar(
         description=description,
         type=group_type,
         is_featured=is_featured,
-        is_published=is_published,
         closed=is_closed
     )
 
     group.speakers.add(*speakers)
     group.categories.add(*categories)
+
+    if is_published:
+        group.mark_published()
 
     return group
 

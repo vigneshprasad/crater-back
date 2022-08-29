@@ -6,13 +6,49 @@ from django.core.exceptions import ValidationError
 from conversations import constants, models
 
 
-def get_link_for_webinar(group):
-    """Returns the live/session link for a group."""
+def get_livestream_link_for_webinar(group):
+    """Returns the livestream link for a group.
+
+    Args:
+        group(Group): Group we are getting the link for.
+
+    """
     front_url = settings.CRATER_FRONT_URL
     livestream_url = front_url + constants.LIVESTREAM_URL_WITH_GROUP.format(
         group_id=group.id
     )
     return livestream_url
+
+
+def get_session_link_for_webinar(group):
+    """Returns the session link for a group.
+
+    Args:
+        group(Group): Group we are getting the link for.
+
+    """
+    front_url = settings.CRATER_FRONT_URL
+    session_url = front_url + constants.SESSION_URL_WITH_GROUP.format(
+        group_id=group.id
+    )
+    return session_url
+
+
+def get_video_page_for_webinar(group):
+    """Returns the video page link for a group.
+
+    Args:
+        group(Group): Group we are getting the link for.
+
+    Note:
+        Only past streams will have a video page link.
+
+    """
+    front_url = settings.CRATER_FRONT_URL
+    video_url = front_url + constants.VIDEO_URL_WITH_GROUP.format(
+        group_id=group.id
+    )
+    return video_url
 
 
 def create_group_message(
@@ -58,3 +94,19 @@ def create_group_message(
         group_message.save()
 
     return group_message
+
+
+def check_if_attendee_in_group(user, group):
+    """Return if the user is an attendee or speaker
+        in the given group.
+
+    Args:
+        user(User): User object who we are checking for
+        group(Group): Stream on which we are checking if the user is a part
+    
+    """
+
+    if user in group.get_all_users():
+        return True
+    
+    return False

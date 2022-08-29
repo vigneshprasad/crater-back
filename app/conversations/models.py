@@ -163,6 +163,7 @@ class Category(base_model.BaseModel):
 
 
 class Group(base_model.BaseModel):
+
     GROUP_PRIVACY_CHOICES = (
         (constants.GROUP_PRIVACY_PUBLIC_ENUM, constants.GROUP_PRIVACY_PUBLIC),
         (constants.GROUP_PRIVACY_PRIVATE_ENUM, constants.GROUP_PRIVACY_PRIVATE)
@@ -231,7 +232,7 @@ class Group(base_model.BaseModel):
     max_attendees = models.PositiveIntegerField(null=True, blank=True)
 
     privacy = models.IntegerField(choices=GROUP_PRIVACY_CHOICES, default=constants.GROUP_PRIVACY_PUBLIC_ENUM)
-    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_ENUM)
+    medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM)
 
     # Flags.
     is_featured = models.BooleanField(default=False)
@@ -260,16 +261,18 @@ class Group(base_model.BaseModel):
     # group is visible in all conversations etc.
     is_approved = models.BooleanField(default=True)
     approved_at = models.DateTimeField(null=True, blank=True)
+    # Whether the group can be shown on the site.
     is_published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
 
-    # Total minutes spent by attendees on the call (Total).
+    # Total minutes spent by attendees on the stream (Total).
     total_minutes_spent_by_attendees = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
         blank=True
     )
-    # Total minutes spent by host on the call.
+    # Total minutes spent by host on the stream.
     total_minutes_spent_by_host = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -303,6 +306,22 @@ class Group(base_model.BaseModel):
     def approve(self):
         self.is_approved = True
         self.approved_at = datetime.datetime.now()
+        self.save()
+
+    def mark_published(self):
+        """Marks a group published."""
+        self.is_published = True
+        # Only set published at the first time the group
+        # is marked published.
+        if not self.published_at:
+            self.published_at = datetime.datetime.now()
+            # Send signal only the first time the group is
+            # marked published.
+            signals.group_marked_published.send(
+                sender=self.__class__,
+                group=self
+            )
+
         self.save()
 
     def mark_live(self, user=None):
@@ -351,7 +370,7 @@ class Group(base_model.BaseModel):
         """
 
         # Mark the meeting as inactive first.
-        self.mark_inactive(user=user)
+        self.is_live = False
         self.closed = True
         self.closed_at = datetime.datetime.now()
         self.save()
@@ -408,6 +427,16 @@ class Group(base_model.BaseModel):
         """Return start in the local timezone."""
         return self.end.astimezone(pytz.timezone(settings.TIME_ZONE)) if self.end else None
 
+    def get_host_and_speakers(self):
+        """Return a list of hosts and speakers."""
+        users = [self.host]
+        speakers = self.speakers.all()
+        for speaker in speakers:
+            if speaker in users:
+                continue
+            users.append(speaker)
+        return users
+
     def get_all_users(self):
         """Returns all users that are part of the group."""
         users = [self.host]
@@ -417,6 +446,11 @@ class Group(base_model.BaseModel):
                 continue
             users.append(user)
         return users
+
+    def get_series(self):
+        """Return series of the group"""
+        series = self.series_groups.filter(is_published=True).first()
+        return series
 
     def can_add_speakers(self):
         """Return True if speakers can be added to the group."""
@@ -483,21 +517,6 @@ class Group(base_model.BaseModel):
 
         """
         return self.local_end.strftime("%I:%M %p") if self.local_end else None
-
-    def get_host_and_speakers(self):
-        """Return a list of hosts and speakers."""
-        users = [self.host]
-        speakers = self.speakers.all()
-        for speaker in speakers:
-            if speaker in users:
-                continue
-            users.append(speaker)
-        return users
-
-    def get_series(self):
-        """Return series of the group"""
-        series = self.series_groups.filter(is_published=True).first()
-        return series
 
 
 class Invite(base_model.BaseModel):
@@ -718,6 +737,12 @@ class GroupRecording(base_model.BaseModel):
         group_recording.is_published = True
         group_recording.published_at = datetime.datetime.now()
         group_recording.save()
+
+        # Send recording published signal.
+        signals.group_recording_published.send(
+            sender=group_recording.__class__,
+            recording=group_recording
+        )
 
 
 class GroupRtmp(base_model.BaseModel):

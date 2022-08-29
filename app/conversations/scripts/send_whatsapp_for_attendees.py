@@ -120,7 +120,7 @@ def run_for_only_devscript(group_id, link, users=None, dry_run=True):
             continue
 
         topic_name = group.topic.name
-        stream_link = link if link else public.get_link_for_webinar(group)
+        stream_link = link if link else public.get_livestream_link_for_webinar(group)
 
         data_2 = freshchat_constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
             creator_name=creator_name,
