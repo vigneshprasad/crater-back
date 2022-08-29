@@ -266,7 +266,7 @@ class DyteMeetingRecordingViewSet(
         )
         if not dyte_meeting_recording:
             LOGGER.error("Dyte meeting recording not found: {}".format(recording_id))
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
         # Update recording status only if it has changed.
         if dyte_meeting_recording.status == recording_status:

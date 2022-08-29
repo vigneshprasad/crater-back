@@ -711,10 +711,11 @@ class DyteService:
         data = []
         for stat in stats:
             user_pk = stat["clientSpecificId"]
+            user = get_user_model().objects.filter(pk=user_pk).first() if user_pk else None
             data.append(
                 {
                     "clientSpecificId": user_pk,
-                    "user": get_user_model().objects.get(pk=user_pk).__str__(),
+                    "user": user.__str__() if user else "",
                     "totalMinutes": stat["totalMinutes"] if stat["totalMinutes"] < 300 else 0
                 }
             )
