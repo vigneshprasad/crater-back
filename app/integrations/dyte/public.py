@@ -114,8 +114,10 @@ def stop_recording_for_group_and_recording_id(group, recording_id=None):
         logging.error("Dyte meeting not present for group: {}".format(group.id))
         return False
 
-    recording_id = private.get_recording_to_stop_for_dyte_meeting(dyte_meeting) \
-        if not recording_id else recording_id
+    recording_id = private.get_recording_for_dyte_meeting(
+        dyte_meeting,
+        status=constants.DYTE_RECORDING_STATUS_RECORDING
+    ) if not recording_id else recording_id
 
     if not recording_id:
         return False

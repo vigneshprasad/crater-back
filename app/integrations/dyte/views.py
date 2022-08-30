@@ -9,7 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from conversations import models as conversation_models, constants as conversation_constants, \
     public as conversation_public
-from integrations.dyte import private, models, serializers, public, constants
+from integrations.dyte import private, models, serializers, public, constants, tasks
 from users import permissions as user_permissions
 
 LOGGER = logging.getLogger(__name__)
@@ -29,10 +29,15 @@ class DyteMeetingViewSet(
         permission_classes=[user_permissions.AllowAny]
     )
     def ended(self, request):
-        """Webhook for meeting end from Dyte meeting."""
+        """Webhook for meeting end from Dyte meeting.
+
+        Note:
+            Fires after 2 minutes of everyone leaving the stream
+                or if the host ends meeting for all.
+
+        """
 
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
         dyte_meeting_details = data.get("meeting")
 
         dyte_meeting_id = dyte_meeting_details.get("id")
@@ -102,14 +107,22 @@ class DyteParticipantViewSet(
         participant_preset = constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME \
             if not is_obs else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME
 
-        if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and \
-            not conversation_public.check_if_attendee_in_group:
+        if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and not\
+                conversation_public.check_if_attendee_in_group:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if (group.host_id == user.pk) or (user in group.speakers.all()):
-            result = public.add_participant_to_meeting(dyte_meeting, user, host_preset)
+            result = public.add_participant_to_meeting(
+                dyte_meeting,
+                user,
+                host_preset
+            )
         else:
-            result = public.add_participant_to_meeting(dyte_meeting, user, participant_preset)
+            result = public.add_participant_to_meeting(
+                dyte_meeting,
+                user,
+                participant_preset
+            )
 
         serialized = self.get_serializer(result)
         return Response(serialized.data, status=status.HTTP_200_OK)
@@ -141,9 +154,7 @@ class DyteParticipantViewSet(
              Fires everytime a participant joins a call.
 
          """
-
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
         dyte_meeting_details = data.get("meeting")
         dyte_participant_details = data.get("participant")
 
@@ -170,16 +181,9 @@ class DyteParticipantViewSet(
             # If the group host has joined mark meeting as
             # live.
             group.mark_live(user=participant.participant)
-            # Start recording the session if there are
-            # no active recordings for the live stream.
-            active_recordings = private.get_active_recording_for_dyte_meeting(
-                dyte_meeting=participant.dyte_meeting
-            )
-
-            # Won't allow recording to start if the call is not
-            # about to start 5 minutes from now.
-            if not active_recordings and group.can_start_recording():
-                public.start_recording_for_group(group)
+            # Start recording the session if required.
+            if group.can_start_recording():
+                tasks.start_recording_for_meeting_if_required.delay(group.id)
 
         # Mark the participant online.
         participant.mark_online()
@@ -198,9 +202,7 @@ class DyteParticipantViewSet(
             Fires everytime a participant leaves a call.
 
         """
-
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
         dyte_meeting_details = data.get("meeting")
         dyte_participant_details = data.get("participant")
 
@@ -252,8 +254,6 @@ class DyteMeetingRecordingViewSet(
 
         """
         data = request.data
-        # TODO(Sanjeev): Verify webhook using signature
-
         dyte_recording_details = data.get("recording")
 
         recording_id = dyte_recording_details.get("id")
