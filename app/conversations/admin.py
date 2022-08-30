@@ -108,7 +108,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     ("calculate_score", "score"),
                 )
             }),
-    ))
+        )
+    )
     actions = ("add_previous_webinar_attendees", "recalculate_minutes_for_groups")
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
