@@ -167,7 +167,7 @@ def create_calendar_event_for_webinar_host(group):
         return False
 
     # TODO(Nishant): This has to change for each environment.
-    stream_link = conversation_public.get_link_for_webinar(group)
+    stream_link = conversation_public.get_livestream_link_for_webinar(group)
 
     summary = constants.HOST_SUMMARY_FOR_WEBINARS
     description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
@@ -224,7 +224,7 @@ def create_calendar_event_for_webinar_speakers(speakers, group):
         if google_calendar_event:
             continue
  
-        stream_link = conversation_public.get_link_for_webinar(group)
+        stream_link = conversation_public.get_livestream_link_for_webinar(group)
         summary = constants.HOST_SUMMARY_FOR_WEBINARS
         description = constants.HOST_DESCRIPTION_FOR_WEBINARS.format(
             creator_name=speaker.name.title(),
@@ -272,7 +272,7 @@ def create_calendar_event_for_webinar_attendee(user, group):
         return False
 
     # TODO(Nishant): This has to change for each environment.
-    stream_link = conversation_public.get_link_for_webinar(group)
+    stream_link = conversation_public.get_livestream_link_for_webinar(group)
 
     if not series:
         summary = constants.ATTENDEE_SUMMARY_FOR_WEBINARS.format(

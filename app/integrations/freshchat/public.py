@@ -303,7 +303,7 @@ def send_whatsapp_reminder_for_webinar_host(group):
     host = group.host
     start_time = group.get_display_start_time()
     topic_name = group.topic.name
-    stream_link = conversation_public.get_link_for_webinar(group)
+    stream_link = conversation_public.get_livestream_link_for_webinar(group)
 
     data_2 = constants.DATA_2_FOR_HOST_REMINDER.format(
         start_time=start_time,
@@ -370,7 +370,7 @@ def send_whatsapp_reminder_for_webinar_attendee_and_follower(user, group):
         attendee_name = constants.PLACEHOLDER_NAME_FOR_WHATSAPP
 
     topic_name = group.topic.name
-    stream_link = conversation_public.get_link_for_webinar(group)
+    stream_link = conversation_public.get_livestream_link_for_webinar(group)
 
     data_2 = constants.DATA_2_FOR_ATTENDEE_REMINDER.format(
         creator_name=creator_name,

@@ -147,7 +147,7 @@ class CreatorViewSet(
         user = request.user
 
         # Get total followers
-        follower_count = private.get_follower_count(user=user)
+        follower_count = private.get_subscriber_count(user=user)
 
         # Get creator stream stats
         stats = private.get_creator_stream_stats(user=user)

@@ -1,27 +1,25 @@
 import datetime
-import logging
 import json
+import logging
 from itertools import chain
-
-from django.db.models import Count
-from rest_framework.renderers import JSONRenderer
 
 import boto3
 from botocore import exceptions as botocore_exceptions
 from celery.schedules import crontab
 from celery.task import periodic_task, task
 from django.conf import settings
+from django.db.models import Count
 from django.utils import timezone
+from rest_framework.renderers import JSONRenderer
 
-from conversations import constants, models, services
-from users import models as user_models
+from conversations import constants, models, services, serializers, signals
 from crater.creator import public as creator_public
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
 from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
 from integrations.wati import public as wati_public
-from conversations import serializers
+from users import models as user_models
 
 
 def send_conversation_confirmation_email_for_group(group):
@@ -326,6 +324,12 @@ def publish_group_recordings(group_recording_ids):
         group_recording.published_at = datetime.datetime.now()
         group_recording.save()
 
+        # Send recording published signal.
+        signals.group_recording_published.send(
+            sender=group_recording.__class__,
+            recording=group_recording
+        )
+
 
 @periodic_task(run_every=crontab(minute=0, hour="*/3"))
 def upload_valid_recordings_for_streams(groups=None):
@@ -569,6 +573,7 @@ def streams_action_message():
 
         if not future_streams:
             future_streams = models.Group.objects.filter(
+                start__gte=stream.start,
                 start__lte=stream.start + datetime.timedelta(hours=24),
                 categories__in=stream.categories.all(),
             )
@@ -662,7 +667,7 @@ def send_top_stream_message():
             )
         else:
             # Filter unique category followers who
-            # has not received a top stream message yet.
+            # have not received a top stream message yet.
             followers = user_categories.filter(
                 category=stream["category"]
             ).exclude(
