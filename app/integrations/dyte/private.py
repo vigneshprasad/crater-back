@@ -116,7 +116,7 @@ def get_active_recording_for_dyte_meeting(dyte_meeting):
     return dyte_meeting_active_recording
 
 
-def get_recording_for_dyte_meeting(
+def get_recording_for_dyte_meeting_and_status(
         dyte_meeting,
         status=constants.DYTE_RECORDING_STATUS_RECORDING
 ):
