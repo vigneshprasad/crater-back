@@ -1,3 +1,4 @@
+from operator import mod
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -50,7 +51,7 @@ class RewardSale(Sale):
 
     reward = models.ForeignKey(
         "crater_rewards.Reward",
-        related_name="auctions",
+        related_name="sale",
         on_delete=models.CASCADE
     )
 
@@ -63,6 +64,12 @@ class RewardSaleLog(base_models.BaseModel):
     SALE_STATUS_CHOICES = (
         (constants.SALE_PAYMENT_PENDING_ENUM, constants.SALE_PAYMENT_PENDING),
         (constants.SALE_PAYMENT_CONFIRMED_ENUM, constants.SALE_PAYMENT_CONFIRMED),
+        (constants.SALE_PAYMENT_DECLINED_ENUM, constants.SALE_PAYMENT_DECLINED)
+    )
+
+    PAYMENT_TYPE_CHOICES = (
+        (constants.SALE_PAYMENT_TYPE_UPI_ENUM, constants.SALE_PAYMENT_TYPE_UPI),
+        (constants.SALE_PAYMENT_TYPE_LEARN_ENUM, constants.SALE_PAYMENT_TYPE_LEARN)
     )
 
     user = models.ForeignKey(
@@ -90,10 +97,14 @@ class RewardSaleLog(base_models.BaseModel):
     # If the reward sale log is processed, that means transaction
     # is complete for the reward.
     is_processed = models.BooleanField(default=False)
+    payment_type = models.PositiveIntegerField(
+        default=constants.SALE_PAYMENT_TYPE_LEARN_ENUM,
+        choices=PAYMENT_TYPE_CHOICES
+    )
     # Payment object associated with the reward sale.
     payment = models.ForeignKey(
         "crater_payments.Payment",
-        related_name="bid",
+        related_name="sale_log",
         on_delete=models.SET_NULL,
         null=True,
         blank=True

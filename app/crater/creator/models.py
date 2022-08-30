@@ -85,6 +85,18 @@ class Creator(base_models.BaseModel):
         super(Creator, self).delete(soft=False)
 
 
+class CreatorUPIInfo(base_models.BaseModel):
+    creator = models.OneToOneField(
+        Creator,
+        verbose_name=_('Upi Info'),
+        related_name='upi_info',
+        on_delete=models.CASCADE
+    )
+    upi_id = models.CharField(max_length=255)
+    qr_code = models.ImageField(upload_to="creator/upi/qr_code")
+
+
+
 class Community(base_models.BaseModel):
     """Communities created by a creator.
 

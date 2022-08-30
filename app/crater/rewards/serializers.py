@@ -16,6 +16,20 @@ class RewardTypeSerializer(serializers.ModelSerializer):
             "is_active"
         )
 
+class RewardBaseSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = models.Reward
+        fields = (
+            "id",
+            "creator",
+            "title",
+            "name",
+            "description",
+            "photo",
+            "is_active",
+        )
+
 
 class RewardSerializer(serializers.ModelSerializer):
     photo_mime_type = serializers.SerializerMethodField(read_only=True)

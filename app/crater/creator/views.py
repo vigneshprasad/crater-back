@@ -4,6 +4,7 @@ import datetime
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.utils import timezone
+from crater import creator
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, filters
 from rest_framework import viewsets
@@ -589,5 +590,23 @@ class CoinsViewSet(
             serializer = self.get_serializer(coin_object)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except (models.Coin.DoesNotExist, models.Coin.MultipleObjectsReturned):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+
+class CreatorUPIInfoViewSet(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [user_permissions.IsAuthenticated]
+    serializer_class = serializers.CreatorUPIInfoSerializer
+    queryset = models.CreatorUPIInfo.objects.all()
+
+    def retrieve(self, request, pk, *args, **kwargs):
+        try:
+            obj = self.queryset.get(creator_id=pk)
+            serializer = self.get_serializer(obj)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except models.CreatorUPIInfo.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
