@@ -18,8 +18,10 @@ class Notification(base_model.BaseModel):
     )
 
     name = models.CharField(max_length=64)
-    headings = models.CharField(max_length=64, verbose_name=_("Notification Heading"))
-    contents = models.CharField(max_length=256, verbose_name=_("Notification Message"))
+    # Headings max_length as specified in One signal.
+    headings = models.CharField(max_length=50, verbose_name=_("Notification Heading"))
+    # Content max_length as specified in One signal.
+    contents = models.CharField(max_length=150, verbose_name=_("Notification Message"))
     small_icon = models.CharField(
         max_length=16,
         verbose_name=_("Small Notification Icon"),
