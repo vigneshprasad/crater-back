@@ -18,10 +18,19 @@ class Sale(base_models.BaseModel):
             the creator though.
 
     """
+    PAYMENT_TYPE_CHOICES = (
+        (constants.SALE_PAYMENT_TYPE_UPI_ENUM, constants.SALE_PAYMENT_TYPE_UPI),
+        (constants.SALE_PAYMENT_TYPE_LEARN_ENUM, constants.SALE_PAYMENT_TYPE_LEARN)
+    )
+
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
     quantity_sold = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    payment_type = models.PositiveIntegerField(
+        default=constants.SALE_PAYMENT_TYPE_LEARN_ENUM,
+        choices=PAYMENT_TYPE_CHOICES
+    )
 
     class Meta:
         abstract = True
@@ -54,6 +63,9 @@ class RewardSale(Sale):
         related_name="sale",
         on_delete=models.CASCADE
     )
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
         return "{}".format(self.reward)
