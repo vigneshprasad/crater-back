@@ -238,8 +238,8 @@ def update_meeting_recording_status_for_active_recordings(group_id):
 
         try:
             status = recording_data["status"]
-            started_at = recording_data["started_at"]
-            stopped_at = recording_data["stopped_at"]
+            started_at = recording_data["startedTime"]
+            stopped_at = recording_data["stoppedTime"]
         except KeyError:
             return False
 
@@ -287,8 +287,8 @@ def update_meeting_recording_status_for_recording_ids(recording_ids):
 
         try:
             status = recording_data["status"]
-            started_at = recording_data["started_at"]
-            stopped_at = recording_data["stopped_at"]
+            started_at = recording_data["startedTime"]
+            stopped_at = recording_data["stoppedTime"]
         except KeyError:
             return False
 
