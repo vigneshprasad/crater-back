@@ -15,8 +15,9 @@ class RewardSalesAdmin(admin.ModelAdmin):
         "quantity",
         "quantity_sold",
         "is_active",
+        "is_closed"
     )
-    list_editable = ("is_active", )
+    list_editable = ("is_active", "is_closed")
     exclude = (
         "created_at",
         "deleted_at",

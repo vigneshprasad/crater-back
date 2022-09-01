@@ -1,17 +1,12 @@
-from crypt import methods
-from urllib import response
-from django.utils import timezone
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from crater.creator import models as creator_models
+from crater.payments import models as payment_models, constants as payment_constants
+from crater.rewards import models as reward_models
 from crater.sales import constants, models, serializers
 from users import permissions as user_permissions
-from crater.creator import models as creator_models
-from crater.payments import models as payment_models
-from crater.payments import constants as payment_constants
-from crater.rewards import models as reward_models
 
 
 # List API for all reward sales, creator specific reward sales and reward sale retrieve
@@ -27,7 +22,7 @@ class RewardSaleViewSet(
     permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.RewardSaleSerializer
     queryset = models.RewardSale.objects.filter(
-        is_active=True,
+        is_closed=False,
     ).select_related(
         "reward"
     )
@@ -78,7 +73,6 @@ class RewardSaleLogViewSet(
         # set sale log to confirmed and payment object also to confirmed
         # Send notification to user
         return Response({}, status=status.HTTP_200_OK)
-    
 
     @action(
         methods=["POST"],
@@ -105,6 +99,7 @@ class RewardSaleItemsViewSet(
     ).filter(
         is_active=True,
         sale__is_active=True,
+        sale__is_closed=False
     ).order_by(
         "-order",
         "created_at"
@@ -142,6 +137,7 @@ class RewardSaleSellersViewSet(
     ).filter(
         is_active=True,
         sale__is_active=True,
+        sale__is_closed=False,
     )
 
     @action(
@@ -152,8 +148,5 @@ class RewardSaleSellersViewSet(
         queryset = self.filter_queryset(self.get_queryset())
         creator_ids = queryset.values_list("creator", flat=True).distinct()
         sellers = creator_models.Creator.objects.filter(id__in=creator_ids)
-
         serializer = self.get_serializer(sellers, many=True)
-
         return Response(serializer.data)
-
