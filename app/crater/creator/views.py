@@ -4,7 +4,6 @@ import datetime
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.utils import timezone
-from crater import creator
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, filters
 from rest_framework import viewsets

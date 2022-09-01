@@ -26,7 +26,13 @@ class Sale(base_models.BaseModel):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
     quantity_sold = models.PositiveIntegerField(default=0)
+
+    # If False, Sale is visible on front end, but can't be bought.
     is_active = models.BooleanField(default=True)
+    # Stops the Sale from being show in front end.
+    is_closed = models.BooleanField(default=False)
+
+    # Type of payment that can be made for this Sale.
     payment_type = models.PositiveIntegerField(
         default=constants.SALE_PAYMENT_TYPE_LEARN_ENUM,
         choices=PAYMENT_TYPE_CHOICES
