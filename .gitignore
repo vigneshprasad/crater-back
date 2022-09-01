@@ -23,6 +23,8 @@ celerybeat.pid
 credentials.json
 
 # Shell scripts.
+app/dev_connect.sh
+app/prod_connect.sh
 dev_connect.sh
 prod_connect.sh
 

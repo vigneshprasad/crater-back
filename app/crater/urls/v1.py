@@ -10,6 +10,7 @@ from crater.payments import views as payment_views
 from crater.exchange import views as exchange_views
 from crater.gateways.stripe_payments import views as stripe_payment_views
 from crater.analytics_dashboard import views as analytics_dashboard_views
+from crater.sales import views as sales_views
 
 app_name = "crater"
 
@@ -19,6 +20,7 @@ router = DefaultRouter()
 router.register("auth", auth_views.PhoneNumberRegisterView, base_name="crater-auth")
 
 # Creator app endpoints.
+router.register("creator/upi", creator_views.CreatorUPIInfoViewSet, base_name="creator-upi-info")
 router.register("creator/s", creator_views.CreatorSlugViewSet, base_name="crater-creator-slug")
 router.register("creator", creator_views.CreatorViewSet, base_name="crater-creator")
 router.register("community/members", creator_views.CommunityMemberViewSet, base_name="crater-community-members")
@@ -42,6 +44,12 @@ router.register("coin_log", auction_views.CoinPriceLogViewSet, basename="coin-pr
 router.register("payment", payment_views.PaymentViewSet, basename="crater-payments")
 router.register("gateways/stripe/webhook", stripe_payment_views.StripeWebhookViewSet, basename="stripe-webhook")
 router.register("gateways/stripe", stripe_payment_views.PaymentIntentViewSet, basename="crater-gateways-stripe")
+
+# Sales endpoints
+router.register("sale/log", sales_views.RewardSaleLogViewSet, basename="crater-sale-log")
+router.register("sale/items", sales_views.RewardSaleItemsViewSet, basename="crater-sale-items")
+router.register("sale/sellers", sales_views.RewardSaleSellersViewSet, basename="crater-sale-sellers")
+router.register("sale", sales_views.RewardSaleViewSet, basename="crater-sale")
 
 # Analytics Dashboard endpoints
 router.register("analytics", analytics_dashboard_views.AnalyticsDashboardViewSet, basename="analytics-dashboard")

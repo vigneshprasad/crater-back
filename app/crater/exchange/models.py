@@ -11,6 +11,7 @@ class Transaction(base_models.BaseModel):
         (constants.TRANSACTION_TYPE_BID_ENUM, constants.TRANSACTION_TYPE_BID),
         (constants.TRANSACTION_TYPE_REDEMPTION_ENUM, constants.TRANSACTION_TYPE_REDEMPTION),
         (constants.TRANSACTION_TYPE_AUCTION_ENUM, constants.TRANSACTION_TYPE_AUCTION),
+        (constants.TRANSACTION_TYPE_SALE_ENUM, constants.TRANSACTION_TYPE_SALE),
     )
 
     # Creator coin/token that is being bought or sold.

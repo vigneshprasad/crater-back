@@ -208,3 +208,14 @@ class FollowerAdmin(admin.ModelAdmin):
     def delete_queryset(self, request, queryset):
         # Hard deleting follower objects.
         queryset.delete(soft=False)
+
+
+@admin.register(models.CreatorUPIInfo)
+class CreatorUpiInfoAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "creator",
+        "upi_id"
+    )
+    raw_id_fields = ("creator", )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

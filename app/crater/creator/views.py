@@ -2,22 +2,15 @@ import csv
 import datetime
 
 from django.contrib.auth import get_user_model
+from django.db.models import Sum, F, Q
 from django.http import HttpResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, filters
-from rest_framework import viewsets
-from rest_framework import status
+from rest_framework import mixins, filters, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Sum, F, Q
 
-from crater.creator import exceptions
-from crater.creator import models
-from crater.creator import paginators
-from crater.creator import private
-from crater.creator import serializers
-from crater.creator import signals
+from crater.creator import exceptions, models, paginators, private, serializers, signals
 from users import permissions as user_permissions
 
 
@@ -591,3 +584,25 @@ class CoinsViewSet(
         except (models.Coin.DoesNotExist, models.Coin.MultipleObjectsReturned):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+
+class CreatorUPIInfoViewSet(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [user_permissions.IsAuthenticated]
+    serializer_class = serializers.CreatorUPIInfoSerializer
+    queryset = models.CreatorUPIInfo.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        """Retrieves creator UPI info provided a creator id."""
+        creator_id = kwargs.get("pk")
+        if not creator_id:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            obj = self.queryset.get(creator_id=creator_id)
+        except models.CreatorUPIInfo.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)

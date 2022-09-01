@@ -91,7 +91,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
         """Total minutes spent on the stream."""
         minutes_spent = 0
         online_logs = self.online_logs.all()
-
         # If there is no last_online_at return 0.
         if not self.last_online_at:
             return minutes_spent
@@ -125,7 +124,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
         # Create online logs.
         online_log, _ = DyteParticipantOnlineLog.objects.get_or_create(
-            dyte_meeting_participant_id=self.id,
+            dyte_meeting_participant=self,
             is_offline=False,
             defaults={
                 "online_at": online_at
@@ -146,6 +145,8 @@ class DyteMeetingParticipant(base_model.BaseModel):
             online_log.mark_offline()
         else:
             LOGGER.error("Went offline without online log. {}".format(self.id))
+
+        self.save()
 
         self.save()
 
