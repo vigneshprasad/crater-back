@@ -8,8 +8,10 @@ from rest_framework.response import Response
 
 from crater.sales import constants, models, serializers
 from users import permissions as user_permissions
+from crater.creator import models as creator_models
 from crater.payments import models as payment_models
 from crater.payments import constants as payment_constants
+from crater.rewards import models as reward_models
 
 
 # List API for all reward sales, creator specific reward sales and reward sale retrieve
@@ -22,12 +24,14 @@ class RewardSaleViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    permission_classes = [user_permissions.IsAuthenticated]
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     serializer_class = serializers.RewardSaleSerializer
     queryset = models.RewardSale.objects.filter(
         is_active=True,
+    ).select_related(
+        "reward"
     )
-    filterset_fields = ["reward", "reward__creator"]
+    filterset_fields = ["reward", "reward__creator", "payment_type"]
 
 
 class RewardSaleLogViewSet(
@@ -85,3 +89,71 @@ class RewardSaleLogViewSet(
         # set sale log to declined and payment object also to declined
         # Send notification to user
         return Response({}, status=status.HTTP_200_OK)
+
+
+class RewardSaleItemsViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.RewardDetailWithRewardSaleSerializer
+    queryset = reward_models.Reward.objects.prefetch_related(
+        "sale"
+    ).select_related(
+        "creator"
+    ).filter(
+        is_active=True,
+        sale__is_active=True,
+    ).order_by(
+        "-order",
+        "created_at"
+    ).distinct()
+    filterset_fields = ["sale__payment_type", "type__name"]
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def featured(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().exclude(
+                photo=""
+            )
+        )[:3]
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class RewardSaleSellersViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.RewardSellerDetailSerializer
+    queryset = reward_models.Reward.objects.prefetch_related(
+        "sale"
+    ).select_related(
+        "creator",
+        "creator__user",
+        "creator__user__profile"
+    ).filter(
+        is_active=True,
+        sale__is_active=True,
+    )
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def featured(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        creator_ids = queryset.values_list("creator", flat=True).distinct()
+        sellers = creator_models.Creator.objects.filter(id__in=creator_ids)
+
+        serializer = self.get_serializer(sellers, many=True)
+
+        return Response(serializer.data)
+
