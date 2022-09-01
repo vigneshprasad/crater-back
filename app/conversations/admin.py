@@ -347,7 +347,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "featured",
     )
     list_editable = ("is_published", "featured",)
-    actions = ("publish_group_recordings",)
+    actions = ("publish_group_recordings", "update_dyte_recording_status")
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
         "group__host__username",
