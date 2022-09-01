@@ -1,7 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.contrib import admin
+from django.contrib import admin, messages
 
-from integrations.dyte import models
+from integrations.dyte import models, tasks
 
 
 @admin.register(models.DyteMeeting)
@@ -92,6 +92,7 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("dyte_meeting", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+    actions = ("update_recording_status", )
     list_filter = (
         AutocompleteFilterFactory("Group", "dyte_meeting__group"),
         "status"
@@ -100,3 +101,33 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
         "recording_id",
         "dyte_meeting__group__host__name"
     )
+
+    def update_recording_status(self, request, queryset):
+        """Adds previous webinar attendees to the provided webinar.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of recording we are
+                update the status for.
+
+        """
+        recording_ids = list(queryset.values_list("id", flat=True))
+        tasks.update_meeting_recording_status_for_recording_ids.delay(recording_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["update_recording_status"]}}]
+            )
+
+        self.message_user(
+            request,
+            "Recording status updated for: {}".format(
+                ", ".join([str(recording.id) for recording in queryset])
+            ),
+            messages.SUCCESS
+        )
+
+    update_recording_status.short_description = "Update Recording Status"
