@@ -257,7 +257,7 @@ def update_meeting_recording_status_for_active_recordings(group_id):
             dyte_meeting_active_recording.started_at = None
             dyte_meeting_active_recordings.stopped_at = None
 
-        dyte_meeting_active_recordings.save()
+        dyte_meeting_active_recording.save()
 
     return True
 
