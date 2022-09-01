@@ -111,7 +111,6 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
                 update the status for.
 
         """
-        # Delay the task for adding attendees.
         recording_ids = list(queryset.values_list("id", flat=True))
         tasks.update_meeting_recording_status_for_recording_ids.delay(recording_ids)
 
