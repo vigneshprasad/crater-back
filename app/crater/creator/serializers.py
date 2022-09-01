@@ -310,7 +310,3 @@ class CreatorUPIInfoSerializer(serializers.ModelSerializer):
             "upi_id",
             "qr_code"
         )
-
-
-
-
