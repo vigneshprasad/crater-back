@@ -148,8 +148,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
         self.save()
 
-        self.save()
-
 
 class DyteParticipantOnlineLog(base_model.BaseModel):
 
@@ -207,8 +205,18 @@ class DyteMeetingRecording(base_model.BaseModel):
         default=constants.DYTE_RECORDING_STATUS_INVOKED,
         choices=RECORDING_STATUS
     )
+    # Path of the recording in S3 bucket.
     path = models.TextField()
+    # File size of the recording as we receive from Dyte's end (Bytes).
+    file_size = models.DecimalField(
+        null=True,
+        blank=True,
+        max_digits=10,
+        decimal_places=2
+    )
+    # Recording start time..
     started_at = models.DateTimeField(null=True, blank=True)
+    # Recording end time.
     stopped_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -228,6 +236,13 @@ class DyteMeetingRecording(base_model.BaseModel):
         if not self.path:
             return None
         return self.path[1:]
+
+    @property
+    def file_size_mb(self):
+        """Returns recording file size in MB."""
+        if not self.file_size:
+            return None
+        return round(self.file_size / (1024 * 1024))
 
     @property
     def object_url(self):
