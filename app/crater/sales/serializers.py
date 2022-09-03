@@ -46,7 +46,7 @@ class RewardSaleLogSerializer(serializers.ModelSerializer):
 
 
 class RewardDetailWithRewardSaleSerializer(serializers.ModelSerializer):
-    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator", read_only=True)
+    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator.user.profile", read_only=True)
     reward_sale_details = RewardSaleBaseSerializer(source="sale", read_only=True, many=True)
 
     class Meta:
