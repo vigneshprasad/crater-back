@@ -5,6 +5,9 @@ from crater.rewards import models as reward_models
 from crater.rewards import serializers as reward_serializers
 from crater.creator import serializers as creator_serializers
 from crater.creator import models as creator_models
+from users import serializers as user_serializers
+
+from utils import fields
 
 
 class RewardSaleBaseSerializer(serializers.ModelSerializer):
@@ -38,11 +41,40 @@ class RewardSaleSerializer(serializers.ModelSerializer):
         )
 
 
+class CreateSaleRewardSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(max_length=64)
+    description = serializers.CharField()
+    image = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
+
+    class Meta:
+        model = models.RewardSale
+        fields = (
+            "price",
+            "quantity",
+            "title",
+            "description",
+            "image"
+        )
+
+
 class RewardSaleLogSerializer(serializers.ModelSerializer):
+    reward_sale_detail = RewardSaleSerializer(source="reward_sale", read_only=True)
+    user_detail = user_serializers.UserDetailSerializer(source="user", read_only=True)
 
     class Meta:
         model = models.RewardSaleLog
-        fields = "__all__"
+        fields = (
+            "id",
+            "user",
+            "reward_sale",
+            "quantity",
+            "price",
+            "status",
+            "payment",
+            "payment_type",
+            "reward_sale_detail",
+            "user_detail",
+        )
 
 
 class RewardDetailWithRewardSaleSerializer(serializers.ModelSerializer):
