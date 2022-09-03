@@ -211,7 +211,7 @@ class DyteMeetingRecording(base_model.BaseModel):
     file_size = models.DecimalField(
         null=True,
         blank=True,
-        max_digits=10,
+        max_digits=16,
         decimal_places=2
     )
     # Recording start time..
