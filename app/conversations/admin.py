@@ -390,7 +390,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
 
         """
         dyte_recording = obj.dyte_recordings.last()
-        if not dyte_recording or dyte_recording.file_size_mb:
+        if not dyte_recording:
             return None
         return dyte_recording.file_size_mb
 

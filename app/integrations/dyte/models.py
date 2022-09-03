@@ -242,7 +242,7 @@ class DyteMeetingRecording(base_model.BaseModel):
         """Returns recording file size in MB."""
         if not self.file_size:
             return None
-        return round(self.file_size / (1024 * 1024))
+        return round(self.file_size / (1024 * 1024), 2)
 
     @property
     def object_url(self):
