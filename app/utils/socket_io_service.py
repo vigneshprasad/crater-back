@@ -11,7 +11,8 @@ class SocketIOService:
 
     API_BASE_URL = settings.SOCKET_IO_BASE_URL
     API_URL = {
-        "user_permission": "/user-permission/"
+        "user_permission": "/user-permission/",
+        "notification_user": "/notification/user/"
     }
 
     def get_api_endpoint(self, name: str):
@@ -41,6 +42,27 @@ class SocketIOService:
             response = requests.post(
                 self.get_api_endpoint("user_permission"),
                 json=payload,
+            ).json()
+        except Exception as e:
+            LOGGER.error(str(e))
+            return
+
+        return response
+    
+    def post_notification_user(self, data, user_id, type_key):
+        """Sends notification data for a user to socket.io server.
+
+        """
+        payload = {
+            "user": user_id,
+            "type": type_key,
+            "data": data
+        }
+
+        try:
+            response = requests.post(
+                self.get_api_endpoint("notification_user"),
+                json=payload
             ).json()
         except Exception as e:
             LOGGER.error(str(e))

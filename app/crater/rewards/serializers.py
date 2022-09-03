@@ -4,6 +4,7 @@ from crater.auctions import models as auction_models
 from crater.auctions import constants as auction_constants
 from crater.creator import serializers as creator_serializers
 from crater.rewards import models
+from utils import fields
 
 
 class RewardTypeSerializer(serializers.ModelSerializer):
@@ -15,6 +16,7 @@ class RewardTypeSerializer(serializers.ModelSerializer):
             "name",
             "is_active"
         )
+
 
 class RewardBaseSerializer(serializers.ModelSerializer):
     
@@ -38,6 +40,7 @@ class RewardSerializer(serializers.ModelSerializer):
     active_auction = serializers.SerializerMethodField(read_only=True)
     creator_detail = creator_serializers.CreatorSerializer(source="creator", read_only=True)
     type_detail = RewardTypeSerializer(source="type", read_only=True)
+    photo = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
 
     class Meta:
         model = models.Reward
