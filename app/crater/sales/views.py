@@ -139,7 +139,9 @@ class RewardSaleItemsViewSet(
     queryset = reward_models.Reward.objects.prefetch_related(
         "sale"
     ).select_related(
-        "creator"
+        "creator",
+        "creator__user",
+        "creator__user__profile"
     ).filter(
         is_active=True,
         sale__is_active=True,
