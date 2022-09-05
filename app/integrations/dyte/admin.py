@@ -87,7 +87,7 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
         "status",
         "recording_id",
         "object_url",
-        "file_size_mb",
+        "file_size",
         "started_at",
         "stopped_at"
     )

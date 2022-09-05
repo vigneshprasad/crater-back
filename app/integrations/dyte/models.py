@@ -207,12 +207,14 @@ class DyteMeetingRecording(base_model.BaseModel):
     )
     # Path of the recording in S3 bucket.
     path = models.TextField()
-    # File size of the recording as we receive from Dyte's end (Bytes).
+    # File size of the recording as we receive from Dyte's end
+    # converted in to Mega bytes.
     file_size = models.DecimalField(
         null=True,
         blank=True,
         max_digits=16,
-        decimal_places=2
+        decimal_places=2,
+        verbose_name="File Size(MB)"
     )
     # Recording start time..
     started_at = models.DateTimeField(null=True, blank=True)
@@ -236,13 +238,6 @@ class DyteMeetingRecording(base_model.BaseModel):
         if not self.path:
             return None
         return self.path[1:]
-
-    @property
-    def file_size_mb(self):
-        """Returns recording file size in MB."""
-        if not self.file_size:
-            return None
-        return round(self.file_size / (1024 * 1024), 2)
 
     @property
     def object_url(self):
