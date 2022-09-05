@@ -285,7 +285,8 @@ class DyteMeetingRecordingViewSet(
             dyte_meeting_recording.stopped_at = datetime.datetime.strptime(
                 stopped_at, constants.DYTE_DATETIME_FORMAT
             ) if stopped_at else None
-        except ValueError:
+        except ValueError as e:
+            LOGGER.error("Recording times errored: {}".format(e))
             dyte_meeting_recording.started_at = None
             dyte_meeting_recording.stopped_at = None
 
