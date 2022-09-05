@@ -160,7 +160,6 @@ class RewardSaleItemsViewSet(
         "creator__user__profile"
     ).filter(
         is_active=True,
-        sale__is_active=True,
         sale__is_closed=False
     ).order_by(
         "-order",
@@ -198,7 +197,6 @@ class RewardSaleSellersViewSet(
         "creator__user__profile"
     ).filter(
         is_active=True,
-        sale__is_active=True,
         sale__is_closed=False,
     )
 
