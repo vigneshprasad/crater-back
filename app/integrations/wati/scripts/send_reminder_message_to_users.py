@@ -1,9 +1,7 @@
 from conversations import public as conversation_public
+from integrations.freshchat import constants as freshchat_constants, freshchat_service
 from integrations.wati import constants
-from integrations.wati.services import wati_service_9051
-from integrations.wati.services import wati_service_8953
-from integrations.freshchat import constants as freshchat_constants
-from integrations.freshchat import freshchat_service
+from integrations.wati.services import wati_service_8953, wati_service_9051
 
 
 def run_with_wati(
@@ -11,7 +9,7 @@ def run_with_wati(
         group,
         creator=None,
         account=constants.WATI_9051_ACCOUNT_ENUM,
-        dry_run=False
+        dry_run=True
 ):
     """Send message to phone numbers outside of Crater.
 
@@ -93,7 +91,7 @@ def run_with_wati(
     print("******")
 
 
-def run_with_freshchat(phone_number_name_list, group, creator=None, dry_run=False):
+def run_with_freshchat(phone_number_name_list, group, creator=None, dry_run=True):
     """Send message to phone numbers outside of Crater.
 
     Args:
@@ -104,7 +102,7 @@ def run_with_freshchat(phone_number_name_list, group, creator=None, dry_run=Fals
         dry_run(boolean): True for a dry run.
 
     """
-    for phone_number, name in phone_number_name_list:
+    for name, phone_number in phone_number_name_list:
         if not creator:
             creator_name = group.host.display_name
         else:
