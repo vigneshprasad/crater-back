@@ -6,7 +6,8 @@ from integrations.dyte import constants, models, service
 def update_status_and_file_sizes(dry_run=True):
     """Update status and fileSize for all Dyte recordings on our end."""
     dyte_recordings = models.DyteMeetingRecording.objects.filter(
-        updated_at__lt=datetime.date.today()
+        updated_at__lt=datetime.datetime.now(),
+        status=constants.DYTE_RECORDING_STATUS_UPLOADED
     )
 
     print("Total Dyte recordings")

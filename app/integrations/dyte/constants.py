@@ -6,7 +6,7 @@ DYTE_APP_ID = settings.DYTE_APP_ID
 DYTE_PROD_BASE_URL = settings.DYTE_PROD_BASE_URL
 DYTE_JOIN_MEETING_BASE_URL = settings.DYTE_JOIN_MEETING_BASE_URL
 
-DYTE_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
+DYTE_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f%z"
 
 # Dyte present constants.
 DEFAULT_PRESET_NAME = "participant"

@@ -12,7 +12,7 @@ from django.db.models import Count
 from django.utils import timezone
 from rest_framework.renderers import JSONRenderer
 
-from conversations import constants, models, services, serializers, signals
+from conversations import constants, models, serializers, services, signals
 from crater.creator import public as creator_public
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
@@ -340,7 +340,7 @@ def upload_valid_recordings_for_streams(groups=None):
             recordings for.
 
     Note:
-        Only publishes recordings if the recording size is >150 MB.
+        Only publishes recordings if the recording size is > 100 MB.
 
     """
     end_time = timezone.now() - timezone.timedelta(hours=3)
@@ -376,27 +376,7 @@ def upload_valid_recordings_for_streams(groups=None):
         if not dyte_rec:
             continue
 
-        try:
-            recording_object_s3 = s3.Object(settings.AWS_STORAGE_BUCKET_NAME, dyte_rec.storage_key_name)
-            size_in_bytes = recording_object_s3.content_length
-        except botocore_exceptions.ClientError as e:
-            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
-                group_id=group_recording.group_id
-            )
-            recording_object_s3 = s3.Object(
-                settings.AWS_STORAGE_BUCKET_NAME,
-                path + "/" + dyte_rec.file_name
-            )
-            size_in_bytes = recording_object_s3.content_length
-        except Exception as e:
-            logging.error(
-                "Exception happened when uploading recording: {} - {}".format(
-                    e, group_recording.id
-                )
-            )
-            continue
-
-        size_in_megabytes = size_in_bytes / (1024 * 1024)
+        size_in_megabytes = dyte_rec.file_size or 0
         # If the size is less than 150 MB, don't publish.
         if not (size_in_megabytes >= 100):
             continue
