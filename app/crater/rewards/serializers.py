@@ -34,7 +34,7 @@ class RewardBaseSerializer(serializers.ModelSerializer):
 
 
 class RewardSerializer(serializers.ModelSerializer):
-    photo_mime_type = serializers.SerializerMethodField(read_only=True)
+    photo_mime_type = serializers.SerializerMethodField(read_only=True, allow_null=True)
     quantity = serializers.SerializerMethodField(read_only=True)
     quantity_sold = serializers.SerializerMethodField(read_only=True)
     active_auction = serializers.SerializerMethodField(read_only=True)
