@@ -34,20 +34,36 @@ class RewardSaleViewSet(
     filterset_fields = ["reward", "reward__creator", "payment_type"]
 
     def create(self, request, *args, **kwargs):
-
         data = request.data
         user = request.user
+
         reward_data = {
             "title": data["title"],
-            "photo": data["photo"],
+            "photo": data.get("photo", None),
             "description": data["description"],
             "creator": user.creator.id,
             "name": data["title"],
+            "type": data["type"]
         }
-        reward_serialzer = reward_serializers.RewardSerializer(data=reward_data)
-        reward_serialzer.is_valid(raise_exception=True)
-        print(reward_serialzer.data)
-        return Response({}, status=status.HTTP_200_OK)
+        reward_serializer = reward_serializers.RewardSerializer(data=reward_data)
+        reward_serializer.is_valid(raise_exception=True)
+        reward_instance = reward_serializer.save()
+
+        reward_sale_data = {
+            "price": data["price"],
+            "quantity": data["quantity"],
+            "is_active": False,
+            "payment_type": constants.SALE_PAYMENT_TYPE_UPI_ENUM,
+            "reward": reward_instance.id
+        }
+
+        reward_sale_serializer = self.get_serializer(data=reward_sale_data)
+        reward_sale_serializer.is_valid(raise_exception=True)
+        reward_sale_instance = reward_sale_serializer.save()
+
+        response_serializer = self.get_serializer(reward_sale_instance)
+
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 class RewardSaleLogViewSet(
