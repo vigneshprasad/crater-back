@@ -240,13 +240,14 @@ def update_meeting_recording_status_for_active_recordings(group_id):
             status = recording_data["status"]
             started_at = recording_data["startedTime"]
             stopped_at = recording_data["stoppedTime"]
-            file_size = recording_data.get("fileSize")
+            file_size = recording_data.get("fileSize", 0)
+            file_size_mb = round(file_size / (1024 * 1024))
         except KeyError:
             return False
 
         # Update the status.
         dyte_meeting_active_recording.status = status
-        dyte_meeting_active_recording.file_size = file_size
+        dyte_meeting_active_recording.file_size = file_size_mb
 
         try:
             dyte_meeting_active_recording.started_at = datetime.datetime.strptime(
@@ -291,13 +292,14 @@ def update_meeting_recording_status_for_recording_ids(recording_ids):
             status = recording_data["status"]
             started_at = recording_data["startedTime"]
             stopped_at = recording_data["stoppedTime"]
-            file_size = recording_data.get("fileSize")
+            file_size = recording_data.get("fileSize", 0)
+            file_size_mb = round(file_size / (1024 * 1024))
         except KeyError:
             return False
 
         # Update the status.
         dyte_meeting_recording.status = status
-        dyte_meeting_recording.file_size = file_size
+        dyte_meeting_recording.file_size = file_size_mb
 
         try:
             dyte_meeting_recording.started_at = datetime.datetime.strptime(

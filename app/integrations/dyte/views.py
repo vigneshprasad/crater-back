@@ -260,7 +260,8 @@ class DyteMeetingRecordingViewSet(
         recording_status = dyte_recording_details.get("status")
         started_at = dyte_recording_details.get("startedTime")
         stopped_at = dyte_recording_details.get("stoppedTime")
-        file_size = dyte_recording_details.get("fileSize")
+        file_size = dyte_recording_details.get("fileSize", 0)
+        file_size_mb = round(file_size / (1024 * 1024))
 
         dyte_meeting_recording = private.get_dyte_meeting_recording_for_recording_id(
             recording_id=recording_id
@@ -275,7 +276,7 @@ class DyteMeetingRecordingViewSet(
 
         # Update the status and start and stopped times.
         dyte_meeting_recording.status = recording_status
-        dyte_meeting_recording.file_size = file_size
+        dyte_meeting_recording.file_size = file_size_mb
 
         try:
             dyte_meeting_recording.started_at = datetime.datetime.strptime(
