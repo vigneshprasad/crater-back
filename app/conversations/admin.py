@@ -343,7 +343,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "recording",
         "status",
         "all_dyte_recordings",
-        "recording_file_size (last)",
+        "recording_file_size",
         "is_published",
         "featured",
     )
@@ -380,8 +380,7 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         ]
         return format_html(" ||| ".join(dyte_recording for dyte_recording in dyte_recordings))
 
-    @staticmethod
-    def latest_recording_file_size(obj):
+    def recording_file_size(self, obj):
         """Returns recording file size in MB for the last recording.
 
         Note:
@@ -393,6 +392,8 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         if not dyte_recording:
             return None
         return dyte_recording.file_size
+
+    recording_file_size.short_description = "Last Recording Size(MB)"
 
     @staticmethod
     def status(obj):
