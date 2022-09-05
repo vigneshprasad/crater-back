@@ -6,7 +6,7 @@ from integrations.dyte import constants, models, service
 def update_status_and_file_sizes(dry_run=True):
     """Update status and fileSize for all Dyte recordings on our end."""
     dyte_recordings = models.DyteMeetingRecording.objects.filter(
-        update_at__lt=datetime.date.today()
+        updated_at__lt=datetime.date.today()
     )
 
     print("Total Dyte recordings")
@@ -29,8 +29,8 @@ def update_status_and_file_sizes(dry_run=True):
             status = recording_data["status"]
             started_at = recording_data["startedTime"]
             stopped_at = recording_data["stoppedTime"]
-            file_size = recording_data.get("fileSize", 0)
-            file_size_mb = round(file_size/(1024*1024), 2)
+            file_size = recording_data.get("fileSize") or 0
+            file_size_mb = round(file_size/(1024 * 1024), 2)
         except KeyError:
             print("Data not present")
             continue
