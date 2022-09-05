@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from celery.schedules import crontab
 from celery.task import periodic_task, task
@@ -8,6 +9,8 @@ from conversations import models as conversations_models
 from integrations.dyte import models, service, constants
 
 dyte_service = service.dyte_service
+
+LOGGER = logging.getLogger(__name__)
 
 
 @periodic_task(run_every=crontab("*/5"))
@@ -256,7 +259,8 @@ def update_meeting_recording_status_for_active_recordings(group_id):
             dyte_meeting_active_recording.stopped_at = datetime.datetime.strptime(
                 stopped_at, constants.DYTE_DATETIME_FORMAT
             ) if stopped_at else None
-        except ValueError:
+        except ValueError as e:
+            LOGGER.error("Recording times errored in update_meeting_recording_status_for_recording_ids: {}".format(e))
             dyte_meeting_active_recording.started_at = None
             dyte_meeting_active_recordings.stopped_at = None
 
@@ -308,7 +312,8 @@ def update_meeting_recording_status_for_recording_ids(recording_ids):
             dyte_meeting_recording.stopped_at = datetime.datetime.strptime(
                 stopped_at, constants.DYTE_DATETIME_FORMAT
             ) if stopped_at else None
-        except ValueError:
+        except ValueError as e:
+            LOGGER.error("Recording times errored in update_meeting_recording_status_for_recording_ids: {}".format(e))
             dyte_meeting_recording.started_at = None
             dyte_meeting_recording.stopped_at = None
 
