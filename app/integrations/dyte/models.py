@@ -1,5 +1,6 @@
 import logging
 
+from dateutil import parser
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -212,7 +213,7 @@ class DyteMeetingRecording(base_model.BaseModel):
     file_size = models.DecimalField(
         null=True,
         blank=True,
-        max_digits=16,
+        max_digits=10,
         decimal_places=2,
         verbose_name="File Size(MB)"
     )
@@ -243,3 +244,19 @@ class DyteMeetingRecording(base_model.BaseModel):
     def object_url(self):
         url = settings.AWS_DEFAULT_OBJECT_URL + self.path
         return format_html("<a target='_blank' href='{url}'>{url}</a>", url=url)
+
+    def update_start_and_stop_times(self, started_time, stopped_time):
+        """Update start and stop times of a recording from Dyte's end."""
+        try:
+            started_at = parser.parse(started_time)
+        except (TypeError, parser.ParserError):
+            started_at = None
+
+        try:
+            stopped_at = parser.parse(stopped_time)
+        except (TypeError, parser.ParserError):
+            stopped_at = None
+
+        self.started_at = started_at
+        self.stopped_at = stopped_at
+        self.save()

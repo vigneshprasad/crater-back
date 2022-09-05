@@ -277,19 +277,7 @@ class DyteMeetingRecordingViewSet(
         # Update the status and start and stopped times.
         dyte_meeting_recording.status = recording_status
         dyte_meeting_recording.file_size = file_size_mb
-
-        try:
-            dyte_meeting_recording.started_at = datetime.datetime.strptime(
-                started_at, constants.DYTE_DATETIME_FORMAT
-            ) if started_at else None
-            dyte_meeting_recording.stopped_at = datetime.datetime.strptime(
-                stopped_at, constants.DYTE_DATETIME_FORMAT
-            ) if stopped_at else None
-        except ValueError as e:
-            LOGGER.error("Recording times errored in webhook: {}".format(e))
-            dyte_meeting_recording.started_at = None
-            dyte_meeting_recording.stopped_at = None
-
         dyte_meeting_recording.save()
-
+        # Update start and stop times.
+        dyte_meeting_recording.update_start_and_stop_times(started_at, stopped_at)
         return Response(status=status.HTTP_200_OK)

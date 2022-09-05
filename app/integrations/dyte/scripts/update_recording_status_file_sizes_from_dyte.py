@@ -1,14 +1,9 @@
-import datetime
-
-from integrations.dyte import constants, models, service
+from integrations.dyte import models, service
 
 
 def update_status_and_file_sizes(dry_run=True):
     """Update status and fileSize for all Dyte recordings on our end."""
-    dyte_recordings = models.DyteMeetingRecording.objects.filter(
-        updated_at__lt=datetime.datetime.now(),
-        status=constants.DYTE_RECORDING_STATUS_UPLOADED
-    )
+    dyte_recordings = models.DyteMeetingRecording.objects.all()
 
     print("Total Dyte recordings")
     print(len(dyte_recordings))
@@ -46,19 +41,9 @@ def update_status_and_file_sizes(dry_run=True):
             dyte_recording.status = status
             # Update fileSize
             dyte_recording.file_size = file_size_mb
-
-            try:
-                dyte_recording.started_at = datetime.datetime.strptime(
-                    started_at, constants.DYTE_DATETIME_FORMAT
-                ) if started_at else None
-                dyte_recording.stopped_at = datetime.datetime.strptime(
-                    stopped_at, constants.DYTE_DATETIME_FORMAT
-                ) if stopped_at else None
-            except ValueError:
-                dyte_recording.started_at = None
-                dyte_recording.stopped_at = None
-
             dyte_recording.save()
+            # Update stop and start times.
+            dyte_recording.update_start_and_stop_times(started_at, stopped_at)
             total_recordings_updated += 1
 
         print("************")
