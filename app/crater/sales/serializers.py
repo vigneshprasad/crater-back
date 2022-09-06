@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from crater.sales import models
-from crater.rewards import models as reward_models
 from crater.rewards import serializers as reward_serializers
 from crater.creator import serializers as creator_serializers
 from crater.creator import models as creator_models
@@ -10,22 +9,8 @@ from users import serializers as user_serializers
 from utils import fields
 
 
-class RewardSaleBaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.RewardSale
-        fields = (
-            "id",
-            "payment_type",
-            "price",
-            "quantity",
-            "quantity_sold",
-            "is_active",
-            "reward"
-        )
-
-
 class RewardSaleSerializer(serializers.ModelSerializer):
-    reward_detail = reward_serializers.RewardBaseSerializer(source="reward", read_only=True)
+    reward_detail = reward_serializers.RewardDetailWithCreatorAndTypeSerializer(source="reward", read_only=True)
 
     class Meta:
         model = models.RewardSale
@@ -74,24 +59,6 @@ class RewardSaleLogSerializer(serializers.ModelSerializer):
             "payment_type",
             "reward_sale_detail",
             "user_detail",
-        )
-
-
-class RewardDetailWithRewardSaleSerializer(serializers.ModelSerializer):
-    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator.user.profile", read_only=True)
-    reward_sale_details = RewardSaleBaseSerializer(source="sale", read_only=True, many=True)
-
-    class Meta:
-        model = reward_models.Reward
-        fields = (
-            "id",
-            "creator",
-            "title",
-            "description",
-            "photo",
-            "is_active",
-            "creator_detail",
-            "reward_sale_details"
         )
 
 
