@@ -56,7 +56,6 @@ class RewardSaleViewSet(
         reward_sale_data = {
             "price": data["price"],
             "quantity": data["quantity"],
-            "is_active": False,
             "payment_type": constants.SALE_PAYMENT_TYPE_UPI_ENUM,
             "reward": reward_instance.id
         }

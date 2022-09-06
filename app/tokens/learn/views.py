@@ -1,6 +1,7 @@
 import datetime
 
 from users import permissions
+from django.db.models import Sum
 
 from integrations.dyte import models as dyte_models
 from conversations import models as conversation_models
@@ -11,6 +12,8 @@ from rest_framework import status
 from rest_framework import mixins
 
 from tokens.learn import constants
+from tokens import models as token_models
+from tokens import constants as token_constants
 
 
 class UserLearnMetaViewSet(
@@ -33,6 +36,7 @@ class UserLearnMetaViewSet(
                     "interactions": 0,
                     "learn_earned": 0,
                     "daily_learn_earned": 0,
+                    "learn_burned": 0
                 },
                 status=status.HTTP_200_OK
             )
@@ -56,6 +60,13 @@ class UserLearnMetaViewSet(
         for participant in daily_participants:
             daily_total_time_spent += participant.total_minutes_watched
 
+        learn_burned = token_models.UserTokenLog.objects.filter(
+            user=user,
+            type=token_constants.TRANSACTION_TYPE_REDEEMED_ENUM
+        ).aggregate(
+            total_amount=Sum("amount")
+        )["total_amount"] or 0
+
         interactions = conversation_models.GroupMessage.objects.filter(
             group__host__creator__tokens_enabled=True,
             sender=user,
@@ -77,6 +88,7 @@ class UserLearnMetaViewSet(
             "interactions": interactions,
             "learn_earned": learn_earned,
             "daily_learn_earned": daily_learn_earned,
+            "learn_burned": learn_burned
         }
 
         return Response(result, status=status.HTTP_200_OK)
