@@ -1,16 +1,12 @@
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from crater.creator import models as creator_models
-from crater.payments import models as payment_models, constants as payment_constants
-from crater.rewards import models as reward_models
-from crater.rewards import serializers as reward_serializers
-from crater.sales import constants, models, serializers
+from crater.payments import constants as payment_constants, models as payment_models
+from crater.rewards import models as reward_models, serializers as reward_serializers
+from crater.sales import constants, models, serializers, signals
 from users import permissions as user_permissions
-from crater.payments import models as payment_models
-from crater.payments import constants as payment_constants
-from crater.sales import tasks
 
 
 # List API for all reward sales, creator specific reward sales and reward sale retrieve
@@ -34,6 +30,7 @@ class RewardSaleViewSet(
     filterset_fields = ["reward", "reward__creator", "payment_type"]
 
     def create(self, request, *args, **kwargs):
+        """Creates a reward sale for creator."""
         data = request.data
         user = request.user
 
@@ -78,13 +75,24 @@ class RewardSaleLogViewSet(
     filterset_fields = ["reward_sale", "user"]
 
     def create(self, request, *args, **kwargs):
+        """API for when a user purchases a reward sale."""
         data = request.data
         user = request.user
         payment_type = data.get("payment_type")
         data["user"] = user.pk
 
+        reward_sale_id = data["reward_sale"]
+        # Check if the reward sale associated with the ID is active.
+        reward_sale = models.RewardSale.objects.filter(id=reward_sale_id, is_active=True).first()
+        # If the reward sale is not active, return and error from here.
+        if not reward_sale:
+            return Response({
+                "message": "Reward sale can't be purchased."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         if payment_type == constants.SALE_PAYMENT_TYPE_UPI_ENUM:
             # Create payment object and append payment object to sale log
+            # only if the user is paying FIAT currency.
             amount = data["price"] * data["quantity"]
             payment = payment_models.Payment.objects.create(
                 user=user,
@@ -92,16 +100,15 @@ class RewardSaleLogViewSet(
                 gateway=payment_constants.PAYMENT_GATEWAY_CREATOR_UPI_ENUM
             )
             data["payment"] = payment.id
-            
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-
         instance = serializer.save()
+        # Send sale created signal.
+        signals.sale_created.send(sender=instance.__class__, sale_log=instance)
 
-        tasks.send_notification_to_creator_for_sale.delay(instance.id)
         response_serializer = self.get_serializer(instance)
         headers = self.get_success_headers(serializer.data)
-        
         return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(
@@ -109,20 +116,17 @@ class RewardSaleLogViewSet(
         detail=True,
     )
     def accept(self, request, pk, *args, **kwargs):
-        # User accepts the payment
+        """API for when a creator accept/confirms a sale, i.e. payment
+            has been made for a sale.
+
+        """
         try:
             sale_log = models.RewardSaleLog.objects.get(id=pk)
         except models.RewardSaleLog.DoesNotExist:
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # set sale log to confirmed and payment object also to confirmed
-        sale_log.status = constants.SALE_PAYMENT_CONFIRMED_ENUM
-        sale_log.save()
-
-        sale_log.reward_sale.update_quantity(sale_log.quantity)
-
-        # Send notification to user
-        tasks.send_notification_user_sale_accepted.delay(sale_log.id)
+        # Mark the sale confirmed.
+        sale_log.mark_sale_confirmed()
         return Response({}, status=status.HTTP_200_OK)
 
     @action(
@@ -130,18 +134,17 @@ class RewardSaleLogViewSet(
         detail=True,
     )
     def decline(self, request, pk, *args, **kwargs):
-        # User decline the payment
+        """API for when a creator declines a sale, i.e. payment
+            has not been made for a sale.
+
+        """
         try:
             sale_log = models.RewardSaleLog.objects.get(id=pk)
         except models.RewardSaleLog.DoesNotExist:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-        # set sale log to declined and payment object also to confirmed
-        sale_log.status = constants.SALE_PAYMENT_DECLINED_ENUM
-        sale_log.save()
-
-        # Send notification to user
-        tasks.send_notification_user_sale_declined.delay(sale_log.id)
+        # Mark the sale declined.
+        sale_log.mark_sale_declined()
         return Response({}, status=status.HTTP_200_OK)
 
 

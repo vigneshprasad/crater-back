@@ -7,4 +7,4 @@ class SalesConfig(AppConfig):
 
     def ready(self):
         import crater.sales.signals
-        # import crater.auctions.receivers
+        import crater.sales.receivers
