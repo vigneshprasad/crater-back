@@ -47,7 +47,6 @@ router.register("gateways/stripe", stripe_payment_views.PaymentIntentViewSet, ba
 
 # Sales endpoints
 router.register("sale/log", sales_views.RewardSaleLogViewSet, basename="crater-sale-log")
-router.register("sale/items", sales_views.RewardSaleItemsViewSet, basename="crater-sale-items")
 router.register("sale/sellers", sales_views.RewardSaleSellersViewSet, basename="crater-sale-sellers")
 router.register("sale", sales_views.RewardSaleViewSet, basename="crater-sale")
 
