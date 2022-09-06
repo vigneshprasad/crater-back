@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,7 +13,9 @@ from users import permissions as user_permissions
 from crater.payments import models as payment_models
 from crater.payments import constants as payment_constants
 from crater.sales import tasks
-
+from tokens import models as token_models
+from tokens import constants as token_constants
+from tokens import public as tokens_public
 
 # List API for all reward sales, creator specific reward sales and reward sale retrieve
 # Creation of Reward sale log, once the user makes the purchase.
@@ -92,13 +96,30 @@ class RewardSaleLogViewSet(
                 gateway=payment_constants.PAYMENT_GATEWAY_CREATOR_UPI_ENUM
             )
             data["payment"] = payment.id
+
+        if payment_type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
+            amount = data["price"] * data["quantity"]
+            valid = tokens_public.validate_token_redeem_for_user(user, amount)
+            if not valid:
+                return Response({
+                    "type": "TokensInsufficient",
+                    "message": "You do not have enough LEARN tokens for purchase"
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            token_models.UserTokenLog.objects.create(
+                user=user,
+                amount=amount,
+                type=token_constants.TRANSACTION_TYPE_REDEEMED_ENUM,
+                date=datetime.date.today()
+            )
             
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
 
         instance = serializer.save()
 
-        tasks.send_notification_to_creator_for_sale.delay(instance.id)
+        if payment_type == constants.SALE_PAYMENT_TYPE_UPI_ENUM:
+            tasks.send_notification_to_creator_for_sale.delay(instance.id)
         response_serializer = self.get_serializer(instance)
         headers = self.get_success_headers(serializer.data)
         
