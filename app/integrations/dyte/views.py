@@ -233,7 +233,8 @@ class DyteParticipantViewSet(
             group.mark_inactive(user=participant.participant)
 
         # Mark the participant offline.
-        participant.mark_offline()
+        if not participant.is_offline():
+            participant.mark_offline()
 
         return Response(status=status.HTTP_200_OK)
 

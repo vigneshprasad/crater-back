@@ -136,6 +136,9 @@ class DyteMeetingParticipant(base_model.BaseModel):
 
     def mark_offline(self):
         """Mark a dyte participant offline."""
+        if self.is_offline():
+            return
+
         offline_at = max(timezone.now(), self.latest_join_time)
         self.is_online = False
         self.last_online_at = offline_at
@@ -148,6 +151,10 @@ class DyteMeetingParticipant(base_model.BaseModel):
             LOGGER.error("Went offline without online log. {} - {}".format(self.id, online_log))
 
         self.save()
+
+    def is_offline(self):
+        """Checks if the participant is already offline."""
+        return self.last_online_at and not self.is_online
 
 
 class DyteParticipantOnlineLog(base_model.BaseModel):
