@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from base import models as base_models
@@ -86,9 +89,31 @@ class TokenTransaction(base_models.BaseModel):
         return host.creator if hasattr(host, "creator") else ""
 
 
-class UserTokenLog(base_models.BaseModel):
+class UserToken(base_models.BaseModel):
+    """Token logs user is holding."""
 
-    # Whether the token was acquired or redeemed.
+    user = models.OneToOneField(
+        get_user_model(),
+        on_delete=models.CASCADE
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    last_updated_at = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        null=True
+    )
+
+
+class UserTokenLog(base_models.BaseModel):
+    """User token log is the log of tokens acquired/redeemed by
+        a user.
+
+    """
     TRANSACTION_TYPE = (
         (constants.TRANSACTION_TYPE_ACQUIRED_ENUM, constants.TRANSACTION_TYPE_ACQUIRED),
         (constants.TRANSACTION_TYPE_REDEEMED_ENUM, constants.TRANSACTION_TYPE_REDEEMED)

@@ -140,6 +140,13 @@ class RewardSaleLog(base_models.BaseModel):
         null=True,
         blank=True
     )
+    token_log = models.ForeignKey(
+        "tokens.UserTokenLog",
+        related_name="sale_log",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return "{} - {}".format(self.user, self.reward_sale)

@@ -2,7 +2,7 @@ import logging
 
 from django.dispatch import receiver
 
-from crater.sales import signals, tasks
+from crater.sales import constants, signals, tasks
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ def update_reward_sale_quantity(sender, sale_log, *args, **kwargs):
     reward_sale = sale_log.reward_sale
     if not reward_sale:
         LOGGER.error("No reward sale associated with Sale log: {}".format(sale_log.id))
-        return
+        return False
 
     # Update reward sale quantity.
     reward_sale.update_quantity(sale_log.quantity)
@@ -62,4 +62,7 @@ def send_notification_to_creator_for_sale_creation(sender, sale_log, *args, **kw
         sale_log(RewardSaleLog): Reward sale log marked confirmed.
 
     """
+    if sale_log.type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
+        return False
+
     tasks.send_notification_to_creator_for_sale.delay(sale_log.id)
