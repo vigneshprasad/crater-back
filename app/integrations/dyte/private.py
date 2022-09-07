@@ -157,11 +157,10 @@ def mark_participants_offline_for_group(group):
         return False
 
     # Get all participants for the dyte meeting.
-    participants = dyte_meeting.meeting_participants.all()
+    participants = dyte_meeting.meeting_participants.filter(is_online=True)
     for participant in participants:
         # If the dyte participant is not offline, mark it offline.
-        if participant.is_online:
-            participant.mark_offline()
+        participant.mark_offline()
 
         # Mark all logs offline as well.
         participant_online_logs = participant.online_logs.filter(is_offline=False)

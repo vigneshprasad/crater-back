@@ -183,7 +183,10 @@ class DyteParticipantViewSet(
             group.mark_live(user=participant.participant)
             # Start recording the session if required.
             if group.can_start_recording():
-                tasks.start_recording_for_meeting_if_required.delay(group.id)
+                tasks.start_recording_for_meeting_if_required.apply_async(
+                    args=(group.id,),
+                    countdown=5
+                )
 
         # Mark the participant online.
         participant.mark_online()
@@ -230,7 +233,8 @@ class DyteParticipantViewSet(
             group.mark_inactive(user=participant.participant)
 
         # Mark the participant offline.
-        participant.mark_offline()
+        if not participant.is_offline():
+            participant.mark_offline()
 
         return Response(status=status.HTTP_200_OK)
 

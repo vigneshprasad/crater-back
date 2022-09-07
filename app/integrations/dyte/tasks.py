@@ -256,8 +256,6 @@ def update_meeting_recording_status_for_active_recordings(group_id):
         # Update start and stop times.
         dyte_meeting_active_recording.update_start_and_stop_times(started_at, stopped_at)
 
-    return True
-
 
 @task()
 def update_meeting_recording_status_for_recording_ids(recording_ids):

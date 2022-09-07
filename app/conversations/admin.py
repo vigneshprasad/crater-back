@@ -357,7 +357,8 @@ class GroupRecordingAdmin(admin.ModelAdmin):
     list_filter = (
         AutocompleteFilterFactory("Group", "group"),
         "featured",
-        "is_published"
+        "is_published",
+        "created_at"
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
