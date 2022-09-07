@@ -145,7 +145,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
         if online_log:
             online_log.mark_offline()
         else:
-            LOGGER.error("Went offline without online log. {}".format(self.id))
+            LOGGER.error("Went offline without online log. {} - {}".format(self.id, online_log))
 
         self.save()
 
@@ -167,11 +167,10 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
         if not self.online_at:
             return 0
 
-        # TODD(Nishant): See if we should do this.
-        # In case the group start has changed and online_at is before the group
-        # start, we need to make corrections for the same.
-        # online_at = max(self.online_at, self.dyte_meeting_participant.latest_join_time)
         offline_at = self.offline_at if self.offline_at else timezone.now()
+        group = self.dyte_meeting_participant.dyte_meeting.group
+        last_live_at = group.last_live_at if group.last_live_at else timezone.now()
+        offline_at = min(offline_at, last_live_at)
         time_spent = max((offline_at - self.online_at), timezone.timedelta())
         minutes = time_spent.seconds / 60
         return round(minutes)
@@ -179,6 +178,11 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
     def mark_offline(self):
         """Mark the online log offline when the user leaves."""
         offline_at = max(timezone.now(), self.dyte_meeting_participant.latest_join_time)
+        # Check the group.last_live_at and assign the min value to a log.
+        group = self.dyte_meeting_participant.dyte_meeting.group
+        last_live_at = group.last_live_at if group.last_live_at else timezone.now()
+        offline_at = min(offline_at, last_live_at)
+
         self.offline_at = offline_at
         self.is_offline = True
         self.save()

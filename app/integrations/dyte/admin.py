@@ -96,7 +96,8 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
     actions = ("update_recording_status", )
     list_filter = (
         AutocompleteFilterFactory("Group", "dyte_meeting__group"),
-        "status"
+        "status",
+        "created_at"
     )
     search_fields = (
         "recording_id",
