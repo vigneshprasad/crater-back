@@ -131,7 +131,7 @@ class SubRewardAuctionSerializer(serializers.ModelSerializer):
 
 
 class RewardDetailWithCreatorAndTypeSerializer(serializers.ModelSerializer):
-    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator", read_only=True)
+    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator.user.profile", read_only=True)
     type_detail = RewardTypeSerializer(source="type", read_only=True)
 
     class Meta:
@@ -139,8 +139,11 @@ class RewardDetailWithCreatorAndTypeSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "creator",
-            "name",
             "title",
+            "name",
+            "description",
+            "photo",
+            "is_active",
             "type",
             "creator_detail",
             "type_detail",
