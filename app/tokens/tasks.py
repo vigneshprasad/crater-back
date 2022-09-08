@@ -45,7 +45,7 @@ def calculate_tokens_earned(date=None):
     )
 
     participants_went_online_across_streams = dyte_models.DyteMeetingParticipant.objects.filter(
-        dyte_meeting__groups=streams_for_today,
+        dyte_meeting__group__in=streams_for_today,
         last_online_at__isnull=False
     )
     total_chat_across_streams = conversations_models.GroupMessage.objects.filter(
@@ -54,14 +54,14 @@ def calculate_tokens_earned(date=None):
         created_at__lte=today_end
     )
 
-    total_engagement = total_chat_across_streams.count()
+    total_engagement = 0
     total_watch_time = 0
 
     for stream in streams_for_today:
         # All dyte participants for a stream.
         participants_went_online_for_stream = participants_went_online_across_streams.filter(dyte_meeting__group=stream)
         # TODO(Nishant): Should we exclude creator messages from this.
-        chat_for_stream = total_chat_across_streams.filter(group=stream).count()
+        chat_for_stream = total_chat_across_streams.filter(group=stream)
 
         # Calculate tokens for host.
         host = stream.host
@@ -69,9 +69,16 @@ def calculate_tokens_earned(date=None):
         if not host_dyte_participant:
             continue
 
-        streamer_time_spent = host_dyte_participant.total_minutes_watched
+        streamer_time_spent = host_dyte_participant.minutes_spent
         if not streamer_time_spent:
             continue
+
+        streamer_engagement = chat_for_stream.filter(sender=host).count()
+        # Add extra watch time to creator.
+        streamer_time_spent += constants.EXTRA_WATCH_TIME_FOR_CREATOR_PER_STREAM
+        # Add it to total for the day.
+        total_engagement += streamer_engagement
+        total_watch_time += streamer_time_spent
 
         # Create token transaction for host and stream.
         models.TokenTransaction.objects.update_or_create(
@@ -80,8 +87,8 @@ def calculate_tokens_earned(date=None):
             type=constants.USER_TYPE_STREAMER_ENUM,
             defaults={
                 "time_spent": streamer_time_spent,
-                "engagement": chat_for_stream,
-                "amount": streamer_time_spent + (chat_for_stream * 2),
+                "engagement": chat_for_stream.count(),
+                "amount": streamer_time_spent + (streamer_engagement * 2),
                 "date": today
             },
         )
@@ -91,8 +98,8 @@ def calculate_tokens_earned(date=None):
 
         for dyte_participant in dyte_participants:
             attendee = dyte_participant.participant
-            attendee_time_spent = dyte_participant.total_minutes_watched
-            attendee_engagement = chat_for_stream.filer(sender=attendee).count()
+            attendee_time_spent = dyte_participant.minutes_spent
+            attendee_engagement = chat_for_stream.filter(sender=attendee).count()
 
             # If engagement and time spent are not there (zero), don't create
             # transactions.
@@ -112,7 +119,9 @@ def calculate_tokens_earned(date=None):
                 }
             )
 
+            # Update the total watch time with attendee watch time.
             total_watch_time += attendee_time_spent
+            total_engagement += attendee_engagement
 
     # Calculate token data per day for all attendees.
     models.TokenDataPerDay.objects.update_or_create(

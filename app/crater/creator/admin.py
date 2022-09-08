@@ -136,6 +136,10 @@ class CreatorAdmin(admin.ModelAdmin):
             if cleaned_data["show_analytics"]:
                 obj.enable_analytics()
 
+        if "tokens_enabled" in fields_changed:
+            if cleaned_data["tokens_enabled"]:
+                obj.mark_tokens_enabled()
+
         return super(CreatorAdmin, self).save_model(request, obj, form, change)
 
 
