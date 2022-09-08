@@ -34,7 +34,7 @@ def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kw
         user_token = models.UserToken.objects.get(user=user_token_log.user)
     except models.UserToken.DoesNotExist:
         user_token = models.UserToken.objects.create(
-            user=user_token_log,
+            user=user_token_log.user,
             last_updated_at=timezone.now()
         )
 
@@ -49,7 +49,7 @@ def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kw
 @receiver(sale_signals.sale_created)
 def create_token_log_for_token_sale(sender, sale_log, *args, **kwargs):
     """Creates token log for a sale."""
-    if not sale_log.type == sale_constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
+    if not sale_log.payment_type == sale_constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
         return False
 
     # Redeem tokens for sale.
@@ -58,4 +58,4 @@ def create_token_log_for_token_sale(sender, sale_log, *args, **kwargs):
     sale_log.token_log = token_log
     sale_log.save()
     # Mark confirmed once the tokens are redeemed.
-    sale_log.mark_confirmed()
+    sale_log.mark_sale_confirmed()

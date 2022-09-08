@@ -37,7 +37,7 @@ def send_notification_to_user_for_sale_confirmation(sender, sale_log, *args, **k
         sale_log(RewardSaleLog): Reward sale log marked confirmed.
 
     """
-    if sale_log.type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
+    if sale_log.payment_type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
         return False
 
     tasks.send_notification_user_sale_accepted.delay(sale_log.id)
@@ -53,7 +53,7 @@ def send_notification_to_user_for_sale_rejection(sender, sale_log, *args, **kwar
         sale_log(RewardSaleLog): Reward sale log marked confirmed.
 
     """
-    if sale_log.type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
+    if sale_log.payment_type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
         return False
 
     tasks.send_notification_user_sale_declined.delay(sale_log.id)
@@ -68,7 +68,7 @@ def send_notification_to_creator_for_sale_creation(sender, sale_log, *args, **kw
         sale_log(RewardSaleLog): Reward sale log marked confirmed.
 
     """
-    if sale_log.type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
+    if sale_log.payment_type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
         return False
 
     tasks.send_notification_to_creator_for_sale.delay(sale_log.id)

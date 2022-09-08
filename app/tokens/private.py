@@ -14,10 +14,9 @@ def redeem_tokens_for_user(user, tokens):
     """
 
     # Create user token log for the redemption.
-    models.UserTokenLog.objects.create(
+    return models.UserTokenLog.objects.create(
         user=user,
         amount=tokens,
         type=constants.TRANSACTION_TYPE_REDEEMED_ENUM,
         date=datetime.date.today()
     )
-    return True

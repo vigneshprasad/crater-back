@@ -20,7 +20,7 @@ def update_payment_status_on_charge_success(sender, bid, *args, **kwargs):
 def create_payment_for_sale(sender, sale_log, *args, **kwargs):
 
     # Don't create payment for learn/token payments.
-    if sale_log.type == sale_constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
+    if sale_log.payment_type == sale_constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
         return
 
     amount = sale_log.amount
