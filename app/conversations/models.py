@@ -305,7 +305,7 @@ class Group(base_model.BaseModel):
 
     def approve(self):
         self.is_approved = True
-        self.approved_at = datetime.datetime.now()
+        self.approved_at = timezone.now()
         self.save()
 
     def mark_published(self):
@@ -314,7 +314,7 @@ class Group(base_model.BaseModel):
         # Only set published at the first time the group
         # is marked published.
         if not self.published_at:
-            self.published_at = datetime.datetime.now()
+            self.published_at = timezone.now()
             # Send signal only the first time the group is
             # marked published.
             signals.group_marked_published.send(
@@ -327,7 +327,7 @@ class Group(base_model.BaseModel):
     def mark_live(self, user=None):
         """Mark group as live."""
         self.is_live = True
-        self.last_live_at = datetime.datetime.now()
+        self.last_live_at = timezone.now()
         self.save()
 
         # Create log for change on the is_live key.
@@ -342,7 +342,7 @@ class Group(base_model.BaseModel):
     def mark_inactive(self, user=None):
         """Mark group as not live."""
         self.is_live = False
-        self.last_live_at = datetime.datetime.now()
+        self.last_live_at = timezone.now()
         self.save()
 
         # Create log for change on the is_live key.
@@ -372,7 +372,7 @@ class Group(base_model.BaseModel):
         # Mark the meeting as inactive first.
         self.is_live = False
         self.closed = True
-        self.closed_at = datetime.datetime.now()
+        self.closed_at = timezone.now()
         self.save()
         # Send group marked live signal.
         signals.group_marked_closed.send(
@@ -735,7 +735,7 @@ class GroupRecording(base_model.BaseModel):
         group_recording.recording.name = destination
         # Update published.
         group_recording.is_published = True
-        group_recording.published_at = datetime.datetime.now()
+        group_recording.published_at = timezone.now()
         group_recording.save()
 
         # Send recording published signal.
