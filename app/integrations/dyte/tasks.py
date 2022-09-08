@@ -46,6 +46,9 @@ def get_minutes_for_live_streams():
             continue
 
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
+        # Update host minutes_spent.
+        dyte_participant_for_host.minutes_spent = host_total_minutes
+        dyte_participant_for_host.save()
         # If there are no host minutes, don't calculate minutes for
         # stream.
         if not host_total_minutes:
@@ -103,6 +106,9 @@ def get_minutes_for_all_streams_for_the_day():
             continue
 
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
+        # Update host minutes_spent.
+        dyte_participant_for_host.minutes_spent = host_total_minutes
+        dyte_participant_for_host.save()
         # If there are no host minutes, don't calculate minutes for
         # stream.
         if not host_total_minutes:
@@ -159,6 +165,10 @@ def recalculate_minutes_for_groups(group_ids):
             continue
 
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
+        # Update host minutes_spent.
+        dyte_participant_for_host.minutes_spent = host_total_minutes
+        dyte_participant_for_host.save()
+
         # If there are no host minutes, don't calculate minutes for
         # stream.
         if not host_total_minutes:
