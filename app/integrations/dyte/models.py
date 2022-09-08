@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from dateutil import parser
 from django.conf import settings
@@ -58,8 +59,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
     minutes_spent = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        null=True,
-        blank=True
+        default=Decimal("0.00")
     )
 
     class Meta:
