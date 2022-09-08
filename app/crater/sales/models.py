@@ -47,8 +47,22 @@ class Sale(base_models.BaseModel):
             })
 
     def update_quantity(self, quantity):
-        """Update the quantity sold for an Auction."""
+        """Update the quantity sold for an Sale."""
         self.quantity_sold += quantity
+        self.save()
+
+        if self.quantity_sold == self.quantity:
+            self.mark_inactive()
+
+    def mark_inactive(self):
+        """Marks a reward sale inactive.
+
+        Note:
+            If a reward sale is inactive, it can't be bought
+                on the platform.
+
+        """
+        self.is_active = False
         self.save()
 
 
@@ -126,6 +140,13 @@ class RewardSaleLog(base_models.BaseModel):
         null=True,
         blank=True
     )
+    token_log = models.ForeignKey(
+        "tokens.UserTokenLog",
+        related_name="sale_log",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return "{} - {}".format(self.user, self.reward_sale)
@@ -134,12 +155,22 @@ class RewardSaleLog(base_models.BaseModel):
     def amount(self):
         return self.quantity * self.price
 
-    def mark_payment_confirmed(self):
-        """Mark the bid accepted."""
+    def mark_sale_confirmed(self):
+        """Mark the sale log accepted."""
         self.status = constants.SALE_PAYMENT_CONFIRMED_ENUM
         self.save()
-        # Send bid accepted signal.
+        # Send sale accepted signal.
         signals.sale_payment_confirmed.send(
+            sender=self.__class__,
+            sale_log=self
+        )
+
+    def mark_sale_declined(self):
+        """Mark the same log declined."""
+        self.status = constants.SALE_PAYMENT_DECLINED_ENUM
+        self.save()
+        # Send sale declined signal.
+        signals.sale_payment_declined.send(
             sender=self.__class__,
             sale_log=self
         )

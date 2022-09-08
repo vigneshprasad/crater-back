@@ -10,6 +10,7 @@ class RewardTypeAdmin(admin.ModelAdmin):
         "name",
         "is_active"
     )
+    list_editable = ("is_active", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted", "created_by")
 
 
@@ -25,7 +26,7 @@ class RewardAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("creator", )
     list_filter = ("type", "is_active")
-    list_editable = ("order", )
+    list_editable = ("order", "is_active")
     exclude = (
         "created_at",
         "deleted_at",

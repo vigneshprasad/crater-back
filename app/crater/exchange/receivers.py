@@ -1,12 +1,12 @@
 from django.dispatch import receiver
 
-from crater.auctions import signals
 from crater.exchange import private
 from crater.gateways.stripe_payments import signals as stripe_payment_signals
+from crater.sales import signals as sale_signals
 
 
 @receiver(stripe_payment_signals.capture_payment_intent_success)
-def create_user_reward_for_payment_intent_capture(sender, bid, bidder, intent, *args, **kwargs):
+def update_or_create_user_reward_for_payment_intent_capture(sender, bid, bidder, intent, *args, **kwargs):
     """Creates user reward on Bid payment capture.
 
     Args:
@@ -16,10 +16,25 @@ def create_user_reward_for_payment_intent_capture(sender, bid, bidder, intent, *
         intent(PaymentIntent): Payment Intent that got captured.
 
     """
-    private.update_or_create_user_reward(bid)
+    private.update_or_create_user_reward(
+        user=bid.bidder,
+        reward=bid.auction.reward,
+        quantity=bid.quantity
+    )
 
 
-@receiver(signals.auction_created_or_updated)
-def create_transaction_log_for_auction(sender, auction, *args, **kwargs):
-    # private.update_or_create_transaction_log_for_auction(auction)
-    pass
+@receiver(sale_signals.sale_payment_confirmed)
+def update_or_create_user_reward_for_sale(sender, sale_log, *args, **kwargs):
+    """Creates user reward on Bid payment capture.
+
+        Args:
+            sender(RewardSaleLog.__class__): Class representation of Sale log.
+            sale_log(RewardSaleLog): Reward sale log that was confirmed..
+
+        """
+    private.update_or_create_user_reward(
+        user=sale_log.user,
+        reward=sale_log.reward_sale.reward,
+        quantity=sale_log.quantity
+    )
+
