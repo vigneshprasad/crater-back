@@ -37,6 +37,16 @@ class TokenTransactionAdmin(admin.ModelAdmin, base_admin.ExportCsvMixin):
         return "Filter by Date"
 
 
+@admin.register(models.UserToken)
+class UserTokenAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "amount", "last_updated_at")
+    raw_id_fields = ("user", )
+    list_filter = (
+        AutocompleteFilterFactory("User", "user"),
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+
 @admin.register(models.UserTokenLog)
 class UserTokenLogAdmin(admin.ModelAdmin, base_admin.ExportCsvMixin):
     list_display = ("id", "user", "transaction", "amount", "type", "date")
