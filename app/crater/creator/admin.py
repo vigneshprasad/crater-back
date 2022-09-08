@@ -104,6 +104,7 @@ class CreatorAdmin(admin.ModelAdmin):
     list_filter = ("certified", "is_active", POCFilter, ProspectorFilter)
     readonly_fields = ("analytics_enabled_at", )
     search_fields = (
+        "id",
         "user__name",
         "user__username",
         "slug",

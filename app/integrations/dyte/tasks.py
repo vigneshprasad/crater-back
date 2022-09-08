@@ -30,20 +30,20 @@ def get_minutes_for_live_streams():
         closed=False,
         start__lte=now
     )
+    participants_went_online_for_all_groups = models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=live_groups,
+        last_online_at__isnull=False
+    )
 
     for group in live_groups:
-        dyte_participant_for_host = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
+        participants_went_online_for_group = participants_went_online_for_all_groups.filter(
+            dyte_meeting__group=group
+        )
+        dyte_participant_for_host = participants_went_online_for_group.filter(
             participant_id=group.host_id
-        ).first()
-
+        ).last()
         if not dyte_participant_for_host:
             continue
-
-        dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            last_online_at__isnull=False
-        ).exclude(id=dyte_participant_for_host.id)
 
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
         # If there are no host minutes, don't calculate minutes for
@@ -51,6 +51,7 @@ def get_minutes_for_live_streams():
         if not host_total_minutes:
             continue
 
+        dyte_participants_for_attendees = participants_went_online_for_group.exclude(id=dyte_participant_for_host.id)
         minutes_spent_by_attendees = 0
 
         for dyte_participant in dyte_participants_for_attendees:
@@ -85,19 +86,21 @@ def get_minutes_for_all_streams_for_the_day():
         start__gte=yesterday
     )
 
-    for group in groups_in_the_last_day:
-        dyte_participant_for_host = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            participant_id=group.host_id
-        ).first()
+    participants_went_online_for_all_groups = models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=groups_in_the_last_day,
+        last_online_at__isnull=False
+    )
 
+    for group in groups_in_the_last_day:
+        participants_went_online_for_group = participants_went_online_for_all_groups.filter(
+            dyte_meeting__group=group
+        )
+
+        dyte_participant_for_host = participants_went_online_for_group.filter(
+            participant_id=group.host_id
+        ).last()
         if not dyte_participant_for_host:
             continue
-
-        dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            last_online_at__isnull=False
-        ).exclude(id=dyte_participant_for_host.id)
 
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
         # If there are no host minutes, don't calculate minutes for
@@ -105,6 +108,7 @@ def get_minutes_for_all_streams_for_the_day():
         if not host_total_minutes:
             continue
 
+        dyte_participants_for_attendees = participants_went_online_for_group.exclude(id=dyte_participant_for_host.id)
         minutes_spent_by_attendees = 0
 
         for dyte_participant in dyte_participants_for_attendees:
@@ -138,19 +142,21 @@ def recalculate_minutes_for_groups(group_ids):
         id__in=group_ids
     )
 
-    for group in groups:
-        dyte_participant_for_host = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            participant_id=group.host_id
-        ).first()
+    participants_went_online_for_all_groups = models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=groups,
+        last_online_at__isnull=False
+    )
 
+    for group in groups:
+        participants_went_online_for_group = participants_went_online_for_all_groups.filter(
+            dyte_meeting__group=group
+        )
+
+        dyte_participant_for_host = participants_went_online_for_group.filter(
+            participant_id=group.host_id
+        ).last()
         if not dyte_participant_for_host:
             continue
-
-        dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            last_online_at__isnull=False
-        ).exclude(id=dyte_participant_for_host.id)
 
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
         # If there are no host minutes, don't calculate minutes for
@@ -158,6 +164,7 @@ def recalculate_minutes_for_groups(group_ids):
         if not host_total_minutes:
             continue
 
+        dyte_participants_for_attendees = participants_went_online_for_group.exclude(id=dyte_participant_for_host.id)
         minutes_spent_by_attendees = 0
 
         for dyte_participant in dyte_participants_for_attendees:
