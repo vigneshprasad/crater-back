@@ -34,6 +34,7 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         "participant",
         "joined_stream",
         "last_online_at",
+        "minutes_spent",
         "total_minutes_watched",
         "dyte_meeting"
     )

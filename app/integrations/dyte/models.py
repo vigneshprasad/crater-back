@@ -102,7 +102,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
             group = self.dyte_meeting.group
             last_live_time_for_group = min(
                 self.last_online_at, group.last_live_at
-            ) if group else self.last_online_at
+            ) if (group and group.last_live_at) else self.last_online_at
 
             # Calculate time spent based on the last live at for group.
             time_spent = max(
