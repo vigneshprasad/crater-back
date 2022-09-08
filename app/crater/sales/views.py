@@ -68,6 +68,20 @@ class RewardSaleViewSet(
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def featured(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().exclude(
+                reward__photo=""
+            )
+        )[:3]
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
 
 class RewardSaleLogViewSet(
     mixins.CreateModelMixin,
@@ -163,43 +177,6 @@ class RewardSaleLogViewSet(
         # Send notification to user
         tasks.send_notification_user_sale_declined.delay(sale_log.id)
         return Response({}, status=status.HTTP_200_OK)
-
-
-class RewardSaleItemsViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
-    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
-    serializer_class = serializers.RewardDetailWithRewardSaleSerializer
-    queryset = reward_models.Reward.objects.prefetch_related(
-        "sale"
-    ).select_related(
-        "creator",
-        "creator__user",
-        "creator__user__profile"
-    ).filter(
-        is_active=True,
-        sale__is_closed=False
-    ).order_by(
-        "-order",
-        "created_at"
-    ).distinct()
-    filterset_fields = ["sale__payment_type", "type__name"]
-
-    @action(
-        methods=["GET"],
-        detail=False
-    )
-    def featured(self, request):
-        queryset = self.filter_queryset(
-            self.get_queryset().exclude(
-                photo=""
-            )
-        )[:3]
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)
 
 
 class RewardSaleSellersViewSet(

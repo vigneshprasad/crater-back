@@ -160,7 +160,8 @@ class CreatorProfileListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            "photo"
+            "photo",
+            "user",
         )
 
 
