@@ -137,8 +137,7 @@ class UserTokenLog(base_models.BaseModel):
     amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        null=True,
-        blank=True
+        default=Decimal("0.00")
     )
     type = models.PositiveSmallIntegerField(
         choices=TRANSACTION_TYPE,
