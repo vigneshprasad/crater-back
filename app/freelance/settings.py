@@ -159,6 +159,7 @@ INSTALLED_APPS = [
     "crater.exchange",
     "crater.payments",
     "crater.sales",
+    "crater.search",
     # "crater.gateways",
     "crater.gateways.stripe_payments",
 
