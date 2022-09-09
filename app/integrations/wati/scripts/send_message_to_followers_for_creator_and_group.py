@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from conversations import public as conversation_public
@@ -29,6 +30,9 @@ def send_message_for_creator_and_group(
         creator_name = creator.user.display_name
         try:
             topic_image_url = group.topic.image.url
+            # Attach the ACL
+            if settings.AWS_DEFAULT_OBJECT_URL not in topic_image_url:
+                topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
         except (ValueError, AttributeError) as e:
             topic_image_url = ""
 
@@ -44,9 +48,8 @@ def send_message_for_creator_and_group(
                 "customParams": [
                     {"name": "stream_image", "value": topic_image_url},
                     {"name": "creator_name", "value": creator_name},
-                    {"name": "stream_starting", "value": constants.STREAM_STARTING_DURATION},
                     {"name": "stream_title", "value": stream_title},
-                    {"name": "session_id", "value": group.id}
+                    {"name": "1", "value": group.id}
                 ]
             }
             receivers.append(data)
@@ -60,9 +63,9 @@ def send_message_for_creator_and_group(
         print("Sending messages to all users from WATI_8953")
         if not dry_run:
             wati_service_8953.send_template_messages(
-                template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE,
+                template_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE_8953,
                 receivers=receivers,
-                broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE + "_{}_{}".format(
+                broadcast_name=constants.STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE_8953 + "_{}_{}".format(
                     creator_name,
                     group.id
                 )
