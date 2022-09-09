@@ -100,9 +100,12 @@ class DyteMeetingParticipant(base_model.BaseModel):
         # calculate minutes the old way.
         if not online_logs:
             group = self.dyte_meeting.group
-            last_live_time_for_group = min(
-                self.last_online_at, group.last_live_at
-            ) if (group and group.last_live_at) else self.last_online_at
+            if group and group.closed:
+                last_live_time_for_group = min(
+                    self.last_online_at, group.last_live_at
+                ) if (group and group.last_live_at) else self.last_online_at
+            else:
+                last_live_time_for_group = self.last_online_at
 
             # Calculate time spent based on the last live at for group.
             time_spent = max(
@@ -176,7 +179,12 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
 
         offline_at = self.offline_at if self.offline_at else timezone.now()
         group = self.dyte_meeting_participant.dyte_meeting.group
-        last_live_at = group.last_live_at if group.last_live_at else timezone.now()
+        # Update the last_live_at only if the group is closed.
+        if group and group.closed:
+            last_live_at = group.last_live_at if group.last_live_at else timezone.now()
+        else:
+            last_live_at = timezone.now()
+
         offline_at = min(offline_at, last_live_at)
         time_spent = max((offline_at - self.online_at), timezone.timedelta())
         minutes = time_spent.seconds / 60
@@ -185,10 +193,13 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
     def mark_offline(self):
         """Mark the online log offline when the user leaves."""
         offline_at = max(timezone.now(), self.dyte_meeting_participant.latest_join_time)
-        # Check the group.last_live_at and assign the min value to a log.
-        group = self.dyte_meeting_participant.dyte_meeting.group
-        last_live_at = group.last_live_at if group.last_live_at else timezone.now()
-        offline_at = min(offline_at, last_live_at)
+        # Removing this code block so that we have actual data when the
+        # user went offline, we will calculate the online time based on
+        # the groups last live at.
+        # # Check the group.last_live_at and assign the min value to a log.
+        # group = self.dyte_meeting_participant.dyte_meeting.group
+        # last_live_at = group.last_live_at if group.last_live_at else timezone.now()
+        # offline_at = min(offline_at, last_live_at)
 
         self.offline_at = offline_at
         self.is_offline = True
