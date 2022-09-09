@@ -1,8 +1,9 @@
 import logging
+
 from django.dispatch import receiver
 
-from users import signals as user_signals
 from integrations.onesignal import models
+from users import signals as user_signals
 
 
 @receiver(user_signals.user_logout)
@@ -15,8 +16,8 @@ def delete_onesignal_device(sender, user, os_id, *args, **kwargs):
         os_id(str): OS ID for the device.
 
     """
-    if not os_id:
-        return
+    if not os_id and user.is_anonymous:
+        return False
 
     try:
         device = models.OneSignalDevice.objects.get(
