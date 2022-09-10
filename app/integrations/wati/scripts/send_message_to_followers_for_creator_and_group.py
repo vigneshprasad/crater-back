@@ -37,7 +37,6 @@ def send_message_for_creator_and_group(
     print("Sending follower message for group: {}".format(group))
 
     if account == WATI_8953:
-
         creator_name = creator.user.display_name
         try:
             topic_image_url = group.topic.image.url
@@ -82,8 +81,8 @@ def send_message_for_creator_and_group(
                 )
             )
             print("Messages sent to all users from WATI_8953")
-    elif account == FRESHCHAT:
 
+    elif account == FRESHCHAT:
         for user in creator_followers_with_one_plus_stream:
             attendee_name = user.get_display_first_name()
             creator_name = creator.user.display_name

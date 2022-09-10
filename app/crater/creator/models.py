@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
-from crater.creator import services, constants, signals
+from crater.creator import constants, services, signals
 
 
 class Creator(base_models.BaseModel):
@@ -131,7 +131,6 @@ class CreatorUPIInfo(base_models.BaseModel):
     qr_code = models.ImageField(upload_to="creator/upi/qr_code")
 
 
-
 class Community(base_models.BaseModel):
     """Communities created by a creator.
 
@@ -219,7 +218,7 @@ class Follower(base_models.BaseModel):
         return f"{self.user.__str__()}"
 
     def delete(self, soft=True):
-        # Hard deleting Follower obejcts.
+        # Hard deleting Follower objects.
         super(Follower, self).delete(soft=False)
 
 

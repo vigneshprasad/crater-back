@@ -482,7 +482,10 @@ class DyteService:
                 "region": settings.AWS_S3_REGION_NAME,
                 "bucket": settings.AWS_STORAGE_BUCKET_NAME,
                 "path": path
-            }
+            },
+            # Changing recording duration to 24 hrs, instead of
+            # default 3 hours.
+            "maxSeconds": 86400
         }
 
         if hasattr(dyte_meeting.group, "rtmp"):

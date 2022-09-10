@@ -60,7 +60,6 @@ def calculate_tokens_earned(date=None):
     for stream in streams_for_today:
         # All dyte participants for a stream.
         participants_went_online_for_stream = participants_went_online_across_streams.filter(dyte_meeting__group=stream)
-        # TODO(Nishant): Should we exclude creator messages from this.
         chat_for_stream = total_chat_across_streams.filter(group=stream)
 
         # Calculate tokens for host.

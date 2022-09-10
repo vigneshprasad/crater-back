@@ -1,4 +1,4 @@
-# Templates
+# Common templates across 8953 and 9501.
 STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE = "reminder_msg"
 STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE = "follower_stream"
 CRATER_WELCOME_TEMPLATE = "welcome_crater"
@@ -8,6 +8,8 @@ CREATOR_REMINDER_TEMPLATE = "creator_reminder"
 STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE_9501 = "livestream_reminder_new_july"
 
 # WATI 8953 account templates
+STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE_8953 = "follower_reminder_3"
+
 STREAM_STARTING_DURATION = "5 minutes"
 
 WATI_9051_ACCOUNT_ENUM = 2

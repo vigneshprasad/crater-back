@@ -70,12 +70,12 @@ class UserReward(base_models.BaseModel):
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
-        related_name="reward_holding"
+        related_name="rewards"
     )
     reward = models.ForeignKey(
         "crater_rewards.Reward",
         on_delete=models.CASCADE,
-        related_name="reward_holding"
+        related_name="user_rewards"
     )
 
     # What is the total quantity of reward bought by the user.

@@ -5,7 +5,7 @@ from django.conf import settings
 
 from conversations import models as conversation_models
 from integrations.dyte import tasks as dyte_tasks
-from tokens import tasks
+from tokens import tasks, models
 
 
 def recalculate_minutes_for_groups(date, dry_run=True):
@@ -38,8 +38,17 @@ def recalculate_tokens_for_date(date, dry_run=True):
 
     print(date)
     print("Updating tokens for date: {}".format(date))
+    token_data_per_day = models.TokenDataPerDay.objects.filter(date=date).first()
+    if token_data_per_day:
+        print("Data before update")
+        print("Time Spent: {}".format(token_data_per_day.time_spent))
+        print("Engagement: {}".format(token_data_per_day.engagement))
     if not dry_run:
         tasks.calculate_tokens_earned(date)
-        print("Updated tokens")
+        token_data_per_day = models.TokenDataPerDay.objects.filter(date=date).first()
+        if token_data_per_day:
+            print("Date after update")
+            print("Time Spent: {}".format(token_data_per_day.time_spent))
+            print("Engagement: {}".format(token_data_per_day.engagement))
 
     print("-"*30)

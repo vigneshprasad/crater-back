@@ -95,14 +95,14 @@ class CreatorAdmin(admin.ModelAdmin):
             }),
             ("Logs", {
                 "fields": (
-                    "analytics_enabled_at",
+                    "analytics_enabled_at", "tokens_enabled_at"
                 )
             }),
         ))
     raw_id_fields = ("user", "point_of_contact", "prospector")
     list_editable = ("order", "certified", "is_active", "show_club_members", "show_analytics", "tokens_enabled")
     list_filter = ("certified", "is_active", POCFilter, ProspectorFilter)
-    readonly_fields = ("analytics_enabled_at", )
+    readonly_fields = ("analytics_enabled_at", "tokens_enabled_at")
     search_fields = (
         "id",
         "user__name",
