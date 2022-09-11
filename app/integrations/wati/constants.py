@@ -9,6 +9,7 @@ STREAM_REMINDER_FOR_ATTENDEE_TEMPLATE_9501 = "livestream_reminder_new_july"
 
 # WATI 8953 account templates
 STREAM_REMINDER_FOR_FOLLOWER_TEMPLATE_8953 = "follower_reminder_3"
+STREAM_MISSED_UPLOADED_ATTENDEE_8953 = "stream_missed_uploaded"
 
 STREAM_STARTING_DURATION = "5 minutes"
 
