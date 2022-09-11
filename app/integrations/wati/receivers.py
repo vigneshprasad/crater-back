@@ -1,9 +1,13 @@
+import logging
+
 from django.dispatch import receiver
 
 from conversations import signals as conversations_signals
 from integrations.dyte import models as dyte_models
 from integrations.wati import constants, private
 from integrations.wati.services import wati_service_8953
+
+LOGGER = logging.getLogger(__name__)
 
 
 @receiver(conversations_signals.group_recording_published)
@@ -20,16 +24,25 @@ def send_whatsapp_to_users_for_recording_published(sender, recording, *args, **k
     attendees = group.attendees.all()
 
     attendees_who_missed_stream = []
+    # Get all dyte participants who missed the stream.
+    dyte_participant_who_missed_stream = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group=group,
+        participant__in=attendees,
+        last_online_at__isnull=True
+    )
     for attendee in attendees:
-        dyte_meeting_participant = dyte_models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
+        if not dyte_participant_who_missed_stream.filter(
             participant=attendee,
-            last_online_at__isnull=False
-        )
-        if not dyte_meeting_participant.exists():
+        ).exists():
             continue
 
         attendees_who_missed_stream.append(attendee)
+
+    try:
+        topic_image_url = group.topic.image.url
+    except (ValueError, AttributeError) as e:
+        LOGGER.error("Topic image unavailable: {}".format(group.id))
+        topic_image_url = ""
 
     receivers = []
     for attendee in attendees_who_missed_stream:
@@ -40,15 +53,16 @@ def send_whatsapp_to_users_for_recording_published(sender, recording, *args, **k
         data = {
             "whatsappNumber": attendee.get_phone_number(),
             "customParams": [
-                {"name": "1", "value": group.host.get_display_name},
-                {"name": "2", "value": group.topic.title.title()},
+                {"name": "stream_image", "value": topic_image_url},
+                {"name": "1", "value": group.host.display_name},
+                {"name": "2", "value": group.topic.name.title()},
                 {"name": "3", "value": group.id}
             ]
         }
         receivers.append(data)
 
     if not receivers:
-        return
+        return False
 
     return wati_service_8953.send_template_messages(
         template_name=constants.STREAM_MISSED_UPLOADED_ATTENDEE_8953,
