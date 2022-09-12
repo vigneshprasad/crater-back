@@ -2,9 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from conversations import signals as conversation_signals
-from crater.creator import models
-from crater.creator import private
-from crater.creator import signals
+from crater.creator import models, private, signals
 
 
 @receiver(post_save, sender=models.Creator)

@@ -108,6 +108,9 @@ class UserToken(base_models.BaseModel):
         null=True
     )
 
+    def __str__(self):
+        return "{} - {}".format(self.user, self.amount)
+
 
 class UserTokenLog(base_models.BaseModel):
     """User token log is the log of tokens acquired/redeemed by
@@ -144,6 +147,10 @@ class UserTokenLog(base_models.BaseModel):
         default=constants.TRANSACTION_TYPE_ACQUIRED_ENUM
     )
     date = models.DateField(null=True, blank=True)
+
+    # TODO(Nishant): Add unique here.
+    # class Meta:
+    #     unique_together = ("user", "transaction", "type")
 
     def __str__(self):
         return "{} - {} [{}]".format(self.user, self.amount, self.type)

@@ -16,7 +16,7 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from conversations import constants, signals, private
+from conversations import constants, private, signals
 from integrations.dyte import constants as dyte_constants
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
@@ -457,6 +457,13 @@ class Group(base_model.BaseModel):
         if self.speakers.count() > self.max_speakers:
             return False
         return True
+
+    def get_image_url(self):
+        """Return absolute image url for the group."""
+        if not self.topic.image:
+            return ""
+
+        return self.topic.image.url
 
     def get_display(self):
         """This is the display date time for a Group.

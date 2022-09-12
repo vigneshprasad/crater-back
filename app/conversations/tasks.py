@@ -157,19 +157,18 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
         wati_public.send_stream_reminder_messages_for_group(webinar)
 
 
-@periodic_task(run_every=crontab(minute="*/20"))
+@periodic_task(run_every=crontab(minute="*/30"))
 def send_whatsapp_reminder_for_webinar_host(groups=None):
     """Send webinar reminder whatsapp for the host.
 
     Note:
         Sends reminder to host of webinar which is
-            starting 20 minutes from now.
+            starting 30 minutes from now.
 
     """
     now_time = datetime.datetime.now()
-
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=20))
+    end_datetime = (now_time + datetime.timedelta(minutes=30))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
@@ -179,10 +178,8 @@ def send_whatsapp_reminder_for_webinar_host(groups=None):
     )
 
     for webinar in webinars:
-        # Send whatsapp reminder for webinar to attendees.
-        freshchat_public.send_whatsapp_reminder_for_webinar_host(
-            webinar
-        )
+        # Send whatsapp reminder for webinar to host of the stream.
+        freshchat_public.send_whatsapp_reminder_for_webinar_host(webinar)
 
 
 @periodic_task(run_every=crontab(minute="*/10"))

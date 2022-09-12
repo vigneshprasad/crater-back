@@ -200,18 +200,9 @@ def send_stream_reminder_messages_for_followers(
     if not followers:
         return
 
-    if not creator:
-        creator_name = group.host.display_name
-    else:
-        creator_name = creator.user.display_name
-
-    try:
-        topic_image_url = group.topic.image.url
-    except (ValueError, AttributeError) as e:
-        LOGGER.error("Topic image unavailable: {}".format(group.id))
-        topic_image_url = ""
-
-    stream_title = group.topic.name
+    creator_name = creator.user.display_name if creator else group.host.display_name
+    topic_image_url = group.get_image_url()
+    stream_title = group.topic.name.title()
     receivers = []
     for follower in followers:
         # Check if we can send whatsapp to this user.
@@ -267,11 +258,7 @@ def send_stream_reminder_messages_for_attendees(attendees, group, account=consta
         return
 
     creator_name = group.host.display_name
-    try:
-        topic_image_url = group.topic.image.url
-    except (ValueError, AttributeError) as e:
-        LOGGER.error("Topic image unavailable: {}".format(group.id))
-        topic_image_url = ""
+    topic_image_url = group.get_image_url()
 
     receivers = []
     for attendee in attendees:

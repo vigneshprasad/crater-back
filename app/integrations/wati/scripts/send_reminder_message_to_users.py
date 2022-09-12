@@ -30,10 +30,7 @@ def run_with_wati(
     else:
         creator_name = creator.user.display_name
 
-    topic_image_url = group.topic.image.url
-    if "1worknetwork-prod" not in topic_image_url:
-        topic_image_url = "https://1worknetwork-prod.s3.ap-south-1.amazonaws.com" + group.topic.image.url
-
+    topic_image_url = group.get_image_url()
     stream_title = group.topic.name
 
     # Print all the data.
