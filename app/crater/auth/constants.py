@@ -10,8 +10,8 @@ TEST_PHONE_NUMBERS = [
     "+919444444444",
     "+919555555555",
     "+919666666666"
-    "+91977777777",
-    "+91988888888"
+    "+919777777777",
+    "+919888888888"
 ]
 
 # Adding it here because the settings one is applicable all across the
