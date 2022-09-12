@@ -16,7 +16,7 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from conversations import constants, signals, private
+from conversations import constants, private, signals
 from integrations.dyte import constants as dyte_constants
 from resources.meetings import models as meeting_models
 from utils import validators as validator_utils
@@ -464,18 +464,6 @@ class Group(base_model.BaseModel):
             return ""
 
         return self.topic.image.url
-
-    def get_image_url_with_object_url(self):
-        if not self.topic.image:
-            return ""
-
-        image_url = self.topic.image.url
-        # This is when you run a script from local, it is not the
-        # absolute url. So we add default object url.
-        if settings.AWS_DEFAULT_OBJECT_URL not in image_url:
-            image_url = settings.AWS_DEFAULT_OBJECT_URL + image_url
-
-        return image_url
 
     def get_display(self):
         """This is the display date time for a Group.

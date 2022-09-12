@@ -30,7 +30,7 @@ def run_with_wati(
     else:
         creator_name = creator.user.display_name
 
-    topic_image_url = group.get_image_url_with_object_url()
+    topic_image_url = group.get_image_url()
     stream_title = group.topic.name
 
     # Print all the data.

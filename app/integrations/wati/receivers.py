@@ -58,11 +58,9 @@ def send_whatsapp_to_users_for_recording_published(sender, recording, *args, **k
         return False
 
     return wati_service_8953.send_template_messages(
-        template_name=constants.STREAM_MISSED_UPLOADED_ATTENDEE_8953,
+        template_name=constants.STREAM_RECORDING_PUBLISHED_ATTENDEE_8953,
         receivers=receivers,
-        broadcast_name=constants.STREAM_MISSED_UPLOADED_ATTENDEE_8953 + "_{}".format(
-            group.id
-        )
+        broadcast_name=constants.STREAM_RECORDING_PUBLISHED_ATTENDEE_8953 + "_{}".format(group.id)
     )
 
 
@@ -80,13 +78,14 @@ def send_whatsapp_to_creator_for_recording_published(sender, recording, *args, *
     host = group.host
 
     template_data = [
-        {"1": host.display_name},
-        {"session_id": group.id},
+        {"name": "1", "value": host.display_name},
+        {"name": "session_id", "value": group.id}
     ]
 
-    wati_service_8953.send_template_message(
+    return wati_service_8953.send_template_message(
         user=host,
         template_name=constants.STREAM_RECORDING_PUBLISHED_CREATOR_8953,
+        broadcast_name=constants.STREAM_RECORDING_PUBLISHED_CREATOR_8953 + "_{}-{}".format(group.id, host.display_name),
         template_data=template_data
     )
 

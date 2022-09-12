@@ -23,21 +23,24 @@ def send_stream_setup_whatsapp_to_creator(group_id):
 
     host = group.host
     creator = host.creator if hasattr(host, "creator") else None
-    poc = creator.poc if creator else constants.DEFAULT_POC_NAME
+    poc = creator.point_of_contact if creator else None
+    poc_name, poc_number = (poc.display_name, poc.get_phone_number()) if \
+        poc else (constants.DEFAULT_POC_NAME, constants.DEFAULT_POC_NUMBER)
 
     template_data = [
-        {"stream_image": group.get_image_url()},
-        {"1": host.display_name},
-        {"2": group.get_display_day()},
-        {"3": group.get_display_start_time()},
-        {"4": poc.display_name},
-        {"5": poc.get_phone_number()},
-        {"session_id": group.id},
+        {"name": "stream_image", "value": group.get_image_url()},
+        {"name": "1", "value": host.display_name},
+        {"name": "2", "value": group.get_display_day()},
+        {"name": "3", "value": group.get_display_start_time()},
+        {"name": "4", "value": poc_name},
+        {"name": "5", "value": poc_number},
+        {"name": "session_id", "value": group.id},
     ]
 
     return wati_service_8953.send_template_message(
         user=host,
         template_name=constants.STREAM_SETUP_CREATOR_8953,
+        broadcast_name=constants.STREAM_SETUP_CREATOR_8953 + "_{}-{}".format(host.display_name, group.id),
         template_data=template_data
     )
 
@@ -96,10 +99,7 @@ def send_stream_setup_whatsapp_to_followers(group_id):
     return wati_service_8953.send_template_messages(
         template_name=constants.STREAM_SETUP_FOLLOWERS_8953,
         receivers=receivers,
-        broadcast_name=constants.STREAM_SETUP_FOLLOWERS_8953 + "_{}_{}".format(
-            host.display_name,
-            group.id
-        )
+        broadcast_name=constants.STREAM_SETUP_FOLLOWERS_8953 + "_{}-{}".format(host.display_name, group.id)
     )
 
 

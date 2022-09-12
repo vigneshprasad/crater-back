@@ -48,7 +48,7 @@ def send_message_for_creator_and_group(
             data = {
                 "whatsappNumber": follower.get_phone_number(),
                 "customParams": [
-                    {"name": "stream_image", "value": group.get_image_url_with_object_url()},
+                    {"name": "stream_image", "value": group.get_image_url()},
                     {"name": "creator_name", "value": creator_name},
                     {"name": "stream_title", "value": stream_title},
                     {"name": "1", "value": group.id}
