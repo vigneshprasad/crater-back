@@ -92,7 +92,7 @@ def send_whatsapp_to_creator_for_recording_published(sender, recording, *args, *
 
 @receiver(conversations_signals.group_marked_published)
 def send_whatsapp_for_stream_setup_to_creator(sender, group, *args, **kwargs):
-    """Sends email once a creators stream is set up on the platform.
+    """Sends whatsapp once a creator's stream is set up on the platform.
 
     Args:
         sender(Group.__class__): Class repr of group that was published.
@@ -107,7 +107,8 @@ def send_whatsapp_for_stream_setup_to_creator(sender, group, *args, **kwargs):
 
 @receiver(conversations_signals.group_marked_published)
 def send_whatsapp_for_stream_setup_to_followers(sender, group, *args, **kwargs):
-    """Sends email once a creators stream is set up on the platform.
+    """Sends whatsapp to creator's followers once their
+        stream is set up on the platform.
 
     Args:
         sender(Group.__class__): Class repr of group that was published.

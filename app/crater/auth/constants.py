@@ -6,7 +6,12 @@ TEST_PHONE_NUMBERS = [
     settings.FRESHCHAT_MESSAGING_PHONE_NUMBER,
     "+919111111111",
     "+919222222222",
-    "+919333333333"
+    "+919333333333",
+    "+919444444444",
+    "+919555555555",
+    "+919666666666"
+    "+91977777777",
+    "+91988888888"
 ]
 
 # Adding it here because the settings one is applicable all across the

@@ -8,7 +8,7 @@ from crater.creator import models as creator_models
 
 @task
 def send_stream_setup_email_to_creator(group_id):
-    """Send email to creator when his stream is set up on the platform.
+    """Send email to creator when their stream is set up on the platform.
 
     Args:
         group_id(int): ID of the group we are sending the email for.

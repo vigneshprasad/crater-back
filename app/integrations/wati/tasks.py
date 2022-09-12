@@ -11,10 +11,11 @@ from integrations.wati.services import wati_service_8953
 
 @task
 def send_stream_setup_whatsapp_to_creator(group_id):
-    """Send email to creator when his stream is set up on the platform.
+    """Send whatsapp to creator when their stream is
+        set up on the platform.
 
     Args:
-        group_id(int): ID of the group we are sending the email for.
+        group_id(int): ID of the group we are sending the message for.
 
     """
     group = conversation_models.Group.objects.get(id=group_id)
@@ -47,10 +48,11 @@ def send_stream_setup_whatsapp_to_creator(group_id):
 
 @task
 def send_stream_setup_whatsapp_to_followers(group_id):
-    """Send email to creator when his stream is set up on the platform.
+    """Send whatsapp to creator follower when their stream
+        is set up on the platform.
 
     Args:
-        group_id(int): ID of the group we are sending the email for.
+        group_id(int): ID of the group we are sending the message for.
 
     """
     group = conversation_models.Group.objects.get(id=group_id)
