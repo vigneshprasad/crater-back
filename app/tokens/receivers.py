@@ -7,10 +7,14 @@ from tokens import constants, models, private
 
 
 @receiver(post_save, sender=models.TokenTransaction)
-def create_token_log_for_token_transaction(sender, instance, *args, **kwargs):
-    # if not kwargs.get("created"):
-    #     return
+def update_or_create_token_log_for_token_transaction(sender, instance, *args, **kwargs):
+    """Update or create token log for token transaction.
 
+    Args:
+        sender(TokenTransaction.__clas__): Class representation of Token transaction.
+        instance(TokenTransaction): Token transaction that was updated/created.
+
+    """
     transaction = instance
     # Calculate learn tokens by using crater tokens.
     models.UserTokenLog.objects.update_or_create(
@@ -25,9 +29,13 @@ def create_token_log_for_token_transaction(sender, instance, *args, **kwargs):
 
 @receiver(post_save, sender=models.UserTokenLog)
 def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kwargs):
-    """Update/Create user token for a log creation."""
-    # if not kwargs.get("created"):
-    #     return
+    """Update/Create user token for a log creation or update.
+
+    Args:
+        sender(UserTokenLog.__clas__): Class representation of user token log.
+        instance(UserTokenLog): User token log that was updated/created.
+
+    """
 
     user_token_log = instance
     try:
