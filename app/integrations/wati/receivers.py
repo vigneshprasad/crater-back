@@ -4,7 +4,7 @@ from django.dispatch import receiver
 
 from conversations import signals as conversations_signals
 from integrations.dyte import models as dyte_models
-from integrations.wati import constants, private
+from integrations.wati import constants, private, tasks
 from integrations.wati.services import wati_service_8953
 
 LOGGER = logging.getLogger(__name__)
@@ -35,14 +35,7 @@ def send_whatsapp_to_users_for_recording_published(sender, recording, *args, **k
             participant=attendee,
         ).exists():
             continue
-
         attendees_who_missed_stream.append(attendee)
-
-    try:
-        topic_image_url = group.topic.image.url
-    except (ValueError, AttributeError) as e:
-        LOGGER.error("Topic image unavailable: {}".format(group.id))
-        topic_image_url = ""
 
     receivers = []
     for attendee in attendees_who_missed_stream:
@@ -53,7 +46,7 @@ def send_whatsapp_to_users_for_recording_published(sender, recording, *args, **k
         data = {
             "whatsappNumber": attendee.get_phone_number(),
             "customParams": [
-                {"name": "stream_image", "value": topic_image_url},
+                {"name": "stream_image", "value": group.get_image_url()},
                 {"name": "1", "value": group.host.display_name},
                 {"name": "2", "value": group.topic.name.title()},
                 {"name": "3", "value": group.id}
@@ -70,4 +63,59 @@ def send_whatsapp_to_users_for_recording_published(sender, recording, *args, **k
         broadcast_name=constants.STREAM_MISSED_UPLOADED_ATTENDEE_8953 + "_{}".format(
             group.id
         )
+    )
+
+
+@receiver(conversations_signals.group_recording_published)
+def send_whatsapp_to_creator_for_recording_published(sender, recording, *args, **kwargs):
+    """Send email to the creator of a stream, once their recording
+        is published and available to them.
+
+    Args:
+        sender(GroupRecording.__class__): Recording's class representation.
+        recording(GroupRecording): Recording that was published.
+
+    """
+    group = recording.group
+    host = group.host
+
+    template_data = [
+        {"1": host.display_name},
+        {"session_id": group.id},
+    ]
+
+    wati_service_8953.send_template_message(
+        user=host,
+        template_name=constants.STREAM_RECORDING_PUBLISHED_CREATOR_8953,
+        template_data=template_data
+    )
+
+
+@receiver(conversations_signals.group_marked_published)
+def send_whatsapp_for_stream_setup_to_creator(sender, group, *args, **kwargs):
+    """Sends email once a creators stream is set up on the platform.
+
+    Args:
+        sender(Group.__class__): Class repr of group that was published.
+        group(Group): Group that was marked published.
+
+    """
+    tasks.send_stream_setup_whatsapp_to_creator.apply_async(
+        args=(group.id, ),
+        countdown=120
+    )
+
+
+@receiver(conversations_signals.group_marked_published)
+def send_whatsapp_for_stream_setup_to_followers(sender, group, *args, **kwargs):
+    """Sends email once a creators stream is set up on the platform.
+
+    Args:
+        sender(Group.__class__): Class repr of group that was published.
+        group(Group): Group that was marked published.
+
+    """
+    tasks.send_stream_setup_whatsapp_to_followers.apply_async(
+        args=(group.id, ),
+        countdown=180
     )

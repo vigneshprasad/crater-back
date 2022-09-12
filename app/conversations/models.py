@@ -458,6 +458,25 @@ class Group(base_model.BaseModel):
             return False
         return True
 
+    def get_image_url(self):
+        """Return absolute image url for the group."""
+        if not self.topic.image:
+            return ""
+
+        return self.topic.image.url
+
+    def get_image_url_with_object_url(self):
+        if not self.topic.image:
+            return ""
+
+        image_url = self.topic.image.url
+        # This is when you run a script from local, it is not the
+        # absolute url. So we add default object url.
+        if settings.AWS_DEFAULT_OBJECT_URL not in image_url:
+            image_url = settings.AWS_DEFAULT_OBJECT_URL + image_url
+
+        return image_url
+
     def get_display(self):
         """This is the display date time for a Group.
             ex. "Sunday, 31 July - 08:00 PM - 08:30 PM"

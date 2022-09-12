@@ -8,26 +8,26 @@ from tokens import constants, models, private
 
 @receiver(post_save, sender=models.TokenTransaction)
 def create_token_log_for_token_transaction(sender, instance, *args, **kwargs):
-    if not kwargs.get("created"):
-        return
+    # if not kwargs.get("created"):
+    #     return
 
     transaction = instance
     # Calculate learn tokens by using crater tokens.
-    user_token_log = models.UserTokenLog.objects.create(
+    models.UserTokenLog.objects.update_or_create(
         user=transaction.user,
         transaction=transaction,
-        date=transaction.date
+        date=transaction.date,
+        defaults={
+            "amount": transaction.amount
+        }
     )
-    user_token_log.amount = transaction.amount
-    user_token_log.type = constants.TRANSACTION_TYPE_ACQUIRED_ENUM
-    user_token_log.save()
 
 
 @receiver(post_save, sender=models.UserTokenLog)
 def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kwargs):
     """Update/Create user token for a log creation."""
-    if not kwargs.get("created"):
-        return
+    # if not kwargs.get("created"):
+    #     return
 
     user_token_log = instance
     try:

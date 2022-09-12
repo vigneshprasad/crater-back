@@ -42,7 +42,7 @@ def send_stream_setup_email_to_creator(group_id):
         to_email:
             {
                 "date": group.get_display_start(),
-                "session_img": group.topic.image.url,
+                "session_img": group.get_image_url(),
                 "session_page": conversation_public.get_session_link_for_webinar(group),
                 "stream_page": conversation_public.get_livestream_link_for_webinar(group)
             }

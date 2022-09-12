@@ -38,14 +38,6 @@ def send_message_for_creator_and_group(
 
     if account == WATI_8953:
         creator_name = creator.user.display_name
-        try:
-            topic_image_url = group.topic.image.url
-            # Attach the ACL
-            if settings.AWS_DEFAULT_OBJECT_URL not in topic_image_url:
-                topic_image_url = settings.AWS_DEFAULT_OBJECT_URL + topic_image_url
-        except (ValueError, AttributeError) as e:
-            topic_image_url = ""
-
         stream_title = group.topic.name
         receivers = []
         for follower in creator_followers_with_one_plus_stream:
@@ -56,7 +48,7 @@ def send_message_for_creator_and_group(
             data = {
                 "whatsappNumber": follower.get_phone_number(),
                 "customParams": [
-                    {"name": "stream_image", "value": topic_image_url},
+                    {"name": "stream_image", "value": group.get_image_url_with_object_url()},
                     {"name": "creator_name", "value": creator_name},
                     {"name": "stream_title", "value": stream_title},
                     {"name": "1", "value": group.id}

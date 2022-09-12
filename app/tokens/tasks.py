@@ -86,7 +86,7 @@ def calculate_tokens_earned(date=None):
             type=constants.USER_TYPE_STREAMER_ENUM,
             defaults={
                 "time_spent": streamer_time_spent,
-                "engagement": chat_for_stream.count(),
+                "engagement": streamer_engagement,
                 "amount": streamer_time_spent + (streamer_engagement * 2),
                 "date": today
             },
@@ -102,8 +102,8 @@ def calculate_tokens_earned(date=None):
 
             # If engagement and time spent are not there (zero), don't create
             # transactions.
-            if not (attendee_engagement and attendee_time_spent):
-                continue
+            # if not (attendee_engagement and attendee_time_spent):
+            #     continue
 
             # Create a token transaction for each user and stream.
             models.TokenTransaction.objects.update_or_create(
