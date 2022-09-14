@@ -55,7 +55,6 @@ router.register("sale", sales_views.RewardSaleViewSet, basename="crater-sale")
 router.register("analytics", analytics_dashboard_views.AnalyticsDashboardViewSet, basename="analytics-dashboard")
 
 # Search endpoints
-router.register("search", search_views.SearchViewSet, basename="search")
 router.register("search/upcoming", search_views.UpcomingStreamsSearchViewSet, basename="search-upcoming-streams")
 router.register("search/past", search_views.PastStreamsSearchViewSet, basename="search-past-streams")
 router.register("search/creators", search_views.CreatorSearchViewSet, basename="search-creators")
