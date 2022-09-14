@@ -39,7 +39,7 @@ def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kw
 
     user_token_log = instance
     user = user_token_log.user
-    user_token = models.UserToken.objects.get_or_create(user=user)
+    user_token, _ = models.UserToken.objects.get_or_create(user=user)
     user_token.amount = public.get_tokens_for_user(user)
     user_token.last_updated_at = timezone.now()
     user_token.save()

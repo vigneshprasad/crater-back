@@ -118,7 +118,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
             for log in online_logs:
                 minutes_spent += log.online_time
 
-        return minutes_spent
+        return round(minutes_spent)
 
     def mark_online(self):
         """Mark a dyte participant online."""
