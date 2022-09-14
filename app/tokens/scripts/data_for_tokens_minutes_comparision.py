@@ -1,24 +1,25 @@
-from django.db.models import *
+from django.db.models import Count, Sum
 
-from conversations.models import *
-from integrations.dyte.models import *
-from tokens.models import *
-from users.models import *
+from conversations import models as conversation_models
+from integrations.dyte import models as dyte_models
+from tokens import models
+from tokens.learn import constants as learn_constants
+from users import models as user_models
 
-token_start_date = "2022-07-27"
+token_start_date = learn_constants.LEARN_TOKEN_START_DATE
 
-learn_streams = Group.objects.filter(
+learn_streams = conversation_models.Group.objects.filter(
     host__creator__tokens_enabled=True,
     start__gte=token_start_date,
     is_published=True,
     closed=True
 )
 
-messages = GroupMessage.objects.filter(
+messages = conversation_models.GroupMessage.objects.filter(
     group__in=learn_streams
 )
 
-dyte_meeting_participants = DyteMeetingParticipant.objects.filter(
+dyte_meeting_participants = dyte_models.DyteMeetingParticipant.objects.filter(
     dyte_meeting__group__in=learn_streams,
     last_online_at__isnull=False
 )
@@ -28,7 +29,7 @@ users_who_watch_learn_streams = dyte_meeting_participants.values("participant_id
     participant_count=Count("participant_id")
 ).filter(participant_count__gte=10)
 
-users = [User.objects.get(pk=a["participant_id"]) for a in users_who_watch_learn_streams]
+users = [user_models.User.objects.get(pk=a["participant_id"]) for a in users_who_watch_learn_streams]
 
 for user in users:
 
@@ -47,7 +48,7 @@ for user in users:
 
     learn_earned = total_time_spent + (2 * interactions)
     learn_earned_2 = total_time_spent_minutes + (2 * interactions)
-    learn_earned_3 = UserTokenLog.objects.filter(
+    learn_earned_3 = models.UserTokenLog.objects.filter(
         user=user,
         type=1,
         date__gte=token_start_date
