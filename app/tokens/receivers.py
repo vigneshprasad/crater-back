@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from crater.sales import constants as sale_constants, signals as sale_signals
-from tokens import constants, models, private
+from tokens import models, private, public
 
 
 @receiver(post_save, sender=models.TokenTransaction)
@@ -38,19 +38,10 @@ def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kw
     """
 
     user_token_log = instance
-    try:
-        user_token = models.UserToken.objects.get(user=user_token_log.user)
-    except models.UserToken.DoesNotExist:
-        user_token = models.UserToken.objects.create(
-            user=user_token_log.user,
-            last_updated_at=timezone.now()
-        )
-
-    if user_token_log.type == constants.TRANSACTION_TYPE_ACQUIRED_ENUM:
-        user_token.amount += user_token_log.amount
-    elif user_token_log.type == constants.TRANSACTION_TYPE_REDEEMED_ENUM:
-        user_token.amount -= user_token_log.amount
-
+    user = user_token_log.user
+    user_token = models.UserToken.objects.get_or_create(user=user)
+    user_token.amount = public.get_tokens_for_user(user)
+    user_token.last_updated_at = timezone.now()
     user_token.save()
 
 

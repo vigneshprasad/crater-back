@@ -23,16 +23,18 @@ def can_redeem_tokens(user, tokens):
     return user_tokens >= tokens
 
 
-def get_tokens_for_user(user):
+def get_tokens_for_user(user, date=None):
     """Returns tokens user has for user i.e.
         acquired minus redeemed tokens
 
     Args:
         user(User): User we are getting the tokens for.
+        date(Date): Date till when we are trying to
+            get tokens for the user.
 
     """
-    tokens_acquired = get_tokens_acquired_by_user(user)
-    tokens_redeemed = get_tokens_redeemed_by_user(user)
+    tokens_acquired = get_tokens_acquired_by_user(user, date=date)
+    tokens_redeemed = get_tokens_redeemed_by_user(user, date=date)
     tokens = tokens_acquired - tokens_redeemed
     if tokens < 0:
         LOGGER.error("Tokens for user are negative: {}".format(user))
@@ -41,33 +43,39 @@ def get_tokens_for_user(user):
     return tokens
 
 
-def get_tokens_acquired_by_user(user):
+def get_tokens_acquired_by_user(user, date=None):
     """Returns tokens acquired by the user.
 
     Args:
-        user(User): User we are getting the aquired
+        user(User): User we are getting the acquired
          tokens for.
+        date(Date): Date till when we are trying to
+            get tokens acquired by the user.
 
     """
     return models.UserTokenLog.objects.filter(
         user=user,
-        type=constants.TRANSACTION_TYPE_ACQUIRED_ENUM
+        type=constants.TRANSACTION_TYPE_ACQUIRED_ENUM,
+        date__lte=(date if date else datetime.date.today())
     ).aggregate(
         total_amount=Sum("amount")
     )["total_amount"] or 0
 
 
-def get_tokens_redeemed_by_user(user):
+def get_tokens_redeemed_by_user(user, date=None):
     """Returns tokens redeemed by the user.
 
     Args:
         user(User): User we are getting the redeemed
             tokens for.
+        date(Date): Date till when we are trying to
+            get tokens redeemed by the user.
 
     """
     return models.UserTokenLog.objects.filter(
         user=user,
-        type=constants.TRANSACTION_TYPE_REDEEMED_ENUM
+        type=constants.TRANSACTION_TYPE_REDEEMED_ENUM,
+        date__lte=(date if date else datetime.date.today())
     ).aggregate(
         total_amount=Sum("amount")
     )["total_amount"] or 0

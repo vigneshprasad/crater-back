@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from conversations import models as conversations_models
 from integrations.dyte import models, service, constants
+from tokens import tasks as token_tasks
 
 dyte_service = service.dyte_service
 
@@ -69,6 +70,11 @@ def get_minutes_for_live_streams():
         group.total_minutes_spent_by_host = host_total_minutes
         group.save()
 
+    # Send another task to update tokens.
+    token_tasks.calculate_tokens_for_groups.delay(
+        list(live_groups.values_list("id", flat=True))
+    )
+
 
 @periodic_task(run_every=crontab(hour="0", minute="0"))
 def get_minutes_for_all_streams_for_the_day():
@@ -129,6 +135,11 @@ def get_minutes_for_all_streams_for_the_day():
         group.total_minutes_spent_by_host = host_total_minutes
         group.save()
 
+    # Send another task to update tokens.
+    token_tasks.calculate_tokens_for_groups.delay(
+        list(groups_in_the_last_day.values_list("id", flat=True))
+    )
+
 
 @task()
 def recalculate_minutes_for_groups(group_ids):
@@ -188,6 +199,11 @@ def recalculate_minutes_for_groups(group_ids):
         group.total_minutes_spent_by_attendees = minutes_spent_by_attendees
         group.total_minutes_spent_by_host = host_total_minutes
         group.save()
+
+    # Send another task to update tokens.
+    token_tasks.calculate_tokens_for_groups.delay(
+        list(groups.values_list("id", flat=True))
+    )
 
 
 @task()

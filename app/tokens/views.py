@@ -1,6 +1,3 @@
-from django.db import IntegrityError
-from rest_framework.decorators import action
-
 from rest_framework.viewsets import GenericViewSet
 
 from tokens import models, serializers
