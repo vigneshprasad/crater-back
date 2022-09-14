@@ -20,8 +20,8 @@ def update_or_create_token_log_for_token_transaction(sender, instance, *args, **
     models.UserTokenLog.objects.update_or_create(
         user=transaction.user,
         transaction=transaction,
-        date=transaction.date,
         defaults={
+            "date": transaction.date,
             "amount": transaction.amount
         }
     )

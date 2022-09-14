@@ -72,8 +72,8 @@ def calculate_tokens_for_group(group_id):
             tokens for.
 
     """
-
     stream = conversations_models.Group.objects.get(id=group_id)
+    date = stream.start.date()
 
     dyte_participants_for_group = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group=stream,
@@ -110,7 +110,7 @@ def calculate_tokens_for_group(group_id):
             "time_spent": streamer_time_spent,
             "engagement": streamer_engagement,
             "amount": streamer_time_spent + (streamer_engagement * 2),
-            "date": datetime.date.today()
+            "date": date
         },
     )
 
@@ -136,7 +136,7 @@ def calculate_tokens_for_group(group_id):
                 "time_spent": attendee_time_spent,
                 "engagement": attendee_engagement,
                 "amount": attendee_time_spent + (attendee_engagement * 2),
-                "date": datetime.date.today()
+                "date": date
             }
         )
 
@@ -146,7 +146,7 @@ def calculate_tokens_for_group(group_id):
 
     # Calculate token data per day for all attendees.
     models.TokenDataPerDay.objects.update_or_create(
-        date=datetime.datetime.today(),
+        date=date,
         defaults={
             "time_spent": total_watch_time,
             "engagement": total_engagement,
