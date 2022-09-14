@@ -3,7 +3,7 @@ from tokens.learn import constants as learn_constants
 
 
 def run(dry_run=True):
-    user_token_logs = models.UserToken.objects.filter(date__lt=learn_constants.LEARN_TOKEN_START_DATE)
+    user_token_logs = models.UserTokenLog.objects.filter(date__lt=learn_constants.LEARN_TOKEN_START_DATE)
     token_transactions = models.TokenTransaction.objects.filter(date__lt=learn_constants.LEARN_TOKEN_START_DATE)
     token_data_per_day = models.TokenDataPerDay.objects.filter(date__lt=learn_constants.LEARN_TOKEN_START_DATE)
 
