@@ -11,6 +11,7 @@ from crater.exchange import views as exchange_views
 from crater.gateways.stripe_payments import views as stripe_payment_views
 from crater.analytics_dashboard import views as analytics_dashboard_views
 from crater.sales import views as sales_views
+from crater.search import views as search_views
 
 app_name = "crater"
 
@@ -52,6 +53,13 @@ router.register("sale", sales_views.RewardSaleViewSet, basename="crater-sale")
 
 # Analytics Dashboard endpoints
 router.register("analytics", analytics_dashboard_views.AnalyticsDashboardViewSet, basename="analytics-dashboard")
+
+# Search endpoints
+router.register("search", search_views.SearchViewSet, basename="search")
+router.register("search/upcoming", search_views.UpcomingStreamsSearchViewSet, basename="search-upcoming-streams")
+router.register("search/past", search_views.PastStreamsSearchViewSet, basename="search-past-streams")
+router.register("search/creators", search_views.CreatorSearchViewSet, basename="search-creators")
+router.register("search/categories", search_views.CategorySearchViewSet, basename="search-categories")
 
 urlpatterns = [
     path("", include(router.urls)),
