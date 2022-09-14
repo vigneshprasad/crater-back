@@ -47,7 +47,6 @@ class UserLearnMetaViewSet(
 
         user_token_logs = token_models.UserTokenLog.objects.filter(
             user=user,
-            transaction__isnull=False,
             type=token_constants.TRANSACTION_TYPE_ACQUIRED_ENUM
         )
         for token_log in user_token_logs:
