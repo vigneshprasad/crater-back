@@ -5,10 +5,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
-from crater.creator import services, constants, signals
+from crater.creator import constants, services, signals
 
 
 class Creator(base_models.BaseModel):
@@ -69,6 +70,7 @@ class Creator(base_models.BaseModel):
 
     # Are tokens enabled for the creator.
     tokens_enabled = models.BooleanField(default=False)
+    tokens_enabled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-order"]
@@ -112,6 +114,11 @@ class Creator(base_models.BaseModel):
 
         self.save()
 
+    def mark_tokens_enabled(self):
+        self.tokens_enabled = True
+        self.tokens_enabled_at = timezone.now()
+        self.save()
+
 
 class CreatorUPIInfo(base_models.BaseModel):
     creator = models.OneToOneField(
@@ -122,7 +129,6 @@ class CreatorUPIInfo(base_models.BaseModel):
     )
     upi_id = models.CharField(max_length=255)
     qr_code = models.ImageField(upload_to="creator/upi/qr_code")
-
 
 
 class Community(base_models.BaseModel):
@@ -212,7 +218,7 @@ class Follower(base_models.BaseModel):
         return f"{self.user.__str__()}"
 
     def delete(self, soft=True):
-        # Hard deleting Follower obejcts.
+        # Hard deleting Follower objects.
         super(Follower, self).delete(soft=False)
 
 

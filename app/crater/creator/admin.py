@@ -95,15 +95,16 @@ class CreatorAdmin(admin.ModelAdmin):
             }),
             ("Logs", {
                 "fields": (
-                    "analytics_enabled_at",
+                    "analytics_enabled_at", "tokens_enabled_at"
                 )
             }),
         ))
     raw_id_fields = ("user", "point_of_contact", "prospector")
     list_editable = ("order", "certified", "is_active", "show_club_members", "show_analytics", "tokens_enabled")
     list_filter = ("certified", "is_active", POCFilter, ProspectorFilter)
-    readonly_fields = ("analytics_enabled_at", )
+    readonly_fields = ("analytics_enabled_at", "tokens_enabled_at")
     search_fields = (
+        "id",
         "user__name",
         "user__username",
         "slug",
@@ -134,6 +135,10 @@ class CreatorAdmin(admin.ModelAdmin):
         if "show_analytics" in fields_changed:
             if cleaned_data["show_analytics"]:
                 obj.enable_analytics()
+
+        if "tokens_enabled" in fields_changed:
+            if cleaned_data["tokens_enabled"]:
+                obj.mark_tokens_enabled()
 
         return super(CreatorAdmin, self).save_model(request, obj, form, change)
 

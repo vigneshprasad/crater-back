@@ -4,8 +4,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
-from crater.auctions import constants
-from crater.auctions import signals
+from crater.auctions import constants, signals
 
 
 class Auction(base_models.BaseModel):

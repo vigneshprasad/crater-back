@@ -840,8 +840,8 @@ def get_number_of_streams_watched_by_participant(start_date=None, end_date=None,
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
     number_of_streams_joined = dyte_models.DyteMeetingParticipant.objects.filter(
-        updated_at__gte=start_date,
-        updated_at__lte=end_date,
+        dyte_meeting__group__start__gte=start_date,
+        dyte_meeting__group__start__lte=end_date,
         last_online_at__isnull=False
     ).exclude(
         participant_id__in=devscript_users

@@ -69,7 +69,7 @@ def send_email_for_50_subscribers_to_creator(sender, creator, *args, **kwargs):
 
 @receiver(conversations_signals.group_marked_published)
 def send_email_for_stream_setup_to_creator(sender, group, *args, **kwargs):
-    """Sends email once a creators stream is set up on the platform.
+    """Sends email once a creator's stream is set up on the platform.
 
     Args:
         sender(Group.__class__): Class repr of group that was published.
@@ -84,7 +84,7 @@ def send_email_for_stream_setup_to_creator(sender, group, *args, **kwargs):
 
 @receiver(creator_signals.analytics_enabled_for_creator)
 def send_email_for_stream_setup_to_creator(sender, creator, *args, **kwargs):
-    """Sends email once a creators stream is set up on the platform.
+    """Sends email once a creator's stream is set up on the platform.
 
     Args:
         sender(Creator.__class__): Class repr of creator for which analytics

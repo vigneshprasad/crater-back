@@ -331,7 +331,9 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("group", "user")
     search_fields = ("user__name", "user__email", "user__username")
-    list_filter = ("group",)
+    list_filter = (
+        AutocompleteFilterFactory("Group", "group", use_pk_exact=True),
+    )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
 
