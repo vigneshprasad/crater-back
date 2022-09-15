@@ -102,7 +102,6 @@ def calculate_tokens_for_group(group_id):
     if not creator.tokens_enabled:
         return total_watch_time, total_engagement
 
-    print("Calculating data for stream: {}".format(stream))
     date = stream.start.date()
     dyte_participants_for_group = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group=stream,
