@@ -1,8 +1,7 @@
 import datetime
 
 import pytz
-from celery.schedules import crontab
-from celery.task import periodic_task, task
+from celery.task import task
 from django.conf import settings
 
 from conversations import models as conversations_models
@@ -17,6 +16,9 @@ def calculate_tokens_earned(date=None):
     Args:
         date(str): Date string we want to calculate tokens
             data for.
+    Returns:
+        total_time_spent(float/int): Total time spent across the date
+        total_engagement(float/int): Total engagement across the date
 
     """
 
@@ -44,7 +46,7 @@ def calculate_tokens_earned(date=None):
         host__creator__tokens_enabled=True,
     )
 
-    calculate_tokens_for_groups(
+    return calculate_tokens_for_groups(
         list(streams_for_today.values_list("id", flat=True))
     )
 
@@ -57,10 +59,19 @@ def calculate_tokens_for_groups(group_ids):
         group_ids(list/queryset): List of ids of the groups we
             are calculating the tokens for.
 
+    Returns:
+        total_time_spent(float/int): Total time spent across the groups
+        total_engagement(float/int): Total engagement across the groups
+
     """
 
+    total_time_spent, total_engagement = 0, 0
     for group_id in group_ids:
-        calculate_tokens_for_group(group_id)
+        time_spent, engagement = calculate_tokens_for_group(group_id)
+        total_time_spent += time_spent
+        total_engagement += engagement
+
+    return total_time_spent, total_engagement
 
 
 @task()
@@ -71,28 +82,42 @@ def calculate_tokens_for_group(group_id):
         group_id(int): ID of the group we are calculating the
             tokens for.
 
-    """
-    stream = conversations_models.Group.objects.get(id=group_id)
-    date = stream.start.date()
+    Returns:
+        total_time_spent(float/int): Total time spent across the group
+        total_engagement(float/int): Total engagement across the group.
 
+    """
+    total_engagement = 0
+    total_watch_time = 0
+
+    stream = conversations_models.Group.objects.get(id=group_id)
+    host = stream.host
+    if not host:
+        return total_watch_time, total_engagement
+
+    creator = host.creator if hasattr(host, "creator") else None
+    if not creator:
+        return total_watch_time, total_engagement
+
+    if not creator.tokens_enabled:
+        return total_watch_time, total_engagement
+
+    print("Calculating data for stream: {}".format(stream))
+    date = stream.start.date()
     dyte_participants_for_group = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group=stream,
         last_online_at__isnull=False
     )
     total_chat_for_stream = conversations_models.GroupMessage.objects.filter(group=stream)
 
-    total_engagement = 0
-    total_watch_time = 0
-
     # Calculate tokens for host.
-    host = stream.host
     host_dyte_participant = dyte_participants_for_group.filter(participant=host).last()
     if not host_dyte_participant:
-        return
+        return total_watch_time, total_engagement
 
     streamer_time_spent = host_dyte_participant.minutes_spent
     if not streamer_time_spent:
-        return
+        return total_watch_time, total_engagement
 
     streamer_engagement = total_chat_for_stream.filter(sender=host).count()
     # Add extra watch time to creator.
@@ -144,12 +169,4 @@ def calculate_tokens_for_group(group_id):
         total_watch_time += attendee_time_spent
         total_engagement += attendee_engagement
 
-    # Calculate token data per day for all attendees.
-    models.TokenDataPerDay.objects.update_or_create(
-        date=date,
-        defaults={
-            "time_spent": total_watch_time,
-            "engagement": total_engagement,
-            "amount": total_watch_time + (total_engagement * 2)
-        }
-    )
+    return total_watch_time, total_engagement
