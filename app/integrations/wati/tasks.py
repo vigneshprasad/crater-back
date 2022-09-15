@@ -9,7 +9,7 @@ from integrations.wati import constants, private
 from integrations.wati.services import wati_service_8953
 
 
-@task
+@task()
 def send_stream_setup_whatsapp_to_creator(group_id):
     """Send whatsapp to creator when their stream is
         set up on the platform.
@@ -46,7 +46,7 @@ def send_stream_setup_whatsapp_to_creator(group_id):
     )
 
 
-@task
+@task()
 def send_stream_setup_whatsapp_to_followers(group_id):
     """Send whatsapp to creator follower when their stream
         is set up on the platform.

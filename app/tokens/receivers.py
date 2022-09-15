@@ -27,6 +27,32 @@ def update_or_create_token_log_for_token_transaction(sender, instance, *args, **
     )
 
 
+# @receiver(post_save, sender=models.TokenTransaction)
+# def update_or_create_token_data_per_day_for_transaction(sender, instance, *args, **kwargs):
+#     """Update or create token data per day for token transaction.
+#
+#     Args:
+#         sender(TokenTransaction.__clas__): Class representation of Token transaction.
+#         instance(TokenTransaction): Token transaction that was updated/created.
+#
+#     """
+#     transaction = instance
+#     date = transaction.date
+#     # Update token data at the same time.
+#     token_transactions_for_date = models.TokenTransaction.objects.filter(date=date)
+#     token_data, _ = models.TokenDataPerDay.objects.get_or_create(date=date)
+#
+#     time_spent, engagement = 0, 0
+#     for token_transaction in token_transactions_for_date:
+#         time_spent += token_transaction.time_spent
+#         engagement += token_transaction.engagement
+#
+#     token_data.time_spent = time_spent
+#     token_data.engagement = engagement
+#     token_data.amount = time_spent + (2 * engagement)
+#     token_data.save()
+
+
 @receiver(post_save, sender=models.UserTokenLog)
 def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kwargs):
     """Update/Create user token for a log creation or update.
