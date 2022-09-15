@@ -33,7 +33,7 @@ class UpcomingStreamsSearchViewSet(
     )
     permission_classes = [user_permissions.AllowAny]
     filter_backends = (filters.SearchFilter,)
-    search_fields = ["topic__name"]
+    search_fields = ["topic__name", "host__name"]
     pagination_class = paginators.SearchPagination
 
 
@@ -55,7 +55,7 @@ class PastStreamsSearchViewSet(
     )
     permission_classes = [user_permissions.AllowAny]
     filter_backends = (filters.SearchFilter,)
-    search_fields = ["topic__name"]
+    search_fields = ["topic__name", "host__name"]
     pagination_class = paginators.SearchPagination
 
 
