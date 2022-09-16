@@ -29,18 +29,6 @@ class UserLearnMetaViewSet(
         today = now.date()
         yesterday = today - timezone.timedelta(days=1)
 
-        if user.is_creator:
-            return Response(
-                {
-                    "total_time_spent": 0,
-                    "interactions": 0,
-                    "learn_earned": 0,
-                    "daily_learn_earned": 0,
-                    "learn_burned": 0
-                },
-                status=status.HTTP_200_OK
-            )
-
         total_tokens = tokens_public.get_tokens_for_user(user, yesterday)
         total_time_spent = 0
         total_engagement = 0
@@ -72,11 +60,11 @@ class UserLearnMetaViewSet(
         ).count()
 
         today_learn_earned = (minutes_spent_for_today + (2 * engagement_for_today))
-        total_learn_earned = total_tokens + today_learn_earned
+        total_learn_earned = float(total_tokens) + float(today_learn_earned)
 
         result = {
-            "total_time_spent": total_time_spent + minutes_spent_for_today,
-            "interactions": total_engagement + engagement_for_today,
+            "total_time_spent": float(total_time_spent) + float(minutes_spent_for_today),
+            "interactions": float(total_engagement) + float(engagement_for_today),
             "learn_earned": total_learn_earned,
             "daily_learn_earned": today_learn_earned,
             "learn_burned": tokens_public.get_tokens_redeemed_by_user(user)
