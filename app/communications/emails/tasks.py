@@ -28,8 +28,8 @@ def send_stream_setup_email_to_creator(group_id):
     if group_start <= now_time:
         return
 
-    diff = now_time - group_start
-    diff_minutes = diff.seconds / 60
+    diff = group_start - now_time
+    diff_minutes = diff.total_seconds() / 60
     # If the group is marked published within 30 minutes of group start
     # don't send the published email.
     if diff_minutes < 30:
