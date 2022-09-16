@@ -112,7 +112,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
                 (last_live_time_for_group - self.latest_join_time),
                 timezone.timedelta()
             )
-            minutes_spent = round(time_spent.seconds / 60)
+            minutes_spent = round(time_spent.total_seconds() / 60)
         else:
             # If logs are present calculate minutes from logs.
             for log in online_logs:
@@ -186,7 +186,7 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
 
         offline_at = min(offline_at, last_live_at)
         time_spent = max((offline_at - self.online_at), timezone.timedelta())
-        minutes = time_spent.seconds / 60
+        minutes = time_spent.total_seconds() / 60
         return round(minutes)
 
     def mark_offline(self):

@@ -6,19 +6,14 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Q, F, Count, DateField, Case, When, Value
+from django.db.models import Case, Count, DateField, F, Q, Value, When
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
-from conversations import constants
-from conversations import exceptions
-from conversations import models
-from conversations import signals
-from conversations import serializers
-
+from conversations import constants, exceptions, models, serializers, signals
 from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
-from rest_framework.exceptions import ValidationError
 
 
 def get_root_topic(topic):
@@ -959,7 +954,7 @@ def calculate_total_minutes_on_stream(dyte_participants):
         if participant.last_online_at < participant.dyte_meeting.group.start:
             continue
         time_spent = participant.last_online_at - participant.dyte_meeting.group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
 
         if not minutes and minutes > 300:
             continue
