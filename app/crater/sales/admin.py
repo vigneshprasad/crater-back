@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from crater.sales import models
+from crater.sales import constants
 
 # Register your models here.
 
@@ -43,3 +44,16 @@ class RewardSaleLogAdmin(admin.ModelAdmin):
         "updated_at",
         "is_deleted"
     )
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            return super(RewardSaleLogAdmin, self).save_model(request, obj, form, change)
+
+        fields_changed = form.changed_data
+        cleaned_data = form.cleaned_data
+
+        if "status" in fields_changed:
+            if cleaned_data["status"] == constants.SALE_PAYMENT_CONFIRMED_ENUM:
+                obj.mark_sale_confirmed()
+
+        return super(RewardSaleLogAdmin, self).save_model(request, obj, form, change)

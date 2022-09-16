@@ -1,12 +1,15 @@
+import logging
 from django.contrib.auth import get_user_model
 from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 
-from conversations import constants, models, signals
+from conversations import constants, models, signals, services
 from integrations.dyte import tasks as dyte_tasks, public as dyte_public, signals as dyte_signals
 from matching import private as matching_private
 from resources.curated_articles import signals as article_signals
 from resources.meetings import signals as meeting_signals
+from crater.sales import signals as sales_signals
+from crater.rewards import constants as reward_constants
 
 
 @receiver(post_save, sender=models.Group)
@@ -188,3 +191,24 @@ def create_or_update_group_recording(sender, dyte_recording, *args, **kwargs):
     group_recording.dyte_recordings.add(dyte_recording)
 
     return group_recording
+
+@receiver(sales_signals.sale_payment_confirmed)
+def add_attendee_for_private_stream_sale_confirmation(sender, sale_log, *args, **kwargs):
+    """
+
+    """
+    reward = sale_log.reward_sale.reward
+    if not reward.type.name == reward_constants.REWARD_NAME_PRIVATE_STREAM:
+        return
+
+    if not reward.object_id:
+        return
+    
+    try:
+        group = models.Group.objects.get(id=reward.object_id)
+    except models.Group.DoesNotExist:
+        logging.error("Reward group does not exist for private stream", reward.id)
+        return
+
+    request = services.create_group_request(user=sale_log.user, group=group, participant_type=constants.REQUEST_PARTICIPANT_ATTENDEE_ENUM)
+    services.add_attendee_to_group_for_request(attendee=sale_log.user, group_request=request)
