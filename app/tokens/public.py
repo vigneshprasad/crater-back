@@ -40,7 +40,7 @@ def get_tokens_for_user(user, date=None):
         LOGGER.error("Tokens for user are negative: {}".format(user))
         return 0
 
-    return tokens
+    return float(tokens)
 
 
 def get_tokens_acquired_by_user(user, date=None):
@@ -53,13 +53,13 @@ def get_tokens_acquired_by_user(user, date=None):
             get tokens acquired by the user.
 
     """
-    return models.UserTokenLog.objects.filter(
+    return float(models.UserTokenLog.objects.filter(
         user=user,
         type=constants.TRANSACTION_TYPE_ACQUIRED_ENUM,
         date__lte=(date if date else datetime.date.today())
     ).aggregate(
         total_amount=Sum("amount")
-    )["total_amount"] or 0
+    )["total_amount"] or 0)
 
 
 def get_tokens_redeemed_by_user(user, date=None):
@@ -72,13 +72,13 @@ def get_tokens_redeemed_by_user(user, date=None):
             get tokens redeemed by the user.
 
     """
-    return models.UserTokenLog.objects.filter(
+    return float(models.UserTokenLog.objects.filter(
         user=user,
         type=constants.TRANSACTION_TYPE_REDEEMED_ENUM,
         date__lte=(date if date else datetime.date.today())
     ).aggregate(
         total_amount=Sum("amount")
-    )["total_amount"] or 0
+    )["total_amount"] or 0)
 
 
 def redeem_tokens_for_user(user, tokens):
