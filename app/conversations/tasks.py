@@ -545,6 +545,7 @@ def streams_action_message():
         now = timezone.now()
         future_streams = models.Group.objects.filter(
             start=stream.start + datetime.timedelta(minutes=60),
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             categories__in=stream.categories.all(),
         )
 
@@ -552,6 +553,7 @@ def streams_action_message():
             future_streams = models.Group.objects.filter(
                 start__gte=stream.start,
                 start__lte=stream.start + datetime.timedelta(hours=24),
+                privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
                 categories__in=stream.categories.all(),
             )
 
