@@ -536,6 +536,7 @@ class GroupWebinarViewSet(
         return self.get_queryset().filter(
             is_live=False,
             closed=False,
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             start__gte=datetime.datetime.now()
         )
 
@@ -543,6 +544,7 @@ class GroupWebinarViewSet(
         """Return live webinars."""
         return self.get_queryset().filter(
             is_live=True,
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             closed=False
         )
 
