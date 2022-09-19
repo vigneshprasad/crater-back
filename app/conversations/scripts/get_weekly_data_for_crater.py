@@ -1449,7 +1449,7 @@ def _get_minutes_spent_by_participants_on_stream(group):
 
         # Get total time spent on the call.
         time_spent = participant.last_online_at - group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:
             continue
@@ -1499,7 +1499,7 @@ def _get_minutes_spent_by_hosts_on_stream(group):
 
         # Get total time spent on the call.
         time_spent = host.last_online_at - group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
 
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:

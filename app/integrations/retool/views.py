@@ -3,17 +3,14 @@ import datetime
 from dateutil import relativedelta
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import viewsets
 
-from users import permissions
-from conversations import constants as conversations_constants
-from conversations import models as conversations_models
+from conversations import constants as conversations_constants, models as conversations_models
 from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
-
+from users import permissions
 
 DATE_JOINED_DURATION_CHOICES = [
     24,
@@ -583,7 +580,7 @@ def _get_minutes_spent_by_participants_on_stream(group):
 
         # Get total time spent on the call.
         time_spent = participant.last_online_at - group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
 
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:
@@ -619,7 +616,7 @@ def _get_minutes_spent_by_hosts_on_stream(group):
 
         # Get total time spent on the call.
         time_spent = speaker.last_online_at - group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
 
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:
