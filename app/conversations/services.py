@@ -962,7 +962,7 @@ def calculate_total_minutes_on_stream(dyte_participants):
         participants_joined += 1
         total_minutes_spent += minutes
 
-    return total_minutes_spent, participants_joined
+    return int(total_minutes_spent), participants_joined
 
 
 def get_avg_stream_length_for_creators():
