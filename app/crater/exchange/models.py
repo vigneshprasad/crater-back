@@ -11,6 +11,7 @@ class Transaction(base_models.BaseModel):
         (constants.TRANSACTION_TYPE_BID_ENUM, constants.TRANSACTION_TYPE_BID),
         (constants.TRANSACTION_TYPE_REDEMPTION_ENUM, constants.TRANSACTION_TYPE_REDEMPTION),
         (constants.TRANSACTION_TYPE_AUCTION_ENUM, constants.TRANSACTION_TYPE_AUCTION),
+        (constants.TRANSACTION_TYPE_SALE_ENUM, constants.TRANSACTION_TYPE_SALE),
     )
 
     # Creator coin/token that is being bought or sold.
@@ -69,12 +70,12 @@ class UserReward(base_models.BaseModel):
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
-        related_name="reward_holding"
+        related_name="rewards"
     )
     reward = models.ForeignKey(
         "crater_rewards.Reward",
         on_delete=models.CASCADE,
-        related_name="reward_holding"
+        related_name="user_rewards"
     )
 
     # What is the total quantity of reward bought by the user.

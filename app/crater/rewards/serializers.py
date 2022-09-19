@@ -4,6 +4,7 @@ from crater.auctions import models as auction_models
 from crater.auctions import constants as auction_constants
 from crater.creator import serializers as creator_serializers
 from crater.rewards import models
+from utils import fields
 
 
 class RewardTypeSerializer(serializers.ModelSerializer):
@@ -17,13 +18,29 @@ class RewardTypeSerializer(serializers.ModelSerializer):
         )
 
 
+class RewardBaseSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = models.Reward
+        fields = (
+            "id",
+            "creator",
+            "title",
+            "name",
+            "description",
+            "photo",
+            "is_active",
+        )
+
+
 class RewardSerializer(serializers.ModelSerializer):
-    photo_mime_type = serializers.SerializerMethodField(read_only=True)
+    photo_mime_type = serializers.SerializerMethodField(read_only=True, allow_null=True)
     quantity = serializers.SerializerMethodField(read_only=True)
     quantity_sold = serializers.SerializerMethodField(read_only=True)
     active_auction = serializers.SerializerMethodField(read_only=True)
     creator_detail = creator_serializers.CreatorSerializer(source="creator", read_only=True)
     type_detail = RewardTypeSerializer(source="type", read_only=True)
+    photo = fields.Base64FileField(file_formats=[".jpg", ".png", ".tiff", ".bmp"], allow_null=True, required=False)
 
     class Meta:
         model = models.Reward
@@ -114,7 +131,7 @@ class SubRewardAuctionSerializer(serializers.ModelSerializer):
 
 
 class RewardDetailWithCreatorAndTypeSerializer(serializers.ModelSerializer):
-    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator", read_only=True)
+    creator_detail = creator_serializers.CreatorProfileListSerializer(source="creator.user.profile", read_only=True)
     type_detail = RewardTypeSerializer(source="type", read_only=True)
 
     class Meta:
@@ -122,8 +139,11 @@ class RewardDetailWithCreatorAndTypeSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "creator",
-            "name",
             "title",
+            "name",
+            "description",
+            "photo",
+            "is_active",
             "type",
             "creator_detail",
             "type_detail",

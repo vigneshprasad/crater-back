@@ -116,11 +116,15 @@ def get_active_recording_for_dyte_meeting(dyte_meeting):
     return dyte_meeting_active_recording
 
 
-def get_recording_to_stop_for_dyte_meeting(dyte_meeting):
+def get_recording_for_dyte_meeting_and_status(
+        dyte_meeting,
+        status=constants.DYTE_RECORDING_STATUS_RECORDING
+):
     """Return recording id for recording to stop for a Dyte meeting.
 
     Args:
         dyte_meeting(DyteMeeting): DyteMeeting object
+        status(str): Status of recording we are getting.
 
     Returns:
         recording_id(str): Recording ID on dyte's end we
@@ -130,7 +134,7 @@ def get_recording_to_stop_for_dyte_meeting(dyte_meeting):
 
     # Only recordings in RECORDING status can be stopped.
     recording_to_stop = dyte_meeting.meeting_recording.filter(
-        status=constants.DYTE_RECORDING_STATUS_RECORDING
+        status=status
     ).last()
 
     if not recording_to_stop:
@@ -153,11 +157,10 @@ def mark_participants_offline_for_group(group):
         return False
 
     # Get all participants for the dyte meeting.
-    participants = dyte_meeting.meeting_participants.all()
+    participants = dyte_meeting.meeting_participants.filter(is_online=True)
     for participant in participants:
         # If the dyte participant is not offline, mark it offline.
-        if participant.is_online:
-            participant.mark_offline()
+        participant.mark_offline()
 
         # Mark all logs offline as well.
         participant_online_logs = participant.online_logs.filter(is_offline=False)

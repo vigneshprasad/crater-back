@@ -160,7 +160,8 @@ class CreatorProfileListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            "photo"
+            "photo",
+            "user",
         )
 
 
@@ -301,6 +302,12 @@ class CreatorRankingSerializer(serializers.ModelSerializer):
         return creator.followers.filter(user=user, notify=True).exists()
 
 
+class CreatorUPIInfoSerializer(serializers.ModelSerializer):
 
-
-
+    class Meta:
+        model = models.CreatorUPIInfo
+        fields = (
+            "id",
+            "upi_id",
+            "qr_code"
+        )

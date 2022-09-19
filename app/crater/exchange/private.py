@@ -1,27 +1,23 @@
-from crater.exchange import models
-from crater.exchange import constants
+from crater.exchange import constants, models
 
 
-def update_or_create_user_reward(bid):
+def update_or_create_user_reward(user, reward, quantity):
     """Update or create UserReward for a Bid.
 
     Args:
-        bid(Bid): Bid object that got accepted.
+        user(User): User we are giving the reward to.
+        reward(Reward): Reward the user purchased.
+        quantity(int): Quantity of the reward.
 
     """
     user_reward, created = models.UserReward.objects.get_or_create(
-        user=bid.bidder,
-        reward=bid.auction.reward
+        user=user,
+        reward=reward
     )
-
-    # If UserReward is already present update the quantity of
-    # the UserReward. Otherwise, assign the bid quantity.
-    if not created:
-        user_reward.quantity += bid.quantity
-    else:
-        user_reward.quantity = bid.quantity
-
+    # Update the User reward quantity.
+    user_reward.quantity += quantity
     user_reward.save()
+
     return user_reward
 
 

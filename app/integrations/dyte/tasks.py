@@ -1,13 +1,17 @@
 import datetime
+import logging
 
 from celery.schedules import crontab
 from celery.task import periodic_task, task
 from django.utils import timezone
 
 from conversations import models as conversations_models
-from integrations.dyte import models, service
+from integrations.dyte import models, service, constants
+from tokens import tasks as token_tasks
 
 dyte_service = service.dyte_service
+
+LOGGER = logging.getLogger(__name__)
 
 
 @periodic_task(run_every=crontab("*/5"))
@@ -27,27 +31,31 @@ def get_minutes_for_live_streams():
         closed=False,
         start__lte=now
     )
+    participants_went_online_for_all_groups = models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=live_groups,
+        last_online_at__isnull=False
+    )
 
     for group in live_groups:
-        dyte_participant_for_host = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
+        participants_went_online_for_group = participants_went_online_for_all_groups.filter(
+            dyte_meeting__group=group
+        )
+        dyte_participant_for_host = participants_went_online_for_group.filter(
             participant_id=group.host_id
-        ).first()
-
+        ).last()
         if not dyte_participant_for_host:
             continue
 
-        dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            last_online_at__isnull=False
-        ).exclude(id=dyte_participant_for_host.id)
-
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
+        # Update host minutes_spent.
+        dyte_participant_for_host.minutes_spent = host_total_minutes
+        dyte_participant_for_host.save()
         # If there are no host minutes, don't calculate minutes for
         # stream.
         if not host_total_minutes:
             continue
 
+        dyte_participants_for_attendees = participants_went_online_for_group.exclude(id=dyte_participant_for_host.id)
         minutes_spent_by_attendees = 0
 
         for dyte_participant in dyte_participants_for_attendees:
@@ -61,6 +69,11 @@ def get_minutes_for_live_streams():
         group.total_minutes_spent_by_attendees = minutes_spent_by_attendees
         group.total_minutes_spent_by_host = host_total_minutes
         group.save()
+
+    # Send another task to update tokens.
+    token_tasks.calculate_tokens_for_groups.delay(
+        list(live_groups.values_list("id", flat=True))
+    )
 
 
 @periodic_task(run_every=crontab(hour="0", minute="0"))
@@ -82,26 +95,32 @@ def get_minutes_for_all_streams_for_the_day():
         start__gte=yesterday
     )
 
-    for group in groups_in_the_last_day:
-        dyte_participant_for_host = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            participant_id=group.host_id
-        ).first()
+    participants_went_online_for_all_groups = models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=groups_in_the_last_day,
+        last_online_at__isnull=False
+    )
 
+    for group in groups_in_the_last_day:
+        participants_went_online_for_group = participants_went_online_for_all_groups.filter(
+            dyte_meeting__group=group
+        )
+
+        dyte_participant_for_host = participants_went_online_for_group.filter(
+            participant_id=group.host_id
+        ).last()
         if not dyte_participant_for_host:
             continue
 
-        dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            last_online_at__isnull=False
-        ).exclude(id=dyte_participant_for_host.id)
-
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
+        # Update host minutes_spent.
+        dyte_participant_for_host.minutes_spent = host_total_minutes
+        dyte_participant_for_host.save()
         # If there are no host minutes, don't calculate minutes for
         # stream.
         if not host_total_minutes:
             continue
 
+        dyte_participants_for_attendees = participants_went_online_for_group.exclude(id=dyte_participant_for_host.id)
         minutes_spent_by_attendees = 0
 
         for dyte_participant in dyte_participants_for_attendees:
@@ -115,6 +134,11 @@ def get_minutes_for_all_streams_for_the_day():
         group.total_minutes_spent_by_attendees = minutes_spent_by_attendees
         group.total_minutes_spent_by_host = host_total_minutes
         group.save()
+
+    # Send another task to update tokens.
+    token_tasks.calculate_tokens_for_groups.delay(
+        list(groups_in_the_last_day.values_list("id", flat=True))
+    )
 
 
 @task()
@@ -135,26 +159,33 @@ def recalculate_minutes_for_groups(group_ids):
         id__in=group_ids
     )
 
-    for group in groups:
-        dyte_participant_for_host = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            participant_id=group.host_id
-        ).first()
+    participants_went_online_for_all_groups = models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=groups,
+        last_online_at__isnull=False
+    )
 
+    for group in groups:
+        participants_went_online_for_group = participants_went_online_for_all_groups.filter(
+            dyte_meeting__group=group
+        )
+
+        dyte_participant_for_host = participants_went_online_for_group.filter(
+            participant_id=group.host_id
+        ).last()
         if not dyte_participant_for_host:
             continue
 
-        dyte_participants_for_attendees = models.DyteMeetingParticipant.objects.filter(
-            dyte_meeting__group=group,
-            last_online_at__isnull=False
-        ).exclude(id=dyte_participant_for_host.id)
-
         host_total_minutes = dyte_participant_for_host.total_minutes_watched
+        # Update host minutes_spent.
+        dyte_participant_for_host.minutes_spent = host_total_minutes
+        dyte_participant_for_host.save()
+
         # If there are no host minutes, don't calculate minutes for
         # stream.
         if not host_total_minutes:
             continue
 
+        dyte_participants_for_attendees = participants_went_online_for_group.exclude(id=dyte_participant_for_host.id)
         minutes_spent_by_attendees = 0
 
         for dyte_participant in dyte_participants_for_attendees:
@@ -168,3 +199,132 @@ def recalculate_minutes_for_groups(group_ids):
         group.total_minutes_spent_by_attendees = minutes_spent_by_attendees
         group.total_minutes_spent_by_host = host_total_minutes
         group.save()
+
+    # Send another task to update tokens.
+    token_tasks.calculate_tokens_for_groups.delay(
+        list(groups.values_list("id", flat=True))
+    )
+
+
+@task()
+def start_recording_for_meeting_if_required(group_id):
+    """Starts meeting recording for a group if required.
+
+    Args:
+        group_id(int): ID of the group we want to record.
+
+    Note:
+        Will only start recording if there are no active
+            recordings at the moment.
+
+    """
+    group = conversations_models.Group.objects.get(id=group_id)
+    dyte_meeting = group.dyte_webinar.first()
+    # Update the meeting recording status from Dyte's end.
+    update_meeting_recording_status_for_active_recordings(group_id)
+
+    # Get active recordings if any.
+    dyte_meeting_active_recordings = models.DyteMeetingRecording.objects.filter(
+        dyte_meeting=dyte_meeting,
+        status__in=[
+            constants.DYTE_RECORDING_STATUS_INVOKED,
+            constants.DYTE_RECORDING_STATUS_RECORDING
+        ]
+    )
+
+    if dyte_meeting_active_recordings:
+        return False
+
+    dyte_service.start_recording(dyte_meeting)
+
+
+@task()
+def update_meeting_recording_status_for_active_recordings(group_id):
+    """Update meeting recording status for all recordings of a
+        stream/group, if we haven't got and update from Dyte's end.
+
+    Args:
+        group_id(int): ID of the group we are updating recording
+            status for.
+    """
+    group = conversations_models.Group.objects.get(id=group_id)
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return False
+
+    # Get all recording in recording or invoked state.
+    dyte_meeting_active_recordings = models.DyteMeetingRecording.objects.filter(
+        dyte_meeting=dyte_meeting,
+        status__in=[
+            constants.DYTE_RECORDING_STATUS_INVOKED,
+            constants.DYTE_RECORDING_STATUS_RECORDING
+        ]
+    )
+
+    if not dyte_meeting_active_recordings:
+        return True
+
+    for dyte_meeting_active_recording in dyte_meeting_active_recordings:
+        recording_data = service.dyte_service.get_recording(
+            dyte_meeting.dyte_meeting_id,
+            dyte_meeting_active_recording.recording_id
+        )
+        if not recording_data:
+            continue
+
+        try:
+            status = recording_data["status"]
+            started_at = recording_data["startedTime"]
+            stopped_at = recording_data["stoppedTime"]
+            file_size = recording_data.get("fileSize") or 0
+            file_size_mb = round(file_size / (1024 * 1024), 2)
+        except KeyError:
+            return False
+
+        # Update the status.
+        dyte_meeting_active_recording.status = status
+        dyte_meeting_active_recording.file_size = file_size_mb
+        dyte_meeting_active_recording.save()
+
+        # Update start and stop times.
+        dyte_meeting_active_recording.update_start_and_stop_times(started_at, stopped_at)
+
+
+@task()
+def update_meeting_recording_status_for_recording_ids(recording_ids):
+    """Update meeting recording status for all provided recording ids.
+
+    Args:
+        recording_ids(list/queryset): ID's of the recording we are updating.
+
+    """
+    dyte_meeting_recordings = models.DyteMeetingRecording.objects.filter(
+        id__in=recording_ids
+    )
+    if not dyte_meeting_recordings:
+        return
+
+    for dyte_meeting_recording in dyte_meeting_recordings:
+        dyte_meeting = dyte_meeting_recording.dyte_meeting
+        recording_data = service.dyte_service.get_recording(
+            dyte_meeting.dyte_meeting_id,
+            dyte_meeting_recording.recording_id
+        )
+        if not recording_data:
+            continue
+
+        try:
+            status = recording_data["status"]
+            started_at = recording_data["startedTime"]
+            stopped_at = recording_data["stoppedTime"]
+            file_size = recording_data.get("fileSize") or 0
+            file_size_mb = round(file_size / (1024 * 1024), 2)
+        except KeyError:
+            return False
+
+        # Update the status.
+        dyte_meeting_recording.status = status
+        dyte_meeting_recording.file_size = file_size_mb
+        dyte_meeting_recording.save()
+        # Update start and stop times.
+        dyte_meeting_recording.update_start_and_stop_times(started_at, stopped_at)

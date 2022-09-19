@@ -482,7 +482,10 @@ class DyteService:
                 "region": settings.AWS_S3_REGION_NAME,
                 "bucket": settings.AWS_STORAGE_BUCKET_NAME,
                 "path": path
-            }
+            },
+            # Changing recording duration to 24 hrs, instead of
+            # default 3 hours.
+            "maxSeconds": 86400
         }
 
         if hasattr(dyte_meeting.group, "rtmp"):
@@ -711,10 +714,11 @@ class DyteService:
         data = []
         for stat in stats:
             user_pk = stat["clientSpecificId"]
+            user = get_user_model().objects.filter(pk=user_pk).first() if user_pk else None
             data.append(
                 {
                     "clientSpecificId": user_pk,
-                    "user": get_user_model().objects.get(pk=user_pk).__str__(),
+                    "user": user.__str__() if user else "",
                     "totalMinutes": stat["totalMinutes"] if stat["totalMinutes"] < 300 else 0
                 }
             )

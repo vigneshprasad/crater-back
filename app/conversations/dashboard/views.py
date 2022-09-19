@@ -196,6 +196,13 @@ class CreateUpdateWebinarViewSet(viewsets.GenericViewSet):
             title = topic_details.get("title")
             image_url = topic_details.get("image")
             image_name = topic_details.get("image_name")
+            # Raise an error if image is not present in the
+            # request data.
+            if not (image_url and image_name):
+                return Response({
+                    "message": "Topic Image is required."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             description = topic_details.get("description") or description
             topic_type = conversation_constants.GROUP_TYPE_WEBINAR_ENUM
             topic = conversation_private.create_topic(

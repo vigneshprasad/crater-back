@@ -1,5 +1,7 @@
 import logging
+from decimal import Decimal
 
+from dateutil import parser
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -57,8 +59,7 @@ class DyteMeetingParticipant(base_model.BaseModel):
     minutes_spent = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        null=True,
-        blank=True
+        default=Decimal("0.00")
     )
 
     class Meta:
@@ -91,7 +92,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
         """Total minutes spent on the stream."""
         minutes_spent = 0
         online_logs = self.online_logs.all()
-
         # If there is no last_online_at return 0.
         if not self.last_online_at:
             return minutes_spent
@@ -100,54 +100,63 @@ class DyteMeetingParticipant(base_model.BaseModel):
         # calculate minutes the old way.
         if not online_logs:
             group = self.dyte_meeting.group
-            last_live_time_for_group = min(
-                self.last_online_at, group.last_live_at
-            ) if group else self.last_online_at
+            if group and group.closed:
+                last_live_time_for_group = min(
+                    self.last_online_at, group.last_live_at
+                ) if (group and group.last_live_at) else self.last_online_at
+            else:
+                last_live_time_for_group = self.last_online_at
 
             # Calculate time spent based on the last live at for group.
             time_spent = max(
                 (last_live_time_for_group - self.latest_join_time),
                 timezone.timedelta()
             )
-            minutes_spent = round(time_spent.seconds / 60)
+            minutes_spent = round(time_spent.total_seconds() / 60)
         else:
             # If logs are present calculate minutes from logs.
             for log in online_logs:
                 minutes_spent += log.online_time
 
-        return minutes_spent
+        return round(minutes_spent)
 
     def mark_online(self):
         """Mark a dyte participant online."""
         online_at = max(timezone.now(), self.latest_join_time)
-        self.is_online = True
-        self.last_online_at = online_at
-
         # Create online logs.
         online_log, _ = DyteParticipantOnlineLog.objects.get_or_create(
-            dyte_meeting_participant_id=self.id,
+            dyte_meeting_participant=self,
             is_offline=False,
             defaults={
                 "online_at": online_at
             }
         )
 
+        self.is_online = True
+        self.last_online_at = online_at
         self.save()
 
     def mark_offline(self):
         """Mark a dyte participant offline."""
+        if self.is_offline():
+            return
+
         offline_at = max(timezone.now(), self.latest_join_time)
-        self.is_online = False
-        self.last_online_at = offline_at
 
         # Update the online log to offline.
         online_log = self.online_logs.filter(is_offline=False).last()
         if online_log:
             online_log.mark_offline()
         else:
-            LOGGER.error("Went offline without online log. {}".format(self.id))
+            LOGGER.error("Went offline without online log. {} - {}".format(self.id, online_log))
 
+        self.is_online = False
+        self.last_online_at = offline_at
         self.save()
+
+    def is_offline(self):
+        """Checks if the participant is already offline."""
+        return self.last_online_at and not self.is_online
 
 
 class DyteParticipantOnlineLog(base_model.BaseModel):
@@ -167,18 +176,30 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
         if not self.online_at:
             return 0
 
-        # TODD(Nishant): See if we should do this.
-        # In case the group start has changed and online_at is before the group
-        # start, we need to make corrections for the same.
-        # online_at = max(self.online_at, self.dyte_meeting_participant.latest_join_time)
         offline_at = self.offline_at if self.offline_at else timezone.now()
+        group = self.dyte_meeting_participant.dyte_meeting.group
+        # Update the last_live_at only if the group is closed.
+        if group and group.closed:
+            last_live_at = group.last_live_at if group.last_live_at else timezone.now()
+        else:
+            last_live_at = timezone.now()
+
+        offline_at = min(offline_at, last_live_at)
         time_spent = max((offline_at - self.online_at), timezone.timedelta())
-        minutes = time_spent.seconds / 60
+        minutes = time_spent.total_seconds() / 60
         return round(minutes)
 
     def mark_offline(self):
         """Mark the online log offline when the user leaves."""
         offline_at = max(timezone.now(), self.dyte_meeting_participant.latest_join_time)
+        # Removing this code block so that we have actual data when the
+        # user went offline, we will calculate the online time based on
+        # the groups last live at.
+        # # Check the group.last_live_at and assign the min value to a log.
+        # group = self.dyte_meeting_participant.dyte_meeting.group
+        # last_live_at = group.last_live_at if group.last_live_at else timezone.now()
+        # offline_at = min(offline_at, last_live_at)
+
         self.offline_at = offline_at
         self.is_offline = True
         self.save()
@@ -206,8 +227,20 @@ class DyteMeetingRecording(base_model.BaseModel):
         default=constants.DYTE_RECORDING_STATUS_INVOKED,
         choices=RECORDING_STATUS
     )
+    # Path of the recording in S3 bucket.
     path = models.TextField()
+    # File size of the recording as we receive from Dyte's end
+    # converted in to Mega bytes.
+    file_size = models.DecimalField(
+        null=True,
+        blank=True,
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="File Size(MB)"
+    )
+    # Recording start time..
     started_at = models.DateTimeField(null=True, blank=True)
+    # Recording end time.
     stopped_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -232,3 +265,19 @@ class DyteMeetingRecording(base_model.BaseModel):
     def object_url(self):
         url = settings.AWS_DEFAULT_OBJECT_URL + self.path
         return format_html("<a target='_blank' href='{url}'>{url}</a>", url=url)
+
+    def update_start_and_stop_times(self, started_time, stopped_time):
+        """Update start and stop times of a recording from Dyte's end."""
+        try:
+            started_at = parser.parse(started_time)
+        except (TypeError, parser.ParserError):
+            started_at = None
+
+        try:
+            stopped_at = parser.parse(stopped_time)
+        except (TypeError, parser.ParserError):
+            stopped_at = None
+
+        self.started_at = started_at
+        self.stopped_at = stopped_at
+        self.save()

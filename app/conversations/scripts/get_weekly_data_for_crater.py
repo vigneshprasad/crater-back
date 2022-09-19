@@ -840,8 +840,8 @@ def get_number_of_streams_watched_by_participant(start_date=None, end_date=None,
     end_datetime = end_datetime if end_datetime else datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
 
     number_of_streams_joined = dyte_models.DyteMeetingParticipant.objects.filter(
-        updated_at__gte=start_date,
-        updated_at__lte=end_date,
+        dyte_meeting__group__start__gte=start_date,
+        dyte_meeting__group__start__lte=end_date,
         last_online_at__isnull=False
     ).exclude(
         participant_id__in=devscript_users
@@ -1449,7 +1449,7 @@ def _get_minutes_spent_by_participants_on_stream(group):
 
         # Get total time spent on the call.
         time_spent = participant.last_online_at - group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:
             continue
@@ -1499,7 +1499,7 @@ def _get_minutes_spent_by_hosts_on_stream(group):
 
         # Get total time spent on the call.
         time_spent = host.last_online_at - group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
 
         # If the time spent in 0 minutes, return.
         if not minutes and minutes > 300:

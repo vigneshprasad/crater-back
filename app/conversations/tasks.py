@@ -13,7 +13,7 @@ from django.utils import timezone
 from rest_framework.renderers import JSONRenderer
 
 from communications.notifications import public as notifications_public
-from conversations import constants, models, services, serializers, signals
+from conversations import constants, models, serializers, services, signals
 from crater.creator import public as creator_public
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
@@ -110,7 +110,7 @@ def send_conversation_confirmation_email_for_user(user, group):
 
 
 @periodic_task(run_every=crontab(minute="*/5"))
-def start_recording_for_webinars(groups=None):
+def start_recording_for_webinars():
     """Start recording for webinars 5 minutes
         before the webinar starts.
 
@@ -151,7 +151,7 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
         start__gt=start_datetime,
         start__lte=end_datetime,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
-    )
+    ) if not groups else groups
 
     for webinar in webinars:
         # Send in app notifications to group's attendees and followers.
@@ -160,43 +160,34 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
         wati_public.send_stream_reminder_messages_for_group(webinar)
 
 
-@periodic_task(run_every=crontab(minute="*/20"))
+@periodic_task(run_every=crontab(minute="*/30"))
 def send_whatsapp_reminder_for_webinar_host(groups=None):
     """Send webinar reminder whatsapp for the host.
 
     Note:
         Sends reminder to host of webinar which is
-            starting 20 minutes from now.
+            starting 30 minutes from now.
 
     """
     now_time = datetime.datetime.now()
-
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=20))
+    end_datetime = (now_time + datetime.timedelta(minutes=30))
 
     # Send it for all group, except for webinars.
     webinars = models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
-    )
+    ) if not groups else groups
 
     for webinar in webinars:
-        # Send whatsapp reminder for webinar to attendees.
-        freshchat_public.send_whatsapp_reminder_for_webinar_host(
-            webinar
-        )
+        # Send whatsapp reminder for webinar to host of the stream.
+        freshchat_public.send_whatsapp_reminder_for_webinar_host(webinar)
 
 
 @periodic_task(run_every=crontab(minute="*/10"))
-def send_whatsapp_conversation_reminders(meetings=None):
-    """Sends whatsapp reminders for people 30 minutes before their meetings.
-
-    Args:
-        meetings(Meeting queryset): Queryset of meeting you want to send this
-            reminder to. Added for testing.
-
-    """
+def send_whatsapp_conversation_reminders():
+    """Sends whatsapp reminders for people 30 minutes before their meetings."""
     now_time = datetime.datetime.now()
 
     start_datetime = now_time
@@ -303,7 +294,7 @@ def publish_group_recordings(group_recording_ids):
                 "Key": dyte_rec.storage_key_name
             }
             my_bucket.copy(source, "media/" + destination)
-        except botocore_exceptions.ClientError as e:
+        except botocore_exceptions.ClientError:
             path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
                 group_id=group_recording.group_id
             )
@@ -343,7 +334,7 @@ def upload_valid_recordings_for_streams(groups=None):
             recordings for.
 
     Note:
-        Only publishes recordings if the recording size is >150 MB.
+        Only publishes recordings if the recording size is > 100 MB.
 
     """
     end_time = timezone.now() - timezone.timedelta(hours=3)
@@ -361,14 +352,6 @@ def upload_valid_recordings_for_streams(groups=None):
         is_published=False
     )
 
-    # Get the session for S3.
-    session = boto3.Session(
-        aws_access_key_id=settings.DYTE_AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.DYTE_AWS_SECRET_ACCESS_KEY
-    )
-    # Then use the session to get the resource
-    s3 = session.resource("s3")
-
     valid_group_recordings = []
     for group_recording in group_recordings:
         # If the recording is published continue.
@@ -379,27 +362,7 @@ def upload_valid_recordings_for_streams(groups=None):
         if not dyte_rec:
             continue
 
-        try:
-            recording_object_s3 = s3.Object(settings.AWS_STORAGE_BUCKET_NAME, dyte_rec.storage_key_name)
-            size_in_bytes = recording_object_s3.content_length
-        except botocore_exceptions.ClientError as e:
-            path = dyte_constants.DYTE_MEETING_RECORDING_AWS_PATH.format(
-                group_id=group_recording.group_id
-            )
-            recording_object_s3 = s3.Object(
-                settings.AWS_STORAGE_BUCKET_NAME,
-                path + "/" + dyte_rec.file_name
-            )
-            size_in_bytes = recording_object_s3.content_length
-        except Exception as e:
-            logging.error(
-                "Exception happened when uploading recording: {} - {}".format(
-                    e, group_recording.id
-                )
-            )
-            continue
-
-        size_in_megabytes = size_in_bytes / (1024 * 1024)
+        size_in_megabytes = dyte_rec.file_size or 0
         # If the size is less than 150 MB, don't publish.
         if not (size_in_megabytes >= 100):
             continue
@@ -571,6 +534,7 @@ def streams_action_message():
         now = timezone.now()
         future_streams = models.Group.objects.filter(
             start=stream.start + datetime.timedelta(minutes=60),
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             categories__in=stream.categories.all(),
         )
 
@@ -578,6 +542,7 @@ def streams_action_message():
             future_streams = models.Group.objects.filter(
                 start__gte=stream.start,
                 start__lte=stream.start + datetime.timedelta(hours=24),
+                privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
                 categories__in=stream.categories.all(),
             )
 
@@ -646,7 +611,7 @@ def download_app_action_message():
 # TODO(Sanjeev): Clean this up
 # @periodic_task(run_every=crontab(minute="0", hour="13"))
 def send_top_stream_message():
-    # Get all users who has followed a category
+    # Get all users who have followed a category
     user_categories = user_models.UserCategory.objects.filter(
         followed=True
     )
@@ -677,7 +642,7 @@ def send_top_stream_message():
                 user__in=followers.values_list("user")
             )
 
-        # Add recent users who has watched a stream in
+        # Add recent users who have watched a stream in
         # this category
         users = services.get_stream_viewers_by_category(
             category=stream["category"]

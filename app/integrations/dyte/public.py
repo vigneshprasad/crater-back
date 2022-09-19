@@ -1,8 +1,7 @@
 import logging
 
+from integrations.dyte import constants, private, tasks
 from integrations.dyte.service import dyte_service
-from integrations.dyte import constants
-from integrations.dyte import private
 
 
 def create_meeting_link(meeting):
@@ -77,11 +76,19 @@ def start_recording_for_group(group):
 
     """
     dyte_meeting = group.dyte_webinar.first()
+
     if not dyte_meeting:
         logging.error("Dyte meeting not present for group: {}".format(group.id))
         return False
 
     return dyte_service.start_recording(dyte_meeting=dyte_meeting)
+    # TODO(Nishant): Start recording on online is going to celery now and
+    # sometimes it affects normal task for starting 5 minutes before.
+    # Might have to move that also to the same task.
+    # return tasks.start_recording_for_meeting_if_required.apply_async(
+    #     args=(group.id, ),
+    #     coutdown=5
+    # )
 
 
 def get_recordings_for_group(group):
@@ -114,8 +121,10 @@ def stop_recording_for_group_and_recording_id(group, recording_id=None):
         logging.error("Dyte meeting not present for group: {}".format(group.id))
         return False
 
-    recording_id = private.get_recording_to_stop_for_dyte_meeting(dyte_meeting) \
-        if not recording_id else recording_id
+    recording_id = private.get_recording_for_dyte_meeting_and_status(
+        dyte_meeting,
+        status=constants.DYTE_RECORDING_STATUS_RECORDING
+    ) if not recording_id else recording_id
 
     if not recording_id:
         return False

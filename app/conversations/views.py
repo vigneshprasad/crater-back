@@ -536,6 +536,7 @@ class GroupWebinarViewSet(
         return self.get_queryset().filter(
             is_live=False,
             closed=False,
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             start__gte=datetime.datetime.now()
         )
 
@@ -543,7 +544,21 @@ class GroupWebinarViewSet(
         """Return live webinars."""
         return self.get_queryset().filter(
             is_live=True,
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             closed=False
+        )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        instance.mark_published()
+        response_serializer = self.get_serializer(instance)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
         )
 
     @action(

@@ -17,6 +17,7 @@ class Payment(base_models.BaseModel):
 
     GATEWAY_CHOICES = (
         (constants.PAYMENT_GATEWAY_STRIPE_ENUM, constants.PAYMENT_GATEWAY_STRIPE),
+        (constants.PAYMENT_GATEWAY_CREATOR_UPI_ENUM, constants.PAYMENT_GATEWAY_CREATOR_UPI)
     )
 
     user = models.ForeignKey(

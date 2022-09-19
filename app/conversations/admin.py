@@ -34,10 +34,10 @@ class TopicAdmin(admin.ModelAdmin):
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "is_active", "color", "color_example", "show_on_home_page")
+    list_display = ("id", "name", "is_active", "show_on_home_page", "color", "color_example")
+    list_editable = ("is_active", "show_on_home_page",)
     search_fields = ("name",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
-    list_editable = ("is_active", "show_on_home_page")
 
 
 @admin.register(models.Group)
@@ -108,7 +108,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     ("calculate_score", "score"),
                 )
             }),
-    ))
+        )
+    )
     actions = ("add_previous_webinar_attendees", "recalculate_minutes_for_groups")
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
@@ -330,7 +331,9 @@ class GroupLiveLogAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("group", "user")
     search_fields = ("user__name", "user__email", "user__username")
-    list_filter = ("group",)
+    list_filter = (
+        AutocompleteFilterFactory("Group", "group", use_pk_exact=True),
+    )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
 
@@ -342,11 +345,12 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         "recording",
         "status",
         "all_dyte_recordings",
+        "recording_file_size",
         "is_published",
         "featured",
     )
     list_editable = ("is_published", "featured",)
-    actions = ("publish_group_recordings",)
+    actions = ("publish_group_recordings", "update_dyte_recording_status")
     raw_id_fields = ("group", "dyte_recordings")
     search_fields = (
         "group__host__username",
@@ -355,7 +359,8 @@ class GroupRecordingAdmin(admin.ModelAdmin):
     list_filter = (
         AutocompleteFilterFactory("Group", "group"),
         "featured",
-        "is_published"
+        "is_published",
+        "created_at"
     )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
@@ -378,9 +383,57 @@ class GroupRecordingAdmin(admin.ModelAdmin):
         ]
         return format_html(" ||| ".join(dyte_recording for dyte_recording in dyte_recordings))
 
+    def recording_file_size(self, obj):
+        """Returns recording file size in MB for the last recording.
+
+        Note:
+            It shows the file size of the recording that is published
+                for a group recording.
+
+        """
+        dyte_recording = obj.dyte_recordings.last()
+        if not dyte_recording:
+            return None
+        return dyte_recording.file_size
+
+    recording_file_size.short_description = "Last Recording Size(MB)"
+
     @staticmethod
     def status(obj):
         return ", ".join([dyte_recording.status for dyte_recording in obj.dyte_recordings.all()])
+
+    def update_dyte_recording_status(self, request, queryset):
+        """Adds previous webinar attendees to the provided webinar.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of group recording we are
+                update the dyte recording status for.
+
+        """
+        dyte_recording_ids = []
+        for obj in queryset:
+            dyte_recording_ids = dyte_recording_ids + list(obj.dyte_recordings.values_list("id", flat=True))
+
+        dyte_tasks.update_meeting_recording_status_for_recording_ids.delay(dyte_recording_ids)
+
+        # Create a log entry.
+        for obj in queryset:
+            self.log_change(
+                request,
+                obj,
+                message=[{"changed": {"actions": ["update_dyte_recording_status"]}}]
+            )
+
+        self.message_user(
+            request,
+            "Dyte Recording status updated for: {}".format(
+                ", ".join([str(group_recording.id) for group_recording in queryset])
+            ),
+            messages.SUCCESS
+        )
+
+    update_dyte_recording_status.short_description = "Update Dyte Recording Status"
 
     def publish_group_recordings(self, request, queryset):
         """Marks group recordings as published and uploads
