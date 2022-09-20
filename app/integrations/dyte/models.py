@@ -142,7 +142,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
             return
 
         offline_at = max(timezone.now(), self.latest_join_time)
-
         # Update the online log to offline.
         online_log = self.online_logs.filter(is_offline=False).last()
         if online_log:
