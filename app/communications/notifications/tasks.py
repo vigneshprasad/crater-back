@@ -11,7 +11,7 @@ from conversations import models as conversations_models, constants as conversat
 from users import models as user_models, constants as user_constants
 
 
-@periodic_task(run_every=crontab(minute="*/10"))
+@periodic_task(run_every=crontab(minute="*/5"))
 def send_conversation_reminders_notifications(groups=None):
     """Sends notification reminders for people 10 minutes before their
         conversations.
@@ -23,11 +23,12 @@ def send_conversation_reminders_notifications(groups=None):
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=10))
+    end_datetime = (now_time + datetime.timedelta(minutes=5))
 
     groups = conversations_models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
+        type=conversations_constants.GROUP_TYPE_WEBINAR_ENUM
     ) if not groups else groups
 
     notification = models.Notification.objects.filter(name=constants.GROUP_REMINDER_NOTIFICATION).first()
@@ -125,7 +126,7 @@ def send_groups_going_live_notifications(groups=None):
         start__lt=next_hour_time
     ).annotate(
         attendees_count=Count("attendees")
-    ).order_by("-attendees_count")
+    ).order_by("-attendees_count") if not groups else groups
 
     group_going_live_highest_rsvp = groups_going_live.first()
     if not group_going_live_highest_rsvp:

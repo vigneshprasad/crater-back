@@ -9,7 +9,7 @@ class NotificationAdmin(ModelAdmin):
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
-@register(models.NotificationLogs)
+@register(models.NotificationLog)
 class NotificationLogsAdmin(ModelAdmin):
     list_display = ("user", "notification")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

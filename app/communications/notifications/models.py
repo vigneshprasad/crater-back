@@ -51,7 +51,7 @@ class Notification(base_model.BaseModel):
     is_active = models.BooleanField(default=True)
 
 
-class NotificationLogs(base_model.BaseModel):
+class NotificationLog(base_model.BaseModel):
 
     user = models.ForeignKey(
         get_user_model(),

@@ -60,7 +60,7 @@ def send_notification_to_eligible_users(sender, group, *args, **kwargs):
         if groups_with_same_start.filter(speakers=user):
             continue
 
-        notifications_sent = models.NotificationLogs.objects.filter(
+        notifications_sent = models.NotificationLog.objects.filter(
             user=user,
             notification=conversation_create_notification,
             created_at__year=now_time.year,

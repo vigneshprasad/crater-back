@@ -45,7 +45,7 @@ def create_notification_log(user, notification, notification_json, data=None):
         data(JSON): Addition data sent to the client.
 
     """
-    return models.NotificationLogs.objects.create(
+    return models.NotificationLog.objects.create(
         user=user,
         notification=notification,
         notification_json=notification_json,
