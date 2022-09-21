@@ -328,3 +328,37 @@ def update_meeting_recording_status_for_recording_ids(recording_ids):
         dyte_meeting_recording.save()
         # Update start and stop times.
         dyte_meeting_recording.update_start_and_stop_times(started_at, stopped_at)
+
+
+@task()
+def mark_dyte_meeting_participants_offline(group_id):
+    """Mark dyte participants for a stream once it's closed.
+
+    Note:
+        Only dyte participants who are not marked offline
+            through webhook are marked offline with this.
+
+    """
+    group = conversations_models.Group.objects.get(id=group_id)
+    online_dyte_participants = models.DyteMeetingParticipant.objects.filter(
+        is_online=True,
+        dyte_meeting__group=group
+    )
+
+    for dyte_participant in online_dyte_participants:
+        group = dyte_participant.dyte_meeting.group
+        online_logs = dyte_participant.online_logs.all()
+        online_online_logs = online_logs.filter(is_offline=False)
+        last_online_log = online_logs.last()
+        offline_time = last_online_log.offline_at if last_online_log else group.last_live_at
+
+        # Mark all online logs offline.
+        for log in online_online_logs:
+            log.offline_at = offline_time
+            log.is_offline = True
+            log.save()
+
+        # Mark dyte participant offline
+        dyte_participant.last_online_at = offline_time
+        dyte_participant.is_online = False
+        dyte_participant.save()
