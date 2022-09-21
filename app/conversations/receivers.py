@@ -40,8 +40,31 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
 
 
 @receiver(signals.group_marked_closed)
-def recalculate_minutes_for_groups(sender, group, *args, **kwargs):
+def recalculate_minutes_for_group(sender, group, *args, **kwargs):
+    """Recalculate minutes for a group once it's marked closed.
+
+    Args:
+        sender(Group.__class__): Class representation of group.
+        group(Group): Group that was just marked closed.
+
+    """
     dyte_tasks.recalculate_minutes_for_groups([group.id])
+
+
+@receiver(signals.group_marked_closed)
+def mark_all_dyte_participants_offline(sender, group, *args, **kwargs):
+    """Mark all dyte participants offline for a group once
+        it's marked closed.
+
+    Args:
+        sender(Group.__class__): Class representation of group.
+        group(Group): Group that was just marked closed.
+
+    """
+    dyte_tasks.mark_dyte_meeting_participants_offline.apply_async(
+        args=(group.id, ),
+        countdown=120
+    )
 
 
 # @receiver(m2m_changed, sender=models.Group.speakers.through)
