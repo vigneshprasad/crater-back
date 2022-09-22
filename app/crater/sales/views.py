@@ -93,7 +93,6 @@ class RewardSaleViewSet(
 
         return Response(serializer.data)
         detail=True
-    )
 
     @action(
         methods=["GET"],
