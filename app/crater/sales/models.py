@@ -37,6 +37,9 @@ class Sale(base_models.BaseModel):
         choices=PAYMENT_TYPE_CHOICES
     )
 
+    # Indicates if the sale should be shown in the store page
+    show_in_store = models.BooleanField(default=True)
+
     class Meta:
         abstract = True
 

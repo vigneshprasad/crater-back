@@ -71,9 +71,24 @@ class RewardSaleViewSet(
     def featured(self, request):
         queryset = self.filter_queryset(
             self.get_queryset().exclude(
-                reward__photo=""
+                reward__photo="",
+                show_in_store=False
             )
         )[:3]
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def store(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                show_in_store=True
+            )
+        )
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
