@@ -1,15 +1,12 @@
-import pytz
 from celery.task import task
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 from conversations import constants as conversation_constants, models as conversation_models
 from integrations.wati import constants, private
 from integrations.wati.services import wati_service_8953
 
 
-@task
+@task()
 def send_stream_setup_whatsapp_to_creator(group_id):
     """Send whatsapp to creator when their stream is
         set up on the platform.
@@ -19,9 +16,6 @@ def send_stream_setup_whatsapp_to_creator(group_id):
 
     """
     group = conversation_models.Group.objects.get(id=group_id)
-    if not _can_send_setup_message_for_group(group):
-        return False
-
     host = group.host
     creator = host.creator if hasattr(host, "creator") else None
     poc = creator.point_of_contact if creator else None
@@ -46,7 +40,7 @@ def send_stream_setup_whatsapp_to_creator(group_id):
     )
 
 
-@task
+@task()
 def send_stream_setup_whatsapp_to_followers(group_id):
     """Send whatsapp to creator follower when their stream
         is set up on the platform.
@@ -56,9 +50,6 @@ def send_stream_setup_whatsapp_to_followers(group_id):
 
     """
     group = conversation_models.Group.objects.get(id=group_id)
-    if not _can_send_setup_message_for_group(group):
-        return False
-
     host = group.host
     creator = host.creator if hasattr(host, "creator") else None
     if not creator:
@@ -103,33 +94,3 @@ def send_stream_setup_whatsapp_to_followers(group_id):
         receivers=receivers,
         broadcast_name=constants.STREAM_SETUP_FOLLOWERS_8953 + "_{}-{}".format(host.display_name, group.id)
     )
-
-
-def _can_send_setup_message_for_group(group):
-    """Check if stream setup message can be sent
-        based on group starting time.
-
-    Args:
-        group(Group): Group that was just published.
-
-    """
-    group_start = group.start
-    if not timezone.is_aware(group_start):
-        group_start = timezone.make_aware(group_start, timezone=pytz.timezone(settings.TIME_ZONE))
-
-    now_time = timezone.now()
-    if not timezone.is_aware(now_time):
-        now_time = timezone.make_aware(now_time, timezone=pytz.timezone(settings.TIME_ZONE))
-
-    # Don't send the email if the group start is less than now time.
-    if group_start <= now_time:
-        return False
-
-    diff = now_time - group_start
-    diff_minutes = diff.seconds / 60
-    # If the group is marked published within 30 minutes of group start
-    # don't send the published email.
-    if diff_minutes < 30:
-        return False
-
-    return True

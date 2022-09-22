@@ -1,4 +1,5 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from rangefilter import filter
 from django.contrib import admin, messages
 
 from integrations.dyte import models, tasks
@@ -17,13 +18,18 @@ class DyteMeetingAdmin(admin.ModelAdmin):
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     list_filter = (
         AutocompleteFilterFactory("Group", "group"),
-        "group__start"
+        ("group__start",  filter.DateRangeFilter),
     )
     search_fields = (
         "group__id",
         "group__host__name",
         "group__host__username"
     )
+
+    @staticmethod
+    def get_rangefilter_group__start_title(request, field_path="start"):
+        """Returns the title for the start date filter."""
+        return "Filter by Group Start"
 
 
 @admin.register(models.DyteMeetingParticipant)
@@ -49,7 +55,7 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
     list_filter = (
         "is_online",
         AutocompleteFilterFactory("Group", "dyte_meeting__group"),
-        "dyte_meeting__group__start"
+        ("dyte_meeting__group__start", filter.DateRangeFilter)
     )
     search_fields = (
         "participant__name",
@@ -60,6 +66,11 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         return obj.joined_group
 
     joined_stream.boolean = True
+
+    @staticmethod
+    def get_rangefilter_dyte_meeting__group__start_title(request, field_path="start"):
+        """Returns the title for the start date filter."""
+        return "Filter by Group Start"
 
 
 @admin.register(models.DyteParticipantOnlineLog)

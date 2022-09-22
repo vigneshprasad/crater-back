@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 # Create your models here.
@@ -131,10 +132,14 @@ class RewardSaleLog(base_models.BaseModel):
     # If the reward sale log is processed, that means transaction
     # is complete for the reward.
     is_processed = models.BooleanField(default=False)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    # What type of payment was made for this reward sale.
     payment_type = models.PositiveIntegerField(
         default=constants.SALE_PAYMENT_TYPE_LEARN_ENUM,
         choices=PAYMENT_TYPE_CHOICES
     )
+
     # Payment object associated with the reward sale.
     payment = models.ForeignKey(
         "crater_payments.Payment",
@@ -143,6 +148,7 @@ class RewardSaleLog(base_models.BaseModel):
         null=True,
         blank=True
     )
+    # Token log associated with the sale log.
     token_log = models.ForeignKey(
         "tokens.UserTokenLog",
         related_name="sale_log",
@@ -158,22 +164,38 @@ class RewardSaleLog(base_models.BaseModel):
     def amount(self):
         return self.quantity * self.price
 
+    def mark_processed(self):
+        """Mark the sale log processed."""
+        self.is_processed = True
+        if not self.processed_at:
+            self.processed_at = timezone.now()
+
+        self.save()
+
     def mark_sale_confirmed(self):
         """Mark the sale log accepted."""
         self.status = constants.SALE_PAYMENT_CONFIRMED_ENUM
         self.save()
-        # Send sale accepted signal.
-        signals.sale_payment_confirmed.send(
-            sender=self.__class__,
-            sale_log=self
-        )
+
+        if not self.processed_at:
+            # Send sale accepted signal.
+            signals.sale_payment_confirmed.send(
+                sender=self.__class__,
+                sale_log=self
+            )
+
+        self.mark_processed()
 
     def mark_sale_declined(self):
         """Mark the same log declined."""
         self.status = constants.SALE_PAYMENT_DECLINED_ENUM
         self.save()
         # Send sale declined signal.
-        signals.sale_payment_declined.send(
-            sender=self.__class__,
-            sale_log=self
-        )
+        if not self.processed_at:
+            # Send sale accepted signal.
+            signals.sale_payment_declined.send(
+                sender=self.__class__,
+                sale_log=self
+            )
+
+        self.mark_processed()

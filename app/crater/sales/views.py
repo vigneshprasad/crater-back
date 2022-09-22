@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from crater.creator import models as creator_models
 from crater.payments import constants as payment_constants, models as payment_models
-from crater.rewards import models as reward_models, serializers as reward_serializers
+from crater.rewards import models as reward_models, serializers as reward_serializers, constants as reward_constants
 from crater.sales import constants, models, serializers, signals
 from tokens import constants as token_constants, models as token_models, public as tokens_public
 from users import permissions as user_permissions
@@ -92,6 +92,31 @@ class RewardSaleViewSet(
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+        detail=True
+    )
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def stream(self, request, pk, *args, **kwargs):
+        
+        reward = reward_models.Reward.objects.filter(
+            type__name=reward_constants.REWARD_NAME_PRIVATE_STREAM,
+            object_id=pk,
+            is_active=True
+        ).first()
+
+        if not reward:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            reward_sale_instance = models.RewardSale.objects.get(reward=reward, is_active=True, is_closed=False)
+        except models.RewardSale.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = self.get_serializer(reward_sale_instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class RewardSaleLogViewSet(

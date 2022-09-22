@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from crater.sales import constants as sale_constants, signals as sale_signals
-from tokens import constants, models, private
+from tokens import models, private, public
 
 
 @receiver(post_save, sender=models.TokenTransaction)
@@ -20,11 +20,37 @@ def update_or_create_token_log_for_token_transaction(sender, instance, *args, **
     models.UserTokenLog.objects.update_or_create(
         user=transaction.user,
         transaction=transaction,
-        date=transaction.date,
         defaults={
+            "date": transaction.date,
             "amount": transaction.amount
         }
     )
+
+
+# @receiver(post_save, sender=models.TokenTransaction)
+# def update_or_create_token_data_per_day_for_transaction(sender, instance, *args, **kwargs):
+#     """Update or create token data per day for token transaction.
+#
+#     Args:
+#         sender(TokenTransaction.__clas__): Class representation of Token transaction.
+#         instance(TokenTransaction): Token transaction that was updated/created.
+#
+#     """
+#     transaction = instance
+#     date = transaction.date
+#     # Update token data at the same time.
+#     token_transactions_for_date = models.TokenTransaction.objects.filter(date=date)
+#     token_data, _ = models.TokenDataPerDay.objects.get_or_create(date=date)
+#
+#     time_spent, engagement = 0, 0
+#     for token_transaction in token_transactions_for_date:
+#         time_spent += token_transaction.time_spent
+#         engagement += token_transaction.engagement
+#
+#     token_data.time_spent = time_spent
+#     token_data.engagement = engagement
+#     token_data.amount = time_spent + (2 * engagement)
+#     token_data.save()
 
 
 @receiver(post_save, sender=models.UserTokenLog)
@@ -38,19 +64,10 @@ def update_or_create_user_token_for_user_token_log(sender, instance, *args, **kw
     """
 
     user_token_log = instance
-    try:
-        user_token = models.UserToken.objects.get(user=user_token_log.user)
-    except models.UserToken.DoesNotExist:
-        user_token = models.UserToken.objects.create(
-            user=user_token_log.user,
-            last_updated_at=timezone.now()
-        )
-
-    if user_token_log.type == constants.TRANSACTION_TYPE_ACQUIRED_ENUM:
-        user_token.amount += user_token_log.amount
-    elif user_token_log.type == constants.TRANSACTION_TYPE_REDEEMED_ENUM:
-        user_token.amount -= user_token_log.amount
-
+    user = user_token_log.user
+    user_token, _ = models.UserToken.objects.get_or_create(user=user)
+    user_token.amount = public.get_tokens_for_user(user)
+    user_token.last_updated_at = timezone.now()
     user_token.save()
 
 

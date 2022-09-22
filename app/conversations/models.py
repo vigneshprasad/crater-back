@@ -134,7 +134,7 @@ class Category(base_model.BaseModel):
     slug = models.SlugField(unique=True)
 
     class Meta:
-        ordering = ["order"]
+        ordering = ["name"]
         verbose_name = _("Category")
         verbose_name_plural = _("Categories")
 
@@ -286,7 +286,7 @@ class Group(base_model.BaseModel):
         verbose_name_plural = _("Groups")
 
     def __str__(self):
-        return "{} - {} - {} - {}".format(self.pk, self.topic, self.host, self.type)
+        return "{} - {} - {}".format(self.pk, self.topic, self.host)
 
     def save(
             self,

@@ -130,9 +130,9 @@ class UserTokenLog(base_models.BaseModel):
     # Transaction associated with the
     # token log.  In case of redemption it
     # won't be present.
-    transaction = models.ForeignKey(
+    transaction = models.OneToOneField(
         TokenTransaction,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="token_log",
         null=True,
         blank=True,

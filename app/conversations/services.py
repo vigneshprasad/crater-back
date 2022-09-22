@@ -6,19 +6,14 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Q, F, Count, DateField, Case, When, Value
+from django.db.models import Case, Count, DateField, F, Q, Value, When
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
-from conversations import constants
-from conversations import exceptions
-from conversations import models
-from conversations import signals
-from conversations import serializers
-
+from conversations import constants, exceptions, models, serializers, signals
 from crater.creator import models as creator_models
 from integrations.dyte import models as dyte_models
-from rest_framework.exceptions import ValidationError
 
 
 def get_root_topic(topic):
@@ -959,7 +954,7 @@ def calculate_total_minutes_on_stream(dyte_participants):
         if participant.last_online_at < participant.dyte_meeting.group.start:
             continue
         time_spent = participant.last_online_at - participant.dyte_meeting.group.start
-        minutes = time_spent.seconds // 60 % 60
+        minutes = time_spent.total_seconds() // 60 % 60
 
         if not minutes and minutes > 300:
             continue
@@ -967,7 +962,7 @@ def calculate_total_minutes_on_stream(dyte_participants):
         participants_joined += 1
         total_minutes_spent += minutes
 
-    return total_minutes_spent, participants_joined
+    return int(total_minutes_spent), participants_joined
 
 
 def get_avg_stream_length_for_creators():
@@ -1039,16 +1034,43 @@ def get_stream_category_distribution():
                 group__start__lt=now
             )
         )
-    ).order_by("name")
+    ).order_by("-total_streams")
 
-    stream_category_distribution = [
+    stream_category_distribution = []
+    other_category = None
+    other_category_distribution = 0
+    for index, category in enumerate(categories):
+        if index < 10 and category["name"] != "Other":
+            stream_category_distribution.append(
+                {
+                    "id": category["id"],
+                    "name": category["name"],
+                    "value": round((category["total_streams"] / total_streams) * 100, 2)
+                }
+            )
+        else:
+            if category["name"] == "Other":
+                other_category = category
+
+            other_category_distribution += round((category["total_streams"] / total_streams) * 100, 2)
+
+    stream_category_distribution.append(
         {
-            "id": category["id"],
-            "name": category["name"],
-            "value": round((category["total_streams"] / total_streams) * 100, 2)
+            "id": other_category["id"],
+            "name": other_category["name"],
+            "value": other_category_distribution
         }
-        for category in categories
-    ]
+    )
+
+
+    # stream_category_distribution = [
+    #     {
+    #         "id": category["id"],
+    #         "name": category["name"],
+    #         "value": round((category["total_streams"] / total_streams) * 100, 2)
+    #     }
+    #     for category in categories
+    # ]
 
     return stream_category_distribution
 

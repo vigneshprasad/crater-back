@@ -112,20 +112,17 @@ class DyteMeetingParticipant(base_model.BaseModel):
                 (last_live_time_for_group - self.latest_join_time),
                 timezone.timedelta()
             )
-            minutes_spent = round(time_spent.seconds / 60)
+            minutes_spent = round(time_spent.total_seconds() / 60)
         else:
             # If logs are present calculate minutes from logs.
             for log in online_logs:
                 minutes_spent += log.online_time
 
-        return minutes_spent
+        return round(minutes_spent)
 
     def mark_online(self):
         """Mark a dyte participant online."""
         online_at = max(timezone.now(), self.latest_join_time)
-        self.is_online = True
-        self.last_online_at = online_at
-
         # Create online logs.
         online_log, _ = DyteParticipantOnlineLog.objects.get_or_create(
             dyte_meeting_participant=self,
@@ -135,6 +132,8 @@ class DyteMeetingParticipant(base_model.BaseModel):
             }
         )
 
+        self.is_online = True
+        self.last_online_at = online_at
         self.save()
 
     def mark_offline(self):
@@ -143,9 +142,6 @@ class DyteMeetingParticipant(base_model.BaseModel):
             return
 
         offline_at = max(timezone.now(), self.latest_join_time)
-        self.is_online = False
-        self.last_online_at = offline_at
-
         # Update the online log to offline.
         online_log = self.online_logs.filter(is_offline=False).last()
         if online_log:
@@ -153,6 +149,8 @@ class DyteMeetingParticipant(base_model.BaseModel):
         else:
             LOGGER.error("Went offline without online log. {} - {}".format(self.id, online_log))
 
+        self.is_online = False
+        self.last_online_at = offline_at
         self.save()
 
     def is_offline(self):
@@ -187,7 +185,7 @@ class DyteParticipantOnlineLog(base_model.BaseModel):
 
         offline_at = min(offline_at, last_live_at)
         time_spent = max((offline_at - self.online_at), timezone.timedelta())
-        minutes = time_spent.seconds / 60
+        minutes = time_spent.total_seconds() / 60
         return round(minutes)
 
     def mark_offline(self):
