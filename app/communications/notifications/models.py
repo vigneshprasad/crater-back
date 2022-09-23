@@ -19,9 +19,17 @@ class Notification(base_model.BaseModel):
 
     name = models.CharField(max_length=64)
     # Headings max_length as specified in One signal.
-    headings = models.CharField(max_length=50, verbose_name=_("Notification Heading"))
+    headings = models.CharField(
+        max_length=65,
+        verbose_name=_("Notification Heading"),
+        help_text="65 for Android, 178 (Heading + content) for iOS."
+    )
     # Content max_length as specified in One signal.
-    contents = models.CharField(max_length=150, verbose_name=_("Notification Message"))
+    contents = models.CharField(
+        max_length=240,
+        verbose_name=_("Notification Message"),
+        help_text="240 for Android, 178 (Heading + content) for iOS."
+    )
     small_icon = models.CharField(
         max_length=16,
         verbose_name=_("Small Notification Icon"),
@@ -50,6 +58,9 @@ class Notification(base_model.BaseModel):
     )
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
 
 class NotificationLog(base_model.BaseModel):
 
@@ -70,3 +81,6 @@ class NotificationLog(base_model.BaseModel):
         null=True,
         blank=True
     )
+
+    def __str__(self):
+        return "{} - {}".format(self.user, not self)

@@ -154,10 +154,34 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     ) if not groups else groups
 
     for webinar in webinars:
-        # Send in app notifications to group's attendees and followers.
-        notifications_public.send_reminder_notifications_for_stream(webinar)
         # Send reminders for followers and attendees.
         wati_public.send_stream_reminder_messages_for_group(webinar)
+
+
+@periodic_task(run_every=crontab(minute="*/5"))
+def send_in_app_reminder_for_stream_attendees(groups=None):
+    """Send in app notification reminder to all attendees/followers
+        for a stream.
+
+    Note:
+        Sends reminder to attendees of webinar which is
+            starting 5 minutes from now.
+
+    """
+    now_time = datetime.datetime.now()
+    start_datetime = now_time
+    end_datetime = (now_time + datetime.timedelta(minutes=5))
+
+    # Send it for all group, except for webinars.
+    streams = models.Group.objects.filter(
+        start__gt=start_datetime,
+        start__lte=end_datetime,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    ) if not groups else groups
+
+    for stream in streams:
+        # Send notification reminders for followers and attendees.
+        notifications_public.send_reminder_notifications_for_stream(stream)
 
 
 @periodic_task(run_every=crontab(minute="*/30"))
