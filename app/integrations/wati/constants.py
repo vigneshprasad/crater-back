@@ -18,6 +18,8 @@ STREAM_RECORDING_PUBLISHED_CREATOR_8953 = "video_uploaded"
 STREAM_SETUP_CREATOR_8953 = "stream_setup"
 STREAM_SETUP_FOLLOWERS_8953 = "session_created_follower"
 
+CREATOR_REACTIVE_PROFILE_8953 = "creator_reactivate_profile"
+
 # ---------------------------------------- #
 
 STREAM_STARTING_DURATION = "5 minutes"
