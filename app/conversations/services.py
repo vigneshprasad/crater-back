@@ -1034,16 +1034,43 @@ def get_stream_category_distribution():
                 group__start__lt=now
             )
         )
-    ).order_by("name")
+    ).order_by("-total_streams")
 
-    stream_category_distribution = [
+    stream_category_distribution = []
+    other_category = None
+    other_category_distribution = 0
+    for index, category in enumerate(categories):
+        if index < 10 and category["name"] != "Other":
+            stream_category_distribution.append(
+                {
+                    "id": category["id"],
+                    "name": category["name"],
+                    "value": round((category["total_streams"] / total_streams) * 100, 2)
+                }
+            )
+        else:
+            if category["name"] == "Other":
+                other_category = category
+
+            other_category_distribution += round((category["total_streams"] / total_streams) * 100, 2)
+
+    stream_category_distribution.append(
         {
-            "id": category["id"],
-            "name": category["name"],
-            "value": round((category["total_streams"] / total_streams) * 100, 2)
+            "id": other_category["id"],
+            "name": other_category["name"],
+            "value": other_category_distribution
         }
-        for category in categories
-    ]
+    )
+
+
+    # stream_category_distribution = [
+    #     {
+    #         "id": category["id"],
+    #         "name": category["name"],
+    #         "value": round((category["total_streams"] / total_streams) * 100, 2)
+    #     }
+    #     for category in categories
+    # ]
 
     return stream_category_distribution
 
