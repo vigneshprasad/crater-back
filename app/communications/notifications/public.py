@@ -7,82 +7,7 @@ from crater.creator import public as creator_public
 from conversations import constants as conversation_constants
 
 
-def send_conversation_create_notification_for_group(group):
-    """Sends notification to all users in a group."""
-    users = group.speakers.all()
-    for user in users:
-        send_conversation_created_notification(user, group)
-
-
-def send_conversation_created_notification(user, group):
-    """Sends notification for conversation created.
-
-     Args:
-         user(User): User to whom we are sending the notification.
-         group(Group): Group the user is associated with.
-
-     """
-    # TODO(Nishant): Use this is group creation script.
-    notification = models.Notification.objects.filter(
-        name=constants.GROUP_CONVERSATION_CREATED,
-        is_active=True
-    ).first()
-
-    if not notification:
-        logging.error("Notification not present: {}".format(constants.GROUP_CONVERSATION_CREATED))
-        return
-
-    # Get the notification json and append variables to it.
-    notification_json = private.create_notification_json_from_notification(notification)
-    notification_json["contents"]["en"] = notification_json["contents"]["en"].format(time=group.get_display_start_time(), day=group.get_display_day())
-    # Get data for the notification.
-    data = {
-        "obj_type": constants.OBJECT_TYPE_CONVERSATION,
-        "group_id": group.id
-    }
-    private.send_notification.delay(user.pk, notification_json, data=data)
-    private.create_notification_log(user, notification, notification_json, data=data)
-
-
-def send_optin_notifications_for_users(users=None):
-    """Wrapper to send notification to multiple users.
-
-    Args:
-        users(List(User)): List of users we want to send
-            optin notifications.
-
-    """
-    if not users:
-        return False
-
-    for user in users:
-        send_optin_notifications(user)
-
-
-def send_optin_notifications(user):
-    """Sends notification for conversation created.
-
-     Args:
-         user(User): User to whom we are sending the notification.
-
-     """
-    # TODO(Nishant): Add this to sunday script for optin.
-    notification = models.Notification.objects.filter(
-        name=constants.OPTIN_NOTIFICATION,
-        is_active=True
-    ).first()
-
-    if not notification:
-        logging.error("Notification not present: {}".format(constants.OPTIN_NOTIFICATION))
-        return
-
-    # Create notification json and data.
-    notification_json = private.create_notification_json_from_notification(notification)
-    data = {
-        "obj_type": constants.OBJECT_TYPE_CREATE_CONVERSATION
-    }
-    private.send_notification.delay(user.pk, notification_json, data=data)
-    private.create_notification_log(user, notification, notification_json, data=data)
+LOGGER = logging.getLogger(__name__)
 
 
 def send_reminder_notifications_for_stream(group):
@@ -98,7 +23,7 @@ def send_reminder_notifications_for_stream(group):
     ).first()
 
     if not attendee_reminder_notification:
-        logging.error("Notification not present: {}".format(constants.STREAM_REMINDER_NOTIFICATION_ATTENDEE))
+        LOGGER.error("Notification not present: {}".format(constants.STREAM_REMINDER_NOTIFICATION_ATTENDEE))
         return False
 
     attendees = group.attendees.all()
@@ -106,34 +31,21 @@ def send_reminder_notifications_for_stream(group):
 
     notification_json = private.create_notification_json_from_notification(attendee_reminder_notification)
     notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
-        time=group.get_display_start_time(), topic=group.topic.name)
+        topic_name=group.topic.name.title()
+    )
     data = {
         "obj_type": constants.OBJECT_TYPE_CONVERSATION,
         "group_id": group.id,
         "auto_connect": False
     }
     # Can only send if the notification doesn't change between each user.
-    private.send_bulk_notifications(user_pks=attendee_pks, notification_json=notification_json, data=data)
-    private.create_notification_logs(
-        users=attendees,
-        notification=attendee_reminder_notification,
+    private.send_bulk_notifications(
+        user_pks=attendee_pks,
+        notification_id=attendee_reminder_notification.id,
         notification_json=notification_json,
-        data=data
+        data=data,
     )
-    logging.info("Sent reminder to attendees: {}".format(group.id))
-
-    # For per user notification send, use this code block.
-    # for attendee in attendees:
-    #     notification_json = private.create_notification_json_from_notification(notification)
-    #     notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
-    #         time=group.get_display_start_time(), topic=group.topic.name)
-    #     data = {
-    #         "obj_type": constants.OBJECT_TYPE_CONVERSATION,
-    #         "group_id": group.id,
-    #         "auto_connect": False
-    #     }
-    #     private.send_notification.delay(attendee.pk, notification_json, data=data)
-    #     private.create_notification_log(attendee, notification, notification_json, data=data)
+    LOGGER.info("Sent reminder to attendees: {}".format(group.id))
 
     users_to_exclude = attendees
     host = group.host
@@ -167,7 +79,7 @@ def send_reminder_notifications_for_stream(group):
         host_followers_list_with_one_plus_streams,
         creator=creator
     )
-    logging.info("Sent notification reminder to host followers: {}".format(group.id))
+    LOGGER.info("Sent notification reminder to host followers: {}".format(group.id))
 
     speakers = group.speakers.all().exclude(pk=host.pk)
     speaker_creators = []
@@ -204,7 +116,7 @@ def send_reminder_notifications_for_stream(group):
             speaker_followers_list_with_one_plus_streams,
             creator=speaker_creator
         )
-        logging.info("Sent notification reminder to co-hosts followers: {} - {}".format(
+        LOGGER.info("Sent notification reminder to co-hosts followers: {} - {}".format(
             group.id,
             speaker_creator
         ))
@@ -235,8 +147,11 @@ def send_reminder_notification_for_stream_followers(group, followers, creator=No
         return False
 
     notification_json = private.create_notification_json_from_notification(follower_reminder_notification)
+    notification_json["headings"]["en"] = notification_json["headings"]["en"].format(
+        creator_name=host.display_name
+    )
     notification_json["contents"]["en"] = notification_json["contents"]["en"].format(
-        time=group.get_display_start_time(), topic=group.topic.name
+        topic_name=group.topic.name.title()
     )
     data = {
         "obj_type": constants.OBJECT_TYPE_CONVERSATION,
@@ -245,55 +160,10 @@ def send_reminder_notification_for_stream_followers(group, followers, creator=No
     }
     # Can only send if the notification doesn't change between each user.
     follower_pks = [follower.pk for follower in followers]
+
     private.send_bulk_notifications(
         user_pks=follower_pks,
+        notification_id=follower_reminder_notification.id,
         notification_json=notification_json,
-        data=data
-    )
-    private.create_notification_logs(
-        users=followers,
-        notification=follower_reminder_notification,
-        notification_json=notification_json,
-        data=data
-    )
-
-
-def send_reminder_notifications_for_user_and_stream(user, group):
-    """Send reminder notification for a user and a group.
-
-    Args:
-        user(User): User we are sending the notification to.
-        group(Group): Group we are sending the reminder for.
-
-    """
-    stream_reminder_notification = models.Notification.objects.filter(
-        name=constants.STREAM_REMINDER_NOTIFICATION_ATTENDEE,
-        is_active=True
-    ).first()
-
-    if not stream_reminder_notification:
-        logging.error("Notification not present: {}".format(constants.STREAM_REMINDER_NOTIFICATION_ATTENDEE))
-        return False
-
-    # Get the notification json and append variables to it.
-    stream_reminder_notification_json = private.create_notification_json_from_notification(stream_reminder_notification)
-    # TODO(Nishant): Add the contents here.
-    stream_reminder_notification_json["contents"]["en"] = stream_reminder_notification_json["contents"]["en"].format(
-        time=group.get_display_start_time(),
-        day=group.get_display_day()
-    )
-    # Get data for the notification.
-    data = {
-        "obj_type": constants.OBJECT_TYPE_STREAM,
-        "group_id": group.id,
-        "auto_connect": True
-    }
-
-    # TODO(Nishant): Check if we can convert this to bulk notifications.
-    private.send_notification.delay(user.pk, stream_reminder_notification_json, data=data)
-    private.create_notification_log(
-        user,
-        stream_reminder_notification,
-        stream_reminder_notification_json,
         data=data
     )

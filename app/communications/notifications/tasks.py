@@ -98,10 +98,9 @@ def send_groups_going_live_notifications(notification_name, groups=None):
     )
     user_pks = users.values_list("pk", flat=True)
 
-    private.send_bulk_notifications(user_pks, stream_going_live_notification_json, data=data)
-    private.create_notification_logs(
-        users,
-        stream_going_live_notification,
-        stream_going_live_notification_json,
+    private.send_bulk_notifications(
+        user_pks=user_pks,
+        notification_id=stream_going_live_notification.id,
+        notification_json=stream_going_live_notification_json,
         data=data
     )

@@ -119,7 +119,7 @@ def update_user_referrals_status():
     # Get all user referrals which is in `User Action Pending` state.
     today = datetime.date.today()
     pending_referrals = models.UserReferral.objects.filter()
-    user_ids_with_pending_referrals = pending_referrals.values_list("user_pk", flat=True)
+    user_ids_with_pending_referrals = pending_referrals.values_list("user_id", flat=True)
 
     if not user_ids_with_pending_referrals:
         return

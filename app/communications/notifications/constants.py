@@ -7,7 +7,7 @@ GROUP_CONVERSATION_INVITE = "conversation_invite"
 # New notifications for Crater.
 STREAM_GOING_LIVE_FIRST_NOTIFICATION = "stream_going_live_first (4PM & 12PM)"
 STREAM_GOING_LIVE_SECOND_NOTIFICATION = "stream_going_live_second (6PM & 2PM)"
-STREAM_GOING_LIVE_THIRD_NOTIFICATION = "stream_going_live_first (4PM & 12PM)"
+STREAM_GOING_LIVE_THIRD_NOTIFICATION = "stream_going_live_third (8PM & 4PM)"
 STREAM_REMINDER_NOTIFICATION_ATTENDEE = "stream_reminder_attendee"
 STREAM_REMINDER_NOTIFICATION_FOLLOWER = "stream_reminder_follower"
 
