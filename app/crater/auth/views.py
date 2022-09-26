@@ -82,6 +82,7 @@ class PhoneNumberRegisterView(
         request_data = request.data
         username = request_data.get("username")
         otp = request_data.get("otp")
+        name = request_data.get("name")
 
         phone_otp = models.PhoneOtp.objects.filter(
             phone_number=username,
@@ -107,6 +108,12 @@ class PhoneNumberRegisterView(
         serializer.is_valid(raise_exception=True)
 
         user, created = user_public.get_or_create_user(phone_number=username)
+        # Update name of the user if requested
+        if name:
+            if user.name != name:
+                user.name = name
+                user.save()
+
         serializer.save(user=user, **{"new_user": created})
 
         # Create a JWT token for the user for upcoming requests.
