@@ -11,14 +11,19 @@ from users import constants as user_constants, models as user_models
 
 
 @shared_task(bind=True)
-def send_groups_going_live_notifications(groups=None):
+def send_groups_going_live_notifications(notification_name, groups=None):
     """Sends notification for groups going live every hour.
 
     Args:
+        notification_name(str): Name of notification we are sending to the
+            users.
         groups(queryset/list): Group we want to send notification
             to. Only for testing purposes.
 
     """
+    if not notification_name:
+        return False
+
     now = timezone.now()
     end_time = now + datetime.timedelta(hours=2)
 
@@ -34,24 +39,58 @@ def send_groups_going_live_notifications(groups=None):
     if not group_going_live_highest_rsvp:
         return False
 
-    stream_going_live_notification = models.Notification.objects.filter(name=constants.STREAM_GOING_LIVE_NOTIFICATION).first()
+    stream_going_live_notification = None
+    stream_going_live_notification_json = None
+    data = None
+
+    if notification_name == constants.STREAM_GOING_LIVE_FIRST_NOTIFICATION:
+        stream_going_live_notification = models.Notification.objects.filter(
+            name=constants.STREAM_GOING_LIVE_FIRST_NOTIFICATION
+        ).first()
+        stream_going_live_notification_json = private.create_notification_json_from_notification(
+            stream_going_live_notification
+        )
+        stream_going_live_notification_json["contents"]["en"] = stream_going_live_notification_json["contents"]["en"].format(
+            topic_name=group_going_live_highest_rsvp.topic.name.title()
+        )
+        data = {
+            "obj_type": constants.OBJECT_TYPE_STREAM,
+            "group_id": group_going_live_highest_rsvp.id,
+            "auto_connect": True
+        }
+
+    elif notification_name == constants.STREAM_GOING_LIVE_SECOND_NOTIFICATION:
+        stream_going_live_notification = models.Notification.objects.filter(
+            name=constants.STREAM_GOING_LIVE_FIRST_NOTIFICATION
+        ).first()
+        stream_going_live_notification_json = private.create_notification_json_from_notification(
+            stream_going_live_notification
+        )
+        host = group_going_live_highest_rsvp.host
+        stream_going_live_notification_json["contents"]["en"] = stream_going_live_notification_json["contents"]["en"].format(
+            creator_name=host.display_name
+        )
+        creator = host.creator if hasattr(host, "creator") else None
+        if creator:
+            data = {
+                "obj_type": constants.OBJET_TYPE_CREATOR,
+                "creator_id": creator.id,
+                "auto_connect": True
+            }
+
+    elif notification_name == constants.STREAM_GOING_LIVE_THIRD_NOTIFICATION:
+        stream_going_live_notification = models.Notification.objects.filter(
+            name=constants.STREAM_GOING_LIVE_THIRD_NOTIFICATION
+        ).first()
+        stream_going_live_notification_json = private.create_notification_json_from_notification(
+            stream_going_live_notification
+        )
 
     if not stream_going_live_notification:
-        logging.error("Notification not present: {}".format(constants.STREAM_GOING_LIVE_NOTIFICATION))
+        logging.info("Sending notification for group going live during {} - {}. Group: {}".format(
+                now, end_time, group_going_live_highest_rsvp
+        ))
         return False
-
-    logging.info("Sending notification for group going live during {} - {}. Group: {}".format(
-            now, end_time, group_going_live_highest_rsvp
-    ))
-
-    stream_going_live_notification_json = private.create_notification_json_from_notification(
-        stream_going_live_notification
-    )
-    data = {
-        "obj_type": constants.OBJECT_TYPE_STREAM,
-        "group_id": group_going_live_highest_rsvp.id,
-        "auto_connect": True
-    }
 
     # Sending to all users.
     users = user_models.User.objects.filter(

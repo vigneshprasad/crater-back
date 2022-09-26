@@ -682,7 +682,12 @@ class UserReferral(base_models.BaseModel):
     def __str__(self):
         return "{} ({})".format(self.user.name, self.user)
 
-    def mark_payment_due(self):
+    def mark_payment_due(self, stream=None):
+        """If the user has watched 20 minutes of streams
+            mark payment due for the creator.
+
+        """
+        self.stream = stream if stream else None
         self.status = constants.REFERRAL_STATUS_PAYMENT_DUE_ENUM
         self.due_at = datetime.datetime.now()
         self.save()

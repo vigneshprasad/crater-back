@@ -96,7 +96,8 @@ def send_bulk_notifications(user_pks, notification_json, data=None):
 
     """
     users = get_user_model().objects.filter(pk__in=user_pks)
-    notification_json["data"] = data
+    if data:
+        notification_json["data"] = data
 
     user_os_ids = []
     for user in users:

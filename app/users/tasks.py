@@ -5,18 +5,17 @@ import logging
 
 from celery import shared_task
 from celery.schedules import crontab
-from celery.task import task, periodic_task
+from celery.task import periodic_task, task
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.utils import timezone
 
 from integrations.dyte import models as dyte_models
-from users import models, constants
+from users import constants, models
 from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -112,35 +111,42 @@ def update_user_referrals_status():
         to `Due` based on whether the referred user has watched
         a stream for 20 minutes or more.
 
+    Note:
+        Checking only for stream happening today, since it's not
+            likely for users to watch previous streams.
+
     """
     # Get all user referrals which is in `User Action Pending` state.
-    referrals = models.UserReferral.objects.filter(
-        status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
-    ).values_list("user__pk", flat=True)
+    today = datetime.date.today()
+    pending_referrals = models.UserReferral.objects.filter()
+    user_ids_with_pending_referrals = pending_referrals.values_list("user_pk", flat=True)
 
-    if not referrals:
+    if not user_ids_with_pending_referrals:
         return
 
+    # Get meeting participants for today that went live.
     dyte_meeting_participants = dyte_models.DyteMeetingParticipant.objects.filter(
-        participant__in=referrals,
+        participant__in=user_ids_with_pending_referrals,
         last_online_at__isnull=False,
-        dyte_meeting__group__closed=True,
-        dyte_meeting__group__is_live=False,
+        dyte_meeting__group__start__gte=today,
         dyte_meeting__group__is_published=True,
-        dyte_meeting__group__start__lte=datetime.datetime.now(),
+        dyte_meeting__group__is_closed=True,
     )
 
+    updated_users = []
     for dyte_meeting_participant in dyte_meeting_participants:
         # Get time spent on stream in minutes by the referred user.
-        time_spent_on_stream = (
-                dyte_meeting_participant.last_online_at - dyte_meeting_participant.dyte_meeting.group.start
-        ).total_seconds() / 60
+        participant = dyte_meeting_participant.participant
+        if participant in updated_users:
+            continue
 
+        time_spent_on_stream = float(dyte_meeting_participant.minutes_spent or 0)
         if not time_spent_on_stream >= 20:
             continue
 
-        referral = dyte_meeting_participant.participant.referred_by
-        referral.mark_payment_due()
+        referral = pending_referrals.filter(user=participant)
+        referral.mark_payment_due(stream=dyte_meeting_participant.dyte_meeting.group)
+        updated_users.append(dyte_meeting_participant.participant)
 
 
 @task

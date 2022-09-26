@@ -697,7 +697,7 @@ class GroupRecording(base_model.BaseModel):
             a stream.
 
         Args:
-            group_recording_id(int): Group recording ID the we are
+            group_recording_id(int): Group recording ID that we are
                 uploading recording for.
 
         """

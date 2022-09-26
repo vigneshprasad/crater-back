@@ -14,7 +14,9 @@ class Notification(base_model.BaseModel):
     OBJECT_TYPE_CHOICES = (
         (constants.OBJECT_TYPE_UPCOMING_MEETING, constants.OBJECT_TYPE_UPCOMING_MEETING.title()),
         (constants.OBJECT_TYPE_CONVERSATION, constants.OBJECT_TYPE_CONVERSATION.title()),
-        (constants.OBJECT_TYPE_CREATE_CONVERSATION, constants.OBJECT_TYPE_CREATE_CONVERSATION.title())
+        (constants.OBJECT_TYPE_CREATE_CONVERSATION, constants.OBJECT_TYPE_CREATE_CONVERSATION.title()),
+        (constants.OBJECT_TYPE_STREAM, constants.OBJECT_TYPE_STREAM.title()),
+        (constants.OBJET_TYPE_CREATOR, constants.OBJET_TYPE_CREATOR.title())
     )
 
     name = models.CharField(max_length=64)
