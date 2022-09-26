@@ -35,7 +35,8 @@ class UserLearnMetaViewSet(
 
         user_token_logs = token_models.UserTokenLog.objects.filter(
             user=user,
-            type=token_constants.TRANSACTION_TYPE_ACQUIRED_ENUM
+            type=token_constants.TRANSACTION_TYPE_ACQUIRED_ENUM,
+            transaction__isnull=False
         )
         for token_log in user_token_logs:
             total_time_spent += token_log.transaction.time_spent

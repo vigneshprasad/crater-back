@@ -71,12 +71,28 @@ class RewardSaleViewSet(
     def featured(self, request):
         queryset = self.filter_queryset(
             self.get_queryset().exclude(
-                reward__photo=""
+                reward__photo="",
+                show_in_store=False
             )
         )[:3]
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False
+    )
+    def store(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                show_in_store=True
+            )
+        )
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+        detail=True
 
     @action(
         methods=["GET"],
@@ -129,6 +145,15 @@ class RewardSaleLogViewSet(
                 "message": "Reward sale can't be purchased."
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        if reward_sale.reward.type.name == reward_constants.REWARD_NAME_PRIVATE_STREAM:
+            sale_log = models.RewardSaleLog.objects.filter(user=user, reward_sale=reward_sale).exclude(
+                status=constants.SALE_PAYMENT_DECLINED_ENUM
+            )
+            if sale_log:
+                return Response({
+                    "message": "Reward already purchased."
+                }, status=status.HTTP_400_BAD_REQUEST)    
+            
         if payment_type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
             # In case of learn payment, see if the user has enough tokens
             # for the payment.
@@ -185,6 +210,25 @@ class RewardSaleLogViewSet(
         # Mark the sale declined.
         sale_log.mark_sale_declined()
         return Response({}, status=status.HTTP_200_OK)
+    
+    @action(
+        methods=["GET"],
+        detail=True
+    )
+    def pending(self, request, pk, *args, **kwargs):
+        """ API to get a pending log for user and reward
+        """
+
+        sale_log = models.RewardSaleLog.objects.filter(
+            reward_sale_id=pk, 
+            user=request.user,
+            status=constants.SALE_PAYMENT_PENDING_ENUM).first()
+
+        if sale_log:
+            serializer = self.get_serializer(sale_log)
+            return Response(serializer.data, status=status.HTTP_200_OK) 
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class RewardSaleSellersViewSet(
