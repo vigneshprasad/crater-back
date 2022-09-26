@@ -63,26 +63,6 @@ class RewardSaleLogSerializer(serializers.ModelSerializer):
         )
 
 
-class RewardSaleLogSerializer(serializers.ModelSerializer):
-    reward_sale_detail = RewardSaleSerializer(source="reward_sale", read_only=True)
-    user_detail = user_serializers.UserDetailSerializer(source="user", read_only=True)
-
-    class Meta:
-        model = models.RewardSaleLog
-        fields = (
-            "id",
-            "user",
-            "reward_sale",
-            "quantity",
-            "price",
-            "status",
-            "payment",
-            "payment_type",
-            "reward_sale_detail",
-            "user_detail",
-        )
-
-
 class RewardSellerDetailSerializer(serializers.ModelSerializer):
     profile_detail = creator_serializers.CreatorProfileListSerializer(source="user.profile", read_only=True)
     is_subscriber = serializers.SerializerMethodField(read_only=True)
