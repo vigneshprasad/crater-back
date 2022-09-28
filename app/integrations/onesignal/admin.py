@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
 from integrations.onesignal import models
@@ -8,6 +9,7 @@ class OneSignalDeviceAdmin(admin.ModelAdmin):
 
     list_display = ("id", "user", "os_id", "created_at")
     raw_id_fields = ("user", )
+    list_filter = (AutocompleteFilterFactory("User", "user"), )
     exclude = ("deleted_at", "updated_at", "is_deleted")
 
     def delete_queryset(self, request, queryset):

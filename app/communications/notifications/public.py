@@ -47,7 +47,7 @@ def send_reminder_notifications_for_stream(group):
     )
     LOGGER.info("Sent reminder to attendees: {}".format(group.id))
 
-    users_to_exclude = attendees
+    users_to_exclude = list(attendees)
     host = group.host
     creator = creator_public.get_creator_for_user(host)
     host_followers = []

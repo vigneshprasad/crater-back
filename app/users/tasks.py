@@ -105,7 +105,7 @@ def auto_remove_not_used_cover_files(self):
     files.delete()
 
 
-@periodic_task(run_every=crontab(hour="*/1"))
+@periodic_task(run_every=crontab(minute="0", hour="*/1"))
 def update_user_referrals_status():
     """Update user referral status from `User Action Pending`
         to `Due` based on whether the referred user has watched

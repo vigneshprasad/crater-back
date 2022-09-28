@@ -10,7 +10,7 @@ from conversations import constants as conversation_constants, models as convers
 from users import constants as user_constants, models as user_models
 
 
-@shared_task(bind=True)
+@shared_task()
 def send_groups_going_live_notifications(notification_name, groups=None):
     """Sends notification for groups going live every hour.
 
@@ -33,7 +33,7 @@ def send_groups_going_live_notifications(notification_name, groups=None):
         start__lt=end_time
     ).annotate(
         attendees_count=Count("attendees")
-    ).order_by("-attendees_count") if not groups else groups
+    ).order_by("-attendees_count")
 
     group_going_live_highest_rsvp = groups_going_live.first()
     if not group_going_live_highest_rsvp:
@@ -61,7 +61,7 @@ def send_groups_going_live_notifications(notification_name, groups=None):
 
     elif notification_name == constants.STREAM_GOING_LIVE_SECOND_NOTIFICATION:
         stream_going_live_notification = models.Notification.objects.filter(
-            name=constants.STREAM_GOING_LIVE_FIRST_NOTIFICATION
+            name=constants.STREAM_GOING_LIVE_SECOND_NOTIFICATION
         ).first()
         stream_going_live_notification_json = private.create_notification_json_from_notification(
             stream_going_live_notification
@@ -93,9 +93,7 @@ def send_groups_going_live_notifications(notification_name, groups=None):
         return False
 
     # Sending to all users.
-    users = user_models.User.objects.filter(
-        group__name=user_constants.CRATER_CLUB_GROUP
-    )
+    users = user_models.User.objects.filter(groups__name=user_constants.CRATER_CLUB_GROUP)
     user_pks = users.values_list("pk", flat=True)
 
     private.send_bulk_notifications(

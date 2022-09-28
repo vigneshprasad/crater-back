@@ -7,31 +7,31 @@ from communications.notifications import constants
 NOTIFICATION_CONTENT = (
     (
         "stream_reminder_follower",
-        "{creator_name} is LIVE right now! 📺",
+        "{creator_name} is LIVE right now!📺",
         "If {topic_name} sounds interesting, join in now!",
         constants.OBJECT_TYPE_STREAM
     ),
     (
         "stream_reminder_attendee",
-        "The stream you have been waiting for is live now! 📺",
+        "The stream you have been waiting for is live now!📺",
         "You wanted to watch {topic_name} & now you don't have to wait any longer",
         constants.OBJECT_TYPE_STREAM
     ),
     (
         "stream_going_live_first (4PM & 12PM)",
-        "What our team recommends watching this afternoon! 📺",
+        "What our team recommends watching this afternoon!📺",
         "{topic_name} is a stream that we think you will not want to miss out on.",
         constants.OBJECT_TYPE_STREAM
     ),
     (
         "stream_going_live_second (6PM & 2PM)",
-        "The most trending stream today! 📺",
+        "The most trending stream today!📺",
         "{creator_name} channel seems to have some hype. Want to check it out?",
         constants.OBJET_TYPE_CREATOR
     ),
     (
         "stream_going_live_third (8PM & 4PM)",
-        "Tune in for your evening dose of daily learning!! 📺",
+        "Tune in for your evening dose of daily learning!!📺",
         "Check out the live streams right now & discover something new.",
         constants.OBJECT_TYPE_STREAM
     ),

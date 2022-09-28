@@ -11,7 +11,7 @@ class NotificationAdmin(ModelAdmin):
 
 
 @register(models.NotificationLog)
-class NotificationLogsAdmin(ModelAdmin):
-    list_display = ("user", "notification")
+class NotificationLogAdmin(ModelAdmin):
+    list_display = ("user", "notification", "notification_json", "data")
     raw_id_fields = ("user", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

@@ -270,14 +270,16 @@ class Group(base_model.BaseModel):
         max_digits=10,
         decimal_places=2,
         null=True,
-        blank=True
+        blank=True,
+        verbose_name="Minutes watched"
     )
     # Total minutes spent by host on the stream.
     total_minutes_spent_by_host = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
-        blank=True
+        blank=True,
+        verbose_name="Minutes streamed"
     )
 
     class Meta:
