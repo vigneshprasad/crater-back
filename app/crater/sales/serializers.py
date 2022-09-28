@@ -22,7 +22,8 @@ class RewardSaleSerializer(serializers.ModelSerializer):
             "quantity_sold",
             "is_active",
             "reward",
-            "reward_detail"
+            "reward_detail",
+            "show_in_store"
         )
 
 
