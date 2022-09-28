@@ -1,3 +1,4 @@
+import copy
 import logging
 
 from celery.task import task
@@ -75,6 +76,7 @@ def send_notification(user_pk, notification_id, notification_json, data=None):
         notification_json(JSON): Final JSON that was sent to the client.
 
     """
+    initial_notification_json = copy.deepcopy(notification_json)
     user = get_user_model().objects.get(pk=user_pk)
     devices = user.get_devices()
     if not devices:
@@ -92,7 +94,7 @@ def send_notification(user_pk, notification_id, notification_json, data=None):
     create_notification_log(
         user_pk,
         notification_id=notification_id,
-        notification_json=notification_json,
+        notification_json=initial_notification_json,
         data=data
     )
 
@@ -113,6 +115,7 @@ def send_bulk_notifications(user_pks, notification_id, notification_json, data=N
         notification_json(JSON): Final JSON that was sent to the client.
 
     """
+    initial_notification_json = copy.deepcopy(notification_json)
     users = get_user_model().objects.filter(pk__in=user_pks)
     if data:
         notification_json["data"] = data
@@ -140,7 +143,7 @@ def send_bulk_notifications(user_pks, notification_id, notification_json, data=N
     create_notification_logs(
         user_pks,
         notification_id=notification_id,
-        notification_json=notification_json,
+        notification_json=initial_notification_json,
         data=data
     )
     return True
