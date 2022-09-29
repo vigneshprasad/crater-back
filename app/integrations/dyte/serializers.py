@@ -45,3 +45,19 @@ class DyteMeetingRecordingSerializer(ModelSerializer):
             "stopped_at",
             "dyte_meeting_detail"
         )
+
+
+class LiveStreamSerializer(ModelSerializer):
+    class Meta:
+        model = models.LiveStream
+        fields = (
+            "id",
+            "dyte_meeting",
+            "status",
+            "ingest_seconds",
+            "viewer_seconds",
+            "ingest_server",
+            "livestream_id",
+            "playback_url",
+            "stream_key",
+        )
