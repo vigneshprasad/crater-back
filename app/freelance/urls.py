@@ -27,6 +27,7 @@ from django.contrib import admin
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from allauth.socialaccount import views as socialaccount_views
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from rest_framework import permissions
 
@@ -56,22 +57,22 @@ schema_view = get_schema_view(
 urlpatterns = [
     path("chat/", include(("consumers.chat.urls", "chat"), namespace="chat")),
     path("api/build-version/", BuildVersionView.as_view(), name="build-versions"),
-    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc-ui")
+    path("docs/", SpectacularAPIView.as_view(), name="docs"),
+    path("swagger/", SpectacularSwaggerView.as_view(url_name="docs"), name="swagger-ui"),
+    path("redoc/", SpectacularRedocView.as_view(url_name="docs"), name="redoc"),
 ] + i18n_patterns(
     path("admin/", admin.site.urls, name="admin"),
-    # path("silk/", include("silk.urls", namespace="silk")),
     path("admin/password_reset/", AdminPasswordResetView.as_view(), name="admin_password_reset"),
     path("admin/password_reset/done/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
-    path("admin/reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(),
-         name="password_reset_confirm"),
+    path("admin/reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("v1/", include("freelance.routers.v1")),
     path("account-confirm-email/<key>/", TemplateView.as_view(), name="account_confirm_email"),
     path("account-signup/", socialaccount_views.signup, name="socialaccount_signup"),
-
     path("", RedirectView.as_view(url="admin/", permanent=False), name="home"),
     prefix_default_language=False
-) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(
+) + static(
+    settings.STATIC_URL, document_root=settings.STATIC_ROOT
+) + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
 

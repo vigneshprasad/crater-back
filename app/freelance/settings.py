@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import datetime
 import os
 
+import drf_yasg
 import redis
 import sentry_sdk
 from corsheaders.defaults import default_headers
@@ -100,6 +101,7 @@ INSTALLED_APPS = [
     "rest_auth",
     "django_cleanup.apps.CleanupConfig",
     "drf_yasg",
+    "drf_spectacular",
     "timezone_field",
     "phonenumber_field",
     "corsheaders",
@@ -181,9 +183,9 @@ REST_USE_JWT = True
 DEFAULT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f %z"
 
 REST_FRAMEWORK = {
-    # "DEFAULT_PERMISSION_CLASSES": (
-    #     "rest_framework.permissions.IsAuthenticated",
-    # ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         # "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
         # "rest_framework.authentication.SessionAuthentication",
@@ -192,7 +194,8 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DATETIME_FORMAT": DEFAULT_DATETIME_FORMAT,
-    "COERCE_DECIMAL_TO_STRING": False
+    "COERCE_DECIMAL_TO_STRING": False,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 JWT_AUTH = {
@@ -365,18 +368,25 @@ REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "users.serializers.RegisterSerializer"
 }
 
-SWAGGER_SETTINGS = {
-    "USE_SESSION_AUTH": False,
-    "SECURITY_DEFINITIONS": {
-        "api_key": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        }
-    },
-    "DOC_EXPANSION": "none",
-    "TAGS_SORTER": "alpha"
-}
+# SWAGGER_SETTINGS = {
+#     "SCHEMA_PATH_PREFIX": r'/v[0-9]/(?P<app>[^/]+)',
+#     # "DEFAULT_API_URL": r"https://{?P<host>[^/]+}/v[0-9]/(?P<app>[^/]+)",
+#     "USE_SESSION_AUTH": False,
+#     "PERSIST_AUTH": True,
+#     "SECURITY_DEFINITIONS": {
+#         "api_key": {
+#             "type": "apiKey",
+#             "name": "Authorization",
+#             "in": "header"
+#         }
+#     },
+#     "DOC_EXPANSION": "none",
+#     "TAGS_SORTER": "alpha",
+#     "OPERATIONS_SORTER": "alpha",
+#     "DEEP_LINKING": True,
+#     "DEFAULT_MODEL_RENDERING": "example",
+#     "PATH_IN_MIDDLE": True,
+# }
 
 OLD_PASSWORD_FIELD_ENABLED = True
 
@@ -583,3 +593,28 @@ if ENVIRONMENT != "local":
         "level": "DEBUG",
         "propagate": True,
     }
+
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Crater.club APIs",
+    "DESCRIPTION": "APIs for Crater.club",
+    "VERSION": "v1",
+    "SERVE_INCLUDE_SCHEMA": True,
+    "SCHEMA_PATH_PREFIX": r"/v[0-9]/(?P<app>[^/]+)",
+    # "SCHEMA_PATH_PREFIX": r"/v[0-9]",
+    "COMPONENT_SPLIT_REQUEST": True,
+    "ENFORCE_NON_BLANK_FIELDS": True,
+    "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "displayOperationId": True,
+        "defaultModelRendering": "example",
+        "displayRequestDuration": True,
+        "filter": True,
+        "syntaxHighlight": {
+            "activate": True,
+            "theme": "obsidian"
+        },
+        "persistAuthorization": True,
+    },
+}
