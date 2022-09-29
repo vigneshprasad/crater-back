@@ -39,5 +39,6 @@ public_router.register(
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("public/", include(public_router.urls))
+    path("public/", include(public_router.urls)),
+    path("multistream/", include("conversations.multistream.urls.v1"))
 ]
