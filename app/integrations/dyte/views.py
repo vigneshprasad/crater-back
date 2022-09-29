@@ -285,3 +285,25 @@ class DyteMeetingRecordingViewSet(
         # Update start and stop times.
         dyte_meeting_recording.update_start_and_stop_times(started_at, stopped_at)
         return Response(status=status.HTTP_200_OK)
+
+
+class LiveStreamViewSet(GenericViewSet):
+    permission_classes = [user_permissions.IsAuthenticated]
+    queryset = models.LiveStream.objects.all()
+    serializer_class = serializers.LiveStreamSerializer
+
+    @action(
+        methods=["GET"],
+        detail=True
+    )
+    def meeting_active_livestream(self, request, pk, *args, **kwargs):
+        try:
+            livestream = models.LiveStream.objects.get(
+                dyte_meeting__group_id=pk,
+                status=constants.LIVE_STREAM_STATUS_LIVE
+            )
+        except models.LiveStream.DoesNotExist:
+            public.get_active_livestream_for_webinar(pk)
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serialized = self.get_serializer(livestream)
+        return Response(serialized.data, status=status.HTTP_200_OK)
