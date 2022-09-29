@@ -184,9 +184,9 @@ REST_USE_JWT = True
 DEFAULT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f %z"
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    # "DEFAULT_PERMISSION_CLASSES": (
+    #     "rest_framework.permissions.IsAuthenticated",
+    # ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         # "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
         # "rest_framework.authentication.SessionAuthentication",
