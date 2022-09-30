@@ -558,7 +558,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "companies_invested_detail",
             "is_creator",
             "groups",
-            "metamask_id"
+            "metamask_id",
+            "telegram"
         )
         extra_kwargs = {
             "tags": {"write_only": True, "allow_null": True, "required": False}
