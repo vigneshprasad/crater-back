@@ -279,6 +279,7 @@ class Group(base_model.BaseModel):
         null=True,
         blank=True
     )
+    enable_stream_on_start = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

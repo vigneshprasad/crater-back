@@ -81,7 +81,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 "fields": (
                     ("is_live", "closed"),
                     ("is_rescheduled", "is_obs"),
-                    ("is_approved", "is_full")
+                    ("is_approved", "is_full"),
+                    ("enable_stream_on_start",)
                 )
             }),
             ("Privacy", {
