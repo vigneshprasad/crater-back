@@ -6,7 +6,7 @@ from celery.task import periodic_task, task
 from django.utils import timezone
 
 from conversations import models as conversations_models
-from integrations.dyte import models, service, constants, public
+from integrations.dyte import constants, models, service
 from tokens import tasks as token_tasks
 
 dyte_service = service.dyte_service

@@ -47,7 +47,7 @@ def start_recording_for_streams():
 
 
 @periodic_task(run_every=crontab(minute="*/5"))
-def send_whatsapp_reminder_for_stream_attendees_and_followers():
+def send_whatsapp_reminder_for_streams_attendees_and_followers():
     """Send whatsapp reminder to all attendees for Webinar
 
     Note:
@@ -259,7 +259,7 @@ def upload_valid_recordings_for_streams(groups=None):
     publish_group_recordings.delay(valid_group_recordings)
 
 
-@periodic_task(run_every=crontab(hour=00, minute=00))
+@periodic_task(run_every=crontab(hour=0, minute=0))
 def add_user_as_follower_for_groups(groups=None):
     """Adds follower object to a creator if the user has
         watched 3 or more streams of the creator.

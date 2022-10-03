@@ -5,8 +5,7 @@ from django_admin_row_actions import AdminRowActionsMixin
 from rangefilter import filter
 
 from conversations import models, tasks
-from integrations.dyte import tasks as dyte_tasks
-from integrations.dyte import public as dyte_public
+from integrations.dyte import public as dyte_public, tasks as dyte_tasks
 
 
 @admin.register(models.SuggestedTopic)
@@ -255,7 +254,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if queryset.count() > 1:
             return self.message_user(
                 request,
-                "Recording can only be started for a single group.",
+                "Please select only one group at a time for restarting recording",
                 messages.ERROR
             )
 
