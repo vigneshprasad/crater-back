@@ -10,7 +10,7 @@ DEFAULT_START_FOR_DYTE = datetime.datetime(2022, 1, 1)
 
 
 def get_per_user_data_from_dyte(start_date=None, end_date=None):
-
+    """Get per user data (minutes watched) from dyte."""
     start_datetime = None
     end_datetime = None
 
