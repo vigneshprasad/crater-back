@@ -4,6 +4,7 @@ import logging
 from itertools import chain
 
 import boto3
+import pytz
 from botocore import exceptions as botocore_exceptions
 from celery.schedules import crontab
 from celery.task import periodic_task, task
@@ -14,126 +15,39 @@ from rest_framework.renderers import JSONRenderer
 
 from conversations import constants, models, serializers, services, signals
 from crater.creator import public as creator_public
+from crater.creator import models as creator_models
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
-from integrations.freshchat import constants as freshchat_constants, public as freshchat_public
+from integrations.freshchat import public as freshchat_public
 from integrations.wati import public as wati_public
 from users import models as user_models
 
 
-def send_conversation_confirmation_email_for_group(group):
-    """Send confirmation for conversation.
-
-    Args:
-       group(Group): Group for which we have send confirmation.
-
-    """
-    speakers = group.speakers.all()
-    for speaker in speakers:
-        send_conversation_confirmation_email_for_user(speaker, group)
-
-
-def send_conversation_confirmation_email_for_user(user, group):
-    """Send confirmation for conversation.
-
-    Args:
-       user(User): User to send the email to.
-       group(Group): Group for which we have send confirmation.
-
-    """
-    local_start_datetime = group.local_start
-
-    matched_users = group.speakers.all().exclude(pk=user.pk)
-
-    matched_list = []
-    for matched_user in matched_users:
-        matched_list.append(matched_user)
-
-    if len(matched_list) == 1:
-        matched_users_thread = matched_list.pop().get_display_first_name()
-    else:
-        last_user = matched_list.pop()
-        matched_users_thread = ", ".join([matched_user.get_display_first_name() for matched_user in matched_list])
-        matched_users_thread = matched_users_thread + " and " + last_user.get_display_first_name()
-
-    topic = group.topic.name
-
-    date = group.start.strftime("%a, %d %b %Y")
-    start_time = local_start_datetime.strftime("%I:%M %p")
-    time = "{}, {}".format(start_time, date)
-
-    subject = "Your upcoming conversation on {}".format(topic)
-
-    to_emails = [user.email, constants.EXTRA_EMAIL_FOR_INTRO_VERIFICATION]
-    # Populating data.
-    data = {
-        user.email:
-            {
-                "name": user.get_display_first_name(),
-                "topic": topic,
-                "time": time,
-                "description": group.topic.description,
-                "participants": matched_users_thread,
-                "app_link": freshchat_constants.APPSFLYER_APP_LINK,
-                "email": user.email
-            },
-        constants.EXTRA_EMAIL_FOR_INTRO_VERIFICATION:
-            {
-                "name": user.get_display_first_name(),
-                "topic": topic,
-                "time": time,
-                "description": group.topic.description,
-                "participants": matched_users_thread,
-                "app_link": freshchat_constants.APPSFLYER_APP_LINK,
-                "email": user.email
-            }
-    }
-
-    from_email = constants.MEETING_COMMUNICATION_FROM_EMAIL
-    reply_to_email = [constants.MEETING_REPLY_EMAIL]
-
-    template_name = constants.GROUP_CONVERSATION_INTRODUCTION_TEMPLATE
-
-    # Sending the emails.
-    for to in to_emails:
-        user.send_email(
-            subject=subject,
-            to=[to],
-            reply_to=reply_to_email,
-            template_name=template_name,
-            content={},
-            from_email=from_email,
-            merge_vars=data
-        )
-
-
 @periodic_task(run_every=crontab(minute="*/5"))
-def start_recording_for_webinars(groups=None):
+def start_recording_for_streams():
     """Start recording for webinars 5 minutes
-        before the webinar starts.
+        before the stream starts.
 
     """
     now_time = datetime.datetime.now()
     start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=5))
+    end_datetime = now_time + datetime.timedelta(minutes=5)
 
     # Get all webinars start 5 minutes from now.
-    webinars = models.Group.objects.filter(
+    streams = models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     )
 
-    for webinar in webinars:
+    for stream in streams:
         # Start recording for each webinar.
-        dyte_public.start_recording_for_group(
-            webinar
-        )
+        dyte_public.start_recording_for_group(stream)
 
 
 @periodic_task(run_every=crontab(minute="*/5"))
-def send_whatsapp_reminder_for_webinar_attendees(groups=None):
+def send_whatsapp_reminder_for_stream_attendees_and_followers():
     """Send whatsapp reminder to all attendees for Webinar
 
     Note:
@@ -146,19 +60,20 @@ def send_whatsapp_reminder_for_webinar_attendees(groups=None):
     end_datetime = (now_time + datetime.timedelta(minutes=5))
 
     # Send it for all group, except for webinars.
-    webinars = models.Group.objects.filter(
+    streams = models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
+        is_published=True,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     )
 
-    for webinar in webinars:
+    for stream in streams:
         # Send reminders for followers and attendees.
-        wati_public.send_stream_reminder_messages_for_group(webinar)
+        wati_public.send_stream_reminder_messages_for_group(stream)
 
 
 @periodic_task(run_every=crontab(minute="*/30"))
-def send_whatsapp_reminder_for_webinar_host(groups=None):
+def send_whatsapp_reminder_for_stream_host():
     """Send webinar reminder whatsapp for the host.
 
     Note:
@@ -171,55 +86,16 @@ def send_whatsapp_reminder_for_webinar_host(groups=None):
     end_datetime = (now_time + datetime.timedelta(minutes=30))
 
     # Send it for all group, except for webinars.
-    webinars = models.Group.objects.filter(
+    streams = models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
+        is_published=True,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     )
 
-    for webinar in webinars:
+    for stream in streams:
         # Send whatsapp reminder for webinar to host of the stream.
-        freshchat_public.send_whatsapp_reminder_for_webinar_host(webinar)
-
-
-@periodic_task(run_every=crontab(minute="*/10"))
-def send_whatsapp_conversation_reminders(meetings=None):
-    """Sends whatsapp reminders for people 30 minutes before their meetings.
-
-    Args:
-        meetings(Meeting queryset): Queryset of meeting you want to send this
-            reminder to. Added for testing.
-
-    """
-    now_time = datetime.datetime.now()
-
-    start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=10))
-
-    # Send it for all group, except for webinars.
-    groups = models.Group.objects.filter(
-        start__gt=start_datetime,
-        start__lte=end_datetime
-    ).exclude(type=constants.GROUP_TYPE_WEBINAR_ENUM)
-
-    # Log id's of the groups we are sending reminders for.
-    logging.info(
-        "Sending reminders for groups between {} - {}. Group ID's: {}".format(
-            start_datetime, end_datetime, [group.id for group in groups]
-        )
-    )
-
-    exclude_list = []
-
-    for group in groups:
-        for speaker in group.speakers.all():
-            if speaker in exclude_list:
-                continue
-            freshchat_public.send_conversation_reminder_for_user(
-                speaker,
-                group
-            )
-            exclude_list.append(speaker)
+        freshchat_public.send_whatsapp_reminder_for_webinar_host(stream)
 
 
 @task()
@@ -383,7 +259,7 @@ def upload_valid_recordings_for_streams(groups=None):
     publish_group_recordings.delay(valid_group_recordings)
 
 
-@periodic_task(run_every=crontab(hour=5, minute=30))
+@periodic_task(run_every=crontab(hour=00, minute=00))
 def add_user_as_follower_for_groups(groups=None):
     """Adds follower object to a creator if the user has
         watched 3 or more streams of the creator.
@@ -404,7 +280,6 @@ def add_user_as_follower_for_groups(groups=None):
     attendees_ids = list(set(groups.values_list("attendees", flat=True)))
 
     for attendee_id in attendees_ids:
-
         for host_creator_id in host_creator_ids:
             creator_id = host_creator_id["host__creator"]
             host_id = host_creator_id["host"]
@@ -429,11 +304,14 @@ def add_user_as_follower_for_groups(groups=None):
 
 @periodic_task(run_every=crontab(minute="*/5"))
 def follow_action_message():
-    live_streams = models.Group.objects.filter(
-        is_live=True,
-        closed=False,
-    )
+    """Sends follow action message on the chat for live streams.
 
+    Note:
+        This sends a message onto freshchat, which is shown in the
+            frontend from there.
+
+    """
+    live_streams = models.Group.objects.filter(is_live=True, closed=False)
     if not live_streams:
         return
 
@@ -445,18 +323,15 @@ def follow_action_message():
         end_time2 = stream.start + datetime.timedelta(minutes=23)
         now = timezone.now()
 
-        if not action_time <= now < end_time:
-            if not action_time2 <= now < end_time2:
-                continue
+        if not ((action_time <= now < end_time) or (action_time2 <= now < end_time2)):
+            continue
 
         admin_uid = firebase_private.get_or_register_admin()
-
         data = {
             "message": constants.CHAT_ACTION_FOLLOW_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
             "action": int(constants.CHAT_ACTION_TYPE_FOLLOW_ENUM)
         }
-
         firebase_service.send_message(
             data=data,
             group_id=stream.id,
@@ -466,11 +341,14 @@ def follow_action_message():
 
 # @periodic_task(run_every=crontab(minute="*/5"))
 def referral_action_message():
-    live_streams = models.Group.objects.filter(
-        is_live=True,
-        closed=False,
-    )
+    """Sends referral action message on the chat for live streams.
 
+    Note:
+        This sends a message onto freshchat, which is shown in the
+            frontend from there.
+
+    """
+    live_streams = models.Group.objects.filter(is_live=True, closed=False)
     if not live_streams:
         return
 
@@ -483,13 +361,11 @@ def referral_action_message():
             continue
 
         admin_uid = firebase_private.get_or_register_admin()
-
         data = {
             "message": constants.CHAT_ACTION_REFERRAL_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
             "action": int(constants.CHAT_ACTION_TYPE_REFERRAL_ENUM)
         }
-
         firebase_service.send_message(
             data=data,
             group_id=stream.id,
@@ -499,11 +375,14 @@ def referral_action_message():
 
 # @periodic_task(run_every=crontab(minute="*/5"))
 def chat_prompt_message():
-    live_streams = models.Group.objects.filter(
-        is_live=True,
-        closed=False,
-    )
+    """Sends chat prompt message on the chat for live streams.
 
+    Note:
+        This sends a message onto freshchat, which is shown in the
+            frontend from there.
+
+    """
+    live_streams = models.Group.objects.filter(is_live=True, closed=False)
     if not live_streams:
         return
 
@@ -516,7 +395,6 @@ def chat_prompt_message():
             continue
 
         admin_uid = firebase_private.get_or_register_admin()
-
         data = {
             "message": constants.CHAT_PROMPT_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_PROMPT_ENUM),
@@ -531,11 +409,14 @@ def chat_prompt_message():
 
 @periodic_task(run_every=crontab(minute="*/5"))
 def streams_action_message():
-    live_streams = models.Group.objects.filter(
-        is_live=True,
-        closed=False,
-    )
+    """Sends other streams action message on the chat for live streams.
 
+    Note:
+        This sends a message onto freshchat, which is shown in the
+            frontend from there.
+
+    """
+    live_streams = models.Group.objects.filter(is_live=True, closed=False)
     if not live_streams:
         return
 
@@ -543,8 +424,14 @@ def streams_action_message():
         action_time = stream.start + datetime.timedelta(minutes=25)
         end_time = stream.start + datetime.timedelta(minutes=28)
         now = timezone.now()
+
+        # Check if the action time is valid.
+        if not action_time <= now < end_time:
+            continue
+
         future_streams = models.Group.objects.filter(
             start=stream.start + datetime.timedelta(minutes=60),
+            is_published=True,
             privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             categories__in=stream.categories.all(),
         )
@@ -553,14 +440,12 @@ def streams_action_message():
             future_streams = models.Group.objects.filter(
                 start__gte=stream.start,
                 start__lte=stream.start + datetime.timedelta(hours=24),
+                is_published=True,
                 privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
                 categories__in=stream.categories.all(),
             )
 
         if not future_streams:
-            continue
-
-        if not action_time <= now < end_time:
             continue
 
         admin_uid = firebase_private.get_or_register_admin()
@@ -569,13 +454,12 @@ def streams_action_message():
         ).order_by("-rsvps").first()
 
         stream_data = serializers.GroupSerializer(future_stream).data
-
         data = {
             "message": constants.CHAT_ACTION_STREAMS_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
             "action": int(constants.CHAT_ACTION_TYPE_STREAMS_ENUM),
             "data": {
-                "stream": json.loads(JSONRenderer().render(stream_data).decode('utf8'))
+                "stream": json.loads(JSONRenderer().render(stream_data).decode("utf8"))
             }
         }
 
@@ -588,11 +472,14 @@ def streams_action_message():
 
 # @periodic_task(run_every=crontab(minute="*/5"))
 def download_app_action_message():
-    live_streams = models.Group.objects.filter(
-        is_live=True,
-        closed=False,
-    )
+    """Sends download app action message on the chat for live streams.
 
+    Note:
+        This sends a message onto freshchat, which is shown in the
+            frontend from there.
+
+    """
+    live_streams = models.Group.objects.filter(is_live=True, closed=False)
     if not live_streams:
         return
 
@@ -605,13 +492,11 @@ def download_app_action_message():
             continue
 
         admin_uid = firebase_private.get_or_register_admin()
-
         data = {
             "message": constants.CHAT_ACTION_DOWNLOAD_APP_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
             "action": int(constants.CHAT_ACTION_TYPE_DOWNLOAD_APP_ENUM)
         }
-
         firebase_service.send_message(
             data=data,
             group_id=stream.id,
