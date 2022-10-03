@@ -111,7 +111,7 @@ def send_whatsapp_for_stream_setup_to_creator(sender, group, *args, **kwargs):
     )
 
 
-@receiver(conversations_signals.group_marked_published)
+# @receiver(conversations_signals.group_marked_published)
 def send_whatsapp_for_stream_setup_to_followers(sender, group, *args, **kwargs):
     """Sends whatsapp to creator's followers once their
         stream is set up on the platform.

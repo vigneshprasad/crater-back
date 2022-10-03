@@ -5,7 +5,7 @@ from django_admin_row_actions import AdminRowActionsMixin
 from rangefilter import filter
 
 from conversations import models, tasks
-from integrations.dyte import tasks as dyte_tasks
+from integrations.dyte import public as dyte_public, tasks as dyte_tasks
 
 
 @admin.register(models.SuggestedTopic)
@@ -111,7 +111,11 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             }),
         )
     )
-    actions = ("add_previous_webinar_attendees", "recalculate_minutes_for_groups")
+    actions = (
+        "add_previous_webinar_attendees",
+        "recalculate_minutes_for_groups",
+        "restart_recording_for_group"
+    )
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
         "closed_at",
@@ -237,6 +241,48 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         )
 
     recalculate_minutes_for_groups.short_description = "Recalculate minutes"
+
+    def restart_recording_for_group(self, request, queryset):
+        """Restarts recording for group.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of streams we want to
+                restart recording for.
+
+        Note:
+            This action runs for only one group at a time.
+
+        """
+        # Delay the task for recalculating minutes.
+        if queryset.count() > 1:
+            return self.message_user(
+                request,
+                "Please select only one group at a time for restarting recording",
+                messages.ERROR
+            )
+
+        group = queryset.first()
+        # Stop recording for the group first.
+        dyte_public.stop_recording_for_group_and_recording_id(group)
+        dyte_tasks.start_recording_for_group.apply_async(
+            args=(group.id,),
+            countdown=30
+        )
+
+        # If starting a recording is successful
+        self.log_change(
+            request,
+            group,
+            message=[{"changed": {"actions": ["restart_recording_for_group"]}}]
+        )
+        self.message_user(
+            request,
+            "Started recording for group: {}".format(group.id),
+            messages.SUCCESS
+        )
+
+    restart_recording_for_group.short_description = "Restart recording for stream"
 
     @staticmethod
     def all_speakers(obj):
