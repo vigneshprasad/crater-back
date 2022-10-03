@@ -71,7 +71,7 @@ def get_minutes_for_live_streams():
         group.save()
 
     # Send another task to update tokens.
-    token_tasks.calculate_tokens_for_groups.delay(
+    token_tasks.calculate_tokens_for_groups(
         list(live_groups.values_list("id", flat=True))
     )
 
@@ -136,7 +136,7 @@ def get_minutes_for_all_streams_for_the_day():
         group.save()
 
     # Send another task to update tokens.
-    token_tasks.calculate_tokens_for_groups.delay(
+    token_tasks.calculate_tokens_for_groups(
         list(groups_in_the_last_day.values_list("id", flat=True))
     )
 
@@ -201,7 +201,7 @@ def recalculate_minutes_for_groups(group_ids):
         group.save()
 
     # Send another task to update tokens.
-    token_tasks.calculate_tokens_for_groups.delay(
+    token_tasks.calculate_tokens_for_groups(
         list(groups.values_list("id", flat=True))
     )
 
