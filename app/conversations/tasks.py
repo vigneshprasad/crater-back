@@ -304,7 +304,7 @@ def add_user_as_follower_for_groups(groups=None):
 
 @periodic_task(run_every=crontab(minute="*/5"))
 def follow_action_message():
-    """Sends follow action message on the chat for live streams.
+    """Sends follow action message to firebase for live streams.
 
     Note:
         This sends a message onto freshchat, which is shown in the
@@ -341,7 +341,7 @@ def follow_action_message():
 
 # @periodic_task(run_every=crontab(minute="*/5"))
 def referral_action_message():
-    """Sends referral action message on the chat for live streams.
+    """Sends referral action message to firebase for live streams.
 
     Note:
         This sends a message onto freshchat, which is shown in the
@@ -375,7 +375,7 @@ def referral_action_message():
 
 # @periodic_task(run_every=crontab(minute="*/5"))
 def chat_prompt_message():
-    """Sends chat prompt message on the chat for live streams.
+    """Sends chat prompt message to firebase for live streams.
 
     Note:
         This sends a message onto freshchat, which is shown in the
@@ -409,7 +409,7 @@ def chat_prompt_message():
 
 @periodic_task(run_every=crontab(minute="*/5"))
 def streams_action_message():
-    """Sends other streams action message on the chat for live streams.
+    """Sends other streams action message to firebase for live streams.
 
     Note:
         This sends a message onto freshchat, which is shown in the
@@ -472,7 +472,7 @@ def streams_action_message():
 
 # @periodic_task(run_every=crontab(minute="*/5"))
 def download_app_action_message():
-    """Sends download app action message on the chat for live streams.
+    """Sends download app action message to firebase for live streams.
 
     Note:
         This sends a message onto freshchat, which is shown in the
@@ -507,7 +507,7 @@ def download_app_action_message():
 # TODO(Sanjeev): Clean this up
 # @periodic_task(run_every=crontab(minute="0", hour="13"))
 def send_top_stream_message():
-    # Get all users who has followed a category
+    # Get all users who have followed a category
     user_categories = user_models.UserCategory.objects.filter(
         followed=True
     )

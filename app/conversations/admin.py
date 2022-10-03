@@ -242,12 +242,15 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     recalculate_minutes_for_groups.short_description = "Recalculate minutes"
 
     def restart_recording_for_group(self, request, queryset):
-        """Recalculate minutes for groups.
+        """Restarts recording for group.
 
         Args:
             request(Request): Request build by admin.
             queryset(Queryset): Query set of streams we want to
-                recalculate minutes for.
+                restart recording for.
+
+        Note:
+            This action runs for only one group at a time.
 
         """
         # Delay the task for recalculating minutes.
