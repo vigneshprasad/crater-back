@@ -9,7 +9,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from conversations import constants, models, paginators, serializers, filters
+from conversations import constants, filters, models, paginators, serializers
 from users import permissions as user_permissions
 
 User = get_user_model()
