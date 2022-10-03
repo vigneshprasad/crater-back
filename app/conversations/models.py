@@ -281,6 +281,7 @@ class Group(base_model.BaseModel):
         blank=True,
         verbose_name="Minutes streamed"
     )
+    enable_stream_on_start = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]
