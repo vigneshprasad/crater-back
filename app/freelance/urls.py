@@ -16,43 +16,27 @@ Including another URL conf
 """
 import os
 
+from allauth.socialaccount import views as socialaccount_views
+from django.conf import settings
 from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
-from django.contrib.admin import AdminSite
-from django.urls import path, include
-from django.conf import settings
-from django.views.generic import RedirectView, TemplateView
-from django.contrib.auth import views as auth_views
 from django.contrib import admin
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from allauth.socialaccount import views as socialaccount_views
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-
-from rest_framework import permissions
+from django.contrib.admin import AdminSite
+from django.contrib.auth import views as auth_views
+from django.urls import include, path
+from django.views.generic import RedirectView, TemplateView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView
+)
 
 from base.views import BuildVersionView
 from users.auth_views import AdminPasswordResetView
 from users.forms import FreelanceAdminAuthenticationForm
 from users.views import PasswordResetConfirmView
 
-
 AdminSite.login_form = FreelanceAdminAuthenticationForm
-
-
-schema_view = get_schema_view(
-   openapi.Info(
-      title="WorkNetwork API",
-      default_version="v1",
-      description="WorkNetwork API documentation",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
-      license=openapi.License(name="BSD License"),
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
-)
-
 
 urlpatterns = [
     path("chat/", include(("consumers.chat.urls", "chat"), namespace="chat")),

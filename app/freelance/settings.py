@@ -14,7 +14,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import datetime
 import os
 
-import drf_yasg
 import redis
 import sentry_sdk
 from corsheaders.defaults import default_headers
@@ -368,26 +367,6 @@ REST_AUTH_SERIALIZERS = {
 REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "users.serializers.RegisterSerializer"
 }
-
-# SWAGGER_SETTINGS = {
-#     "SCHEMA_PATH_PREFIX": r'/v[0-9]/(?P<app>[^/]+)',
-#     # "DEFAULT_API_URL": r"https://{?P<host>[^/]+}/v[0-9]/(?P<app>[^/]+)",
-#     "USE_SESSION_AUTH": False,
-#     "PERSIST_AUTH": True,
-#     "SECURITY_DEFINITIONS": {
-#         "api_key": {
-#             "type": "apiKey",
-#             "name": "Authorization",
-#             "in": "header"
-#         }
-#     },
-#     "DOC_EXPANSION": "none",
-#     "TAGS_SORTER": "alpha",
-#     "OPERATIONS_SORTER": "alpha",
-#     "DEEP_LINKING": True,
-#     "DEFAULT_MODEL_RENDERING": "example",
-#     "PATH_IN_MIDDLE": True,
-# }
 
 OLD_PASSWORD_FIELD_ENABLED = True
 
