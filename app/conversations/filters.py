@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.auth import get_user_model
 from django_filters import rest_framework as filters
 
 from conversations import models, constants
@@ -24,7 +25,8 @@ class AllWebinarsFilters(filters.FilterSet):
             "sort_by",
         )
 
-    def custom_sort_by(self, queryset, name, value):
+    @staticmethod
+    def custom_sort_by(queryset, name, value):
         today = datetime.datetime.now().date()
 
         if value == constants.SORT_BY_TODAY:
@@ -53,3 +55,24 @@ class AllWebinarsFilters(filters.FilterSet):
             ).order_by("start")
 
         return queryset
+
+
+class StreamsFollowedFilter(filters.FilterSet):
+    hosts = filters.CharFilter(
+        method="custom_host_filter"
+    )
+
+    class Meta:
+        model = models.Group
+        fields = (
+            "host",
+            "hosts",
+            "categories"
+        )
+
+    @staticmethod
+    def custom_host_filter(queryset, name, value):
+        host_ids = value.split(",")
+        return queryset.filter(
+            host_id__in=host_ids
+        )
