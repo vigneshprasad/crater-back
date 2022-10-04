@@ -287,10 +287,19 @@ class DyteMeetingRecordingViewSet(
         return Response(status=status.HTTP_200_OK)
 
 
-class LiveStreamViewSet(GenericViewSet):
+class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
     permission_classes = [user_permissions.IsAuthenticated]
     queryset = models.LiveStream.objects.all()
     serializer_class = serializers.LiveStreamSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = True
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
     @action(
         methods=["GET"],

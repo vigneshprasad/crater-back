@@ -179,6 +179,7 @@ class DyteService:
         data = {
             "title": group.topic.name,
             "presetName": constants.DEFAULT_WEBINAR_PRESET_NAME,
+            "liveStreamOnStart": group.enable_stream_on_start,
             "authorization": {
                 "waitingRoom": False,
                 "closed": False

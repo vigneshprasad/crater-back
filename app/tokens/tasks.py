@@ -145,10 +145,9 @@ def calculate_tokens_for_group(group_id):
         attendee = dyte_participant.participant
         attendee_time_spent = dyte_participant.minutes_spent
         attendee_engagement = total_chat_for_stream.filter(sender=attendee).count()
-
         # If engagement and time spent are not there (zero), don't create
         # transactions.
-        if not (attendee_engagement and attendee_time_spent):
+        if not attendee_time_spent:
             continue
 
         # Create a token transaction for each user and stream.

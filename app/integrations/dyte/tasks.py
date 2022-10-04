@@ -6,7 +6,7 @@ from celery.task import periodic_task, task
 from django.utils import timezone
 
 from conversations import models as conversations_models
-from integrations.dyte import models, service, constants
+from integrations.dyte import constants, models, service
 from tokens import tasks as token_tasks
 
 dyte_service = service.dyte_service
@@ -71,7 +71,7 @@ def get_minutes_for_live_streams():
         group.save()
 
     # Send another task to update tokens.
-    token_tasks.calculate_tokens_for_groups.delay(
+    token_tasks.calculate_tokens_for_groups(
         list(live_groups.values_list("id", flat=True))
     )
 
@@ -136,7 +136,7 @@ def get_minutes_for_all_streams_for_the_day():
         group.save()
 
     # Send another task to update tokens.
-    token_tasks.calculate_tokens_for_groups.delay(
+    token_tasks.calculate_tokens_for_groups(
         list(groups_in_the_last_day.values_list("id", flat=True))
     )
 
@@ -201,7 +201,7 @@ def recalculate_minutes_for_groups(group_ids):
         group.save()
 
     # Send another task to update tokens.
-    token_tasks.calculate_tokens_for_groups.delay(
+    token_tasks.calculate_tokens_for_groups(
         list(groups.values_list("id", flat=True))
     )
 
@@ -362,3 +362,22 @@ def mark_dyte_meeting_participants_offline(group_id):
         dyte_participant.last_online_at = offline_time
         dyte_participant.is_online = False
         dyte_participant.save()
+
+
+@task()
+def start_recording_for_group(group_id):
+    """Start recording for a group.
+
+    Args:
+        group_id(int): ID of the group we are
+            starting the recording for.
+
+    """
+    group = conversations_models.Group.objects.get(id=group_id)
+    dyte_meeting = group.dyte_webinar.first()
+
+    if not dyte_meeting:
+        logging.error("Dyte meeting not present for group: {}".format(group.id))
+        return False
+
+    return dyte_service.start_recording(dyte_meeting=dyte_meeting)
