@@ -20,7 +20,7 @@ OBJECT_TYPE_UPCOMING_MEETING = "upcoming_meeting"
 OBJECT_TYPE_CONVERSATION = "conversation"
 OBJECT_TYPE_CREATE_CONVERSATION = "create_conversation"
 OBJECT_TYPE_STREAM = "stream"
-OBJET_TYPE_CREATOR = "creator"
+OBJECT_TYPE_CREATOR = "creator"
 
 # Maximum size of player ids for bulk notifications.
 MAX_PLAYER_IDS_FOR_BULK_NOTIFICATIONS = 2000

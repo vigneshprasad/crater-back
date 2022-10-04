@@ -27,7 +27,7 @@ NOTIFICATION_CONTENT = (
         "stream_going_live_second (6PM & 2PM)",
         "The most trending stream today!📺",
         "{creator_name} channel seems to have some hype. Want to check it out?",
-        constants.OBJET_TYPE_CREATOR
+        constants.OBJECT_TYPE_CREATOR
     ),
     (
         "stream_going_live_third (8PM & 4PM)",

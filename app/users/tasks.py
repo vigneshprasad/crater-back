@@ -118,7 +118,9 @@ def update_user_referrals_status():
     """
     # Get all user referrals which is in `User Action Pending` state.
     today = datetime.date.today()
-    pending_referrals = models.UserReferral.objects.filter()
+    pending_referrals = models.UserReferral.objects.filter(
+        status=constants.REFERRAL_STATUS_USER_ACTION_PENDING_ENUM
+    )
     user_ids_with_pending_referrals = pending_referrals.values_list("user_id", flat=True)
 
     if not user_ids_with_pending_referrals:
@@ -129,7 +131,6 @@ def update_user_referrals_status():
         participant__in=user_ids_with_pending_referrals,
         last_online_at__isnull=False,
         dyte_meeting__group__start__gte=today,
-        dyte_meeting__group__is_published=True,
         dyte_meeting__group__is_closed=True,
     )
 

@@ -30,7 +30,9 @@ def send_groups_going_live_notifications(notification_name, groups=None):
     groups_going_live = conversations_models.Group.objects.filter(
         type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
         start__gte=now,
-        start__lt=end_time
+        start__lt=end_time,
+        is_published=True,
+        privacy=conversation_constants.GROUP_PRIVACY_PUBLIC
     ).annotate(
         attendees_count=Count("attendees")
     ).order_by("-attendees_count")
@@ -73,7 +75,7 @@ def send_groups_going_live_notifications(notification_name, groups=None):
         creator = host.creator if hasattr(host, "creator") else None
         if creator:
             data = {
-                "obj_type": constants.OBJET_TYPE_CREATOR,
+                "obj_type": constants.OBJECT_TYPE_CREATOR,
                 "creator_id": creator.id,
                 "auto_connect": True
             }
