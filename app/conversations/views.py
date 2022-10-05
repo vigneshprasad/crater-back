@@ -82,77 +82,77 @@ class TopicViewSet(
         serialized = self.get_serializer(queryset, many=True)
         return Response(serialized.data)
 
-    @action(
-        methods=["post"],
-        detail=False,
-        serializer_class=serializers.SuggestedTopicSerializer
-    )
-    def suggest(self, request, *args, **kwargs):
-        """Allows a user to suggest a topic.
-
-        Returns:
-            Topic object with the provided name.
-
-        Note:
-            If the topic is already present, return 200
-            else return 201 created response.
-
-            If the topic is already present the resulting meeting
-            will be pre approved.
-
-        """
-        request_data = request.data
-
-        # If topic isn"t provided. Raise a bad request.
-        suggested_topic = request_data.get("topic")
-        if not suggested_topic:
-            return self.generate_bad_request(
-                {"error": "No Topic provided."}
-            )
-
-        suggested_by = request.user
-
-        # Serializer data. Creating suggested topic for the topic.
-        # Note: Change the topic to title format.
-        data = {
-            "topic": suggested_topic.title(),
-            "suggested_by": suggested_by.pk,
-            "is_approved": True,
-            "type": request_data["type"]
-        }
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        instance = serializer.save()
-
-        # Getting or creating topic with the suggested topic.
-        created = False
-        try:
-            topic = models.Topic.objects.get(name__icontains=instance.name)
-        except models.Topic.DoesNotExist:
-            topic = models.Topic.objects.create(
-                name=instance.name,
-                is_active=False,
-                is_approved=False,
-                is_suggested=True,
-                creator=suggested_by,
-                type=instance.type,
-            )
-            created = True
-
-        # Creating topic serialized data for response.
-        topic_serialized_data = serializers.TopicSerializer(instance=topic).data
-
-        if not created:
-            return Response(
-                topic_serialized_data,
-                status=status.HTTP_200_OK
-            )
-
-        # Only if the topic is created send 201 created response.
-        return Response(
-            topic_serialized_data,
-            status=status.HTTP_201_CREATED
-        )
+    # @action(
+    #     methods=["post"],
+    #     detail=False,
+    #     serializer_class=serializers.SuggestedTopicSerializer
+    # )
+    # def suggest(self, request, *args, **kwargs):
+    #     """Allows a user to suggest a topic.
+    #
+    #     Returns:
+    #         Topic object with the provided name.
+    #
+    #     Note:
+    #         If the topic is already present, return 200
+    #         else return 201 created response.
+    #
+    #         If the topic is already present the resulting meeting
+    #         will be pre approved.
+    #
+    #     """
+    #     request_data = request.data
+    #
+    #     # If topic isn"t provided. Raise a bad request.
+    #     suggested_topic = request_data.get("topic")
+    #     if not suggested_topic:
+    #         return self.generate_bad_request(
+    #             {"error": "No Topic provided."}
+    #         )
+    #
+    #     suggested_by = request.user
+    #
+    #     # Serializer data. Creating suggested topic for the topic.
+    #     # Note: Change the topic to title format.
+    #     data = {
+    #         "topic": suggested_topic.title(),
+    #         "suggested_by": suggested_by.pk,
+    #         "is_approved": True,
+    #         "type": request_data["type"]
+    #     }
+    #     serializer = self.get_serializer(data=data)
+    #     serializer.is_valid(raise_exception=True)
+    #     instance = serializer.save()
+    #
+    #     # Getting or creating topic with the suggested topic.
+    #     created = False
+    #     try:
+    #         topic = models.Topic.objects.get(name__icontains=instance.name)
+    #     except models.Topic.DoesNotExist:
+    #         topic = models.Topic.objects.create(
+    #             name=instance.name,
+    #             is_active=False,
+    #             is_approved=False,
+    #             is_suggested=True,
+    #             creator=suggested_by,
+    #             type=instance.type,
+    #         )
+    #         created = True
+    #
+    #     # Creating topic serialized data for response.
+    #     topic_serialized_data = serializers.TopicSerializer(instance=topic).data
+    #
+    #     if not created:
+    #         return Response(
+    #             topic_serialized_data,
+    #             status=status.HTTP_200_OK
+    #         )
+    #
+    #     # Only if the topic is created send 201 created response.
+    #     return Response(
+    #         topic_serialized_data,
+    #         status=status.HTTP_201_CREATED
+    #     )
 
 
 class GroupsViewSet(
@@ -954,3 +954,17 @@ class CategorySlugViewSet(
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all()
     lookup_field = "slug"
+
+
+class SuggestedTopicViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.SuggestedTopicSerializer
+    queryset = models.SuggestedTopic.objects.filter(
+        is_active=True
+    ).order_by(
+        "-order"
+    )
+    filterset_fields = ["category"]

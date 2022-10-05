@@ -10,7 +10,9 @@ from integrations.dyte import public as dyte_public, tasks as dyte_tasks
 
 @admin.register(models.SuggestedTopic)
 class SuggestedTopicAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "suggested_by", "is_approved")
+    list_display = ("id", "name", "category", "is_active")
+    list_editable = ("is_active", )
+    search_fields = ("name", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
 
