@@ -40,7 +40,11 @@ class SuggestedTopic(base_model.BaseModel):
         on_delete=models.CASCADE,
         related_name="suggested_topic"
     )
-    is_approved = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    order = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ["-created_at"]
