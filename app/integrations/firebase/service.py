@@ -72,7 +72,6 @@ class FirebaseService:
         data["created_at"] = firestore.firestore.SERVER_TIMESTAMP
 
         collection = f"group/{data['group']}/messages"
-
         ref = self.db.collection(collection)
         document = ref.add(data)
 

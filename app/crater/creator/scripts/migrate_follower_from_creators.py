@@ -1,15 +1,34 @@
 from conversations import models as conversation_models
 from crater.creator import models, private, signals
+from integrations.dyte import models as dyte_models
 
 
 def run(from_creator, to_creator, dry_run=True):
+    """Migrate followers and streams from one creator to the other.
 
-    groups = conversation_models.Group.objects.filter(host=from_creator.user)
+    Note:
+        This is used when 2 different objects are created for the
+            same user.
+
+    """
+    from_user = from_creator.user
+    to_user = to_creator.user
+
+    groups = conversation_models.Group.objects.filter(host=from_user)
+    # We are migrating a host dyte participants so that the max minutes (host minutes
+    # spent) on the stream does not change if we change the host.
+    dyte_participants_for_host = dyte_models.DyteMeetingParticipant.objects.filter(
+        dyte_meeting__group__in=groups,
+        participant=from_user
+    )
     print("Groups to be migrated: {}".format(groups.count()))
+    print("Dyte participants to be migrated: {}".format(dyte_participants_for_host.count()))
 
     if not dry_run:
-        groups.update(host=to_creator.user)
-        print("Migrated groups to: {}".format(from_creator.user))
+        groups.update(host=to_user)
+        dyte_participants_for_host.update(participant=to_user)
+        print("Migrated groups to: {}".format(to_user))
+        print("Migrated dyte participants for host to: {}".format(to_user))
 
     from_followers = models.Follower.all_objects.filter(creator=from_creator)
 

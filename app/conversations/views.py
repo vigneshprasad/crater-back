@@ -671,6 +671,136 @@ class GroupWebinarViewSet(
         return self.get_paginated_response(serializer.data)
 
 
+class StreamsFollowedViewSet(viewsets.GenericViewSet):
+
+    queryset = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True
+    )
+    serializer_class = serializers.GroupWebinarSerializer
+    pagination_class = paginators.WebinarPagination
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_class = filters.StreamsFollowedFilter
+
+    def _get_upcoming_webinars(self):
+        """Return upcoming webinars.
+
+        Note:
+            Ordered by ascending order of the stream
+                start time.
+
+        """
+        return self.get_queryset().filter(
+            is_live=False,
+            closed=False,
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
+            start__gte=datetime.datetime.now()
+        ).order_by("start", "-created_at")
+
+    def _get_live_webinars(self):
+        """Return live webinars.
+
+        Note:
+            Ordered by ascending order of the stream
+                start time.
+
+        """
+        return self.get_queryset().filter(
+            is_live=True,
+            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
+            closed=False
+        ).order_by("start", "-created_at")
+
+    def _get_past_webinars_with_recordings(self, featured=False):
+        """Return past webinars with published recordings.
+
+        Note:
+            This queryset is ordered by descending order of the
+                stream start time.
+
+        """
+
+        groups_with_recordings = self.get_queryset().filter(
+            start__lte=datetime.datetime.now(),
+            recording__isnull=False
+        )
+        # Get group with recording objects which are published
+        # and have recording object present.
+        published_groups_with_recording = groups_with_recordings.filter(
+            recording__recording__isnull=False,
+            recording__is_published=True
+        ).order_by("-start")
+
+        if not featured:
+            return published_groups_with_recording
+
+        return published_groups_with_recording.filter(
+            recording__featured=True
+        )
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        pagination_class=paginators.WebinarPagination,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def upcoming(self, request):
+        """Return upcoming streams for a user, based on
+            the creators they follow.
+
+        """
+        user = request.user
+        # Get user ids of creators followed by the user.
+        followed_creator_user_ids = user.following.filter(notify=True).values_list(
+            "creator__user",
+            flat=True
+        )
+        queryset = self.filter_queryset(
+            self._get_upcoming_webinars().filter(
+                host_id__in=followed_creator_user_ids
+            )
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        pagination_class=paginators.WebinarPagination,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def past(self, request):
+        """Return past streams for a user, based on
+            the creators they follow.
+
+        """
+        user = request.user
+        # Get user ids of creators followed by the user.
+        followed_creator_user_ids = user.following.filter(notify=True).values_list(
+            "creator__user",
+            flat=True
+        )
+        queryset = self.filter_queryset(
+            self._get_past_webinars_with_recordings().filter(
+                host_id__in=followed_creator_user_ids
+            )
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
 class CategoryViewSet(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
@@ -716,10 +846,9 @@ class SeriesRequestViewSet(
         series_id = data.get("series_id")
 
         # Get series by id
-        series = models.Series.objects \
-            .filter(id=series_id, is_published=True) \
-            .select_related("host") \
-            .first()
+        series = models.Series.objects.filter(
+            id=series_id, is_published=True
+        ).select_related("host").first()
         if not series:
             return Response(status=status.HTTP_404_NOT_FOUND)
 

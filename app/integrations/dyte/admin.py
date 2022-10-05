@@ -151,3 +151,8 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
         )
 
     update_recording_status.short_description = "Update Recording Status"
+
+
+@admin.register(models.LiveStream)
+class LiveStreamAdmin(admin.ModelAdmin):
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

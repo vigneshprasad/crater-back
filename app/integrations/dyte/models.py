@@ -280,3 +280,26 @@ class DyteMeetingRecording(base_model.BaseModel):
         self.started_at = started_at
         self.stopped_at = stopped_at
         self.save()
+
+
+class LiveStream(base_model.BaseModel):
+    LIVESTREAM_STATUS_CHOICES = (
+        (constants.LIVE_STREAM_STATUS_OFFLINE, constants.LIVE_STREAM_STATUS_OFFLINE),
+        (constants.LIVE_STREAM_STATUS_LIVE, constants.LIVE_STREAM_STATUS_LIVE)
+    )
+    dyte_meeting = models.ForeignKey(
+        DyteMeeting,
+        related_name="livestreams",
+        on_delete=models.CASCADE
+    )
+    status = models.CharField(
+        max_length=32,
+        choices=LIVESTREAM_STATUS_CHOICES,
+        default=constants.LIVE_STREAM_STATUS_OFFLINE
+    )
+    ingest_seconds = models.IntegerField(default=0)
+    viewer_seconds = models.IntegerField(default=0)
+    ingest_server = models.TextField()
+    livestream_id = models.CharField(max_length=255)
+    stream_key = models.CharField(max_length=255)
+    playback_url = models.TextField()
