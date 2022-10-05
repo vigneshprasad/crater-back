@@ -13,6 +13,7 @@ from tags import models as tags_models
 from users.models import Admin, Profile
 from utils.fields import CachedMaterialAdminFileWidget
 
+
 class AdminCreationForm(UserCreationForm):
 
     groups = forms.ModelMultipleChoiceField(queryset=Group.objects.all())

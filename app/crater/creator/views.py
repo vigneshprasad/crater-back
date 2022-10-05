@@ -43,7 +43,7 @@ class CreatorViewSet(
         methods=["get"],
         serializer_class=serializers.CreatorSerializer,
         pagination_class=paginators.CreatorPagination,
-        permission_classes=user_permissions.IsAuthenticated,
+        permission_classes=[user_permissions.IsAuthenticated],
         detail=False
     )
     def my(self, request, *args, **kwargs):
