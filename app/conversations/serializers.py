@@ -52,15 +52,10 @@ class GroupRecordingSerializer(serializers.ModelSerializer):
 
 
 class SuggestedTopicSerializer(serializers.ModelSerializer):
-    topic = serializers.CharField(source="name")
-
     class Meta:
         model = models.SuggestedTopic
-        fields = ("topic", "suggested_by", "is_approved", "type")
-        extra_kwargs = {
-            "suggested_by": {"required": False},
-            "is_approved": {"required": False}
-        }
+        fields = ("id", "name", "category")
+        read_only_fields = ["name", "category"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
