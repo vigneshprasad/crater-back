@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     "rest_auth",
     "django_cleanup.apps.CleanupConfig",
     "drf_yasg",
+    "drf_spectacular",
     "timezone_field",
     "phonenumber_field",
     "corsheaders",
@@ -193,7 +194,8 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DATETIME_FORMAT": DEFAULT_DATETIME_FORMAT,
-    "COERCE_DECIMAL_TO_STRING": False
+    "COERCE_DECIMAL_TO_STRING": False,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 JWT_AUTH = {
@@ -364,19 +366,6 @@ REST_AUTH_SERIALIZERS = {
 }
 REST_AUTH_REGISTER_SERIALIZERS = {
     "REGISTER_SERIALIZER": "users.serializers.RegisterSerializer"
-}
-
-SWAGGER_SETTINGS = {
-    "USE_SESSION_AUTH": False,
-    "SECURITY_DEFINITIONS": {
-        "api_key": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        }
-    },
-    "DOC_EXPANSION": "none",
-    "TAGS_SORTER": "alpha"
 }
 
 OLD_PASSWORD_FIELD_ENABLED = True
@@ -585,3 +574,28 @@ if ENVIRONMENT != "local":
         "level": "DEBUG",
         "propagate": True,
     }
+
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Crater.club APIs",
+    "DESCRIPTION": "APIs for Crater.club",
+    "VERSION": "v1",
+    "SERVE_INCLUDE_SCHEMA": True,
+    "SCHEMA_PATH_PREFIX": r"/v[0-9]/(?P<app>[^/]+)",
+    # "SCHEMA_PATH_PREFIX": r"/v[0-9]",
+    "COMPONENT_SPLIT_REQUEST": True,
+    "ENFORCE_NON_BLANK_FIELDS": True,
+    "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "displayOperationId": True,
+        "defaultModelRendering": "example",
+        "displayRequestDuration": True,
+        "filter": True,
+        "syntaxHighlight": {
+            "activate": True,
+            "theme": "obsidian"
+        },
+        "persistAuthorization": True,
+    },
+}
