@@ -825,3 +825,13 @@ class CategorySlugViewSet(
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all()
     lookup_field = "slug"
+
+
+class SuggestedTopicViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = serializers.SuggestedTopicSerializer
+    queryset = models.SuggestedTopic.objects.all()
+    filterset_fields = ["category"]
