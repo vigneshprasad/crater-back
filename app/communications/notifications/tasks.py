@@ -32,7 +32,7 @@ def send_groups_going_live_notifications(notification_name, groups=None):
         start__gte=now,
         start__lt=end_time,
         is_published=True,
-        privacy=conversation_constants.GROUP_PRIVACY_PUBLIC
+        privacy=conversation_constants.GROUP_PRIVACY_PUBLIC_ENUM
     ).annotate(
         attendees_count=Count("attendees")
     ).order_by("-attendees_count")
