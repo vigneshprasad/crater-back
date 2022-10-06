@@ -26,20 +26,25 @@ class SuggestedTopic(base_model.BaseModel):
     GROUP_TYPE_CHOICES = (
         (constants.GROUP_TYPE_GENERIC_ENUM, constants.GROUP_TYPE_GENERIC),
         (constants.GROUP_TYPE_AMA_ENUM, constants.GROUP_TYPE_AMA),
-        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR_ENUM),
+        (constants.GROUP_TYPE_WEBINAR_ENUM, constants.GROUP_TYPE_WEBINAR),
     )
 
     type = models.PositiveIntegerField(
-        default=constants.GROUP_TYPE_GENERIC_ENUM,
+        default=constants.GROUP_TYPE_WEBINAR_ENUM,
         choices=GROUP_TYPE_CHOICES,
     )
     name = models.CharField(max_length=255)
-    suggested_by = models.ForeignKey(
-        get_user_model(),
-        related_name="suggested_topics",
-        on_delete=models.CASCADE
+    category = models.ForeignKey(
+        "conversations.Category",
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="suggested_topic"
     )
-    is_approved = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    order = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -47,7 +52,7 @@ class SuggestedTopic(base_model.BaseModel):
         verbose_name_plural = _("Suggested Topics")
 
     def __str__(self):
-        return "{}-{}".format(self.suggested_by, self.name)
+        return "{}-{}".format(self.category, self.name)
 
 
 class Topic(base_model.BaseModel):

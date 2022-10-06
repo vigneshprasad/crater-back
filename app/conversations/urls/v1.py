@@ -21,6 +21,7 @@ router.register("conversations/categories/s", views.CategorySlugViewSet, base_na
 router.register("conversations/categories", views.CategoryViewSet, base_name="conversations_categories")
 router.register("conversations/chatreactions", views.ChatReactionViewSet, base_name="chat_reactions")
 router.register("conversations/followed", views.StreamsFollowedViewSet, base_name="followed_streams")
+router.register("conversations/suggested_topics", views.SuggestedTopicViewSet, base_name="suggested_topics")
 
 # Series APIs.
 router.register("conversations/series/requests", views.SeriesRequestViewSet, base_name="series_requests")
