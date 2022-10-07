@@ -105,6 +105,10 @@ def send_stream_reminder_messages_for_group(
         group,
         account=attendee_account
     )
+
+    if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM:
+        continue
+
     users_to_exclude = attendees
     logging.info("Sent reminder to attendees: {}".format(group.id))
 
