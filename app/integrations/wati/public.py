@@ -108,6 +108,10 @@ def send_stream_reminder_messages_for_group(
     users_to_exclude = attendees
     logging.info("Sent reminder to attendees: {}".format(group.id))
 
+    # For private streams skip sending reminder to followers
+    if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM:
+        return
+
     host = group.host
     creator = creator_public.get_creator_for_user(host)
     host_followers = []
