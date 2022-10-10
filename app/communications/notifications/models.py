@@ -85,4 +85,4 @@ class NotificationLog(base_model.BaseModel):
     )
 
     def __str__(self):
-        return "{} - {}".format(self.user, not self)
+        return "{} - {}".format(self.user, self.notification)

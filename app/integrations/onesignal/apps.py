@@ -3,10 +3,11 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class OnesignalConfig(AppConfig):
+
     name = "integrations.onesignal"
     label = "integrations.onesignal"
     icon_name = ""
-    verbose_name = _("OneSignal Integrations")
+    verbose_name = _("One Signal")
 
     def ready(self):
         import integrations.onesignal.receivers
