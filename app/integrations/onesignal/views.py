@@ -5,18 +5,19 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from integrations.onesignal import models, serializers
-from users import permissions
+from users import permissions as user_permissions
 
 
 class OneSignalDeviceViewSet(GenericViewSet):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    permission_classes = [user_permissions.IsAuthenticatedOrReadOnly]
     queryset = models.OneSignalDevice.objects.all()
     serializer_class = serializers.OneSignalDeviceSerializer
 
     @action(
         methods=["POST"],
         detail=False,
-        permission_classes=[permissions.AllowAny]
+        permission_classes=[user_permissions.AllowAny]
     )
     def register(self, request):
         """Register a new device on backend."""

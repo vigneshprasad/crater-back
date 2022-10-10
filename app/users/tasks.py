@@ -13,9 +13,9 @@ from django.utils import timezone
 
 from integrations.dyte import models as dyte_models
 from users import constants, models
-from utils.one_signal_service import os_service
 from utils.transcoder_service import transcoder_service
 from utils.twilio_service import twilio_service
+from integrations.onesignal.services import one_signal_service
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def send_twilio_message(phone_number, message):
 @shared_task(bind=True)
 def send_unique_push(self, player_id, contents, data):
     logging.info(f'Send push {player_id}, {contents}, {data}')
-    os_service.send_push([player_id], contents, data)
+    one_signal_service.send_push([player_id], contents, data)
 
 
 @task

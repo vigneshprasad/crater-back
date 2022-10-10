@@ -5,7 +5,7 @@ from celery.task import task
 from django.contrib.auth import get_user_model
 
 from communications.notifications import constants, models
-from utils.one_signal_service import os_service
+from integrations.onesignal.services import one_signal_service
 
 LOGGER = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ def send_notification(user_pk, notification_id, notification_json, data=None):
     notification_json["data"] = data
 
     for device in devices:
-        os_service.send_notification(
+        one_signal_service.send_notification(
             device.os_id,
             notification_json=notification_json
         )
@@ -133,7 +133,7 @@ def send_bulk_notifications(user_pks, notification_id, notification_json, data=N
         max_count = count + constants.MAX_PLAYER_IDS_FOR_BULK_NOTIFICATIONS
         # Sending only 2000 os_ids in one go because of max player ids limit.
         os_ids = user_os_ids[count: max_count]
-        os_service.send_bulk_notification(
+        one_signal_service.send_bulk_notification(
             os_ids,
             notification_json=notification_json
         )
