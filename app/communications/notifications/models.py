@@ -3,7 +3,6 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-
 from base import models as base_model
 from communications.notifications import constants
 
@@ -85,4 +84,4 @@ class NotificationLog(base_model.BaseModel):
     )
 
     def __str__(self):
-        return "{} - {}".format(self.user, not self)
+        return "{} - {}".format(self.user, self.notification)
