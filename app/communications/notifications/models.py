@@ -3,7 +3,6 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-
 from base import models as base_model
 from communications.notifications import constants
 
