@@ -131,7 +131,7 @@ def update_user_referrals_status():
         participant__in=user_ids_with_pending_referrals,
         last_online_at__isnull=False,
         dyte_meeting__group__start__gte=today,
-        dyte_meeting__group__is_closed=True,
+        dyte_meeting__group__closed=True,
     )
 
     updated_users = []
