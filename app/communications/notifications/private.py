@@ -1,9 +1,13 @@
+import copy
+import logging
+
 from celery.task import task
 from django.contrib.auth import get_user_model
 
-from communications.notifications import models
-from communications.notifications import constants
+from communications.notifications import constants, models
 from utils.one_signal_service import os_service
+
+LOGGER = logging.getLogger(__name__)
 
 
 def create_notification_json_from_notification(notification):
@@ -22,44 +26,49 @@ def create_notification_json_from_notification(notification):
     }
 
 
-def create_notification_logs(users, notification, notification_json, data=None):
+def create_notification_logs(user_pks, notification_id, notification_json, data=None):
     """Creates notification log for a notification and json sent.
 
     Args:
-        users(Queryset/List): Users the notification was sent to.
-        notification(Notification): Notification object that was used.
+        user_pks(Queryset/List): ID's of users the notification was sent to.
+        notification_id(int): ID of notification object that was used.
         notification_json(JSON): Actual notification json sent to the client.
         data(JSON): Addition data sent to the client.
 
     """
-    for user in users:
-        create_notification_log(user, notification, notification_json, data=data)
+    for user_pk in user_pks:
+        create_notification_log(user_pk, notification_id, notification_json, data=data)
 
 
-def create_notification_log(user, notification, notification_json, data=None):
+def create_notification_log(user_pk, notification_id, notification_json, data=None):
     """Creates notification log for a notification and json sent.
 
     Args:
-        user(User): User the notification was sent to.
-        notification(Notification): Notification object that was used.
+        user_pk(str): ID of user the notification was sent to.
+        notification_id(int): ID of notification object that was used.
         notification_json(JSON): Actual notification json sent to the client.
         data(JSON): Addition data sent to the client.
 
     """
-    return models.NotificationLogs.objects.create(
-        user=user,
-        notification=notification,
-        notification_json=notification_json,
-        data=data
-    )
+    try:
+        return models.NotificationLog.objects.create(
+            user_id=user_pk,
+            notification_id=notification_id,
+            notification_json=notification_json,
+            data=data
+        )
+    except Exception as e:
+        LOGGER.error(str(e))
+        return False
 
 
 @task()
-def send_notification(user_pk, notification_json, data=None):
+def send_notification(user_pk, notification_id, notification_json, data=None):
     """Sends notification to a user.
 
     Args:
         user_pk(str): User ID of the user notification should be sent to.
+        notification_id(int): ID of notification object in our backend.
         notification_json(JSON): Actual notification json sent to the client.
         data(JSON): Extra data sent to the client.
 
@@ -67,8 +76,12 @@ def send_notification(user_pk, notification_json, data=None):
         notification_json(JSON): Final JSON that was sent to the client.
 
     """
+    initial_notification_json = copy.deepcopy(notification_json)
     user = get_user_model().objects.get(pk=user_pk)
-    devices = user.devices.filter(is_active=True)
+    devices = user.get_devices()
+    if not devices:
+        return False
+
     notification_json["data"] = data
 
     for device in devices:
@@ -77,15 +90,24 @@ def send_notification(user_pk, notification_json, data=None):
             notification_json=notification_json
         )
 
+    # Create notification log for the notification sent.
+    create_notification_log(
+        user_pk,
+        notification_id=notification_id,
+        notification_json=initial_notification_json,
+        data=data
+    )
+
     return True
 
 
 @task()
-def send_bulk_notifications(user_pks, notification_json, data=None):
+def send_bulk_notifications(user_pks, notification_id, notification_json, data=None):
     """Sends notification to list of users.
 
     Args:
         user_pks(list): List of User IDs of the users notification should be sent to.
+        notification_id(int): ID of notification object in our backend.
         notification_json(JSON): Actual notification json sent to the client.
         data(JSON): Extra data sent to the client.
 
@@ -93,12 +115,14 @@ def send_bulk_notifications(user_pks, notification_json, data=None):
         notification_json(JSON): Final JSON that was sent to the client.
 
     """
+    initial_notification_json = copy.deepcopy(notification_json)
     users = get_user_model().objects.filter(pk__in=user_pks)
-    notification_json["data"] = data
+    if data:
+        notification_json["data"] = data
 
     user_os_ids = []
     for user in users:
-        devices = user.devices.filter(is_active=True)
+        devices = user.get_devices()
         for device in devices:
             user_os_ids.append(device.os_id)
 
@@ -115,4 +139,11 @@ def send_bulk_notifications(user_pks, notification_json, data=None):
         )
         count = max_count
 
+    # Create notification log for the notifications sent.
+    create_notification_logs(
+        user_pks,
+        notification_id=notification_id,
+        notification_json=initial_notification_json,
+        data=data
+    )
     return True

@@ -1,105 +1,106 @@
 import datetime
 import logging
 
-from celery.schedules import crontab
-from celery.task import periodic_task
+from celery import shared_task
+from django.db.models import Count
+from django.utils import timezone
 
-from communications.notifications import constants
-from communications.notifications import models
-from communications.notifications import private
-from conversations import models as conversations_models
-
-
-@periodic_task(run_every=crontab(minute="*/10"))
-def send_conversation_reminders_notifications(groups=None):
-    """Sends notification reminders for people 10 minutes before their
-        conversations.
-
-    Args:
-        groups(conversations.Group): Queryset of groups you want to
-            send this reminder to. Added for testing.
-
-    """
-    now_time = datetime.datetime.now()
-    start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=10))
-
-    groups = conversations_models.Group.objects.filter(
-        start__gt=start_datetime,
-        start__lte=end_datetime,
-    ) if not groups else groups
-
-    notification = models.Notification.objects.filter(name=constants.GROUP_REMINDER_NOTIFICATION).first()
-
-    if not notification:
-        logging.error("Notification not present: {}".format(constants.GROUP_REMINDER_NOTIFICATION))
-        return
-
-    logging.info("Sending notification reminders for groups between {} - {}. Groups count: {}".format(
-            start_datetime, end_datetime, groups.count()
-    ))
-
-    exclude_list = []
-    for group in groups:
-        for speaker in group.speakers.all():
-            if speaker in exclude_list:
-                continue
-            exclude_list.append(speaker)
-
-            notification_json = private.create_notification_json_from_notification(notification)
-            notification_json["contents"]["en"] = notification_json["contents"]["en"].format(time=group.get_display_start_time(), topic=group.topic.name)
-            data = {
-                "obj_type": constants.OBJECT_TYPE_CONVERSATION,
-                "group_id": group.id,
-                "auto_connect": False
-            }
-            private.send_notification.delay(speaker.pk, notification_json, data=data)
-            private.create_notification_log(speaker, notification, notification_json, data=data)
+from communications.notifications import constants, models, private
+from conversations import constants as conversation_constants, models as conversations_models
+from users import constants as user_constants, models as user_models
 
 
-@periodic_task(run_every=crontab(minute="*/1"))
-def send_conversation_live_reminder_notifications(groups=None):
-    """Sends notification for people as soon as their meeting is live.
+@shared_task()
+def send_groups_going_live_notifications(notification_name, groups=None):
+    """Sends notification for groups going live every hour.
 
     Args:
-        groups(conversations.Group): Queryset of groups you want to
-            send this reminder to. Added for testing.
+        notification_name(str): Name of notification we are sending to the
+            users.
+        groups(queryset/list): Group we want to send notification
+            to. Only for testing purposes.
 
     """
-    now_time = datetime.datetime.now()
-    start_datetime = now_time
+    if not notification_name:
+        return False
 
-    groups = conversations_models.Group.objects.filter(
-        start__year=start_datetime.year,
-        start__month=start_datetime.month,
-        start__day=start_datetime.day,
-        start__hour=start_datetime.hour,
-        start__minute=start_datetime.minute,
-    ) if not groups else groups
+    now = timezone.now()
+    end_time = now + datetime.timedelta(hours=2)
 
-    notification = models.Notification.objects.filter(name=constants.GROUP_LIVE_NOTIFICATION).first()
+    groups_going_live = conversations_models.Group.objects.filter(
+        type=conversation_constants.GROUP_TYPE_WEBINAR_ENUM,
+        start__gte=now,
+        start__lt=end_time,
+        is_published=True,
+        privacy=conversation_constants.GROUP_PRIVACY_PUBLIC_ENUM
+    ).annotate(
+        attendees_count=Count("attendees")
+    ).order_by("-attendees_count")
 
-    if not notification:
-        logging.error("Notification not present: {}".format(constants.GROUP_LIVE_NOTIFICATION))
-        return
+    group_going_live_highest_rsvp = groups_going_live.first()
+    if not group_going_live_highest_rsvp:
+        return False
 
-    logging.info("Sending notification reminders for groups going live at {}. Groups count: {}".format(
-            start_datetime, groups.count()
-    ))
+    stream_going_live_notification = None
+    stream_going_live_notification_json = None
+    data = None
 
-    exclude_list = []
-    for group in groups:
-        for speaker in group.speakers.all():
-            if speaker in exclude_list:
-                continue
+    if notification_name == constants.STREAM_GOING_LIVE_FIRST_NOTIFICATION:
+        stream_going_live_notification = models.Notification.objects.filter(
+            name=constants.STREAM_GOING_LIVE_FIRST_NOTIFICATION
+        ).first()
+        stream_going_live_notification_json = private.create_notification_json_from_notification(
+            stream_going_live_notification
+        )
+        stream_going_live_notification_json["contents"]["en"] = stream_going_live_notification_json["contents"]["en"].format(
+            topic_name=group_going_live_highest_rsvp.topic.name.title()
+        )
+        data = {
+            "obj_type": constants.OBJECT_TYPE_STREAM,
+            "group_id": group_going_live_highest_rsvp.id,
+            "auto_connect": True
+        }
 
-            exclude_list.append(speaker)
-
-            notification_json = private.create_notification_json_from_notification(notification)
+    elif notification_name == constants.STREAM_GOING_LIVE_SECOND_NOTIFICATION:
+        stream_going_live_notification = models.Notification.objects.filter(
+            name=constants.STREAM_GOING_LIVE_SECOND_NOTIFICATION
+        ).first()
+        stream_going_live_notification_json = private.create_notification_json_from_notification(
+            stream_going_live_notification
+        )
+        host = group_going_live_highest_rsvp.host
+        stream_going_live_notification_json["contents"]["en"] = stream_going_live_notification_json["contents"]["en"].format(
+            creator_name=host.display_name
+        )
+        creator = host.creator if hasattr(host, "creator") else None
+        if creator:
             data = {
-                "obj_type": constants.OBJECT_TYPE_CONVERSATION,
-                "group_id": group.id,
+                "obj_type": constants.OBJECT_TYPE_CREATOR,
+                "creator_id": creator.id,
                 "auto_connect": True
             }
-            private.send_notification.delay(speaker.pk, notification_json, data=data)
-            private.create_notification_log(speaker, notification, notification_json, data=data)
+
+    elif notification_name == constants.STREAM_GOING_LIVE_THIRD_NOTIFICATION:
+        stream_going_live_notification = models.Notification.objects.filter(
+            name=constants.STREAM_GOING_LIVE_THIRD_NOTIFICATION
+        ).first()
+        stream_going_live_notification_json = private.create_notification_json_from_notification(
+            stream_going_live_notification
+        )
+
+    if not stream_going_live_notification:
+        logging.info("Sending notification for group going live during {} - {}. Group: {}".format(
+                now, end_time, group_going_live_highest_rsvp
+        ))
+        return False
+
+    # Sending to all users.
+    users = user_models.User.objects.filter(groups__name=user_constants.CRATER_CLUB_GROUP)
+    user_pks = users.values_list("pk", flat=True)
+
+    private.send_bulk_notifications(
+        user_pks=user_pks,
+        notification_id=stream_going_live_notification.id,
+        notification_json=stream_going_live_notification_json,
+        data=data
+    )

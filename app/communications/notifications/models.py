@@ -15,11 +15,23 @@ class Notification(base_model.BaseModel):
         (constants.OBJECT_TYPE_UPCOMING_MEETING, constants.OBJECT_TYPE_UPCOMING_MEETING.title()),
         (constants.OBJECT_TYPE_CONVERSATION, constants.OBJECT_TYPE_CONVERSATION.title()),
         (constants.OBJECT_TYPE_CREATE_CONVERSATION, constants.OBJECT_TYPE_CREATE_CONVERSATION.title()),
+        (constants.OBJECT_TYPE_STREAM, constants.OBJECT_TYPE_STREAM.title()),
+        (constants.OBJECT_TYPE_CREATOR, constants.OBJECT_TYPE_CREATOR.title())
     )
 
     name = models.CharField(max_length=64)
-    headings = models.CharField(max_length=64, verbose_name=_("Notification Heading"))
-    contents = models.CharField(max_length=256, verbose_name=_("Notification Message"))
+    # Headings max_length as specified in One signal.
+    headings = models.CharField(
+        max_length=65,
+        verbose_name=_("Notification Heading"),
+        help_text="65 for Android, 178 (Heading + content) for iOS."
+    )
+    # Content max_length as specified in One signal.
+    contents = models.CharField(
+        max_length=240,
+        verbose_name=_("Notification Message"),
+        help_text="240 for Android, 178 (Heading + content) for iOS."
+    )
     small_icon = models.CharField(
         max_length=16,
         verbose_name=_("Small Notification Icon"),
@@ -48,9 +60,12 @@ class Notification(base_model.BaseModel):
     )
     is_active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
 
-class NotificationLogs(base_model.BaseModel):
-    # TODO(Nishant): Add is_read, read_time fields.
+
+class NotificationLog(base_model.BaseModel):
+
     user = models.ForeignKey(
         get_user_model(),
         related_name='app_notifications',
@@ -68,3 +83,6 @@ class NotificationLogs(base_model.BaseModel):
         null=True,
         blank=True
     )
+
+    def __str__(self):
+        return "{} - {}".format(self.user, not self)

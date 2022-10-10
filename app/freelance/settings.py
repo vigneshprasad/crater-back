@@ -387,6 +387,7 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
 
 
 # ------------ ONE SIGNAL -------------------- #
+ONESIGNAL_BASE_API_URL = "https://onesignal.com"
 ONESIGNAL_APP_ID = os.getenv("ONESIGNAL_APP_ID", "07ed4c08-3698-4fdd-80c5-2de973b851ef")
 ONESIGNAL_APIKEY = os.getenv("ONESIGNAL_APIKEY", "MThiOWYzOWYtOThkMC00MGI1LWJiMzMtM2QwNDMwYmE1Mzlh")
 

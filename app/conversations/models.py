@@ -275,14 +275,16 @@ class Group(base_model.BaseModel):
         max_digits=10,
         decimal_places=2,
         null=True,
-        blank=True
+        blank=True,
+        verbose_name="Minutes watched"
     )
     # Total minutes spent by host on the stream.
     total_minutes_spent_by_host = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
-        blank=True
+        blank=True,
+        verbose_name="Minutes streamed"
     )
     enable_stream_on_start = models.BooleanField(default=False)
 
@@ -703,7 +705,7 @@ class GroupRecording(base_model.BaseModel):
             a stream.
 
         Args:
-            group_recording_id(int): Group recording ID the we are
+            group_recording_id(int): Group recording ID that we are
                 uploading recording for.
 
         """

@@ -7,8 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from conversations import constants as conversation_constants, models as conversation_models, \
+from conversations import (
+    constants as conversation_constants,
+    models as conversation_models,
     public as conversation_public
+)
 from integrations.dyte import constants, models, private, public, serializers, tasks
 from users import permissions as user_permissions
 
@@ -36,7 +39,6 @@ class DyteMeetingViewSet(
                 or if the host ends meeting for all.
 
         """
-
         data = request.data
         dyte_meeting_details = data.get("meeting")
 
@@ -44,9 +46,13 @@ class DyteMeetingViewSet(
         dyte_meeting = private.get_dyte_meeting_for_dyte_meeting_id(
             dyte_meeting_id=dyte_meeting_id
         )
+        # If the dyte meeting is not found, return a not acceptable response
+        if not dyte_meeting:
+            LOGGER.error("Dyte meeting ID doesn't exist: {}".format(dyte_meeting_id))
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
         # If the dyte meeting is not for a group return.
-        group = dyte_meeting.group if dyte_meeting else None
+        group = dyte_meeting.group
         if not group:
             return Response(status=status.HTTP_200_OK)
 
@@ -102,13 +108,13 @@ class DyteParticipantViewSet(
         # Determine the preset based on whether the stream is
         # happening via OBS.
         is_obs = group.is_obs
-        host_preset = constants.DEFAULT_WEBINAR_HOST_PRESET_NAME \
-            if not is_obs else constants.WEBINAR_OBS_HOST_PRESET_NAME
-        participant_preset = constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME \
-            if not is_obs else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME
+        host_preset = (constants.DEFAULT_WEBINAR_HOST_PRESET_NAME if not is_obs
+                       else constants.WEBINAR_OBS_HOST_PRESET_NAME)
+        participant_preset = (constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME if not is_obs
+                              else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME)
 
-        if group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and not\
-                conversation_public.check_if_attendee_in_group:
+        if group.privacy == (conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and
+                             not conversation_public.check_if_attendee_in_group):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if (group.host_id == user.pk) or (user in group.speakers.all()):
@@ -168,7 +174,8 @@ class DyteParticipantViewSet(
             dyte_meeting_id=dyte_meeting_id
         )
         if not participant:
-            return Response(status=status.HTTP_200_OK)
+            LOGGER.error("Participant not in Dyte meeting: {}".format(user_pk))
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
         # If the group is not present or the group doesn't
         # have a host return 200. If the group is
@@ -190,7 +197,6 @@ class DyteParticipantViewSet(
 
         # Mark the participant online.
         participant.mark_online()
-
         return Response(status=status.HTTP_200_OK)
 
     @action(
@@ -219,7 +225,8 @@ class DyteParticipantViewSet(
             dyte_meeting_id=dyte_meeting_id
         )
         if not participant:
-            return Response(status=status.HTTP_200_OK)
+            LOGGER.error("Participant not in Dyte meeting: {}".format(user_pk))
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
         # If the group is not present or the group doesn't
         # have a host return 200.
@@ -288,6 +295,7 @@ class DyteMeetingRecordingViewSet(
 
 
 class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
+
     permission_classes = [user_permissions.IsAuthenticated]
     queryset = models.LiveStream.objects.all()
     serializer_class = serializers.LiveStreamSerializer
@@ -298,7 +306,6 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
     @action(

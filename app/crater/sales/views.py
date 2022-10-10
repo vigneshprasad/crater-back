@@ -99,7 +99,6 @@ class RewardSaleViewSet(
         detail=True
     )
     def stream(self, request, pk, *args, **kwargs):
-        
         reward = reward_models.Reward.objects.filter(
             type__name=reward_constants.REWARD_NAME_PRIVATE_STREAM,
             object_id=pk,
@@ -113,7 +112,7 @@ class RewardSaleViewSet(
             reward_sale_instance = models.RewardSale.objects.get(reward=reward, is_active=True, is_closed=False)
         except models.RewardSale.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = self.get_serializer(reward_sale_instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

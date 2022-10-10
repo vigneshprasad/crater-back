@@ -1,8 +1,13 @@
+import logging
+
 import requests
 from django.conf import settings
 
+LOGGER = logging.getLogger(__name__)
+
 
 class OneSignalService:
+
     API_BASE_URL = "https://onesignal.com"
     API_URL = {
         "players": "/api/v1/players/",
@@ -63,11 +68,15 @@ class OneSignalService:
         notification_json["app_id"] = self.app_id
         notification_json["include_player_ids"] = [player_id]
 
-        response = requests.post(
-            self.get_api_endpoint("notifications"),
-            json=notification_json,
-            headers=self.get_headers()
-        ).json()
+        try:
+            response = requests.post(
+                self.get_api_endpoint("notifications"),
+                json=notification_json,
+                headers=self.get_headers()
+            ).json()
+        except Exception as e:
+            LOGGER.exception(str(e))
+            return None
 
         return response
 
