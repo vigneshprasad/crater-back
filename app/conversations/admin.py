@@ -637,5 +637,5 @@ class GroupUpvoteAdmin(admin.ModelAdmin):
         "user",
         "upvote",
     )
-    raw_id_fields = ("question", "user",)
+    raw_id_fields = ("group", "user",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
