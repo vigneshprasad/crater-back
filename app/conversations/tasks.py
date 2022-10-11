@@ -435,44 +435,48 @@ def streams_action_message():
             frontend from there.
 
     """
+    now = timezone.now()
     live_streams = models.Group.objects.filter(is_live=True, closed=False)
     if not live_streams:
         return
 
+    # Get queryset of all future streams and order then by start
+    # and highest RSVPs.
+    future_streams = models.Group.objects.filter(
+        start__gte=now + datetime.timedelta(minutes=30),
+        is_published=True,
+        privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM
+    ).annotate(
+        rsvps=Count("attendees")
+    ).order_by("start", "-rsvps")
+
     for stream in live_streams:
         action_time = stream.start + datetime.timedelta(minutes=25)
         end_time = stream.start + datetime.timedelta(minutes=28)
-        now = timezone.now()
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        categories = stream.categories.all()
 
         # Check if the action time is valid.
         if not action_time <= now < end_time:
             continue
 
-        future_streams = models.Group.objects.filter(
-            start=stream.start + datetime.timedelta(minutes=60),
-            is_published=True,
-            privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
-            categories__in=stream.categories.all(),
-        )
-
-        if not future_streams:
-            future_streams = models.Group.objects.filter(
-                start__gte=stream.start,
-                start__lte=stream.start + datetime.timedelta(hours=24),
-                is_published=True,
-                privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
-                categories__in=stream.categories.all(),
-            )
-
-        if not future_streams:
-            continue
+        # Get streams with the same categories.
+        # 1. Get streams that are happening today with the same
+        # category. If not found move to 2.
+        # 2. Get streams that are happening tomorrow
+        # with the same category. If not found move to 3.
+        # 3. Get the latest upcoming stream with the highest RSVPs.
+        similar_stream = future_streams.filter(
+            start__date=today,
+            categories__in=categories,
+        ).order_by("-rsvps").first() or future_streams.filter(
+            start__date=tomorrow,
+            categories__in=categories
+        ).order_by("-rsvps").first() or future_streams.first()
 
         admin_uid = firebase_private.get_or_register_admin()
-        future_stream = future_streams.annotate(
-            rsvps=Count("requests")
-        ).order_by("-rsvps").first()
-
-        stream_data = serializers.GroupSerializer(future_stream).data
+        stream_data = serializers.GroupSerializer(similar_stream).data
         data = {
             "message": constants.CHAT_ACTION_STREAMS_MESSAGE,
             "type": int(constants.CHAT_MESSAGE_TYPE_ACTION_ENUM),
@@ -481,7 +485,6 @@ def streams_action_message():
                 "stream": json.loads(JSONRenderer().render(stream_data).decode("utf8"))
             }
         }
-
         firebase_service.send_message(
             data=data,
             group_id=stream.id,
