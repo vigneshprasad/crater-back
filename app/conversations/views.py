@@ -684,14 +684,7 @@ class GroupWebinarViewSet(
         except models.Group.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if request.user in group.get_host_and_speakers():
-            group_upvote_not_allowed = exceptions.GroupUpvoteNotAllowed()
-            return Response(
-                group_upvote_not_allowed.get_error_body(),
-                status=group_upvote_not_allowed.status_code
-            )
-
-        # Create question upvote if not present and set upvote to true or false
+        # Create stream upvote if not present and set upvote to True or False.
         group_upvote = private.create_or_update_group_upvote(group=group, user=request.user)
         serializer = self.get_serializer(group_upvote)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
