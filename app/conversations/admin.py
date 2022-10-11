@@ -627,3 +627,15 @@ class QuestionUpvoteAdmin(admin.ModelAdmin):
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
     raw_id_fields = ("question", "user",)
+
+
+@admin.register(models.GroupUpvote)
+class GroupUpvoteAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "group",
+        "user",
+        "upvote",
+    )
+    raw_id_fields = ("question", "user",)
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

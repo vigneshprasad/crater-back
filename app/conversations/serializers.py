@@ -327,6 +327,9 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     # rtmp_detail = GroupRTMPSerializer(source="rtmp", read_only=True)
     rtmp_link = serializers.CharField(required=False, write_only=True)
     series = serializers.SerializerMethodField(read_only=True, allow_null=True)
+    # Upvote for the group.
+    upvotes = serializers.SerializerMethodField(read_only=True)
+    upvote = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -360,6 +363,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             # "rtmp_detail",
             "rtmp_link",
             "series",
+            "upvotes",
+            "upvote"
         )
 
         extra_kwargs = {
@@ -417,6 +422,22 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         if not series:
             return None
         return series.id
+
+    @staticmethod
+    def get_upvotes(group):
+        return group.upvotes.filter(upvote=True).count()
+
+    def get_upvote(self, group):
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+
+        group_upvote = private.get_group_upvote(group=group, user=user)
+        return group_upvote.upvote if group_upvote else False
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -763,6 +784,7 @@ class StreamWithRecordingListSerializer(StreamListSerializer):
         )
 
 
+# Group question serializers.
 class GroupQuestionUserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -774,6 +796,7 @@ class GroupQuestionUserSerializer(serializers.ModelSerializer):
 
 
 class GroupQuestionListSerializer(serializers.ModelSerializer):
+
     sender_detail = GroupQuestionUserSerializer(source="sender", read_only=True)
     upvotes = serializers.SerializerMethodField(read_only=True)
     upvote = serializers.SerializerMethodField(read_only=True)
@@ -816,6 +839,7 @@ class GroupQuestionListSerializer(serializers.ModelSerializer):
 
 
 class QuestionUpvoteSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = models.QuestionUpvote
         fields = (
@@ -825,3 +849,42 @@ class QuestionUpvoteSerializer(serializers.ModelSerializer):
             "upvote",
         )
         read_only_fields = ["user", "upvote"]
+
+
+# Group Upvote serializers.
+class GroupUpvoteUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "pk",
+            "name",
+        )
+
+
+class GroupUpvoteListSerializer(serializers.ModelSerializer):
+
+    user_detail = GroupUpvoteUserSerializer(source="user", read_only=True)
+
+    class Meta:
+        model = models.GroupQuestion
+        fields = (
+            "id",
+            "group",
+            "user",
+            "user_detail",
+            "created_at",
+        )
+        read_only_fields = ["user"]
+
+
+class GroupUpvoteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.GroupUpvote
+        fields = (
+            "id",
+            "group",
+            "user",
+            "upvote",
+        )
