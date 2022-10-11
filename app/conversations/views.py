@@ -670,6 +670,25 @@ class GroupWebinarViewSet(
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @action(
+        methods=["POST"],
+        detail=True,
+        queryset=models.GroupUpvote.objects.all(),
+        serializer_class=serializers.GroupUpvoteSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def upvote(self, request, pk, *args, **kwargs):
+        """Upvote a group."""
+        try:
+            group = models.Group.objects.get(id=pk)
+        except models.Group.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        # Create stream upvote if not present and set upvote to True or False.
+        group_upvote = private.create_or_update_group_upvote(group=group, user=request.user)
+        serializer = self.get_serializer(group_upvote)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class StreamsFollowedViewSet(viewsets.GenericViewSet):
 
@@ -944,6 +963,19 @@ class GroupQuestionViewSet(
 
         serializer = self.get_serializer(question_upvote)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class GroupUpvoteViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+
+    serializer_class = serializers.GroupUpvoteListSerializer
+    queryset = models.GroupUpvote.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filterset_fields = ["group"]
 
 
 class CategorySlugViewSet(
