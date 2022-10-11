@@ -108,5 +108,5 @@ def check_if_attendee_in_group(user, group):
 
     if user in group.get_all_users():
         return True
-    
+
     return False
