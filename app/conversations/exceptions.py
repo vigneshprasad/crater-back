@@ -155,3 +155,16 @@ class SeriesAlreadyRSVPed(base_exceptions.BaseAPIException):
 
     def __str__(self):
         return "{}".format(self.message)
+
+
+class GroupUpvoteNotAllowed(base_exceptions.BaseAPIException):
+    """Exception raised when user has already RSVPed to the series."""
+
+    def __init__(self):
+        super().__init__(
+            message="Hosts can't upvote their own stream.",
+            error_code="groupUpvoteNotAllowed"
+        )
+
+    def __str__(self):
+        return "{}".format(self.message)

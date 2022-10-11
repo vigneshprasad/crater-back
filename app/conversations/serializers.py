@@ -436,7 +436,8 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         if not user or user.is_anonymous:
             return False
 
-        return private.get_group_upvote(group=group, user=user) or False
+        group_upvote = private.get_group_upvote(group=group, user=user)
+        return group_upvote.upvote if group_upvote else False
 
     def create(self, validated_data):
         request = self.context.get("request")
