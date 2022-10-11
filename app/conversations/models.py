@@ -945,9 +945,7 @@ class GroupQuestion(base_model.BaseModel):
 
 
 class QuestionUpvote(base_model.BaseModel):
-    """
-    Upvote for the group question.
-    """
+    """Upvote for the group question."""
     question = models.ForeignKey(
         GroupQuestion,
         related_name="question_upvotes",
@@ -966,3 +964,23 @@ class QuestionUpvote(base_model.BaseModel):
     def __str__(self):
         return f"{self.pk}-{self.user.__str__()}"
 
+
+class GroupUpvote(base_model.BaseModel):
+    """Upvote for a stream."""
+    group = models.ForeignKey(
+        Group,
+        related_name="upvotes",
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        related_name="user_stream_upvotes",
+        on_delete=models.CASCADE
+    )
+    upvote = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.group_id} - {self.user.__str__()}"

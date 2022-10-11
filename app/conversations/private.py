@@ -276,6 +276,49 @@ def create_or_update_question_upvote(question, user):
     return question_upvote
 
 
+def get_group_upvote(group, user):
+    """Returns a question upvote for a question and user.
+
+    Args:
+        group(Group): Group we are getting the upvote for.
+        user(User): User whose upvote we are getting.
+
+    """
+
+    try:
+        group_upvote = models.GroupUpvote.objects.get(
+            group=group,
+            user=user
+        )
+    except models.GroupUpvote.DoesNotExist:
+        return None
+
+    return group_upvote
+
+
+def create_or_update_group_upvote(group, user):
+    """Create or update group question upvote.
+
+    Args:
+        group(Group): Group to be upvoted
+        user(User): User who upvoted the group.
+
+    """
+    group_upvote, created = models.GroupUpvote.objects.get_or_create(
+        group=group,
+        user=user,
+        defaults={
+            "upvote": True
+        }
+    )
+
+    if not created:
+        group_upvote.upvote = not group_upvote.upvote
+        group_upvote.save()
+
+    return group_upvote
+
+
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
     return "".join(random.choice(chars) for _ in range(size))
 
