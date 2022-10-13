@@ -689,6 +689,24 @@ class GroupWebinarViewSet(
         serializer = self.get_serializer(group_upvote)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @action(
+        methods=["GET"],
+        detail=True,
+        queryset=models.GroupUpvote.objects.all(),
+        serializer_class=serializers.GroupUpvoteSummarySerializer,
+        permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    )
+    def upvote_summary(self, request, pk, *args, **kwargs):
+        """Return upvote summary for a group."""
+
+        try:
+            group = models.Group.objects.get(id=pk)
+        except models.Group.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(group)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class StreamsFollowedViewSet(viewsets.GenericViewSet):
 
