@@ -75,6 +75,33 @@ def send_whatsapp_reminder_for_streams_attendees_and_followers():
 
 
 @periodic_task(run_every=crontab(minute="*/5"))
+def send_whatsapp_reminder_for_streams_h2skill():
+    """Send whatsapp reminder to all h2_skill attendees
+        and followers for streams starting in 5 minutes.
+
+    Note:
+        Sends reminder to h2_skill attendees and followers of streams
+            which are starting 5 minutes from now.
+
+    """
+    now_time = datetime.datetime.now()
+    start_datetime = now_time
+    end_datetime = (now_time + datetime.timedelta(minutes=5))
+
+    # Send it for all group, except for stream.
+    streams = models.Group.objects.filter(
+        start__gt=start_datetime,
+        start__lte=end_datetime,
+        is_published=True,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+
+    for stream in streams:
+        # Send reminders for followers and attendees for a stream.
+        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(stream)
+
+
+@periodic_task(run_every=crontab(minute="*/5"))
 def send_in_app_reminder_for_stream_attendees_and_followers(groups=None):
     """Send in app notification reminder to all attendees/followers
         for a stream.

@@ -17,3 +17,7 @@ TEST_PHONE_NUMBERS = [
 # Adding it here because the settings one is applicable all across the
 # app. Only want debug False for crater auth.
 DEBUG = False
+
+
+HACK_2_SKILL_GROUP = "hack2skill-user"
+HACK_2_SKILL_SOURCE = "H2Skill"

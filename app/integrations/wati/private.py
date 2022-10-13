@@ -1,7 +1,9 @@
 import logging
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 
+from crater.auth import constants as auth_constants
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +30,11 @@ def can_send_whatsapp_for_user(user):
         return True
 
     if not user.profile.opted_in_for_whatsapp:
+        return False
+
+    # Don't send messages to h2_skill users from WATI.
+    hack2skill_group, _ = Group.objects.get_or_create(name=auth_constants.HACK_2_SKILL_GROUP)
+    if hack2skill_group in user.group.all():
         return False
 
     return True

@@ -5,7 +5,9 @@ import urllib.parse
 from datetime import datetime
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth import models as django_auth_models
 
+from crater.auth import constants as auth_constants
 from conversations import public as conversation_public
 from crater.creator import public as creator_public
 from integrations.freshchat import constants
@@ -341,10 +343,14 @@ def send_whatsapp_reminder_for_webinar_attendees_and_followers(group):
 
     # Get attendees for the group.
     attendees = list(group.attendees.values_list("pk", flat=True))
-
     # Create an exhaustive list of users to send reminder to.
     users_to_remind = list(set(followers + attendees))
-    users = get_user_model().objects.filter(pk__in=users_to_remind)
+
+    hack2skill_group, _ = django_auth_models.Group.objects.get_or_create(
+        name=auth_constants.HACK_2_SKILL_GROUP
+    )
+    # Only send to users who are in hack2skill_group.
+    users = get_user_model().objects.filter(pk__in=users_to_remind, groups=hack2skill_group)
 
     for user in users:
         send_whatsapp_reminder_for_webinar_attendee_and_follower(user, group)
