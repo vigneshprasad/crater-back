@@ -90,9 +90,7 @@ class RewardSaleViewSet(
             )
         )
         serializer = self.get_serializer(queryset, many=True)
-
         return Response(serializer.data)
-        detail=True
 
     @action(
         methods=["GET"],
@@ -152,7 +150,7 @@ class RewardSaleLogViewSet(
                 return Response({
                     "message": "Reward already purchased."
                 }, status=status.HTTP_400_BAD_REQUEST)    
-            
+
         if payment_type == constants.SALE_PAYMENT_TYPE_LEARN_ENUM:
             # In case of learn payment, see if the user has enough tokens
             # for the payment.

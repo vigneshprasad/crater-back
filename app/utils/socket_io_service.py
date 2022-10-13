@@ -48,7 +48,7 @@ class SocketIOService:
             return
 
         return response
-    
+
     def post_notification_user(self, data, user_id, type_key):
         """Sends notification data for a user to socket.io server.
 
