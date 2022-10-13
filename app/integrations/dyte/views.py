@@ -319,7 +319,33 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
                 status=constants.LIVE_STREAM_STATUS_LIVE
             )
         except models.LiveStream.DoesNotExist:
-            public.get_active_livestream_for_webinar(pk)
             return Response(status=status.HTTP_404_NOT_FOUND)
+
         serialized = self.get_serializer(livestream)
         return Response(serialized.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["POST"],
+        detail=False,
+        permission_classes=[user_permissions.AllowAny]
+    )
+    def status(self, request, *args, **kwargs):
+        """Updates status of a livestream object from Dyte's
+            end.
+
+        """
+        data = request.data
+        stream_id = data.get("streamId")
+        livestream_status = data.get("status")
+        try:
+            livestream = models.LiveStream.objects.get(
+                livestream_id=stream_id
+            )
+        except models.LiveStream.DoesNotExist:
+            LOGGER.error("Live stream ID doesn't exist: {}".format(stream_id))
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # Update livestream status for stream id.
+        livestream.status = livestream_status
+        livestream.save()
+        return Response(status=status.HTTP_200_OK)

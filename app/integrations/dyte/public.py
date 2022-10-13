@@ -132,15 +132,17 @@ def stop_recording_for_group_and_recording_id(group, recording_id=None):
     return dyte_service.stop_recording(dyte_meeting, recording_id)
 
 
-def get_active_livestream_for_webinar(group_id):
+def get_active_livestream_for_stream_id(group_id):
     """Get active Dyte LiveStream for a Webinar
 
     Args:
-        group_id(Number): Group id for webinar
+        group_id(int): ID of stream for which are getting the
+            livestream.
+
     """
     try:
         dyte_meeting = models.DyteMeeting.objects.get(group_id=group_id)
     except models.DyteMeeting.DoesNotExist:
-        return
-    dyte_service_v2.get_active_livestream(dyte_meeting)
+        return False
 
+    dyte_service_v2.get_active_livestream(dyte_meeting)
