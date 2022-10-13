@@ -121,7 +121,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
         # Add all new users joining on 15th and 16th without source
         # to hack2skill_group.
-        elif is_new_user and (user.date_joined.date() in [datetime.date(2022, 10, 15), datetime.datetime(2022, 10, 16)]):
+        elif is_new_user and (user.date_joined.date() in constants.HACK_2_SKILL_DATES):
             user.groups.add(hack2skill_group)
 
         if utm_source == analytics_constants.IGC_SOURCE and is_new_user:

@@ -322,13 +322,15 @@ def send_whatsapp_reminder_for_webinar_host(group):
     )
 
 
-def send_whatsapp_reminder_for_webinar_attendees_and_followers(group):
+def send_whatsapp_reminder_for_webinar_attendees_and_followers(group, only_hack2skill_users=True):
     """Send whatsapp reminder to webinar attendees
          and creator followers before start time.
 
     Args:
         group(Group): Webinar to whose attendees
             and followers we are sending the reminder.
+        only_hack2skill_users(bool): Should we only send to hack2skill
+            users or all users.
 
     """
     followers = []
@@ -346,11 +348,14 @@ def send_whatsapp_reminder_for_webinar_attendees_and_followers(group):
     # Create an exhaustive list of users to send reminder to.
     users_to_remind = list(set(followers + attendees))
 
-    hack2skill_group, _ = django_auth_models.Group.objects.get_or_create(
-        name=auth_constants.HACK_2_SKILL_GROUP
-    )
-    # Only send to users who are in hack2skill_group.
-    users = get_user_model().objects.filter(pk__in=users_to_remind, groups=hack2skill_group)
+    if only_hack2skill_users:
+        hack2skill_group, _ = django_auth_models.Group.objects.get_or_create(
+            name=auth_constants.HACK_2_SKILL_GROUP
+        )
+        # Only send to users who are in hack2skill_group.
+        users = get_user_model().objects.filter(pk__in=users_to_remind, groups=hack2skill_group)
+    else:
+        users = get_user_model().objects.filter(pk__in=users_to_remind)
 
     for user in users:
         send_whatsapp_reminder_for_webinar_attendee_and_follower(user, group)

@@ -34,7 +34,7 @@ def can_send_whatsapp_for_user(user):
 
     # Don't send messages to h2_skill users from WATI.
     hack2skill_group, _ = Group.objects.get_or_create(name=auth_constants.HACK_2_SKILL_GROUP)
-    if hack2skill_group in user.group.all():
+    if hack2skill_group in user.groups.all():
         return False
 
     return True

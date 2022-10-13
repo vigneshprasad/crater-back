@@ -16,7 +16,6 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_model
-from base import managers as base_managers
 from conversations import constants, private, signals
 from integrations.dyte import constants as dyte_constants
 from resources.meetings import models as meeting_models

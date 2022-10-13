@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 
 LOGIN_OTP_MESSAGE = "Your login code for Crater club is: {otp}"
@@ -21,3 +23,7 @@ DEBUG = False
 
 HACK_2_SKILL_GROUP = "hack2skill-user"
 HACK_2_SKILL_SOURCE = "H2Skill"
+HACK_2_SKILL_DATES = [
+    datetime.date(2022, 10, 15),
+    datetime.date(2022, 10, 16)
+]
