@@ -12,7 +12,7 @@ from conversations import (
     models as conversation_models,
     public as conversation_public
 )
-from integrations.dyte import constants, models, private, public, serializers, tasks
+from integrations.dyte import constants, models, private, public, serializers, tasks, service
 from users import permissions as user_permissions
 
 LOGGER = logging.getLogger(__name__)
@@ -342,6 +342,9 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
                 livestream_id=stream_id
             )
         except models.LiveStream.DoesNotExist:
+            livestream = service.dyte_service_v2.get_details_of_livestream(stream_id)
+
+        if not livestream:
             LOGGER.error("Live stream ID doesn't exist: {}".format(stream_id))
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
