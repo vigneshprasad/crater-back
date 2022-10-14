@@ -56,13 +56,13 @@ LIVE_STREAM_STATUS_WEBHOOK = [
     },
     {
         "name": "Livestream Update",
-        "events": [constants.DYTE_EVENT_PARTICIPANT_LEFT],
+        "events": [constants.DYTE_EVENT_LIVESTREAM_STATUS_UPDATE],
         "url": "https://api.prod.worknetwork.in/v1/integrations/dyte/livestream/status/"
     },
 ]
 
 
-def run(dry_run=True, all_webhook_data=None):
+def run(all_webhook_data=None, dry_run=True):
 
     for webhook_data in all_webhook_data:
         print("Creating Webhook")
