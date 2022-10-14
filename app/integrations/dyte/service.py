@@ -966,7 +966,7 @@ class DyteServiceV2:
         except models.DyteMeeting.DoesNotExist:
             return None
 
-        livestream,  = models.LiveStream.objects.update_or_create(
+        livestream, _ = models.LiveStream.objects.update_or_create(
             livestream_id=data["id"],
             dyte_meeting=dyte_meeting,
             defaults={
