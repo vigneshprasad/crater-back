@@ -855,15 +855,14 @@ class DyteServiceV2:
 
         data = response_json["data"]
         livestream_id = data["id"]
+
         livestream = models.LiveStream.objects.update_or_create(
             livestream_id=livestream_id,
             dyte_meeting=dyte_meeting,
-            defaults={
-                "status": data["status"],
-                "ingest_server": data["ingest_server"],
-                "stream_key": data["stream_key"],
-                "playback_url": data["playback_url"]
-            }
+            status=data["status"],
+            ingest_server=data["ingest_server"],
+            stream_key=data["stream_key"],
+            playback_url=data["playback_url"]
         )
 
         return livestream
