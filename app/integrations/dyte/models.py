@@ -283,23 +283,32 @@ class DyteMeetingRecording(base_model.BaseModel):
 
 
 class LiveStream(base_model.BaseModel):
+
     LIVESTREAM_STATUS_CHOICES = (
         (constants.LIVE_STREAM_STATUS_OFFLINE, constants.LIVE_STREAM_STATUS_OFFLINE),
         (constants.LIVE_STREAM_STATUS_LIVE, constants.LIVE_STREAM_STATUS_LIVE)
     )
+
+    # Parent dyte meeting for the livestream.
     dyte_meeting = models.ForeignKey(
         DyteMeeting,
         related_name="livestreams",
         on_delete=models.CASCADE
     )
+    # ID of livestream on Dyte's end.
+    livestream_id = models.CharField(max_length=255)
     status = models.CharField(
         max_length=32,
         choices=LIVESTREAM_STATUS_CHOICES,
         default=constants.LIVE_STREAM_STATUS_OFFLINE
     )
+    # The url where the video ingest is coming from.
+    playback_url = models.TextField()
+    # Extra data for HLS ingest.
     ingest_seconds = models.IntegerField(default=0)
     viewer_seconds = models.IntegerField(default=0)
     ingest_server = models.TextField()
-    livestream_id = models.CharField(max_length=255)
     stream_key = models.CharField(max_length=255)
-    playback_url = models.TextField()
+
+    def __str__(self):
+        return "{} - {}".format(self.dyte_meeting, self.livestream_id)
