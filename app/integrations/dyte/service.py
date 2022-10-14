@@ -856,13 +856,15 @@ class DyteServiceV2:
         data = response_json["data"]
         livestream_id = data["id"]
 
-        livestream = models.LiveStream.objects.update_or_create(
+        livestream, _ = models.LiveStream.objects.update_or_create(
             livestream_id=livestream_id,
             dyte_meeting=dyte_meeting,
-            status=data["status"],
-            ingest_server=data["ingest_server"],
-            stream_key=data["stream_key"],
-            playback_url=data["playback_url"]
+            defaults={
+                "status": data["status"],
+                "ingest_server": data["ingest_server"],
+                "stream_key": data["stream_key"],
+                "playback_url": data["playback_url"]
+            }
         )
 
         return livestream
@@ -922,7 +924,7 @@ class DyteServiceV2:
             logging.error(message)
             return None
 
-        livestream = models.LiveStream.objects.update_or_create(
+        livestream, _ = models.LiveStream.objects.update_or_create(
             livestream_id=data["id"],
             dyte_meeting=dyte_meeting,
             defaults={
@@ -964,7 +966,7 @@ class DyteServiceV2:
         except models.DyteMeeting.DoesNotExist:
             return None
 
-        livestream = models.LiveStream.objects.create(
+        livestream,  = models.LiveStream.objects.update_or_create(
             livestream_id=data["id"],
             dyte_meeting=dyte_meeting,
             defaults={
