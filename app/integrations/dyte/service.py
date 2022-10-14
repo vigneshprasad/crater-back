@@ -807,7 +807,7 @@ class DyteServiceV2:
         "start_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/livestreams",
         "get_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream",
         "stop_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream/stop",
-        "get_details_by_steam_id": constants.DYTE_BASE_URL_V2 + "/livestreams/{streamId}"
+        "get_details_by_steam_id": constants.DYTE_BASE_URL_V2 + "/livestreams/{stream_id}"
     }
 
     def __init__(self, org_id, app_id):
@@ -854,12 +854,8 @@ class DyteServiceV2:
             return None
 
         data = response_json["data"]
-
         livestream_id = data["id"]
-
-        print("start_livestream_for_meeting", response_json)
-
-        models.LiveStream.objects.update_or_create(
+        livestream = models.LiveStream.objects.update_or_create(
             livestream_id=livestream_id,
             dyte_meeting=dyte_meeting,
             defaults={
@@ -869,6 +865,8 @@ class DyteServiceV2:
                 "playback_url": data["playback_url"]
             }
         )
+
+        return livestream
 
     def stop_active_livestream_meeting(self, dyte_meeting):
 
