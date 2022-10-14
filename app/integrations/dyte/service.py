@@ -963,7 +963,7 @@ class DyteServiceV2:
             return None
 
         try:
-            dyte_meeting = models.DyteMeeting.objects.get(data["meeting_id"])
+            dyte_meeting = models.DyteMeeting.objects.get(dyte_meeting_id=data["meeting_id"])
         except models.DyteMeeting.DoesNotExist:
             return None
 
