@@ -47,9 +47,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "topic",
-        "type",
+        # "type",
         "host",
-        # "all_speakers",
+        "co_hosts",
         "attendees_count",
         "start",
         "is_featured",
@@ -287,7 +287,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     restart_recording_for_group.short_description = "Restart recording for stream"
 
     @staticmethod
-    def all_speakers(obj):
+    def co_hosts(obj):
         return [speaker.__str__() for speaker in obj.speakers.all()]
 
     @staticmethod
