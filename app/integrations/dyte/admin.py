@@ -155,4 +155,7 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
 
 @admin.register(models.LiveStream)
 class LiveStreamAdmin(admin.ModelAdmin):
+
+    list_display = ("id", "dyte_meeting", "livestream_id", "status", "playback_url")
+    raw_id_fields = ("dyte_meeting",)
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

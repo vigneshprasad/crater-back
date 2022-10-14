@@ -309,3 +309,6 @@ class LiveStream(base_model.BaseModel):
     viewer_seconds = models.IntegerField(default=0)
     ingest_server = models.TextField()
     stream_key = models.CharField(max_length=255)
+
+    def __str__(self):
+        return "{} - {}".format(self.dyte_meeting, self.livestream_id)
