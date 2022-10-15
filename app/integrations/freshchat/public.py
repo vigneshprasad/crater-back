@@ -9,6 +9,7 @@ from django.contrib.auth import models as django_auth_models
 
 from crater.auth import constants as auth_constants
 from conversations import public as conversation_public
+from conversations import constants as conversation_constants
 from crater.creator import public as creator_public
 from integrations.freshchat import constants
 from integrations.freshchat import freshchat_service
@@ -337,7 +338,9 @@ def send_whatsapp_reminder_for_webinar_attendees_and_followers(group, only_hack2
     host = group.host
     creator = creator_public.get_creator_for_user(host)
 
-    if creator:
+    # Adding followers only if group is public and not a private group.
+    # In case of private, send message only to attendees.
+    if creator and group.privacy == conversation_constants.GROUP_PRIVACY_PUBLIC_ENUM:
         # Add users followers if creator is present.
         followers = list(creator.followers.filter(
             notify=True
