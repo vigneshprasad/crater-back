@@ -115,8 +115,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     )
     actions = (
         "add_previous_webinar_attendees",
-        "recalculate_minutes_for_groups",
-        "restart_recording_for_group"
+        # "recalculate_minutes_for_groups",
+        "stop_recording_for_group",
+        "restart_recording_for_group",
     )
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
@@ -243,6 +244,42 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         )
 
     recalculate_minutes_for_groups.short_description = "Recalculate minutes"
+
+    def stop_recording_for_group(self, request, queryset):
+        """Restarts recording for group.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of streams we want to
+                restart recording for.
+
+        Note:
+            This action runs for only one group at a time.
+
+        """
+        # Delay the task for recalculating minutes.
+        if queryset.count() > 1:
+            return self.message_user(
+                request,
+                "Please select only one group at a time for stopping recording",
+                messages.ERROR
+            )
+
+        group = queryset.first()
+        # Stop recording for the group.
+        dyte_public.stop_recording_for_group_and_recording_id(group)
+        self.log_change(
+            request,
+            group,
+            message=[{"changed": {"actions": ["stop_recording_for_group"]}}]
+        )
+        self.message_user(
+            request,
+            "Stopped recording for group: {}".format(group.id),
+            messages.SUCCESS
+        )
+
+    stop_recording_for_group.short_description = "Stop recording for stream"
 
     def restart_recording_for_group(self, request, queryset):
         """Restarts recording for group.
@@ -638,4 +675,13 @@ class GroupUpvoteAdmin(admin.ModelAdmin):
         "upvote",
     )
     raw_id_fields = ("group", "user",)
+    list_filter = (
+        AutocompleteFilterFactory("Group", "group"),
+        AutocompleteFilterFactory("User", "user"),
+        "upvote"
+    )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)

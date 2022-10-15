@@ -991,3 +991,6 @@ class GroupUpvote(base_model.BaseModel):
 
     def __str__(self):
         return f"{self.group_id} - {self.user.__str__()}"
+
+    def delete(self, soft=True):
+        super(GroupUpvote, self).delete(soft=False)
