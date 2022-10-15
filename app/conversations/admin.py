@@ -142,6 +142,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     list_filter = (
         "closed",
         "is_published",
+        "is_live",
         ("start", filter.DateRangeFilter),
     )
     exclude = (
