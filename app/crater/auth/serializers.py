@@ -116,8 +116,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 referrer=referrer
             )
             # Add to H2Skill users to hack2skill_group
-            if utm_source == constants.HACK_2_SKILL_SOURCE:
-                user.groups.add(hack2skill_group)
+            # if utm_source == constants.HACK_2_SKILL_SOURCE:
+            #     user.groups.add(hack2skill_group)
 
         # Removing this for now since we don't want this behaviour.
 
