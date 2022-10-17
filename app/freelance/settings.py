@@ -149,6 +149,7 @@ INSTALLED_APPS = [
     "conversations",
     "conversations.dashboard",
     "conversations.multistream",
+    "conversations.group_helpers",
     "communications.notifications",
     "communications.whatsapp",
     "communications.emails",
