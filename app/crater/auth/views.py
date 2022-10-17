@@ -47,7 +47,7 @@ class PhoneNumberRegisterView(
             )
 
         # Validate serializer.
-        if "+994" in username:
+        if not username.startswith("+91"):
             return Response(status=400)
 
         data = {"username": username}
