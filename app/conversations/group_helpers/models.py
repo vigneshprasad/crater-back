@@ -14,8 +14,16 @@ class Viewer(base_models.BaseModel):
 
     class Meta:
         verbose_name = _("Group Helper")
-        verbose_name_plural = _("User Interests")
+        verbose_name_plural = _("Group Helpers")
         ordering = ["-created_at"]
 
     def __str__(self):
         return "{} - {}".format(self.group.id, self.count)
+
+    def increment(self):
+        self.count += 1
+        self.save()
+
+    def decrement(self):
+        self.count -= 1
+        self.save()
