@@ -802,10 +802,12 @@ class DyteService:
 
 
 class DyteServiceV2:
+
     DYTE_API_ENDPOINTS = {
         "start_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/livestreams",
         "get_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream",
-        "stop_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream/stop"
+        "stop_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream/stop",
+        "get_details_by_steam_id": constants.DYTE_BASE_URL_V2 + "/livestreams/{stream_id}"
     }
 
     def __init__(self, org_id, app_id):
@@ -852,12 +854,9 @@ class DyteServiceV2:
             return None
 
         data = response_json["data"]
-
         livestream_id = data["id"]
 
-        print("start_livestream_for_meeting", response_json)
-
-        models.LiveStream.objects.update_or_create(
+        livestream, _ = models.LiveStream.objects.update_or_create(
             livestream_id=livestream_id,
             dyte_meeting=dyte_meeting,
             defaults={
@@ -868,7 +867,10 @@ class DyteServiceV2:
             }
         )
 
+        return livestream
+
     def stop_active_livestream_meeting(self, dyte_meeting):
+
         url = self.DYTE_API_ENDPOINTS["stop_active_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
         response = requests.request(
             "POST",
@@ -891,9 +893,11 @@ class DyteServiceV2:
                 meeting_id=dyte_meeting.dyte_meeting_id
             ))
             return None
-        print("stop_active_livestream_meeting", response_json)
+
+        return success
 
     def get_active_livestream(self, dyte_meeting):
+
         url = self.DYTE_API_ENDPOINTS["get_active_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
         response = requests.request(
             "GET",
@@ -920,7 +924,7 @@ class DyteServiceV2:
             logging.error(message)
             return None
 
-        models.LiveStream.objects.update_or_create(
+        livestream, _ = models.LiveStream.objects.update_or_create(
             livestream_id=data["id"],
             dyte_meeting=dyte_meeting,
             defaults={
@@ -932,7 +936,50 @@ class DyteServiceV2:
                 "playback_url": data["playback_url"]
             }
         )
-        print("stop_active_livestream_meeting", response_json)
+        return livestream
+
+    def get_details_of_livestream(self, stream_id):
+
+        url = self.DYTE_API_ENDPOINTS["get_details_by_steam_id"].format(stream_id=stream_id)
+        response = requests.request(
+            "GET",
+            url,
+            headers=self._get_authorization_headers(),
+        )
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            return None
+
+        success = response_json["success"]
+        data = response_json["data"]
+
+        if not success:
+            logging.error(
+                "LiveStream details not found: {}".format(stream_id)
+            )
+            return None
+
+        try:
+            dyte_meeting = models.DyteMeeting.objects.get(dyte_meeting_id=data["meeting_id"])
+        except models.DyteMeeting.DoesNotExist:
+            return None
+
+        livestream, _ = models.LiveStream.objects.update_or_create(
+            livestream_id=data["id"],
+            dyte_meeting=dyte_meeting,
+            defaults={
+                "ingest_seconds": data["ingest_seconds"],
+                "viewer_seconds": data["viewer_seconds"],
+                "status": data["status"],
+                "ingest_server": data["ingest_server"],
+                "stream_key": data["stream_key"],
+                "playback_url": data["playback_url"]
+            }
+        )
+
+        return livestream
 
 
 dyte_service = DyteService(

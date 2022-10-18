@@ -966,7 +966,13 @@ class QuestionUpvote(base_model.BaseModel):
 
 
 class GroupUpvote(base_model.BaseModel):
-    """Upvote for a stream."""
+    """Upvote for a stream.
+
+    Note:
+        User can have only one upvote object per
+            stream.
+
+    """
     group = models.ForeignKey(
         Group,
         related_name="upvotes",
@@ -981,6 +987,10 @@ class GroupUpvote(base_model.BaseModel):
 
     class Meta:
         ordering = ["-created_at"]
+        unique_together = ["group", "user"]
 
     def __str__(self):
         return f"{self.group_id} - {self.user.__str__()}"
+
+    def delete(self, soft=True):
+        super(GroupUpvote, self).delete(soft=False)

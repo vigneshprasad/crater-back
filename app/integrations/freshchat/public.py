@@ -1,18 +1,16 @@
 import logging
-import pytz
 import urllib.parse
-
 from datetime import datetime
+
+import pytz
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
-from conversations import public as conversation_public
+from conversations import constants as conversation_constants, public as conversation_public
 from crater.creator import public as creator_public
-from integrations.freshchat import constants
-from integrations.freshchat import freshchat_service
-from integrations.freshchat import services
-from utils.tiny_url_service import tiny_url_service
+from integrations.freshchat import constants, freshchat_service, services
 from utils.deep_link_service import deep_link_service
+from utils.tiny_url_service import tiny_url_service
 
 
 def send_welcome_crater_whatsapp(user):
@@ -333,7 +331,9 @@ def send_whatsapp_reminder_for_webinar_attendees_and_followers(group):
     host = group.host
     creator = creator_public.get_creator_for_user(host)
 
-    if creator:
+    # Adding followers only if group is public and not a private group.
+    # In case of private, send message only to attendees.
+    if creator and group.privacy == conversation_constants.GROUP_PRIVACY_PUBLIC_ENUM:
         # Add users followers if creator is present.
         followers = list(creator.followers.filter(
             notify=True
@@ -341,7 +341,6 @@ def send_whatsapp_reminder_for_webinar_attendees_and_followers(group):
 
     # Get attendees for the group.
     attendees = list(group.attendees.values_list("pk", flat=True))
-
     # Create an exhaustive list of users to send reminder to.
     users_to_remind = list(set(followers + attendees))
     users = get_user_model().objects.filter(pk__in=users_to_remind)
