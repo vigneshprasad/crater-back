@@ -6,6 +6,7 @@ from django_admin_row_actions import AdminRowActionsMixin
 from rangefilter import filter
 
 from conversations.group_helpers import models
+from utils.socket_io_service import socket_io_service
 
 
 @register(models.Viewer)
@@ -83,3 +84,16 @@ class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         row_actions += super(ViewerAdmin, self).get_row_actions(obj)
 
         return row_actions
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            return super(ViewerAdmin, self).save_model(request, obj, form, change)
+
+        fields_changed = form.changed_data
+
+        if "count" in fields_changed:
+            super(ViewerAdmin, self).save_model(request, obj, form, change)
+            socket_io_service.post_viewer_count_update(obj.group_id)
+            return
+
+        return super(ViewerAdmin, self).save_model(request, obj, form, change)
