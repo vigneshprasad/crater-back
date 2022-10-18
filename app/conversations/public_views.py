@@ -54,8 +54,6 @@ class GroupWebinarPublicViewSet(
             is_live=True,
             privacy=constants.GROUP_PRIVACY_PUBLIC_ENUM,
             closed=False
-        ).exclude(
-            categories__name="Hacking"
         )
 
     def _get_past_webinars_with_recordings(self, featured=False):
@@ -120,8 +118,6 @@ class GroupWebinarPublicViewSet(
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
             is_published=True
-        ).exclude(
-            categories__name="Hacking"
         ).select_related(
             "topic",
             "host__profile",
@@ -178,8 +174,6 @@ class GroupWebinarPublicViewSet(
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
             is_published=True
-        ).exclude(
-            categories__name="Hacking"
         ).select_related(
             "topic",
             "host__profile",
@@ -283,8 +277,6 @@ class GroupWebinarPublicViewSet(
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
             is_published=True
-        ).exclude(
-            categories__name="Hacking"
         ).select_related(
             "topic",
             "host__profile",
@@ -312,8 +304,6 @@ class GroupWebinarPublicViewSet(
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
             is_published=True
-        ).exclude(
-            categories__name="Hacking"
         ).select_related(
             "topic",
             "host__profile",

@@ -104,7 +104,6 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
         instance = super().update(instance, validated_data)
         user = instance.user
-        hack2skill_group, _ = Group.objects.get_or_create(name=constants.HACK_2_SKILL_GROUP)
 
         if (utm_source or utm_campaign or referrer) and is_new_user:
             # Only create if the user is a new user.

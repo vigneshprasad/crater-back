@@ -1,21 +1,16 @@
 import logging
-import pytz
 import urllib.parse
-
 from datetime import datetime
+
+import pytz
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth import models as django_auth_models
 
-from crater.auth import constants as auth_constants
-from conversations import public as conversation_public
-from conversations import constants as conversation_constants
+from conversations import constants as conversation_constants, public as conversation_public
 from crater.creator import public as creator_public
-from integrations.freshchat import constants
-from integrations.freshchat import freshchat_service
-from integrations.freshchat import services
-from utils.tiny_url_service import tiny_url_service
+from integrations.freshchat import constants, freshchat_service, services
 from utils.deep_link_service import deep_link_service
+from utils.tiny_url_service import tiny_url_service
 
 
 def send_welcome_crater_whatsapp(user):
@@ -323,15 +318,13 @@ def send_whatsapp_reminder_for_webinar_host(group):
     )
 
 
-def send_whatsapp_reminder_for_webinar_attendees_and_followers(group, only_hack2skill_users=True):
+def send_whatsapp_reminder_for_webinar_attendees_and_followers(group):
     """Send whatsapp reminder to webinar attendees
          and creator followers before start time.
 
     Args:
         group(Group): Webinar to whose attendees
             and followers we are sending the reminder.
-        only_hack2skill_users(bool): Should we only send to hack2skill
-            users or all users.
 
     """
     followers = []
@@ -350,15 +343,7 @@ def send_whatsapp_reminder_for_webinar_attendees_and_followers(group, only_hack2
     attendees = list(group.attendees.values_list("pk", flat=True))
     # Create an exhaustive list of users to send reminder to.
     users_to_remind = list(set(followers + attendees))
-
-    if only_hack2skill_users:
-        hack2skill_group, _ = django_auth_models.Group.objects.get_or_create(
-            name=auth_constants.HACK_2_SKILL_GROUP
-        )
-        # Only send to users who are in hack2skill_group.
-        users = get_user_model().objects.filter(pk__in=users_to_remind, groups=hack2skill_group)
-    else:
-        users = get_user_model().objects.filter(pk__in=users_to_remind)
+    users = get_user_model().objects.filter(pk__in=users_to_remind)
 
     for user in users:
         send_whatsapp_reminder_for_webinar_attendee_and_follower(user, group)
