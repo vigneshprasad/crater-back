@@ -18,7 +18,7 @@ def run(group_ids=None, dry_run=True):
 
 
 # Update these ids.
-ids = [5522]
+ids = []
 
 # run(group_ids=ids)
 run(group_ids=ids, dry_run=False)
