@@ -6,26 +6,6 @@ from conversations.group_helpers import models
 from utils.socket_io_service import socket_io_service
 
 
-@receiver(pre_save, sender=models.Viewer)
-def post_to_socket_on_count_change(sender, instance, *args, **kwargs):
-    """Posts to socket with group_id on change of count.
-
-    Args:
-        sender(Viewer.__class__): Class representation of Viewer.
-        instance(Viewer): Viewer instance about to be saved.
-
-    """
-    if instance._state.adding:
-        return
-
-    # Get previous instance for the instance.
-    previous_instance = models.Viewer.objects.get(id=instance.id)
-
-    # If the count has changed, send an update to socket with the group_id.
-    if instance.count != previous_instance.count:
-        socket_io_service.post_viewer_count_update(instance.group_id)
-
-
 @receiver(post_save, sender=conversation_models.Group)
 def create_viewer_on_group_creation(sender, instance, *args, **kwargs):
     """Creates a viewer instance on group creation.
@@ -40,3 +20,11 @@ def create_viewer_on_group_creation(sender, instance, *args, **kwargs):
 
     # Create viewer is group is created.
     models.Viewer.objects.create(group=instance)
+
+
+@receiver(post_save, sender=models.Viewer)
+def post_to_socket_on_count_change_post(sender, instance, *args, **kwargs):
+    if kwargs.get("created"):
+        return
+
+    socket_io_service.post_viewer_count_update(instance.group_id)
