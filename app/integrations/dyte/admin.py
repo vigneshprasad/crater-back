@@ -156,10 +156,20 @@ class DyteMeetingRecordingAdmin(admin.ModelAdmin):
 @admin.register(models.LiveStream)
 class LiveStreamAdmin(admin.ModelAdmin):
 
-    list_display = ("id", "dyte_meeting", "livestream_id", "status")
+    list_display = (
+        "id",
+        "dyte_meeting",
+        "group",
+        "status",
+        "livestream_id"
+    )
     raw_id_fields = ("dyte_meeting", )
     list_filter = (
         AutocompleteFilterFactory("Group", "dyte_meeting__group"),
         "status"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    @staticmethod
+    def group(obj):
+        return obj.dyte_meeting.group

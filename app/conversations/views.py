@@ -589,8 +589,6 @@ class GroupWebinarViewSet(
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
             is_published=True
-        ).exclude(
-            categories__name="Hacking"
         ),
         pagination_class=paginators.WebinarPagination,
         permission_classes=[permissions.IsAuthenticated],
@@ -642,8 +640,6 @@ class GroupWebinarViewSet(
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,
             is_published=True
-        ).exclude(
-            categories__name="Hacking"
         ).select_related(
             "topic",
             "host__profile",

@@ -4,7 +4,6 @@ import logging
 from itertools import chain
 
 import boto3
-import pytz
 from botocore import exceptions as botocore_exceptions
 from celery.schedules import crontab
 from celery.task import periodic_task, task
@@ -16,7 +15,6 @@ from rest_framework.renderers import JSONRenderer
 from communications.notifications import public as notifications_public
 from conversations import constants, models, serializers, services, signals
 from crater.creator import public as creator_public
-from crater.creator import models as creator_models
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service
@@ -72,33 +70,6 @@ def send_whatsapp_reminder_for_streams_attendees_and_followers():
     for stream in streams:
         # Send reminders for followers and attendees for a stream.
         wati_public.send_stream_reminder_messages_for_group(stream)
-
-
-@periodic_task(run_every=crontab(minute="*/5"))
-def send_whatsapp_reminder_for_streams_h2skill():
-    """Send whatsapp reminder to all h2_skill attendees
-        and followers for streams starting in 5 minutes.
-
-    Note:
-        Sends reminder to h2_skill attendees and followers of streams
-            which are starting 5 minutes from now.
-
-    """
-    now_time = datetime.datetime.now()
-    start_datetime = now_time
-    end_datetime = (now_time + datetime.timedelta(minutes=5))
-
-    # Send it for all group, except for stream.
-    streams = models.Group.objects.filter(
-        start__gt=start_datetime,
-        start__lte=end_datetime,
-        is_published=True,
-        type=constants.GROUP_TYPE_WEBINAR_ENUM
-    )
-
-    for stream in streams:
-        # Send reminders for followers and attendees for a stream.
-        freshchat_public.send_whatsapp_reminder_for_webinar_attendees_and_followers(stream)
 
 
 @periodic_task(run_every=crontab(minute="*/5"))

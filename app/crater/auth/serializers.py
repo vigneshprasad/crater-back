@@ -104,7 +104,6 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
         instance = super().update(instance, validated_data)
         user = instance.user
-        hack2skill_group, _ = Group.objects.get_or_create(name=constants.HACK_2_SKILL_GROUP)
 
         if (utm_source or utm_campaign or referrer) and is_new_user:
             # Only create if the user is a new user.
@@ -115,16 +114,6 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 utm_medium=utm_medium,
                 referrer=referrer
             )
-            # Add to H2Skill users to hack2skill_group
-            # if utm_source == constants.HACK_2_SKILL_SOURCE:
-            #     user.groups.add(hack2skill_group)
-
-        # Removing this for now since we don't want this behaviour.
-
-        # Add all new users joining on 15th and 16th without source
-        # to hack2skill_group.
-        # elif is_new_user and (user.date_joined.date() in constants.HACK_2_SKILL_DATES):
-        #     user.groups.add(hack2skill_group)
 
         if utm_source == analytics_constants.IGC_SOURCE and is_new_user:
             # Get profile for user.
