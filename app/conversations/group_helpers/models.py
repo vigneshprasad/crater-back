@@ -2,7 +2,6 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from base import models as base_models
-from utils.socket_io_service import socket_io_service
 
 
 class Viewer(base_models.BaseModel):
@@ -22,11 +21,11 @@ class Viewer(base_models.BaseModel):
         return "{} - {}".format(self.group.id, self.count)
 
     def increment(self):
+        """Increment the count by 1."""
         self.count += 1
         self.save()
-        socket_io_service.post_viewer_count_update(self.group_id)
 
     def decrement(self):
+        """Decrement the count by 1."""
         self.count -= 1
         self.save()
-        socket_io_service.post_viewer_count_update(self.group_id)

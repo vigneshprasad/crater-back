@@ -10,4 +10,4 @@ class GroupHelpersConfig(AppConfig):
     verbose_name_plural = _("Group Helpers")
 
     def ready(self):
-        pass
+        import conversations.group_helpers.receivers
