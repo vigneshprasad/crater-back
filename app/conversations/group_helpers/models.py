@@ -21,9 +21,11 @@ class Viewer(base_models.BaseModel):
         return "{} - {}".format(self.group.id, self.count)
 
     def increment(self):
+        """Increment the count by 1."""
         self.count += 1
         self.save()
 
     def decrement(self):
+        """Decrement the count by 1."""
         self.count -= 1
         self.save()

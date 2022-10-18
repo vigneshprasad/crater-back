@@ -68,7 +68,6 @@ class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     "Increase"
                 ),
                 "action": "increment",
-
             },
             {
                 "divided": True,
@@ -78,7 +77,7 @@ class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     "Decrease"
                 ),
                 "action": "decrement",
-            },
+            }
         ]
         row_actions += super(ViewerAdmin, self).get_row_actions(obj)
 

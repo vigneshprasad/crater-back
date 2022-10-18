@@ -12,7 +12,8 @@ class SocketIOService:
     API_BASE_URL = settings.SOCKET_IO_BASE_URL
     API_URL = {
         "user_permission": "/user-permission/",
-        "notification_user": "/notification/user/"
+        "notification_user": "/notification/user/",
+        "viewer_count_change": "/group-helper/update/"
     }
 
     def get_api_endpoint(self, name: str):
@@ -52,7 +53,14 @@ class SocketIOService:
     def post_notification_user(self, data, user_id, type_key):
         """Sends notification data for a user to socket.io server.
 
+        Args:
+            data(json): Serialised data for the message.
+            user_id(str): PK of user wer are sending the
+                notification to.
+            type_key(str): Type of notification we are sending.
+
         """
+
         payload = {
             "user": user_id,
             "type": type_key,
@@ -62,6 +70,27 @@ class SocketIOService:
         try:
             response = requests.post(
                 self.get_api_endpoint("notification_user"),
+                json=payload
+            ).json()
+        except Exception as e:
+            LOGGER.error(str(e))
+            return
+
+        return response
+
+    def post_viewer_count_update(self, group_id):
+        """Post viewer count to socket.
+
+        Args:
+            group_id(int): ID of group where viewer count
+                has changed.
+
+        """
+        payload = {"group_id": group_id}
+
+        try:
+            response = requests.post(
+                self.get_api_endpoint("viewer_count_change"),
                 json=payload
             ).json()
         except Exception as e:
