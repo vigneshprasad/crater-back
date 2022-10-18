@@ -53,7 +53,14 @@ class SocketIOService:
     def post_notification_user(self, data, user_id, type_key):
         """Sends notification data for a user to socket.io server.
 
+        Args:
+            data(json): Serialised data for the message.
+            user_id(str): PK of user wer are sending the
+                notification to.
+            type_key(str): Type of notification we are sending.
+
         """
+
         payload = {
             "user": user_id,
             "type": type_key,
@@ -72,9 +79,14 @@ class SocketIOService:
         return response
 
     def post_viewer_count_update(self, group_id):
-        payload = {
-            "group_id": group_id
-        }
+        """Post viewer count to socket.
+
+        Args:
+            group_id(int): ID of group where viewer count
+                has changed.
+
+        """
+        payload = {"group_id": group_id}
 
         try:
             response = requests.post(
