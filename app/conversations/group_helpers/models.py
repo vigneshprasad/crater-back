@@ -27,5 +27,8 @@ class Viewer(base_models.BaseModel):
 
     def decrement(self):
         """Decrement the count by 1."""
+        if not self.count > 0:
+            return
+
         self.count -= 1
         self.save()
