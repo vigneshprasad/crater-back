@@ -35,10 +35,14 @@ class ViewerAdmin(DjangoObjectActions, AdminRowActionsMixin, admin.ModelAdmin):
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
     def increase(self, request, obj):
-        obj.increment()
+        return obj.increment()
+    increase.label = format_html("<span style='color: {};'>{}</span>", "#008000", "Increase (+1)")
+    increase.short_description = "Increase count by 1"
 
     def decrease(self, request, obj):
-        obj.decrement()
+        return obj.decrement()
+    decrease.label = format_html("<span style='color: {};'>{}</span>", "#FF0000", "Decrease (-1)")
+    decrease.short_description = "Decrease count by 1"
 
     @staticmethod
     def creator(obj):
@@ -46,6 +50,7 @@ class ViewerAdmin(DjangoObjectActions, AdminRowActionsMixin, admin.ModelAdmin):
 
     def start(self, obj):
         return obj.group.start
+    start.short_description = "Stream Start"
     start.admin_order_field = "group__start"
 
     def closed(self, obj):
@@ -73,18 +78,20 @@ class ViewerAdmin(DjangoObjectActions, AdminRowActionsMixin, admin.ModelAdmin):
                 "label": format_html(
                     "<span style='color: {};'>{}</span>",
                     "#008000",
-                    "Increase"
+                    "Increase (+1)"
                 ),
                 "action": "increment",
+                "tooltip": "Increase count by 1."
             },
             {
                 "divided": True,
                 "label": format_html(
                     "<span style='color: {};'>{}</span>",
                     "#FF0000",
-                    "Decrease"
+                    "Decrease (-1)"
                 ),
                 "action": "decrement",
+                "tooltip": "Decrease count by 1."
             }
         ]
         row_actions += super(ViewerAdmin, self).get_row_actions(obj)
