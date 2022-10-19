@@ -20,6 +20,8 @@ STREAM_SETUP_FOLLOWERS_8953 = "session_created_follower"
 
 CREATOR_REACTIVE_PROFILE_8953 = "creator_reactivate_profile"
 
+SIGNUP_OTP = "authentication"
+
 # ---------------------------------------- #
 
 STREAM_STARTING_DURATION = "5 minutes"
