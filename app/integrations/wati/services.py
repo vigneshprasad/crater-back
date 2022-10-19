@@ -83,6 +83,30 @@ class WatiWhatsappService:
         print(response.text)
         return True
 
+    def send_template_message_for_phone_number(
+            self,
+            phone_number,
+            template_name,
+            template_data,
+            broadcast_name=None,
+    ):
+        data = {
+            "template_name": template_name,
+            "broadcast_name": broadcast_name if broadcast_name else template_name,
+            "parameters": template_data
+        }
+        response = requests.request(
+            "POST",
+            url=self.base_url + self.API_ENDPOINTS[SEND_TEMPLATE_MESSAGE].format(
+                phone_number
+            ),
+            headers=self._get_authorization_headers(),
+            json=data
+        )
+        print(response.text)
+
+        return True
+
     def send_template_messages(
             self,
             receivers,
