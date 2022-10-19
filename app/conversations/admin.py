@@ -323,7 +323,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             messages.SUCCESS
         )
 
-    restart_recording_for_group.short_description = "Restart recording for stream"
+    restart_recording_for_group.short_description = "Start new recording for stream"
 
     @staticmethod
     def co_hosts(obj):

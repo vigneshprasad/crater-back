@@ -58,3 +58,4 @@ google-cloud-firestore==2.3.4
 grpcio==1.43.0
 django-admin-autocomplete-filter
 drf-spectacular==0.24.2
+django-object-actions==4.0.0

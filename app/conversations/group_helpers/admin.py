@@ -3,13 +3,14 @@ from django.contrib import admin
 from django.contrib.admin import register
 from django.utils.html import format_html
 from django_admin_row_actions import AdminRowActionsMixin
+from django_object_actions import DjangoObjectActions
 from rangefilter import filter
 
 from conversations.group_helpers import models
 
 
 @register(models.Viewer)
-class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
+class ViewerAdmin(DjangoObjectActions, AdminRowActionsMixin, admin.ModelAdmin):
 
     list_display = (
         "id",
@@ -30,15 +31,27 @@ class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "group__is_published",
         ("group__start", filter.DateRangeFilter),
     )
+    change_actions = ("increase", "decrease")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    def increase(self, request, obj):
+        return obj.increment()
+    increase.label = format_html("<span style='color: {};'>{}</span>", "#008000", "Increase (+1)")
+    increase.short_description = "Increase count by 1"
+
+    def decrease(self, request, obj):
+        return obj.decrement()
+    decrease.label = format_html("<span style='color: {};'>{}</span>", "#FF0000", "Decrease (-1)")
+    decrease.short_description = "Decrease count by 1"
 
     @staticmethod
     def creator(obj):
         return obj.group.host
 
-    @staticmethod
-    def start(obj):
+    def start(self, obj):
         return obj.group.start
+    start.short_description = "Stream Start"
+    start.admin_order_field = "group__start"
 
     def closed(self, obj):
         return obj.group.closed
@@ -65,18 +78,20 @@ class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 "label": format_html(
                     "<span style='color: {};'>{}</span>",
                     "#008000",
-                    "Increase"
+                    "Increase (+1)"
                 ),
                 "action": "increment",
+                "tooltip": "Increase count by 1."
             },
             {
                 "divided": True,
                 "label": format_html(
                     "<span style='color: {};'>{}</span>",
                     "#FF0000",
-                    "Decrease"
+                    "Decrease (-1)"
                 ),
                 "action": "decrement",
+                "tooltip": "Decrease count by 1."
             }
         ]
         row_actions += super(ViewerAdmin, self).get_row_actions(obj)
