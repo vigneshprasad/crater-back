@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     "colorfield",
     "django_admin_row_actions",
     "admin_auto_filters",
+    "django_object_actions",
 
     "base",
     "users",

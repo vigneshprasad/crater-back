@@ -3,13 +3,14 @@ from django.contrib import admin
 from django.contrib.admin import register
 from django.utils.html import format_html
 from django_admin_row_actions import AdminRowActionsMixin
+from django_object_actions import DjangoObjectActions
 from rangefilter import filter
 
 from conversations.group_helpers import models
 
 
 @register(models.Viewer)
-class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
+class ViewerAdmin(DjangoObjectActions, AdminRowActionsMixin, admin.ModelAdmin):
 
     list_display = (
         "id",
@@ -30,15 +31,22 @@ class ViewerAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "group__is_published",
         ("group__start", filter.DateRangeFilter),
     )
+    change_actions = ("increase", "decrease")
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    def increase(self, request, obj):
+        obj.increment()
+
+    def decrease(self, request, obj):
+        obj.decrement()
 
     @staticmethod
     def creator(obj):
         return obj.group.host
 
-    @staticmethod
-    def start(obj):
+    def start(self, obj):
         return obj.group.start
+    start.admin_order_field = "group__start"
 
     def closed(self, obj):
         return obj.group.closed
