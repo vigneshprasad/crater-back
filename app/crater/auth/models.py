@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class PhoneOtp(base_models.BaseModel):
+
     user = models.ForeignKey(
         get_user_model(),
         null=True,
