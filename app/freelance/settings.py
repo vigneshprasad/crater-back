@@ -25,11 +25,11 @@ from sentry_sdk.integrations.redis import RedisIntegration
 # All environment variables.
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 BUILD_VERSION = os.environ.get("BUILD_VERSION", "latest")
-ENVIRONMENT_PREPROD = "preprod"
-ENVIRONMENT_PROD = "prod"
 
-ENVIRONMENT_STAGE = "stage"
+ENVIRONMENT_PROD = "prod"
 ENVIRONMENT_DEV = "dev"
+
+BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT)
 
 CRATER_FRONT_URL = "https://crater.club/" if \
     ENVIRONMENT == ENVIRONMENT_PROD else "https://penitence-pre-prod.vercel.app/"
@@ -132,6 +132,7 @@ INSTALLED_APPS = [
     "integrations.firebase",
     "integrations.wati",
     "integrations.onesignal",
+    "integrations.slack",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -596,3 +597,7 @@ SPECTACULAR_SETTINGS = {
         "persistAuthorization": True,
     },
 }
+
+# ----------- Slack credentials ---------------#
+SLACK_BASE_API_URL = "https://slack.com/api"
+SLACK_OATH_TOKEN = os.getenv("SLACK_OATH_TOKEN", "xoxb-942006831873-4247505392325-UVDvqn7UzXiEMAJ82mSmy7HK")

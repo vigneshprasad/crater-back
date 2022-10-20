@@ -1,7 +1,8 @@
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework import serializers
 
-from crater.auth import constants, models, private
+from crater.auth import models, private
 from users import models as user_models, services as user_services
 from wn_analytics import public as analytics_public
 
@@ -25,7 +26,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             "utm_medium",
             "used",
             "is_expired",
-            "referrer"
+            "referrer",
+            "signup"
         )
         extra_kwargs = {
             "otp": {
@@ -40,6 +42,10 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 "required": False,
                 "allow_null": True
             },
+            "is_signup": {
+                "required": False,
+                "allow_null": True
+            }
         }
 
     def validate_otp(self, value):
@@ -58,19 +64,19 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
     def validate_utm_source(self, value):
         if not (self.instance and value):
-            return value
+            return
 
         return value.strip()
 
     def validate_utm_campaign(self, value):
         if not (self.instance and value):
-            return value
+            return
 
         return value.strip()
 
     def validate_utm_medium(self, value):
         if not (self.instance and value):
-            return value
+            return
 
         return value.strip()
 
@@ -80,7 +86,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
         """
         if not (self.instance and value):
-            return value
+            return
 
         value = value.strip()
         # Check if referrer exists
@@ -93,16 +99,21 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         phone_number = validated_data.get("phone_number")
-        validated_data["otp"] = "1111" if (
-                constants.DEBUG or phone_number in constants.TEST_PHONE_NUMBERS
-        ) else private.generate_otp()
-        # When a new OTP is created mark the old ones as expired.
-        models.PhoneOtp.objects.filter(phone_number=phone_number).update(is_expired=True)
+        validated_data["otp"] = private.generate_otp(phone_number)
+        # When a new OTP is created mark the old unused ones as expired.
+        unused_otps = models.PhoneOtp.objects.filter(
+            phone_number=phone_number,
+            used=False,
+            is_expired=False
+        )
+        unused_otps.update(is_expired=True, expired_at=timezone.now())
+
         # Creating a new OTP for the user.
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         validated_data["used"] = True
+        validated_data["used_at"] = timezone.now()
         utm_source = validated_data.pop("utm_source")
         utm_campaign = validated_data.pop("utm_campaign")
         utm_medium = validated_data.pop("utm_medium")

@@ -7,11 +7,12 @@ from crater.auth import models
 @admin.register(models.PhoneOtp)
 class PhoneOtpAdmin(admin.ModelAdmin):
 
-    list_display = ("id", "user", "phone_number", "otp", "used", "is_expired", "created_at")
+    list_display = ("id", "signup", "user", "phone_number", "otp", "used", "created_at")
     raw_id_fields = ("user", )
     list_filter = (
         ("created_at", filter.DateRangeFilter),
         "used",
+        "signup"
     )
     search_fields = ("user__username", "user__name", "user__email", "phone_number")
     exclude = ("deleted_at", "updated_at", "is_deleted")
@@ -20,3 +21,15 @@ class PhoneOtpAdmin(admin.ModelAdmin):
     def get_rangefilter_created_at_title(request, field_path="start"):
         """Returns the title for the start date filter."""
         return "Sent at"
+
+
+@admin.register(models.PhoneOTPFailure)
+class PhoneOtpFailureAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "last_successful_otp",
+        "generated_since_last_successful",
+        "get_display_last_successful_opt_at"
+    )
+    exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

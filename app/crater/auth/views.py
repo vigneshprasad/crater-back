@@ -50,8 +50,10 @@ class PhoneNumberRegisterView(
         if not username.startswith("+91"):
             return Response(status=400)
 
+        print(username)
         login = get_user_model().objects.filter(username=username).exists()
-
+        print(login)
+        print(not login)
         data = {
             "username": username,
             "signup": not login
