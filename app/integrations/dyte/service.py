@@ -831,14 +831,21 @@ class DyteServiceV2:
         }
 
     def start_livestream_for_meeting(self, dyte_meeting):
-        url = self.DYTE_API_ENDPOINTS["start_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
+        """Start live stream for a dyte meeting.
+
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for which we are
+                starting livestream.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["start_livestream"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
         response = requests.request(
             "POST",
             url,
             headers=self._get_authorization_headers(),
-            json={
-                "name": dyte_meeting.room_name
-            }
+            json={"name": dyte_meeting.room_name}
         )
         try:
             response_json = response.json()
@@ -846,7 +853,6 @@ class DyteServiceV2:
             return None
 
         success = response_json["success"]
-
         if not success:
             logging.error("LiveStream not started successfully: {meeting_id}".format(
                 meeting_id=dyte_meeting.dyte_meeting_id
@@ -870,8 +876,16 @@ class DyteServiceV2:
         return livestream
 
     def stop_active_livestream_meeting(self, dyte_meeting):
+        """Stops an active live stream for a dyte meeting.
 
-        url = self.DYTE_API_ENDPOINTS["stop_active_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for which we are
+                stopping livestream.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["stop_active_livestream"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
         response = requests.request(
             "POST",
             url,
@@ -887,7 +901,6 @@ class DyteServiceV2:
             return None
 
         success = response_json["success"]
-
         if not success:
             logging.error("LiveStream not started successfully: {meeting_id}".format(
                 meeting_id=dyte_meeting.dyte_meeting_id
@@ -897,8 +910,16 @@ class DyteServiceV2:
         return success
 
     def get_active_livestream(self, dyte_meeting):
+        """Returns active live stream for a dyte meeting.
 
-        url = self.DYTE_API_ENDPOINTS["get_active_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for which we are
+                looking for a livestream.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["get_active_livestream"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
         response = requests.request(
             "GET",
             url,
@@ -912,15 +933,16 @@ class DyteServiceV2:
 
         success = response_json["success"]
         data = response_json["data"]
-
         if not success:
             logging.error(
                 "LiveStream not started successfully: {meeting_id}".format(meeting_id=dyte_meeting.dyte_meeting_id)
             )
             return None
 
+        # TODO(Nishant): Remove this one the success True for error response
+        # is fixed from Dyte's end.
         if data.get("message"):
-            message = "Service error {error}".format(error=data.get("message"))
+            message = "Service error {error}".format(error=data.get("message", ""))
             logging.error(message)
             return None
 
@@ -939,7 +961,12 @@ class DyteServiceV2:
         return livestream
 
     def get_details_of_livestream(self, stream_id):
+        """Get details for livestream from the stream id.
 
+        Args:
+            stream_id(str): Stream ID on Dyte's end.
+
+        """
         url = self.DYTE_API_ENDPOINTS["get_details_by_steam_id"].format(stream_id=stream_id)
         response = requests.request(
             "GET",
@@ -954,7 +981,6 @@ class DyteServiceV2:
 
         success = response_json["success"]
         data = response_json["data"]
-
         if not success:
             logging.error(
                 "LiveStream details not found: {}".format(stream_id)

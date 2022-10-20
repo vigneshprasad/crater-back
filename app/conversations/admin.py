@@ -118,6 +118,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         # "recalculate_minutes_for_groups",
         "stop_recording_for_group",
         "restart_recording_for_group",
+        "start_livestream_for_group"
     )
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
@@ -194,8 +195,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 to add previous attendees to.
 
         """
-        # Delay the task for adding attendees.
         group_ids = list(queryset.values_list("id", flat=True))
+        # Delay the task for adding attendees.
         tasks.add_previous_attendees_to_groups.delay(group_ids)
 
         # Create a log entry.
@@ -225,8 +226,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 recalculate minutes for.
 
         """
-        # Delay the task for recalculating minutes.
         group_ids = list(queryset.values_list("id", flat=True))
+        # Delay the task for recalculating minutes.
         dyte_tasks.recalculate_minutes_for_groups.delay(group_ids)
 
         # Create a log entry.
@@ -259,7 +260,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             This action runs for only one group at a time.
 
         """
-        # Delay the task for recalculating minutes.
         if queryset.count() > 1:
             return self.message_user(
                 request,
@@ -295,7 +295,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             This action runs for only one group at a time.
 
         """
-        # Delay the task for recalculating minutes.
         if queryset.count() > 1:
             return self.message_user(
                 request,
@@ -324,6 +323,45 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         )
 
     restart_recording_for_group.short_description = "Start new recording for stream"
+
+    def start_livestream_for_group(self, request, queryset):
+        """Starts livestream for a group.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of groups we want to
+                start livestream for.
+
+        Note:
+            This action runs for only one group at a time.
+
+        """
+        if queryset.count() > 1:
+            return self.message_user(
+                request,
+                "Please select only one group at a time for starting livestream",
+                messages.ERROR
+            )
+
+        group = queryset.first()
+        dyte_tasks.start_livestream_for_group.apply_async(
+            args=(group.id,),
+            countdown=10
+        )
+
+        # If starting a recording is successful
+        self.log_change(
+            request,
+            group,
+            message=[{"changed": {"actions": ["start_livestream_for_group"]}}]
+        )
+        self.message_user(
+            request,
+            "Started livestream for group: {}".format(group.id),
+            messages.SUCCESS
+        )
+
+    start_livestream_for_group.short_description = "Start HLS for multistream"
 
     @staticmethod
     def co_hosts(obj):
