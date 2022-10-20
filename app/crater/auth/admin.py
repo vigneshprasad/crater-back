@@ -8,5 +8,6 @@ class PhoneOtpAdmin(admin.ModelAdmin):
 
     list_display = ("id", "user", "phone_number", "otp", "used", "is_expired", "created_at")
     raw_id_fields = ("user", )
+    list_filter = ("used", )
     search_fields = ("user__username", "user__name", "user__email", "phone_number")
     exclude = ("deleted_at", "updated_at", "is_deleted")
