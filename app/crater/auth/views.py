@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from rest_auth.utils import jwt_encode
 from rest_framework import mixins, status, viewsets
@@ -49,7 +50,12 @@ class PhoneNumberRegisterView(
         if not username.startswith("+91"):
             return Response(status=400)
 
-        data = {"username": username}
+        login = get_user_model().objects.filter(username=username).exists()
+
+        data = {
+            "username": username,
+            "signup": not login
+        }
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
