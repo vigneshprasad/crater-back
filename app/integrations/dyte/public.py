@@ -129,7 +129,7 @@ def get_livestream_for_stream_and_status(
         group,
         status=constants.LIVE_STREAM_STATUS_LIVE
 ):
-    """Get active Dyte LiveStream for a Webinar
+    """Get Dyte liveStream for a stream and status.
 
     Args:
         group(Group): Stream for which are starting the

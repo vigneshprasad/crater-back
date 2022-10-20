@@ -847,6 +847,7 @@ class DyteServiceV2:
             headers=self._get_authorization_headers(),
             json={"name": dyte_meeting.room_name}
         )
+
         try:
             response_json = response.json()
         except json.JSONDecodeError:
