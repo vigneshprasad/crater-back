@@ -394,7 +394,7 @@ def start_livestream_for_multistream(multistream_id):
 
     """
     multistream = multistream_models.MultiStream.objects.get(id=multistream_id)
-    groups = multistream.groups.all()
+    groups = multistream.streams.all()
     # Start livestream for each group in the multistream.
     for group in groups:
         public.start_livestream_for_stream(group)

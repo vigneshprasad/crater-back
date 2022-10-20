@@ -55,7 +55,7 @@ class MultiStreamAdmin(admin.ModelAdmin):
         groups = multistream.streams.all()
         self.message_user(
             request,
-            "Started livestreams for groups: {}".format(", ".join(groups.values_list("id", flat=True))),
+            "Started livestreams for groups: {}".format(", ".join([str(group.id) for group in groups])),
             messages.SUCCESS
         )
 

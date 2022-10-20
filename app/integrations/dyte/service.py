@@ -851,12 +851,14 @@ class DyteServiceV2:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
+            LOGGER.info("start_livestream_for_meeting bad response: {}".format(dyte_meeting.group))
             return None
 
         success = response_json["success"]
         if not success:
-            logging.error("LiveStream not started successfully: {meeting_id}".format(
-                meeting_id=dyte_meeting.dyte_meeting_id
+            logging.error("LiveStream not started successfully: {} - {}".format(
+                dyte_meeting.group_id,
+                dyte_meeting.dyte_meeting_id
             ))
             return None
 
