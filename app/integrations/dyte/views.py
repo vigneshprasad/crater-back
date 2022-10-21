@@ -61,9 +61,6 @@ class DyteMeetingViewSet(
             # Mark group as closed on meeting end.
             group.mark_closed(user=group.host)
 
-        # Check and update dyte meeting session.
-        tasks.check_and_update_active_session_for_stream.delay(group.id)
-
         return Response(status=status.HTTP_200_OK)
 
 
