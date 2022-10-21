@@ -53,7 +53,7 @@ class PhoneNumberRegisterView(
         login = get_user_model().objects.filter(username=username).exists()
         data = {
             "username": username,
-            "signup": not login
+            "is_signup": not login
         }
 
         serializer = self.get_serializer(data=data)

@@ -26,8 +26,8 @@ class PhoneOtp(base_models.BaseModel):
     )
     # Is the OTP requested for signup
     # or login.
-    signup = models.BooleanField(default=False)
-    # OTP for login
+    is_signup = models.BooleanField(default=False)
+    # OTP for login.
     otp = models.CharField(max_length=4)
 
     # Marked when the OTP is used for login/signup.

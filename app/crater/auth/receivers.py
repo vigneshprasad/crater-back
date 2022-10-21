@@ -23,7 +23,7 @@ def send_welcome_crater_whatsapp(sender, user, *args, **kwargs):
 
 
 @receiver(post_save, sender=models.PhoneOtp)
-def create_or_update_failure(sender, instance, *args, **kwargs):
+def create_or_update_otp_metric(sender, instance, *args, **kwargs):
     """Create or update Phone otp failure model on PhoneOtp save.
 
     Args:
@@ -53,7 +53,7 @@ def create_or_update_failure(sender, instance, *args, **kwargs):
 
 
 @receiver(post_save, sender=models.PhoneOtpMetric)
-def send_slack_notification_for_excessive_failures(sender, instance, *args, **kwargs):
+def send_slack_notification_for_failed_otps(sender, instance, *args, **kwargs):
     """Send failure notification to slack for excessive OTP failures.
 
     Args:
