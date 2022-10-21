@@ -114,6 +114,7 @@ class Topic(base_model.BaseModel):
 
 
 class Category(base_model.BaseModel):
+
     name = models.CharField(max_length=64)
     # Denotes a specific color for a category.
     color = models.CharField(
@@ -287,6 +288,9 @@ class Group(base_model.BaseModel):
         verbose_name="Minutes streamed"
     )
     enable_stream_on_start = models.BooleanField(default=False)
+
+    # True if the dyte meeting is active (fetched from dyte's end)
+    session_active = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

@@ -412,3 +412,17 @@ def start_livestream_for_group(group_id):
     group = conversations_models.Group.objects.get(id=group_id)
     # Start livestream for the group.
     public.start_livestream_for_stream(group)
+
+
+@task()
+def check_and_update_active_session_for_stream(group_id):
+    """Start recording for a group.
+
+    Args:
+        group_id(int): ID of the group we are
+            checking active session for.
+
+    """
+    group = conversations_models.Group.objects.get(id=group_id)
+    # Get and update active session for the dyte meeting.
+    public.get_and_update_active_session_for_stream(group)

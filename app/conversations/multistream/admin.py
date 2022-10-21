@@ -8,7 +8,15 @@ from integrations.dyte import tasks as dyte_tasks
 @admin.register(models.MultiStream)
 class MultiStreamAdmin(admin.ModelAdmin):
 
-    list_display = ("id", "title", "category", "streams_list", "is_active")
+    list_display = (
+        "id",
+        "title",
+        "category",
+        "streams_list",
+        "active_streams",
+        "inactive_streams",
+        "is_active"
+    )
     raw_id_fields = ("streams",)
     list_filter = (
         AutocompleteFilterFactory("Group", "streams"),
@@ -20,6 +28,14 @@ class MultiStreamAdmin(admin.ModelAdmin):
     @staticmethod
     def streams_list(obj):
         return ["{}".format(stream.id) for stream in obj.streams.all()]
+
+    @staticmethod
+    def active_streams(obj):
+        return ["{}".format(stream.id) for stream in obj.streams.filter(session_active=True)]
+
+    @staticmethod
+    def inactive_streams(obj):
+        return ["{}".format(stream.id) for stream in obj.streams.filter(session_active=False)]
 
     def start_livestream_for_multistream(self, request, queryset):
         """Starts livestream for a multistream.

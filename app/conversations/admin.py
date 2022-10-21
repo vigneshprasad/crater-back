@@ -84,7 +84,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     ("is_live", "closed"),
                     ("is_rescheduled", "is_obs"),
                     ("is_approved", "is_full"),
-                    ("enable_stream_on_start",)
+                    ("enable_stream_on_start",),
+                    ("session_active", )
                 )
             }),
             ("Privacy", {
@@ -127,6 +128,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "last_live_at",
         "rescheduled_at",
         "published_at",
+        "session_active",
         "score",
         "total_minutes_spent_by_attendees",
         "total_minutes_spent_by_host"

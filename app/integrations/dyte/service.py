@@ -804,9 +804,15 @@ class DyteService:
 class DyteServiceV2:
 
     DYTE_API_ENDPOINTS = {
+        # Active session endpoints.
+        "get_active_sessions": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-session",
+
+        # Livestream endpoints.
         "start_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/livestreams",
         "get_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream",
         "stop_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream/stop",
+
+        # Livestream Detail endpoints.
         "get_details_by_steam_id": constants.DYTE_BASE_URL_V2 + "/livestreams/{stream_id}"
     }
 
@@ -830,6 +836,37 @@ class DyteServiceV2:
             "Content-Type": "application/json"
         }
 
+    def get_active_session_for_meeting(self, dyte_meeting):
+        """Get active session for a dyte meeting.
+
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for whose active
+                session we are requesting.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["get_active_sessions"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
+        response = requests.request(
+            "GET",
+            url,
+            headers=self._get_authorization_headers()
+        )
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            LOGGER.error("Get active session bad response: {}".format(dyte_meeting.group_id))
+            return None
+
+        success = response_json["success"]
+        if not success:
+            return None
+
+        # Get active session data.
+        data = response_json["data"]
+        return data["id"]
+
     def start_livestream_for_meeting(self, dyte_meeting):
         """Start live stream for a dyte meeting.
 
@@ -851,7 +888,7 @@ class DyteServiceV2:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            LOGGER.info("start_livestream_for_meeting bad response: {}".format(dyte_meeting.group))
+            LOGGER.error("Start livestream bad response: {}".format(dyte_meeting.group_id))
             return None
 
         success = response_json["success"]
@@ -938,7 +975,7 @@ class DyteServiceV2:
         data = response_json["data"]
         if not success:
             logging.error(
-                "LiveStream not started successfully: {meeting_id}".format(meeting_id=dyte_meeting.dyte_meeting_id)
+                "No active livestream for group: {}".format(dyte_meeting.group_id)
             )
             return None
 
