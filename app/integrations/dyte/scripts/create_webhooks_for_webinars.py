@@ -62,6 +62,20 @@ LIVE_STREAM_STATUS_WEBHOOK = [
 ]
 
 
+TEST_WEBHOOK_DATA = [
+    {
+        "name": "Participant Joined Local(Nishant)",
+        "events": [constants.DYTE_EVENT_PARTICIPANT_JOINED],
+        "url": "https://3c21-2401-4900-1cb8-69a2-2d79-c876-754f-f166.in.ngrok.io/v1/integrations/dyte/participant/joined/"
+    },
+    {
+        "name": "Participant Left Local(Nishant)",
+        "events": [constants.DYTE_EVENT_PARTICIPANT_LEFT],
+        "url": "https://3c21-2401-4900-1cb8-69a2-2d79-c876-754f-f166.in.ngrok.io/v1/integrations/dyte/participant/left/"
+    }
+]
+
+
 def run(all_webhook_data=None, dry_run=True):
 
     for webhook_data in all_webhook_data:

@@ -31,7 +31,6 @@ class DyteMeeting(base_model.BaseModel):
     )
     dyte_meeting_id = models.CharField(max_length=128)
     room_name = models.CharField(max_length=128)
-    # True if the session is active on Dyte's end.
 
     def __str__(self):
         return "{} - {}".format(self.room_name, (self.meeting_id or self.group_id))

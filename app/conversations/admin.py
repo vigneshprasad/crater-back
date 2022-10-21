@@ -60,6 +60,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_obs",
         "viewer_count",
         "host_poc",
+        # "session_active"
     )
     fieldsets = (
         (
@@ -84,8 +85,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     ("is_live", "closed"),
                     ("is_rescheduled", "is_obs"),
                     ("is_approved", "is_full"),
-                    ("enable_stream_on_start",),
-                    ("session_active", )
+                    ("enable_stream_on_start",)
                 )
             }),
             ("Privacy", {
@@ -105,6 +105,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     ("last_live_at", "closed_at"),
                     "published_at",
                     ("approved_at", "rescheduled_at"),
+                    ("session_active" ,),
                 )
             }),
             ("Score", {
@@ -369,13 +370,13 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     def co_hosts(obj):
         return [speaker.__str__() for speaker in obj.speakers.all()]
 
-    @staticmethod
-    def host_poc(obj):
+    def host_poc(self, obj):
         if not obj.host:
             return ""
         if not obj.host.is_creator:
             return ""
         return obj.host.creator.point_of_contact
+    host_poc.short_description = "POC"
 
     def viewer_count(self, obj):
         if not obj.host:
@@ -383,16 +384,15 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if not hasattr(obj.host, "permission"):
             return False
         return obj.host.permission.show_viewer_count
-
     viewer_count.boolean = True
 
     @staticmethod
     def speaker_count(obj):
         return obj.speakers.count()
 
-    @staticmethod
-    def attendees_count(obj):
+    def attendees_count(self, obj):
         return obj.attendees.count()
+    attendees_count.short_description = "Attendees"
 
     @staticmethod
     def get_rangefilter_start_title(request, field_path="start"):

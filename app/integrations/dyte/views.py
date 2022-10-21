@@ -201,7 +201,10 @@ class DyteParticipantViewSet(
         # Mark the participant online.
         participant.mark_online()
         # Check and update dyte meeting session.
-        tasks.check_and_update_active_session_for_stream.delay(group.id)
+        tasks.check_and_update_active_session_for_stream.apply_async(
+            args=(group.id,),
+            countdown=10
+        )
 
         return Response(status=status.HTTP_200_OK)
 
@@ -250,7 +253,10 @@ class DyteParticipantViewSet(
             participant.mark_offline()
 
         # Check and update dyte meeting session.
-        tasks.check_and_update_active_session_for_stream.delay(group.id)
+        tasks.check_and_update_active_session_for_stream.apply_async(
+            args=(group.id,),
+            countdown=180
+        )
 
         return Response(status=status.HTTP_200_OK)
 

@@ -1,5 +1,6 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
+from django.utils.html import format_html
 
 from conversations.multistream import models
 from integrations.dyte import tasks as dyte_tasks
@@ -25,17 +26,25 @@ class MultiStreamAdmin(admin.ModelAdmin):
     actions = ("start_livestream_for_multistream", )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
 
-    @staticmethod
-    def streams_list(obj):
+    def streams_list(self, obj):
         return ["{}".format(stream.id) for stream in obj.streams.all()]
+    streams_list.short_description = format_html(
+        "<span style='color: {};'>{}</span>", "#666", "Streams"
+    )
 
-    @staticmethod
-    def active_streams(obj):
+    def active_streams(self, obj):
+        """Returns all active streams (Inactive on Dyte's end) for the multistream."""
         return ["{}".format(stream.id) for stream in obj.streams.filter(session_active=True)]
+    active_streams.short_description = format_html(
+        "<span style='color: {};'>{}</span>", "#008000", "Can start HLS for"
+    )
 
-    @staticmethod
-    def inactive_streams(obj):
+    def inactive_streams(self, obj):
+        """Returns all inactive streams (Inactive on Dyte's end) for the multistream."""
         return ["{}".format(stream.id) for stream in obj.streams.filter(session_active=False)]
+    inactive_streams.short_description = format_html(
+        "<span style='color: {};'>{}</span>", "#FF0000", "Can't start HLS for"
+    )
 
     def start_livestream_for_multistream(self, request, queryset):
         """Starts livestream for a multistream.
