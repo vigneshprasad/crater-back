@@ -23,13 +23,13 @@ class PhoneOtpAdmin(admin.ModelAdmin):
         return "Sent at"
 
 
-@admin.register(models.PhoneOTPFailure)
-class PhoneOtpFailureAdmin(admin.ModelAdmin):
+@admin.register(models.PhoneOtpMetric)
+class PhoneOtpMetric(admin.ModelAdmin):
 
     list_display = (
         "id",
-        "last_successful_otp",
-        "generated_since_last_successful",
-        "get_display_last_successful_opt_at"
+        "last_successful",
+        "generated_since",
+        "get_display_last_successful_at"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

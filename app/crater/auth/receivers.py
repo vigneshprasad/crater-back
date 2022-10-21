@@ -31,36 +31,40 @@ def create_or_update_failure(sender, instance, *args, **kwargs):
         instance(PhoneOtp): Phone OTP that was created or updated.
 
     """
-    failure, _ = models.PhoneOTPFailure.objects.get_or_create()
+    failure, _ = models.PhoneOtpMetric.objects.get_or_create()
+
     if kwargs.get("created"):
-        # If a new otp is created, add 1 to generated
-        # since last successful OTP.
-        failure.generated_since_last_successful += 1
+        # If a new otp is created, increment generated
+        # since value.
+        failure.generated_since += 1
         failure.save()
         return
 
-    if instance.used and instance.user:
-        failure.last_successful_otp = instance
-        failure.generated_since_last_successful = 0
+    if instance.is_used():
+        failure.last_successful = instance
+        # Since this instance of OTP was used, generated since
+        # will reset back to zero.
+        failure.generated_since = 0
         # Reset the maximum failed attempts once an OTP is
         # successfully used.
-        failure.maximum_opt_failures_allowed = constants.MAXIMUM_FAILED_OPT_ATTEMPTS
-        failure.last_successful_otp_at = instance.created_at
+        failure.notify_at = constants.MAXIMUM_FAILED_OPT_ATTEMPTS
+        failure.last_successful_at = instance.created_at
         failure.save()
 
 
-@receiver(post_save, sender=models.PhoneOTPFailure)
+@receiver(post_save, sender=models.PhoneOtpMetric)
 def send_slack_notification_for_excessive_failures(sender, instance, *args, **kwargs):
     """Send failure notification to slack for excessive OTP failures.
 
     Args:
-        sender(PhoneOTPFailure.__clas__): Class representation of PhoneOtp
-        instance(PhoneOTPFailure): Phone OTP that was created or updated.
+        sender(PhoneOtpMetric.__clas__): Class representation of PhoneOtp
+        instance(PhoneOtpMetric): Phone OTP that was created or updated.
 
     """
-    if instance.generated_since_last_successful < instance.maximum_opt_failures_allowed:
+    if instance.generated_since < instance.notify_at:
         return
 
     slack_public.send_otp_failure_notification(instance)
-    instance.maximum_opt_failures_allowed += constants.MAXIMUM_FAILED_OPT_ATTEMPTS
+    # TODO(Nishant): Get formula for notification.
+    instance.notify_at += constants.MAXIMUM_FAILED_OPT_ATTEMPTS
     instance.save()

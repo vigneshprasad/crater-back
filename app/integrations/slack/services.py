@@ -52,7 +52,7 @@ class SlackService:
         response_ok = response_json["ok"]
         response_metadata = response_json["response_metadata"]
 
-        if not response_json["ok"]:
+        if not response_ok:
             LOGGER.error("Slack message didn't go: {} - {}".format(
                 response_json.get("error"),
                 response_metadata.get("messages")

@@ -67,42 +67,49 @@ class PhoneOtp(base_models.BaseModel):
         return True
 
 
-class PhoneOTPFailure(base_models.BaseModel):
-    """Keeps track of failure of OTPs on the
+class PhoneOtpMetric(base_models.BaseModel):
+    """Keeps track of success metric of OTPs on the
         platform.
 
     """
 
     # Last successful (used) OTP on the platform
-    last_successful_otp = models.ForeignKey(
+    last_successful = models.ForeignKey(
         PhoneOtp,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        verbose_name="Last successful OPT"
     )
-    last_successful_otp_at = models.DateTimeField(auto_now_add=True)
+    # Datetime of last successful OTP.
+    last_successful_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Last OTP successful at",
+        help_text="Datetime of the last successful OTP."
+    )
     # OTPs generated since last successful OTP
-    generated_since_last_successful = models.PositiveIntegerField(default=0)
+    generated_since = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Generated since last successful OTP",
+        help_text="OTPs generated since last successful OTP."
+    )
     # Maximum number of bearable OTPs failures.
-    maximum_opt_failures_allowed = models.PositiveIntegerField(
-        default=constants.MAXIMUM_FAILED_OPT_ATTEMPTS
+    notify_at = models.PositiveIntegerField(
+        default=constants.MAXIMUM_FAILED_OPT_ATTEMPTS,
+        verbose_name="Notify after X failed attempts"
     )
 
     def __str__(self):
         return "{} - {}".format(
-            self.last_successful_otp.id,
-            self.generated_since_last_successful
+            self.last_successful.id,
+            self.generated_since
         )
 
     @property
-    def local_last_successful_opt_at(self):
-        """Return start in the local timezone."""
-        return self.last_successful_otp_at.astimezone(
-            pytz.timezone(settings.TIME_ZONE)
-        )
+    def local_last_successful_at(self):
+        """Return last successful OTP time in the local timezone."""
+        return self.last_successful_at.astimezone(pytz.timezone(settings.TIME_ZONE))
 
-    @property
-    def get_display_last_successful_opt_at(self):
-        return self.local_last_successful_opt_at.strftime(
-            "%b. %-d, %Y, %I:%M %p"
-        )
+    def get_display_last_successful_at(self):
+        """Returns last successful OTP in human-readable format."""
+        return self.local_last_successful_at.strftime("%b. %-d, %Y, %I:%M %p")
