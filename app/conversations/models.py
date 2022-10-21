@@ -114,6 +114,7 @@ class Topic(base_model.BaseModel):
 
 
 class Category(base_model.BaseModel):
+
     name = models.CharField(max_length=64)
     # Denotes a specific color for a category.
     color = models.CharField(
@@ -240,22 +241,34 @@ class Group(base_model.BaseModel):
     medium = models.IntegerField(choices=GROUP_MEDIUM_CHOICES, default=constants.GROUP_MEDIUM_AUDIO_VIDEO_ENUM)
 
     # Flags.
-    is_featured = models.BooleanField(default=False)
+    is_featured = models.BooleanField(
+        default=False,
+        verbose_name="Featured"
+    )
     is_full = models.BooleanField(default=False)
-    is_live = models.BooleanField(default=False)
+    is_live = models.BooleanField(
+        default=False,
+        verbose_name="Live"
+    )
     # Denotes the datetime at which the group was marked live or
     # inactive.
     last_live_at = models.DateTimeField(null=True, blank=True)
 
     # Denotes if the group has been rescheduled.
-    is_rescheduled = models.BooleanField(default=False)
+    is_rescheduled = models.BooleanField(
+        default=False,
+        verbose_name="Rescheduled"
+    )
     rescheduled_at = models.DateTimeField(null=True, blank=True)
 
     # Denotes if the stream is happening via OBS.
-    is_obs = models.BooleanField(default=False)
+    is_obs = models.BooleanField(
+        default=False,
+        verbose_name="OBS"
+    )
 
     # Group closed status and datetime of closure.
-    closed = models.BooleanField(default=False)
+    closed = models.BooleanField(default=False,)
     closed_at = models.DateTimeField(null=True, blank=True)
 
     # Group score.
@@ -264,10 +277,16 @@ class Group(base_model.BaseModel):
 
     # Approval status for groups. This controls if notifications go out,
     # group is visible in all conversations etc.
-    is_approved = models.BooleanField(default=True)
+    is_approved = models.BooleanField(
+        default=True,
+        verbose_name="Approved"
+    )
     approved_at = models.DateTimeField(null=True, blank=True)
     # Whether the group can be shown on the site.
-    is_published = models.BooleanField(default=False)
+    is_published = models.BooleanField(
+        default=False,
+        verbose_name="Published"
+    )
     published_at = models.DateTimeField(null=True, blank=True)
 
     # Total minutes spent by attendees on the stream (Total).
@@ -286,7 +305,17 @@ class Group(base_model.BaseModel):
         blank=True,
         verbose_name="Minutes streamed"
     )
-    enable_stream_on_start = models.BooleanField(default=False)
+    enable_stream_on_start = models.BooleanField(
+        default=False,
+        verbose_name="Enable HLS"
+    )
+
+    # True if the dyte meeting is active (fetched from dyte's end)
+    session_active = models.BooleanField(
+        default=False,
+        verbose_name="Active",
+        help_text="Denotes if group active on Dyte's end."
+    )
 
     class Meta:
         ordering = ["-created_at"]

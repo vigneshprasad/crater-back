@@ -1,15 +1,10 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from conversations import signals as conversation_signals
-from conversations import services as conversation_services
-from conversations import constants as conversation_constants
+from conversations import constants as conversation_constants, services as conversation_services, \
+    signals as conversation_signals
+from integrations.dyte import constants, models, private, public, signals
 from integrations.dyte.service import dyte_service
-from integrations.dyte import constants
-from integrations.dyte import models
-from integrations.dyte import private
-from integrations.dyte import public
-from integrations.dyte import signals
 
 
 @receiver(post_save, sender=models.DyteMeetingRecording)
