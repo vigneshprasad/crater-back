@@ -16,3 +16,21 @@ def send_otp_failure_notification(phone_otp_metric):
         back_url=settings.BACK_URL
     )
     return services.slack_service.send_message(message_text)
+
+
+def send_login_failure_notification(phone_number, users):
+    """Sends notification for login failure by a phone number
+
+    Args:
+        phone_number(str): Phone number user is trying to
+            log in/signup from.
+        users(queryset.User): All users with the same phone
+            number on backend.
+
+    """
+    message_text = constants.SLACK_ALERT_FOR_LOGIN_FAILURE.format(
+        phone_number=phone_number,
+        total_users=users.count(),
+        back_url=settings.BACK_URL
+    )
+    return services.slack_service.send_message(message_text)

@@ -10,6 +10,7 @@ from integrations.twiliologs import public as twilio_public
 from integrations.wati import public as wati_public
 from users import constants as user_constants, permissions as user_permissions, public as user_public, \
     serializers as user_serializers
+from integrations.slack import public as slack_public
 
 
 class PhoneNumberRegisterView(
@@ -109,8 +110,16 @@ class PhoneNumberRegisterView(
         }
         serializer = self.get_serializer(data=data, instance=phone_otp, partial=True)
         serializer.is_valid(raise_exception=True)
+        try:
+            user, created = user_public.get_or_create_user(phone_number=username)
+        except get_user_model().MultipleObjectsReturned:
+            # Send a Slack notification for login failure.
+            users = get_user_model().objects.filter(username=username)
+            slack_public.send_login_failure_notification(username, users)
+            return Response({
+                "message": "Phone number is already registered with Crater."
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        user, created = user_public.get_or_create_user(phone_number=username)
         # Update name of the user if requested
         if name:
             if user.name != name:
