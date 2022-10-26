@@ -27,13 +27,13 @@ class TwilioSMSViewSet(GenericViewSet):
         message_status = data.get("MessageStatus")
 
         try:
-            sms_log = models.SMSLog.objects.get(sid=message_sid)
-        except models.SMSLog.DoesNotExist:
+            sms = models.SMS.objects.get(sid=message_sid)
+        except models.SMS.DoesNotExist:
             logging.error("SMSLog does not exist for SID: {}".format(message_sid))
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
         # Update the status of the message status.
-        sms_log.status = message_status
-        sms_log.save()
+        sms.status = message_status
+        sms.save()
 
         return Response(status=status.HTTP_200_OK)

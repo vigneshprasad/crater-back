@@ -19,7 +19,7 @@ def send_opt_sms_for_login(phone_otp):
         return
 
     # Create a log for message sent on our backend.
-    sms_log, _ = models.SMSLog.objects.get_or_create(
+    sms, _ = models.SMS.objects.get_or_create(
         phone_otp=phone_otp,
         defaults={
             "status": message_data.status,
@@ -28,4 +28,4 @@ def send_opt_sms_for_login(phone_otp):
         }
     )
 
-    return sms_log
+    return sms

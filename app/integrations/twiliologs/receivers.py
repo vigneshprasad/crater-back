@@ -5,7 +5,7 @@ from integrations.twiliologs import constants, models
 from integrations.slack import public as slack_public
 
 
-@receiver(post_save, sender=models.SMSLog)
+@receiver(post_save, sender=models.SMS)
 def update_phone_otp_status(sender, instance, *args, **kwargs):
     """Update phone otp status on SMSLog status update.
 
@@ -22,7 +22,7 @@ def update_phone_otp_status(sender, instance, *args, **kwargs):
     phone_otp.mark_successful()
 
 
-@receiver(post_save, sender=models.SMSLog)
+@receiver(post_save, sender=models.SMS)
 def send_alert_is_account_suspended(sender, instance, *args, **kwargs):
     """Send alert if we get account suspension error code from Twilio.
 
