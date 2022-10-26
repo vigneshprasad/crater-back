@@ -12,17 +12,11 @@ from django.core.mail import EmailMessage
 from django.utils import timezone
 
 from integrations.dyte import models as dyte_models
+from integrations.onesignal.services import one_signal_service
 from users import constants, models
 from utils.transcoder_service import transcoder_service
-from utils.twilio_service import twilio_service
-from integrations.onesignal.services import one_signal_service
 
 LOGGER = logging.getLogger(__name__)
-
-
-@shared_task(name="send_twilio_message")
-def send_twilio_message(phone_number, message):
-    return twilio_service.send_message(phone_number, message)
 
 
 @shared_task(bind=True)

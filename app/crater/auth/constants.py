@@ -1,8 +1,4 @@
-import datetime
-
 from django.conf import settings
-
-LOGIN_OTP_MESSAGE = "Your login code for Crater club is: {otp}"
 
 TEST_PHONE_NUMBERS = [
     settings.FRESHCHAT_MESSAGING_PHONE_NUMBER,

@@ -3,11 +3,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from phonenumber_field.modelfields import PhoneNumberField
 
 from base import models as base_models
 from crater.auth import constants
-from phonenumber_field.modelfields import PhoneNumberField
-from django.utils.translation import ugettext_lazy as _
 
 
 class PhoneOtp(base_models.BaseModel):
@@ -38,6 +38,14 @@ class PhoneOtp(base_models.BaseModel):
     is_expired = models.BooleanField(default=False)
     expired_at = models.DateTimeField(null=True, blank=True)
 
+    # Was the phone otp successful sent/delivered to the
+    # phone number.
+    successful = models.BooleanField(default=False)
+    successful_at = models.DateTimeField(null=True, blank=True)
+
+    def get_phone_number(self):
+        return str(self.phone_number)
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -65,6 +73,14 @@ class PhoneOtp(base_models.BaseModel):
             return False
 
         return True
+
+    def mark_successful(self):
+        """Mark the Phone otp successful."""
+        self.successful = True
+        if not self.successful_at:
+            self.successful_at = timezone.now()
+
+        self.save()
 
 
 class PhoneOtpMetric(base_models.BaseModel):

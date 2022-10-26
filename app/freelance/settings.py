@@ -29,7 +29,11 @@ BUILD_VERSION = os.environ.get("BUILD_VERSION", "latest")
 ENVIRONMENT_PROD = "prod"
 ENVIRONMENT_DEV = "dev"
 
-BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT)
+# BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT) if \
+#     ENVIRONMENT in [ENVIRONMENT_PROD, ENVIRONMENT_DEV] else \
+#     "https://localhost:8000"
+
+BACK_URL = "https://1163-2401-4900-1cb8-69a2-d4b4-72d-411f-341c.in.ngrok.io"
 
 CRATER_FRONT_URL = "https://crater.club/" if \
     ENVIRONMENT == ENVIRONMENT_PROD else "https://penitence-pre-prod.vercel.app/"
@@ -133,6 +137,7 @@ INSTALLED_APPS = [
     "integrations.wati",
     "integrations.onesignal",
     "integrations.slack",
+    "integrations.twiliologs",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -376,7 +381,8 @@ MANDRILL_API_KEY = os.getenv("MANDRILL_API_KEY", "pAoVah9eVDu70a2yxajeBg")
 MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
-ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
+# ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
+ALLOW_MESSAGE_SENDING = True
 
 # ------------- TWILIO CREDENTIALS ------------- #
 DEFAULT_SMS_PHONE_NUMBER = os.getenv("DEFAULT_SMS_PHONE_NUMBER", "")

@@ -1,9 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from crater.auth import tasks
-from crater.auth import models, constants
-from users import signals as user_signals
+from crater.auth import constants, models, tasks
 from integrations.slack import public as slack_public
 
 
@@ -40,7 +38,18 @@ def create_or_update_otp_metric(sender, instance, *args, **kwargs):
         failure.save()
         return
 
-    if instance.is_used():
+    # if instance.is_used():
+    #     failure.last_successful = instance
+    #     # Since this instance of OTP was used, generated since
+    #     # will reset back to zero.
+    #     failure.generated_since = 0
+    #     # Reset the maximum failed attempts once an OTP is
+    #     # successfully used.
+    #     failure.notify_at = constants.MAXIMUM_FAILED_OPT_ATTEMPTS
+    #     failure.last_successful_at = instance.created_at
+    #     failure.save()
+
+    if instance.successful:
         failure.last_successful = instance
         # Since this instance of OTP was used, generated since
         # will reset back to zero.

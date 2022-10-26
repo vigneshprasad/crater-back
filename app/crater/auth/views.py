@@ -5,10 +5,11 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from crater.auth import constants, exceptions, models, serializers
+from crater.auth import exceptions, models, serializers
+from integrations.twiliologs import public as twilio_public
 from integrations.wati import public as wati_public
 from users import constants as user_constants, permissions as user_permissions, public as user_public, \
-    serializers as user_serializers, utils as user_utils
+    serializers as user_serializers
 
 
 class PhoneNumberRegisterView(
@@ -62,10 +63,7 @@ class PhoneNumberRegisterView(
 
         # Send OTP with both whatsapp and sms.
         wati_public.send_otp_to_user.delay(username, phone_otp.otp)
-        user_utils.send_sms(
-            phone_number=username,
-            message=constants.LOGIN_OTP_MESSAGE.format(otp=phone_otp.otp)
-        )
+        twilio_public.send_opt_sms_for_login(phone_otp)
 
         return Response(
             {"message": "OTP sent to :{}".format(username)},

@@ -27,7 +27,7 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             "used",
             "is_expired",
             "referrer",
-            "signup"
+            "is_signup"
         )
         extra_kwargs = {
             "otp": {

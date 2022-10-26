@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from phonenumbers import phonenumberutil
 
 from conversations import constants as conversation_constants
 from conversations import private as conversation_private
@@ -51,12 +52,17 @@ class UserCreateSearchViewSet(viewsets.GenericViewSet):
         """Creates a user for given parameters."""
         post_data = request.data
         name = post_data.get("name")
-        phone_number = post_data.get("phone_number")
         email = post_data.get("email")
         primary_url = post_data.get("primary_url")
         profile_image_url = post_data.get("profile_image")
         profile_image_name = post_data.get("profile_image_name")
         profile_introduction = post_data.get("profile_introduction")
+
+        # Get the phone number and normalise it.
+        provided_phone_number = post_data.get("phone_number")
+        phone_number = phonenumberutil.normalize_diallable_chars_only(
+            provided_phone_number
+        )
 
         phone_number_exists = False
         email_exists = False

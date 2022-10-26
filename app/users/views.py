@@ -286,49 +286,6 @@ class LogoutView(RestLogoutView):
         return super().logout(request)
 
 
-class VerificationView(viewsets.GenericViewSet):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.NewPhoneNumberSerializer
-
-    @action(methods=["post"], detail=False, serializer_class=serializers.NewPhoneNumberSerializer)
-    def new_phone_number(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        phone_number = serializer.validated_data.get("phone_number")
-        if phone_number:
-            request.user.new_phone_number = phone_number
-            request.user.generate_sms_code(commit=False)
-            request.user.save()
-            request.user._send_sms(
-                phone_number,
-                messages.PHONE_CODE_VERIFICATION.format(code=request.user.sms_code)
-            )
-        return Response({"status": messages.PHONE_CODE_SUCCESSFULLY_SENT})
-
-    @action(methods=["post"], detail=False, serializer_class=serializers.CheckCodeSerializer)
-    def check_sms_code(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        request.user.sms_code = ""
-        if request.user.new_phone_number:
-            request.user.phone_number = request.user.new_phone_number
-            request.user.new_phone_number = ""
-            phone_number_verified.send(
-                sender=self.__class__,
-                user=request.user,
-                request=request
-            )
-
-        request.user.set_phone_number_verified()
-
-        return Response({"status": messages.PHONE_NUMBER_SUCCESSFULLY_VERIFIED})
-
-    @action(methods=["post"], detail=False)
-    def send_verify_email(self, request):
-        request.user.send_verify_email()
-        return Response({"status": messages.EMAIL_VERIFY_SUCCESSFULLY_SENT})
-
-
 class NetworkView(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
