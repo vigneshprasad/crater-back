@@ -9,7 +9,7 @@ class SMSAdmin(admin.ModelAdmin):
     list_display = ("id", "phone_otp", "status", "sid", "error_code", "error_message", "updated_at")
     list_filter = ("status", )
     readonly_fields = (
-        "notify"
+        "sid",
         "phone_otp",
         "status",
         "error_code",
