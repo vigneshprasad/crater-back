@@ -13,3 +13,9 @@ SLACK_ALERT_FOR_LOGIN_FAILURE = "Hey <!channel>, \n Some one is trying to login 
                                 "users with the same phone number on backend.\n" \
                                 "Please delete old/unused accounts here: " \
                                 "<{back_url}admin/users/user/?q={phone_number}| Users Dashboard>"
+
+
+SLACK_ALERT_FOR_TWILIO_ACCOUNT_FAILURE = "Hey <!channel>, \n Twilio account raise and error" \
+                                         "might want to check out what it is.\n" \
+                                         "{error_code} - {error_message}\n\n" \
+                                         "<twilio.com> | Twilio"

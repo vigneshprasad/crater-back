@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from integrations.twiliologs import constants, models
-from integrations.slack import services as slack_service
+from integrations.slack import public as slack_public
 
 
 @receiver(post_save, sender=models.SMSLog)
@@ -37,4 +37,4 @@ def send_alert_is_account_suspended(sender, instance, *args, **kwargs):
     if instance.error_code in constants.TWILIO_ALERT_CODES:
         return
 
-    # Send slack alert if this happens.
+    slack_public.send_twilio_account_failure_notification(instance)
