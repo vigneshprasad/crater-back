@@ -659,10 +659,14 @@ class GroupWebinarViewSet(
         upcoming_streams = self._get_upcoming_webinars()
 
         queryset = self.filter_queryset(
-            live_streams | upcoming_streams
-        ).exclude(
-            Q(host=request.user) | Q(requests__requester=user)
-        ).order_by("-is_live", "start")
+            (
+                    live_streams | upcoming_streams
+            ).exclude(
+                Q(host=request.user) | Q(requests__requester=user)
+            ).order_by(
+                "-is_live", "start"
+            )
+        )
 
         page = self.paginate_queryset(queryset)
 
