@@ -148,7 +148,7 @@ def mark_streams_closed():
         stream.mark_closed()
 
 
-@periodic_task(run_every=crontab(hour="00", minute="21"))
+@periodic_task(run_every=crontab(hour="21", minute="00"))
 def mark_participants_offline_for_yesterdays_streams():
     """Marks all participants offline for streams that happened
         yesterday.
