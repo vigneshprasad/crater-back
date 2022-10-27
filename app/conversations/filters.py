@@ -66,15 +66,17 @@ class AllWebinarsFilters(filters.FilterSet):
         """Return streams sorted by given categories."""
 
         categories = value.split(",")
+        print(categories)
 
         return queryset.annotate(
             relevancy=Count(Case(
                 When(
                     categories__slug__in=categories,
                     then=1
-                )
+                ),
+                default=0
             ), distinct=True)
-        ).order_by("-relevancy")
+        ).order_by("-is_live", "-relevancy")
 
 
 class StreamsFollowedFilter(filters.FilterSet):
