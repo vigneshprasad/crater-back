@@ -5,6 +5,7 @@ from django.db.models import Prefetch, Q
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from conversations import constants, exceptions, filters, models, paginators, private, serializers, services, signals
 from resources.meetings import models as meeting_models, services as meeting_services
@@ -529,6 +530,8 @@ class GroupWebinarViewSet(
     serializer_class = serializers.GroupWebinarSerializer
     pagination_class = paginators.WebinarPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = filters.AllWebinarsFilters
     filterset_fields = ["host", "categories"]
 
     def _get_upcoming_webinars(self):
@@ -655,16 +658,16 @@ class GroupWebinarViewSet(
         live_streams = self._get_live_webinars()
         upcoming_streams = self._get_upcoming_webinars()
 
-        live_and_upcoming_streams = self.filter_queryset(
+        queryset = self.filter_queryset(
             live_streams | upcoming_streams
         ).exclude(
             Q(host=request.user) | Q(requests__requester=user)
         ).order_by("-is_live", "start")
 
-        page = self.paginate_queryset(live_and_upcoming_streams)
+        page = self.paginate_queryset(queryset)
 
         if page is None:
-            serializer = self.get_serializer(live_and_upcoming_streams, many=True)
+            serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)
