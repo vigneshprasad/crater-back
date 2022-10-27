@@ -14,10 +14,7 @@ SMS_STATUS_DELIVERED = "delivered"
 SMS_STATUS_UNDELIVERED = "undelivered"
 
 # Status that denotes an SMS success.
-SMS_SUCCESSFUL_STATUS = [
-    SMS_STATUS_DELIVERED,
-    SMS_STATUS_SENT
-]
+SMS_SUCCESSFUL_STATUS = [SMS_STATUS_DELIVERED]
 
 # Status that denotes an SMS failure.
 SMS_FAILURE_STATUS = [

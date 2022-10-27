@@ -38,18 +38,7 @@ def create_or_update_otp_metric(sender, instance, *args, **kwargs):
         failure.save()
         return
 
-    # if instance.is_used():
-    #     failure.last_successful = instance
-    #     # Since this instance of OTP was used, generated since
-    #     # will reset back to zero.
-    #     failure.generated_since = 0
-    #     # Reset the maximum failed attempts once an OTP is
-    #     # successfully used.
-    #     failure.notify_at = constants.MAXIMUM_FAILED_OPT_ATTEMPTS
-    #     failure.last_successful_at = instance.created_at
-    #     failure.save()
-
-    if instance.successful:
+    if instance.is_used():
         failure.last_successful = instance
         # Since this instance of OTP was used, generated since
         # will reset back to zero.
@@ -74,6 +63,5 @@ def send_slack_notification_for_failed_otps(sender, instance, *args, **kwargs):
         return
 
     slack_public.send_otp_failure_notification(instance)
-    # TODO(Nishant): Get formula for notification.
-    instance.notify_at += constants.MAXIMUM_FAILED_OPT_ATTEMPTS
+    instance.notify_at += constants.INCREASING_INTERVAL_FOR_FAILED_OTPS
     instance.save()
