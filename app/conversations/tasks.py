@@ -123,8 +123,7 @@ def send_whatsapp_reminder_for_stream_host():
         freshchat_public.send_whatsapp_reminder_for_webinar_host(stream)
 
 
-# TODO(Nishant): Should we mark the streams closed also at the end of the day?
-@periodic_task(run_every=crontab(minute="0", hour="*/1"))
+@periodic_task(run_every=crontab(minute="0", hour="*/3"))
 def mark_streams_closed():
     """Mark streams closed after 3 hours of start time
 
@@ -145,6 +144,20 @@ def mark_streams_closed():
     )
 
     for stream in streams:
+        # If stream is already marked closed, don't close.
+        if stream.closed:
+            continue
+
+        host_and_speakers = stream.get_host_and_speakers()
+        online_host_and_speakers = dyte_models.DyteMeetingParticipant.objects.filter(
+            dyte_meeting__group=stream,
+            participant__in=host_and_speakers,
+            is_online=True
+        )
+        # If any host or speaker is online, don't close the meeting yet.
+        if online_host_and_speakers:
+            continue
+
         stream.mark_closed()
 
 

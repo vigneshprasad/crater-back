@@ -1,5 +1,6 @@
 import logging
 
+from django.utils import timezone
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -29,6 +30,36 @@ class DyteMeetingViewSet(
         detail=False,
         permission_classes=[user_permissions.AllowAny]
     )
+    def started(self, request):
+        """Webhook for meeting started from Dyte meeting.
+
+        Note:
+            Fires as soon as first person joins the meeting.
+
+        """
+        data = request.data
+        dyte_meeting_details = data.get("meeting")
+
+        dyte_meeting_id = dyte_meeting_details.get("id")
+        dyte_meeting = private.get_dyte_meeting_for_dyte_meeting_id(
+            dyte_meeting_id=dyte_meeting_id
+        )
+        # If the dyte meeting is not found, return a not acceptable response
+        if not dyte_meeting:
+            LOGGER.error("Dyte meeting ID doesn't exist: {}".format(dyte_meeting_id))
+            return Response(status=status.HTTP_200_OK)
+
+        group = dyte_meeting.group
+        group.session_active = True
+        group.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["POST"],
+        detail=False,
+        permission_classes=[user_permissions.AllowAny]
+    )
     def ended(self, request):
         """Webhook for meeting end from Dyte meeting.
 
@@ -49,13 +80,16 @@ class DyteMeetingViewSet(
             LOGGER.error("Dyte meeting ID doesn't exist: {}".format(dyte_meeting_id))
             return Response(status=status.HTTP_200_OK)
 
-        # If the dyte meeting is not for a group return.
         group = dyte_meeting.group
-        # utc = pytz.utc
-        # if datetime.datetime.now(tz=utc) > group.start:
-        #     # Mark group as closed on meeting end.
-        #     group.mark_closed(user=group.host)
+        group.session_active = False
+        group.save()
 
+        # If the time is less that group start, return 200.
+        if not timezone.now() > group.start:
+            return Response(status=status.HTTP_200_OK)
+
+        # Mark group as closed on meeting end.
+        group.mark_closed(user=group.host)
         return Response(status=status.HTTP_200_OK)
 
 
@@ -132,7 +166,6 @@ class DyteParticipantViewSet(
         """Returns a dyte participant for user and group_id."""
         group_id = kwargs.get("pk")
         user = request.user
-
         participant = private.get_participant_for_user_and_group_id(
             user=user,
             group_id=group_id
@@ -172,30 +205,26 @@ class DyteParticipantViewSet(
             LOGGER.error("Participant not in Dyte meeting: {}".format(user_pk))
             return Response(status=status.HTTP_200_OK)
 
-        # If the group is not present or the group doesn't
-        # have a host return 200. If the group is
-        # marked closed, don't make it live.
         group = participant.dyte_meeting.group
-
-        if group.host.uuid.__str__() == user_pk:
-            # If the group host has joined mark meeting as
-            # live.
-            group.mark_live(user=participant.participant)
-            # Start recording the session if required.
-            if group.can_start_recording():
-                tasks.start_recording_for_meeting_if_required.apply_async(
-                    args=(group.id,),
-                    countdown=5
-                )
-
         # Mark the participant online.
         participant.mark_online()
-        # Check and update dyte meeting session.
-        tasks.check_and_update_active_session_for_stream.apply_async(
-            args=(group.id,),
-            countdown=10
-        )
 
+        # If the participant is not host, return from here.
+        if group.host_id != user_pk:
+            return Response(status=status.HTTP_200_OK)
+
+        # If the group host has joined mark meeting as
+        # live.
+        group.mark_live(user=participant.participant)
+
+        # Start recording the session if required.
+        if not group.can_start_recording():
+            return Response(status=status.HTTP_200_OK)
+
+        tasks.start_recording_for_meeting_if_required.apply_async(
+            args=(group.id,),
+            countdown=5
+        )
         return Response(status=status.HTTP_200_OK)
 
     @action(
@@ -227,24 +256,16 @@ class DyteParticipantViewSet(
             LOGGER.error("Participant not in Dyte meeting: {}".format(user_pk))
             return Response(status=status.HTTP_200_OK)
 
-        # If the group is not present or the group doesn't
-        # have a host return 200.
         group = participant.dyte_meeting.group
-        # If the group host has joined mark meeting as
-        # not live/inactive.
-        if group.host.uuid.__str__() == user_pk:
-            group.mark_inactive(user=participant.participant)
-
         # Mark the participant offline.
-        if not participant.is_offline():
-            participant.mark_offline()
+        participant.mark_offline()
 
-        # Check and update dyte meeting session.
-        tasks.check_and_update_active_session_for_stream.apply_async(
-            args=(group.id,),
-            countdown=180
-        )
+        # If the participant is not host, return from here.
+        if group.host_id != user_pk:
+            return Response(status=status.HTTP_200_OK)
 
+        # Mark the group inactive if host leaves the meeting.
+        group.mark_inactive(user=participant.participant)
         return Response(status=status.HTTP_200_OK)
 
 
@@ -315,6 +336,13 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
         detail=True
     )
     def meeting_active_livestream(self, request, pk, *args, **kwargs):
+        """Returns active livestream for a group.
+
+        Note:
+            pk provided is the group's ID we are getting the
+                livestream for.
+
+        """
         try:
             livestream = models.LiveStream.objects.get(
                 dyte_meeting__group_id=pk,
