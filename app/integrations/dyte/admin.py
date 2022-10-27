@@ -66,6 +66,7 @@ class DyteMeetingParticipantAdmin(admin.ModelAdmin):
         return obj.joined_group
 
     joined_stream.boolean = True
+    joined_stream.admin_order_field = "-minutes_spent"
 
     @staticmethod
     def get_rangefilter_dyte_meeting__group__start_title(request, field_path="start"):

@@ -1,6 +1,6 @@
 import logging
 
-from integrations.dyte import constants, private, models
+from integrations.dyte import constants, private, models, tasks
 from integrations.dyte.service import dyte_service, dyte_service_v2
 
 
@@ -210,3 +210,15 @@ def get_and_update_active_session_for_stream(group):
     # If session is present, mark the dyte meeting as active, else mark inactive.
     group.session_active = True if active_session else False
     group.save()
+
+
+def mark_all_participants_offline_for_streams(streams):
+    """Mark participants offline for all given streams.
+
+    Args:
+        streams(Queryset/list): List of streams for which
+            we need to mark participants offline.
+
+    """
+    for stream in streams:
+        tasks.mark_dyte_meeting_participants_offline(stream.id)

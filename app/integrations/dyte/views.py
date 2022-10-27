@@ -1,7 +1,5 @@
-import datetime
 import logging
 
-import pytz
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,7 +10,7 @@ from conversations import (
     models as conversation_models,
     public as conversation_public
 )
-from integrations.dyte import constants, models, private, public, serializers, tasks, service
+from integrations.dyte import constants, models, private, public, serializers, service, tasks
 from users import permissions as user_permissions
 
 LOGGER = logging.getLogger(__name__)
@@ -49,17 +47,14 @@ class DyteMeetingViewSet(
         # If the dyte meeting is not found, return a not acceptable response
         if not dyte_meeting:
             LOGGER.error("Dyte meeting ID doesn't exist: {}".format(dyte_meeting_id))
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(status=status.HTTP_200_OK)
 
         # If the dyte meeting is not for a group return.
         group = dyte_meeting.group
-        if not group:
-            return Response(status=status.HTTP_200_OK)
-
-        utc = pytz.utc
-        if datetime.datetime.now(tz=utc) > group.start:
-            # Mark group as closed on meeting end.
-            group.mark_closed(user=group.host)
+        # utc = pytz.utc
+        # if datetime.datetime.now(tz=utc) > group.start:
+        #     # Mark group as closed on meeting end.
+        #     group.mark_closed(user=group.host)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -118,19 +113,19 @@ class DyteParticipantViewSet(
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if (group.host_id == user.pk) or (user in group.speakers.all()):
-            result = public.add_participant_to_meeting(
+            dyte_participant = public.add_participant_to_meeting(
                 dyte_meeting,
                 user,
                 host_preset
             )
         else:
-            result = public.add_participant_to_meeting(
+            dyte_participant = public.add_participant_to_meeting(
                 dyte_meeting,
                 user,
                 participant_preset
             )
 
-        serialized = self.get_serializer(result)
+        serialized = self.get_serializer(dyte_participant)
         return Response(serialized.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
@@ -175,14 +170,12 @@ class DyteParticipantViewSet(
         )
         if not participant:
             LOGGER.error("Participant not in Dyte meeting: {}".format(user_pk))
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(status=status.HTTP_200_OK)
 
         # If the group is not present or the group doesn't
         # have a host return 200. If the group is
         # marked closed, don't make it live.
         group = participant.dyte_meeting.group
-        if group and group.closed:
-            return Response(status=status.HTTP_200_OK)
 
         if group.host.uuid.__str__() == user_pk:
             # If the group host has joined mark meeting as
@@ -232,14 +225,11 @@ class DyteParticipantViewSet(
         )
         if not participant:
             LOGGER.error("Participant not in Dyte meeting: {}".format(user_pk))
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(status=status.HTTP_200_OK)
 
         # If the group is not present or the group doesn't
         # have a host return 200.
         group = participant.dyte_meeting.group
-        if not (group and group.host):
-            return Response(status=status.HTTP_200_OK)
-
         # If the group host has joined mark meeting as
         # not live/inactive.
         if group.host.uuid.__str__() == user_pk:
@@ -291,7 +281,7 @@ class DyteMeetingRecordingViewSet(
         )
         if not dyte_meeting_recording:
             LOGGER.error("Dyte meeting recording not found: {}".format(recording_id))
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(status=status.HTTP_200_OK)
 
         # Update recording status only if it has changed.
         if dyte_meeting_recording.status == recording_status:
@@ -358,7 +348,7 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
 
         if not livestream:
             LOGGER.error("Live stream ID doesn't exist: {}".format(stream_id))
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(status=status.HTTP_200_OK)
 
         # Update livestream status for stream id.
         livestream.status = livestream_status

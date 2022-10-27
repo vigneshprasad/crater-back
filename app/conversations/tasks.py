@@ -123,6 +123,49 @@ def send_whatsapp_reminder_for_stream_host():
         freshchat_public.send_whatsapp_reminder_for_webinar_host(stream)
 
 
+# TODO(Nishant): Should we mark the streams closed also at the end of the day?
+@periodic_task(run_every=crontab(minute="0", hour="*/1"))
+def mark_streams_closed():
+    """Mark streams closed after 3 hours of start time
+
+    Note:
+        Sends reminder to attendees and followers of streams which are
+            starting 5 minutes from now.
+
+    """
+    now_time = datetime.datetime.now()
+    start_datetime = (now_time - datetime.timedelta(minutes=180))
+
+    # Get all streams that started 3 hours ago.
+    streams = models.Group.objects.filter(
+        start__lte=start_datetime,
+        is_published=True,
+        is_closed=False,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+
+    for stream in streams:
+        stream.mark_closed()
+
+
+@periodic_task(run_every=crontab(hour="00", minute="21"))
+def mark_participants_offline_for_yesterdays_streams():
+    """Marks all participants offline for streams that happened
+        yesterday.
+
+    """
+    today = datetime.datetime.today()
+    yesterday = today - timezone.timedelta(days=1)
+
+    # Get all streams that happened yesterday.
+    yesterday_streams = models.Group.objects.filter(
+        start__date=yesterday,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+    # Mark all streams participants offline.
+    dyte_public.mark_all_participants_offline_for_streams(yesterday_streams)
+
+
 @task()
 def add_previous_attendees_to_groups(group_ids):
     """Adds host's previous attendees to group.
