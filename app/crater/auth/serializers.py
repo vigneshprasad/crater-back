@@ -119,51 +119,11 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
         utm_medium = validated_data.pop("utm_medium")
         referrer = validated_data.pop("referrer")
         is_new_user = validated_data.get("new_user", False)
-
         instance = super().update(instance, validated_data)
+
         # If it's a login, return from here.
         if not is_new_user:
             return instance
-
-        user = instance.user
-
-        # TODO(Nishant): See if we can do it through
-        # signals.
-        # signals.new_user_signal(
-        #     sender=instance.__class__,
-        #     user=user,
-        #     utm_source=utm_source,
-        #     utm_campaign=utm_campaign,
-        #     utm_medium=utm_medium,
-        #     referrer=referrer
-        # )
-
-        # if utm_source or utm_campaign or referrer:
-            # Only create if the user is a new user.
-            # analytics_models.UserSource.objects.create(
-            #     user=user,
-            #     utm_source=utm_source,
-            #     utm_campaign=utm_campaign,
-            #     utm_medium=utm_medium,
-            #     referrer=referrer
-            # )
-
-        # if utm_source == analytics_constants.IGC_SOURCE:
-        #     # Get profile for user.
-        #     user = instance.user
-        #     user.refresh_from_db()
-        #     profile = user.profile
-        #     # Opt out IGC users from whatsapp messages.
-        #     profile.opt_out_of_whatsapp()
-        #     return instance
-
-        # If the referrer user is a creator don't create user referral.
-        # if referrer and not referrer.is_creator:
-            # Create user referral.
-            # user_services.create_user_referral(
-            #     new_user=user,
-            #     referrer=referrer
-            # )
 
         user = instance.user
         # Create referral and source for user.

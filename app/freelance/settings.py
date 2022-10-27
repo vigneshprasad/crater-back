@@ -606,4 +606,5 @@ SPECTACULAR_SETTINGS = {
 
 # ----------- Slack credentials ---------------#
 SLACK_BASE_API_URL = "https://slack.com/api"
+# TODO(Nishant): Move this to AWS parameter store.
 SLACK_OATH_TOKEN = os.getenv("SLACK_OATH_TOKEN", "xoxb-942006831873-4247505392325-UVDvqn7UzXiEMAJ82mSmy7HK")

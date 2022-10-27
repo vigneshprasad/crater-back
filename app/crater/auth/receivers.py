@@ -62,6 +62,8 @@ def send_slack_notification_for_failed_otps(sender, instance, *args, **kwargs):
     if instance.generated_since < instance.notify_at:
         return
 
-    slack_public.send_otp_failure_notification(instance)
+    # Increase notify limit by a constant interval.
     instance.notify_at += constants.INCREASING_INTERVAL_FOR_FAILED_OTPS
     instance.save()
+    # Send Slack notification for the failure.
+    slack_public.send_otp_failure_notification(instance)
