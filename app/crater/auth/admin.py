@@ -31,6 +31,7 @@ class PhoneOtpMetric(admin.ModelAdmin):
         "id",
         "last_successful",
         "generated_since",
-        "last_successful_at"
+        "last_successful_at",
+        "notify_at"
     )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")

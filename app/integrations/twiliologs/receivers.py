@@ -34,7 +34,7 @@ def send_alert_is_account_suspended(sender, instance, *args, **kwargs):
     if instance.status not in constants.SMS_FAILURE_STATUS:
         return
 
-    if instance.error_code in constants.TWILIO_ALERT_CODES:
+    if instance.error_code not in constants.TWILIO_ALERT_CODES:
         return
 
     slack_public.send_twilio_account_failure_notification(instance)

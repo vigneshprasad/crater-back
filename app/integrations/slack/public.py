@@ -36,15 +36,16 @@ def send_login_failure_notification(phone_number, users):
     return services.slack_service.send_message(message_text)
 
 
-def send_twilio_account_failure_notification(sms_log):
+def send_twilio_account_failure_notification(sms):
     """Sends notification for Twilio account failure notification.
 
     Args:
-        sms_log(SMSLog): SMSLog which return the failure error.
+        sms(SMS): SMS which returned the failure error.
 
     """
     message_text = constants.SLACK_ALERT_FOR_TWILIO_ACCOUNT_FAILURE.format(
-        error_code=sms_log.error_code,
-        error_message=sms_log.error_message
+        error_code=sms.error_code,
+        error_message=sms.error_message,
+        back_url=settings.BACK_URL
     )
     return services.slack_service.send_message(message_text)

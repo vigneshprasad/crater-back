@@ -144,7 +144,8 @@ class FargateApiServiceStack(NestedStack):
             "DEFAULT_FROM_EMAIL",
             "SOCKET_IO_BASE_URL",
             "WATI_9051_ACCESS_TOKEN",
-            "WATI_8953_ACCESS_TOKEN"
+            "WATI_8953_ACCESS_TOKEN",
+            "SLACK_OATH_TOKEN"
         ]
 
         params = {

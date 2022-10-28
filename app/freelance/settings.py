@@ -29,11 +29,10 @@ BUILD_VERSION = os.environ.get("BUILD_VERSION", "latest")
 ENVIRONMENT_PROD = "prod"
 ENVIRONMENT_DEV = "dev"
 
-# BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT) if \
-#     ENVIRONMENT in [ENVIRONMENT_PROD, ENVIRONMENT_DEV] else \
-#     "https://localhost:8000"
+BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT) if \
+    ENVIRONMENT in [ENVIRONMENT_PROD, ENVIRONMENT_DEV] else \
+    "https://localhost:8000"
 
-BACK_URL = "https://1163-2401-4900-1cb8-69a2-d4b4-72d-411f-341c.in.ngrok.io"
 
 CRATER_FRONT_URL = "https://crater.club/" if \
     ENVIRONMENT == ENVIRONMENT_PROD else "https://penitence-pre-prod.vercel.app/"
@@ -606,5 +605,4 @@ SPECTACULAR_SETTINGS = {
 
 # ----------- Slack credentials ---------------#
 SLACK_BASE_API_URL = "https://slack.com/api"
-# TODO(Nishant): Move this to AWS parameter store.
-SLACK_OATH_TOKEN = os.getenv("SLACK_OATH_TOKEN", "xoxb-942006831873-4247505392325-UVDvqn7UzXiEMAJ82mSmy7HK")
+SLACK_OATH_TOKEN = os.getenv("SLACK_OATH_TOKEN")

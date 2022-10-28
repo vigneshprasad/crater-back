@@ -117,7 +117,7 @@ class PhoneOtpMetric(base_models.BaseModel):
 
     def __str__(self):
         return "{} - {}".format(
-            self.last_successful.id,
+            self.last_successful.id if self.last_successful else "",
             self.generated_since
         )
 
