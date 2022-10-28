@@ -1,4 +1,5 @@
 import logging
+import requests
 
 from django.conf import settings
 from twilio.base import exceptions
@@ -43,7 +44,7 @@ class TwilioService:
                 body=body,
                 status_callback=constants.SMS_CALLBACK_URL
             )
-        except exceptions.TwilioRestException as e:
+        except (exceptions.TwilioRestException, requests.exceptions.ConnectionError) as e:
             logging.error(str(e))
             return
 
