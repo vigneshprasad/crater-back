@@ -1,7 +1,7 @@
 from celery.task import task
 from django.core.exceptions import ValidationError
 
-from integrations.dyte import constants, models
+from integrations.dyte import constants, models, service
 
 
 def get_dyte_participant_for_user_and_group(user, group):
@@ -13,8 +13,7 @@ def get_dyte_participant_for_user_and_group(user, group):
             part of.
 
     """
-    dyte_meeting = group.dyte_webinar.first()
-
+    dyte_meeting = group.dyte_meeting
     if not dyte_meeting:
         return False
 
@@ -23,8 +22,39 @@ def get_dyte_participant_for_user_and_group(user, group):
     ).first()
 
 
-def get_dyte_meeting_for_dyte_meeting_id(dyte_meeting_id):
-    """Returns dyte meeting for give dyte meeting id.
+def get_preset_for_group(user, group):
+    """Returns correct preset based on whether we need
+        preset for host or participant and the group.
+
+    Args:
+        user(User): User for whom we are getting the preset.
+        group(Group): Group for which we are getting the preset for
+
+    """
+    participant = False if user in group.get_host_and_speakers() else True
+
+    if participant and group.is_obs:
+        # If the user is a participant and group is obs.
+        # Return OBS preset for participant
+        return constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME
+    elif participant and not group.is_obs:
+        # If the user is a participant and group is not obs.
+        # Return default preset for participant.
+        return constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME
+    elif not participant and group.is_obs:
+        # If the user is not a participant and group is obs.
+        # Return OBS preset for host.
+        return constants.WEBINAR_OBS_HOST_PRESET_NAME
+    elif not (participant and group.is_obs):
+        # If the user is not a participant and group is not obs.
+        # Return default preset for host.
+        return constants.DEFAULT_WEBINAR_HOST_PRESET_NAME
+    else:
+        return constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME
+
+
+def get_group_for_dyte_meeting_id(dyte_meeting_id):
+    """Returns stream for give dyte meeting id.
 
     Args:
         dyte_meeting_id(str): Dyte meeting on the dyte servers.
@@ -33,9 +63,11 @@ def get_dyte_meeting_for_dyte_meeting_id(dyte_meeting_id):
     if not dyte_meeting_id:
         return None
 
-    return models.DyteMeeting.objects.filter(
+    dyte_meeting = models.DyteMeeting.objects.filter(
         dyte_meeting_id=dyte_meeting_id
     ).first()
+
+    return dyte_meeting.group if dyte_meeting else dyte_meeting
 
 
 def get_participant_for_user_id_and_dyte_meeting_id(user_pk, dyte_meeting_id):
@@ -166,3 +198,18 @@ def mark_participants_offline_for_group(group):
         participant_online_logs = participant.online_logs.filter(is_offline=False)
         for online_log in participant_online_logs:
             online_log.mark_offline()
+
+
+def get_livestream_object_for_stream_id(stream_id):
+    """Return livestream object for a stream id.
+
+    Args:
+        stream_id(str): Live stream ID on dyte's end.
+
+    """
+    try:
+        livestream = models.LiveStream.objects.get(livestream_id=stream_id)
+    except models.LiveStream.DoesNotExist:
+        livestream = service.dyte_service_v2.get_details_of_livestream(stream_id)
+
+    return livestream

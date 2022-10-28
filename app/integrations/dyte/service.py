@@ -651,11 +651,11 @@ class DyteService:
 
         return recording_data
 
-    def get_stats_for_meeting(self, webinar):
+    def get_stats_for_meeting(self, group):
         """Get stats saved on Dyte's end for a webinar.
 
         Args:
-            webinar(Group): Group object we are getting the data for.
+            group(Group): Group object we are getting the data for.
 
         Sample data:
             {
@@ -687,7 +687,7 @@ class DyteService:
             }
 
         """
-        dyte_meeting = webinar.dyte_webinar.first()
+        dyte_meeting = group.dyte_meeting
         if not dyte_meeting and dyte_meeting.dyte_meeting_id:
             return False
 
@@ -727,16 +727,16 @@ class DyteService:
 
         return data
 
-    def get_stats_for_meetings(self, webinars):
+    def get_stats_for_meetings(self, groups):
         """Get combined stats for multiple meetings.
 
         Args:
-            webinars(Queryset/list): Queryset of list of groups.
+            groups(Queryset/list): Queryset of list of groups.
 
         """
         data = []
-        for webinar in webinars:
-            stats = self.get_stats_for_meeting(webinar)
+        for group in groups:
+            stats = self.get_stats_for_meeting(group)
             data += stats
 
         return data

@@ -6,12 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from conversations import (
-    constants as conversation_constants,
-    models as conversation_models,
-    public as conversation_public
-)
-from integrations.dyte import constants, models, private, public, serializers, service, tasks
+from conversations import models as conversation_models
+from integrations.dyte import constants, models, private, public, serializers, tasks
 from users import permissions as user_permissions
 
 LOGGER = logging.getLogger(__name__)
@@ -39,17 +35,15 @@ class DyteMeetingViewSet(
         """
         data = request.data
         dyte_meeting_details = data.get("meeting")
-
         dyte_meeting_id = dyte_meeting_details.get("id")
-        dyte_meeting = private.get_dyte_meeting_for_dyte_meeting_id(
-            dyte_meeting_id=dyte_meeting_id
-        )
+
+        group = private.get_group_for_dyte_meeting_id(dyte_meeting_id=dyte_meeting_id)
         # If the dyte meeting is not found, return a not acceptable response
-        if not dyte_meeting:
+        if not group:
             LOGGER.error("Dyte meeting ID doesn't exist: {}".format(dyte_meeting_id))
             return Response(status=status.HTTP_200_OK)
 
-        group = dyte_meeting.group
+        # Mark the session active once people are on the meeting.
         group.session_active = True
         group.save()
 
@@ -64,7 +58,7 @@ class DyteMeetingViewSet(
         """Webhook for meeting end from Dyte meeting.
 
         Note:
-            Fires after 2 minutes of everyone leaving the stream
+            Fires after 1 minute of everyone leaving the stream
                 or if the host ends meeting for all.
 
         """
@@ -72,15 +66,13 @@ class DyteMeetingViewSet(
         dyte_meeting_details = data.get("meeting")
 
         dyte_meeting_id = dyte_meeting_details.get("id")
-        dyte_meeting = private.get_dyte_meeting_for_dyte_meeting_id(
-            dyte_meeting_id=dyte_meeting_id
-        )
+        group = private.get_group_for_dyte_meeting_id(dyte_meeting_id=dyte_meeting_id)
         # If the dyte meeting is not found, return a not acceptable response
-        if not dyte_meeting:
+        if not group:
             LOGGER.error("Dyte meeting ID doesn't exist: {}".format(dyte_meeting_id))
             return Response(status=status.HTTP_200_OK)
 
-        group = dyte_meeting.group
+        # Update the session state for a group.
         group.session_active = False
         group.save()
 
@@ -130,35 +122,18 @@ class DyteParticipantViewSet(
         except conversation_models.Group.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        dyte_meeting = group.dyte_webinar.first()
-        if not dyte_meeting:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        # Determine the preset based on whether the stream is
-        # happening via OBS.
-        is_obs = group.is_obs
-        host_preset = (constants.DEFAULT_WEBINAR_HOST_PRESET_NAME if not is_obs
-                       else constants.WEBINAR_OBS_HOST_PRESET_NAME)
-        participant_preset = (constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME if not is_obs
-                              else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME)
-
-        if (group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM) \
-                and not conversation_public.check_if_attendee_in_group(user, group):
+        # If the user can't join the group, return from here.
+        if not group.can_join_group():
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        if (group.host_id == user.pk) or (user in group.speakers.all()):
-            dyte_participant = public.add_participant_to_meeting(
-                dyte_meeting,
-                user,
-                host_preset
-            )
-        else:
-            dyte_participant = public.add_participant_to_meeting(
-                dyte_meeting,
-                user,
-                participant_preset
-            )
-
+        # Determine the preset based on the user and group.
+        preset = private.get_preset_for_group(user, group)
+        # Add participant to the meeting.
+        dyte_participant = public.add_participant_to_meeting(
+            group.dyte_meeting,
+            user,
+            preset
+        )
         serialized = self.get_serializer(dyte_participant)
         return Response(serialized.data, status=status.HTTP_200_OK)
 
@@ -191,7 +166,6 @@ class DyteParticipantViewSet(
         data = request.data
         dyte_meeting_details = data.get("meeting")
         dyte_participant_details = data.get("participant")
-
         dyte_meeting_id = dyte_meeting_details.get("id")
         user_pk = dyte_participant_details.get("clientSpecificId")
 
@@ -242,7 +216,6 @@ class DyteParticipantViewSet(
         data = request.data
         dyte_meeting_details = data.get("meeting")
         dyte_participant_details = data.get("participant")
-
         dyte_meeting_id = dyte_meeting_details.get("id")
         user_pk = dyte_participant_details.get("clientSpecificId")
 
@@ -289,7 +262,6 @@ class DyteMeetingRecordingViewSet(
         """
         data = request.data
         dyte_recording_details = data.get("recording")
-
         recording_id = dyte_recording_details.get("id")
         recording_status = dyte_recording_details.get("status")
         started_at = dyte_recording_details.get("startedTime")
@@ -297,9 +269,7 @@ class DyteMeetingRecordingViewSet(
         file_size = dyte_recording_details.get("fileSize") or 0
         file_size_mb = round(file_size / (1024 * 1024), 2)
 
-        dyte_meeting_recording = private.get_dyte_meeting_recording_for_recording_id(
-            recording_id=recording_id
-        )
+        dyte_meeting_recording = private.get_dyte_meeting_recording_for_recording_id(recording_id=recording_id)
         if not dyte_meeting_recording:
             LOGGER.error("Dyte meeting recording not found: {}".format(recording_id))
             return Response(status=status.HTTP_200_OK)
@@ -335,6 +305,7 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
         methods=["GET"],
         detail=True
     )
+    # TODO(Nishant): Change this to active only.
     def meeting_active_livestream(self, request, pk, *args, **kwargs):
         """Returns active livestream for a group.
 
@@ -344,11 +315,16 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
 
         """
         try:
-            livestream = models.LiveStream.objects.get(
-                dyte_meeting__group_id=pk,
-                status=constants.LIVE_STREAM_STATUS_LIVE
-            )
-        except models.LiveStream.DoesNotExist:
+            group = conversation_models.Group.objects.get(id=pk)
+        except conversation_models.Group.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Get active live stream for the group.
+        livestream = public.get_livestream_for_stream_and_status(
+            group,
+            status=constants.LIVE_STREAM_STATUS_LIVE
+        )
+        if not livestream:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serialized = self.get_serializer(livestream)
@@ -367,18 +343,11 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
         data = request.data
         stream_id = data.get("streamId")
         livestream_status = data.get("status")
-        try:
-            livestream = models.LiveStream.objects.get(
-                livestream_id=stream_id
-            )
-        except models.LiveStream.DoesNotExist:
-            livestream = service.dyte_service_v2.get_details_of_livestream(stream_id)
-
+        livestream = private.get_livestream_object_for_stream_id(stream_id=stream_id)
         if not livestream:
             LOGGER.error("Live stream ID doesn't exist: {}".format(stream_id))
             return Response(status=status.HTTP_200_OK)
 
         # Update livestream status for stream id.
-        livestream.status = livestream_status
-        livestream.save()
+        livestream.update_status(livestream_status)
         return Response(status=status.HTTP_200_OK)
