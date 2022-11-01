@@ -1,5 +1,6 @@
 import datetime
 
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db.models import Prefetch, Q
 from django_filters.rest_framework import DjangoFilterBackend
@@ -1025,6 +1026,13 @@ class MyStreamsViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """
+    Returns streams hosted by a user.
+
+    Note: Includes both public and private streams.
+
+    """
+
     serializer_class = serializers.StreamListSerializer
     queryset = models.Group.objects.filter(
         type=constants.GROUP_TYPE_WEBINAR_ENUM,
@@ -1042,21 +1050,21 @@ class MyStreamsViewSet(
         """Return upcoming streams."""
 
         return self.get_queryset().filter(
+            Q(speakers=self.request.user) | Q(host=self.request.user),
             is_live=False,
             closed=False,
-            start__gte=datetime.datetime.now(),
-            host=self.request.user
+            start__gte=timezone.now()
         )
 
     def _get_past_streams(self):
         """Return past streams with published recordings."""
 
         return self.get_queryset().filter(
-            start__lte=datetime.datetime.now(),
+            Q(speakers=self.request.user) | Q(host=self.request.user),
+            start__lte=timezone.now(),
             recording__isnull=False,
             recording__recording__isnull=False,
-            recording__is_published=True,
-            host=self.request.user
+            recording__is_published=True
         )
 
     @action(
