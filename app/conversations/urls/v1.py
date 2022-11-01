@@ -26,6 +26,9 @@ router.register("conversations/suggested_topics", views.SuggestedTopicViewSet, b
 # Series APIs.
 router.register("conversations/series/requests", views.SeriesRequestViewSet, base_name="series_requests")
 
+# Streams Hosted APIs
+router.register("conversations/my/streams", views.MyStreamsViewSet, base_name="my_streams")
+
 # Stream questions.
 router.register("conversations/stream/questions", views.GroupQuestionViewSet, base_name="stream_questions")
 

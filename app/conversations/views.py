@@ -1,7 +1,9 @@
 import datetime
 
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db.models import Prefetch, Q
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -1018,3 +1020,83 @@ class SuggestedTopicViewSet(
         "-order"
     )
     filterset_fields = ["category"]
+
+
+class MyStreamsViewSet(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    """
+    Returns streams hosted by a user.
+
+    Note: Includes both public and private streams.
+
+    """
+
+    serializer_class = serializers.StreamListSerializer
+    queryset = models.Group.objects.filter(
+        type=constants.GROUP_TYPE_WEBINAR_ENUM,
+        is_published=True
+    ).select_related(
+        "topic",
+        "host__profile",
+        "host__creator"
+    ).order_by("start")
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = filters.AllWebinarsFilters
+
+    def _get_upcoming_streams(self):
+        """Return upcoming streams."""
+
+        return self.get_queryset().filter(
+            Q(speakers=self.request.user) | Q(host=self.request.user),
+            is_live=False,
+            closed=False,
+            start__gte=timezone.now()
+        )
+
+    def _get_past_streams(self):
+        """Return past streams with published recordings."""
+
+        return self.get_queryset().filter(
+            Q(speakers=self.request.user) | Q(host=self.request.user),
+            start__lte=timezone.now(),
+            recording__isnull=False,
+            recording__recording__isnull=False,
+            recording__is_published=True
+        ).order_by("-start")
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        pagination_class=paginators.FeaturedWebinarPagination,
+    )
+    def upcoming(self, request):
+        queryset = self.filter_queryset(self._get_upcoming_streams())
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        pagination_class=paginators.FeaturedWebinarPagination,
+    )
+    def past(self, request):
+        queryset = self.filter_queryset(self._get_past_streams())
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+
+        return self.get_paginated_response(serializer.data)
