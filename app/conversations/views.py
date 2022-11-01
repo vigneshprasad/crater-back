@@ -1065,7 +1065,7 @@ class MyStreamsViewSet(
             recording__isnull=False,
             recording__recording__isnull=False,
             recording__is_published=True
-        )
+        ).order_by("-start")
 
     @action(
         methods=["GET"],
@@ -1090,9 +1090,7 @@ class MyStreamsViewSet(
         pagination_class=paginators.FeaturedWebinarPagination,
     )
     def past(self, request):
-        queryset = self.filter_queryset(
-            self._get_past_streams()
-        ).order_by("-start")
+        queryset = self.filter_queryset(self._get_past_streams())
         page = self.paginate_queryset(queryset)
 
         if page is None:
