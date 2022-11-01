@@ -1090,7 +1090,9 @@ class MyStreamsViewSet(
         pagination_class=paginators.FeaturedWebinarPagination,
     )
     def past(self, request):
-        queryset = self.filter_queryset(self._get_past_streams())
+        queryset = self.filter_queryset(
+            self._get_past_streams()
+        ).order_by("-start")
         page = self.paginate_queryset(queryset)
 
         if page is None:
