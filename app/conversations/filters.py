@@ -66,7 +66,6 @@ class AllWebinarsFilters(filters.FilterSet):
         """Return streams sorted by given categories."""
 
         categories = value.split(",")
-        print(categories)
 
         return queryset.annotate(
             relevancy=Count(Case(
