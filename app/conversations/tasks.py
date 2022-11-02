@@ -139,7 +139,7 @@ def mark_streams_closed():
     streams = models.Group.objects.filter(
         start__lte=start_datetime,
         is_published=True,
-        is_closed=False,
+        closed=False,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     )
 
