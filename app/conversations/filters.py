@@ -1,6 +1,7 @@
 import datetime
 
 from django.contrib.auth import get_user_model
+from django.db.models import Case, When, Value, IntegerField, Count
 from django_filters import rest_framework as filters
 
 from conversations import models, constants
@@ -15,6 +16,9 @@ class AllWebinarsFilters(filters.FilterSet):
     sort_by = filters.CharFilter(
         method="custom_sort_by"
     )
+    sort_by_category = filters.CharFilter(
+        method="custom_category_sort"
+    )
 
     class Meta:
         model = models.Group
@@ -23,6 +27,7 @@ class AllWebinarsFilters(filters.FilterSet):
             "categories",
             "start__gte",
             "sort_by",
+            "sort_by_category",
         )
 
     @staticmethod
@@ -55,6 +60,22 @@ class AllWebinarsFilters(filters.FilterSet):
             ).order_by("start")
 
         return queryset
+
+    @staticmethod
+    def custom_category_sort(queryset, name, value):
+        """Return streams sorted by given categories."""
+
+        categories = value.split(",")
+
+        return queryset.annotate(
+            relevancy=Count(Case(
+                When(
+                    categories__slug__in=categories,
+                    then=1
+                ),
+                default=0
+            ), distinct=True)
+        ).order_by("-is_live", "-relevancy")
 
 
 class StreamsFollowedFilter(filters.FilterSet):
