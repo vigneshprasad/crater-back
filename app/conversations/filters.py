@@ -19,6 +19,10 @@ class AllWebinarsFilters(filters.FilterSet):
     sort_by_category = filters.CharFilter(
         method="custom_category_sort"
     )
+    category = filters.CharFilter(
+        field_name="categories__slug",
+        lookup_expr="exact"
+    )
 
     class Meta:
         model = models.Group
@@ -28,6 +32,7 @@ class AllWebinarsFilters(filters.FilterSet):
             "start__gte",
             "sort_by",
             "sort_by_category",
+            "category",
         )
 
     @staticmethod
