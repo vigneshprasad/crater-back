@@ -687,9 +687,10 @@ class DyteService:
             }
 
         """
+        data = []
         dyte_meeting = webinar.dyte_webinar.first()
         if not dyte_meeting and dyte_meeting.dyte_meeting_id:
-            return False
+            return data
 
         url = self.DYTE_API_ENDPOINTS["get_stats_for_meeting"].format(
             org_id=self.org_id,
@@ -705,15 +706,14 @@ class DyteService:
         try:
             response_json = response.json()
         except json.JSONDecodeError:
-            LOGGER.error("Dyte get recordings failed.")
-            return None
+            LOGGER.error("Stats for meeting not found.")
+            return data
 
         stats = []
         if response_json.get("success"):
             stats = response_json.get("analytics")
 
         # Create a data set with the clientSpecificId and totalMinutes.
-        data = []
         for stat in stats:
             user_pk = stat["clientSpecificId"]
             user = get_user_model().objects.filter(pk=user_pk).first() if user_pk else None

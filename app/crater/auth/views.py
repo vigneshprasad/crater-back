@@ -114,7 +114,9 @@ class PhoneNumberRegisterView(
             user, created = user_public.get_or_create_user(phone_number=username)
         except get_user_model().MultipleObjectsReturned:
             # Send a Slack notification for login failure.
-            users = get_user_model().objects.filter(username=username)
+            # Doing contains here because of non number characters
+            # in the username in some cases.
+            users = get_user_model().objects.filter(username__icontains=username)
             slack_public.send_login_failure_notification(username, users)
             return Response({
                 "message": "Phone number is already registered with Crater."
