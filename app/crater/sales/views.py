@@ -1,4 +1,4 @@
-import datetime
+import random
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -92,7 +92,6 @@ class RewardSaleViewSet(
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
-        detail=True
 
     @action(
         methods=["GET"],
@@ -114,6 +113,26 @@ class RewardSaleViewSet(
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(reward_sale_instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        queryset=models.RewardSale.objects.select_related(
+            "reward"
+        ).filter(
+            is_closed=False,
+            show_in_store=True,
+            reward__is_active=True,
+        ).order_by(
+            "-created_at"
+        )[:10]
+    )
+    def recent(self, request):
+        queryset = self.get_queryset()
+        rewards = random.sample(list(queryset), 3)
+
+        serializer = self.get_serializer(rewards, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
