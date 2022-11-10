@@ -47,9 +47,9 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "topic",
-        "type",
+        # "type",
         "host",
-        # "all_speakers",
+        "co_hosts",
         "attendees_count",
         "start",
         "is_featured",
@@ -60,6 +60,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_obs",
         "viewer_count",
         "host_poc",
+        # "session_active"
     )
     fieldsets = (
         (
@@ -104,6 +105,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                     ("last_live_at", "closed_at"),
                     "published_at",
                     ("approved_at", "rescheduled_at"),
+                    ("session_active" ,),
                 )
             }),
             ("Score", {
@@ -115,8 +117,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     )
     actions = (
         "add_previous_webinar_attendees",
-        "recalculate_minutes_for_groups",
-        "restart_recording_for_group"
+        # "recalculate_minutes_for_groups",
+        "stop_recording_for_group",
+        "restart_recording_for_group",
+        "start_livestream_for_group"
     )
     raw_id_fields = ("speakers", "attendees", "host", "categories")
     readonly_fields = (
@@ -125,6 +129,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "last_live_at",
         "rescheduled_at",
         "published_at",
+        "session_active",
         "score",
         "total_minutes_spent_by_attendees",
         "total_minutes_spent_by_host"
@@ -139,8 +144,10 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_obs"
     )
     list_filter = (
+        "is_live",
         "closed",
         "is_published",
+        "is_live",
         ("start", filter.DateRangeFilter),
     )
     exclude = (
@@ -191,8 +198,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 to add previous attendees to.
 
         """
-        # Delay the task for adding attendees.
         group_ids = list(queryset.values_list("id", flat=True))
+        # Delay the task for adding attendees.
         tasks.add_previous_attendees_to_groups.delay(group_ids)
 
         # Create a log entry.
@@ -222,8 +229,8 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
                 recalculate minutes for.
 
         """
-        # Delay the task for recalculating minutes.
         group_ids = list(queryset.values_list("id", flat=True))
+        # Delay the task for recalculating minutes.
         dyte_tasks.recalculate_minutes_for_groups.delay(group_ids)
 
         # Create a log entry.
@@ -244,6 +251,41 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
     recalculate_minutes_for_groups.short_description = "Recalculate minutes"
 
+    def stop_recording_for_group(self, request, queryset):
+        """Restarts recording for group.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of streams we want to
+                restart recording for.
+
+        Note:
+            This action runs for only one group at a time.
+
+        """
+        if queryset.count() > 1:
+            return self.message_user(
+                request,
+                "Please select only one group at a time for stopping recording",
+                messages.ERROR
+            )
+
+        group = queryset.first()
+        # Stop recording for the group.
+        dyte_public.stop_recording_for_group_and_recording_id(group)
+        self.log_change(
+            request,
+            group,
+            message=[{"changed": {"actions": ["stop_recording_for_group"]}}]
+        )
+        self.message_user(
+            request,
+            "Stopped recording for group: {}".format(group.id),
+            messages.SUCCESS
+        )
+
+    stop_recording_for_group.short_description = "Stop recording for stream"
+
     def restart_recording_for_group(self, request, queryset):
         """Restarts recording for group.
 
@@ -256,7 +298,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             This action runs for only one group at a time.
 
         """
-        # Delay the task for recalculating minutes.
         if queryset.count() > 1:
             return self.message_user(
                 request,
@@ -284,19 +325,58 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             messages.SUCCESS
         )
 
-    restart_recording_for_group.short_description = "Restart recording for stream"
+    restart_recording_for_group.short_description = "Start new recording for stream"
+
+    def start_livestream_for_group(self, request, queryset):
+        """Starts livestream for a group.
+
+        Args:
+            request(Request): Request build by admin.
+            queryset(Queryset): Query set of groups we want to
+                start livestream for.
+
+        Note:
+            This action runs for only one group at a time.
+
+        """
+        if queryset.count() > 1:
+            return self.message_user(
+                request,
+                "Please select only one group at a time for starting livestream",
+                messages.ERROR
+            )
+
+        group = queryset.first()
+        dyte_tasks.start_livestream_for_group.apply_async(
+            args=(group.id,),
+            countdown=10
+        )
+
+        # If starting a recording is successful
+        self.log_change(
+            request,
+            group,
+            message=[{"changed": {"actions": ["start_livestream_for_group"]}}]
+        )
+        self.message_user(
+            request,
+            "Started livestream for group: {}".format(group.id),
+            messages.SUCCESS
+        )
+
+    start_livestream_for_group.short_description = "Start HLS for multistream"
 
     @staticmethod
-    def all_speakers(obj):
+    def co_hosts(obj):
         return [speaker.__str__() for speaker in obj.speakers.all()]
 
-    @staticmethod
-    def host_poc(obj):
+    def host_poc(self, obj):
         if not obj.host:
             return ""
         if not obj.host.is_creator:
             return ""
         return obj.host.creator.point_of_contact
+    host_poc.short_description = "POC"
 
     def viewer_count(self, obj):
         if not obj.host:
@@ -304,16 +384,15 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         if not hasattr(obj.host, "permission"):
             return False
         return obj.host.permission.show_viewer_count
-
     viewer_count.boolean = True
 
     @staticmethod
     def speaker_count(obj):
         return obj.speakers.count()
 
-    @staticmethod
-    def attendees_count(obj):
+    def attendees_count(self, obj):
         return obj.attendees.count()
+    attendees_count.short_description = "Attendees"
 
     @staticmethod
     def get_rangefilter_start_title(request, field_path="start"):
@@ -637,5 +716,14 @@ class GroupUpvoteAdmin(admin.ModelAdmin):
         "user",
         "upvote",
     )
-    raw_id_fields = ("question", "user",)
+    raw_id_fields = ("group", "user",)
+    list_filter = (
+        AutocompleteFilterFactory("Group", "group"),
+        AutocompleteFilterFactory("User", "user"),
+        "upvote"
+    )
     exclude = ("created_at", "deleted_at", "updated_at", "is_deleted")
+
+    def delete_queryset(self, request, queryset):
+        # Hard deleting follower objects.
+        queryset.delete(soft=False)

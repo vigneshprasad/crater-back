@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from crater.auth import constants, exceptions, models, serializers
+from integrations.wati import public as wati_public
 from users import (
     constants as user_constants,
     permissions as user_permissions,
@@ -29,6 +30,13 @@ class PhoneNumberRegisterView(
         serializer_class=serializers.PhoneOtpSerializer
     )
     def otp(self, request):
+        """Send OTP to user for login/signup.
+
+        Note:
+            It sends with both whatsapp and sms
+                to be sure users receivers an OTP.
+
+        """
         request_data = request.data
 
         # We have to make sure the phone numbers are E64 compliant.
@@ -43,7 +51,7 @@ class PhoneNumberRegisterView(
             )
 
         # Validate serializer.
-        if "+994" in username:
+        if not username.startswith("+91"):
             return Response(status=400)
 
         data = {"username": username}
@@ -52,14 +60,15 @@ class PhoneNumberRegisterView(
         serializer.is_valid(raise_exception=True)
         phone_otp = serializer.save()
 
-        # Send the OTP sms to the user.
+        # Send OTP with both whatsapp and sms.
+        wati_public.send_otp_to_user.delay(username, phone_otp.otp)
         user_utils.send_sms(
             phone_number=username,
             message=constants.LOGIN_OTP_MESSAGE.format(otp=phone_otp.otp)
         )
 
         return Response(
-            {"message": "OTP sent to: {username}".format(username=username)},
+            {"message": "OTP sent to :{}".format(username)},
             status=status.HTTP_200_OK
         )
 

@@ -125,14 +125,88 @@ def stop_recording_for_group_and_recording_id(group, recording_id=None):
     return dyte_service.stop_recording(dyte_meeting, recording_id)
 
 
-def get_active_livestream_for_webinar(group_id):
-    """Get active Dyte LiveStream for a Webinar
+def get_livestream_for_stream_and_status(
+        group,
+        status=constants.LIVE_STREAM_STATUS_LIVE
+):
+    """Get Dyte liveStream for a stream and status.
 
     Args:
-        group_id(Number): Group id for webinar
+        group(Group): Stream for which are starting the
+            livestream.
+        status(str): Status of livestream we want to get.
+
     """
-    try:
-        dyte_meeting = models.DyteMeeting.objects.get(group_id=group_id)
-    except models.DyteMeeting.DoesNotExist:
-        return
-    dyte_service_v2.get_active_livestream(dyte_meeting)
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return False
+
+    return models.LiveStream.objects.filter(
+        dyte_meeting=dyte_meeting,
+        status=status
+    ).last()
+
+
+def start_livestream_for_stream(group):
+    """Start Dyte liveStream for a stream.
+
+    Args:
+        group(Group): Stream for which are starting the
+            livestream.
+
+    """
+
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return False
+
+    active_livestream = get_livestream_for_stream_and_status(
+        group,
+        status=constants.LIVE_STREAM_STATUS_LIVE
+    )
+    # If there is an active livestream, don't start again.
+    if active_livestream:
+        return False
+
+    return dyte_service_v2.start_livestream_for_meeting(dyte_meeting)
+
+
+def stop_livestream_for_stream(group):
+    """Stop active Dyte livestream for a stream.
+
+    Args:
+        group(Group): Stream for which are starting the
+            livestream.
+
+    """
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return False
+
+    active_livestream = get_livestream_for_stream_and_status(
+        group,
+        status=constants.LIVE_STREAM_STATUS_LIVE
+    )
+    # If there is no active livestream, don't stop.
+    if not active_livestream:
+        return False
+
+    return dyte_service_v2.stop_active_livestream_meeting(dyte_meeting)
+
+
+def get_and_update_active_session_for_stream(group):
+    """Get and update active session for a dyte meeting.
+
+    Args:
+        group(Group): Group we are updating active
+            for based on dyte's response.
+
+    """
+    dyte_meeting = group.dyte_webinar.first()
+    if not dyte_meeting:
+        return False
+
+    active_session = dyte_service_v2.get_active_session_for_meeting(dyte_meeting)
+    # If session is present, mark the dyte meeting as active, else mark inactive.
+    group.session_active = True if active_session else False
+    group.save()

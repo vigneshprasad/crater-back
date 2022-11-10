@@ -12,7 +12,7 @@ from conversations import (
     models as conversation_models,
     public as conversation_public
 )
-from integrations.dyte import constants, models, private, public, serializers, tasks
+from integrations.dyte import constants, models, private, public, serializers, tasks, service
 from users import permissions as user_permissions
 
 LOGGER = logging.getLogger(__name__)
@@ -113,8 +113,8 @@ class DyteParticipantViewSet(
         participant_preset = (constants.DEFAULT_WEBINAR_PARTICIPANT_PRESET_NAME if not is_obs
                               else constants.WEBINAR_OBS_PARTICIPANT_PRESET_NAME)
 
-        if group.privacy == (conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM and
-                             not conversation_public.check_if_attendee_in_group):
+        if (group.privacy == conversation_constants.GROUP_PRIVACY_PRIVATE_ENUM) \
+                and not conversation_public.check_if_attendee_in_group(user, group):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if (group.host_id == user.pk) or (user in group.speakers.all()):
@@ -197,6 +197,12 @@ class DyteParticipantViewSet(
 
         # Mark the participant online.
         participant.mark_online()
+        # Check and update dyte meeting session.
+        tasks.check_and_update_active_session_for_stream.apply_async(
+            args=(group.id,),
+            countdown=10
+        )
+
         return Response(status=status.HTTP_200_OK)
 
     @action(
@@ -242,6 +248,12 @@ class DyteParticipantViewSet(
         # Mark the participant offline.
         if not participant.is_offline():
             participant.mark_offline()
+
+        # Check and update dyte meeting session.
+        tasks.check_and_update_active_session_for_stream.apply_async(
+            args=(group.id,),
+            countdown=180
+        )
 
         return Response(status=status.HTTP_200_OK)
 
@@ -319,7 +331,36 @@ class LiveStreamViewSet(mixins.UpdateModelMixin, GenericViewSet):
                 status=constants.LIVE_STREAM_STATUS_LIVE
             )
         except models.LiveStream.DoesNotExist:
-            public.get_active_livestream_for_webinar(pk)
             return Response(status=status.HTTP_404_NOT_FOUND)
+
         serialized = self.get_serializer(livestream)
         return Response(serialized.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["POST"],
+        detail=False,
+        permission_classes=[user_permissions.AllowAny]
+    )
+    def status(self, request, *args, **kwargs):
+        """Updates status of a livestream object from Dyte's
+            end.
+
+        """
+        data = request.data
+        stream_id = data.get("streamId")
+        livestream_status = data.get("status")
+        try:
+            livestream = models.LiveStream.objects.get(
+                livestream_id=stream_id
+            )
+        except models.LiveStream.DoesNotExist:
+            livestream = service.dyte_service_v2.get_details_of_livestream(stream_id)
+
+        if not livestream:
+            LOGGER.error("Live stream ID doesn't exist: {}".format(stream_id))
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # Update livestream status for stream id.
+        livestream.status = livestream_status
+        livestream.save()
+        return Response(status=status.HTTP_200_OK)

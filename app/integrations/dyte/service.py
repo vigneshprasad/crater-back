@@ -802,10 +802,18 @@ class DyteService:
 
 
 class DyteServiceV2:
+
     DYTE_API_ENDPOINTS = {
+        # Active session endpoints.
+        "get_active_sessions": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-session",
+
+        # Livestream endpoints.
         "start_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/livestreams",
         "get_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream",
-        "stop_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream/stop"
+        "stop_active_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-livestream/stop",
+
+        # Livestream Detail endpoints.
+        "get_details_by_steam_id": constants.DYTE_BASE_URL_V2 + "/livestreams/{stream_id}"
     }
 
     def __init__(self, org_id, app_id):
@@ -828,36 +836,73 @@ class DyteServiceV2:
             "Content-Type": "application/json"
         }
 
+    def get_active_session_for_meeting(self, dyte_meeting):
+        """Get active session for a dyte meeting.
+
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for whose active
+                session we are requesting.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["get_active_sessions"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
+        response = requests.request(
+            "GET",
+            url,
+            headers=self._get_authorization_headers()
+        )
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            LOGGER.error("Get active session bad response: {}".format(dyte_meeting.group_id))
+            return None
+
+        success = response_json["success"]
+        if not success:
+            return None
+
+        # Get active session data.
+        data = response_json["data"]
+        return data["id"]
+
     def start_livestream_for_meeting(self, dyte_meeting):
-        url = self.DYTE_API_ENDPOINTS["start_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
+        """Start live stream for a dyte meeting.
+
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for which we are
+                starting livestream.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["start_livestream"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
         response = requests.request(
             "POST",
             url,
             headers=self._get_authorization_headers(),
-            json={
-                "name": dyte_meeting.room_name
-            }
+            json={"name": dyte_meeting.room_name}
         )
+
         try:
             response_json = response.json()
         except json.JSONDecodeError:
+            LOGGER.error("Start livestream bad response: {}".format(dyte_meeting.group_id))
             return None
 
         success = response_json["success"]
-
         if not success:
-            logging.error("LiveStream not started successfully: {meeting_id}".format(
-                meeting_id=dyte_meeting.dyte_meeting_id
+            logging.error("LiveStream not started successfully: {} - {}".format(
+                dyte_meeting.group_id,
+                dyte_meeting.dyte_meeting_id
             ))
             return None
 
         data = response_json["data"]
-
         livestream_id = data["id"]
 
-        print("start_livestream_for_meeting", response_json)
-
-        models.LiveStream.objects.update_or_create(
+        livestream, _ = models.LiveStream.objects.update_or_create(
             livestream_id=livestream_id,
             dyte_meeting=dyte_meeting,
             defaults={
@@ -868,8 +913,19 @@ class DyteServiceV2:
             }
         )
 
+        return livestream
+
     def stop_active_livestream_meeting(self, dyte_meeting):
-        url = self.DYTE_API_ENDPOINTS["stop_active_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
+        """Stops an active live stream for a dyte meeting.
+
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for which we are
+                stopping livestream.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["stop_active_livestream"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
         response = requests.request(
             "POST",
             url,
@@ -885,16 +941,25 @@ class DyteServiceV2:
             return None
 
         success = response_json["success"]
-
         if not success:
             logging.error("LiveStream not started successfully: {meeting_id}".format(
                 meeting_id=dyte_meeting.dyte_meeting_id
             ))
             return None
-        print("stop_active_livestream_meeting", response_json)
+
+        return success
 
     def get_active_livestream(self, dyte_meeting):
-        url = self.DYTE_API_ENDPOINTS["get_active_livestream"].format(meeting_id=dyte_meeting.dyte_meeting_id)
+        """Returns active live stream for a dyte meeting.
+
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting for which we are
+                looking for a livestream.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["get_active_livestream"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
         response = requests.request(
             "GET",
             url,
@@ -908,19 +973,20 @@ class DyteServiceV2:
 
         success = response_json["success"]
         data = response_json["data"]
-
         if not success:
             logging.error(
-                "LiveStream not started successfully: {meeting_id}".format(meeting_id=dyte_meeting.dyte_meeting_id)
+                "No active livestream for group: {}".format(dyte_meeting.group_id)
             )
             return None
 
+        # TODO(Nishant): Remove this one the success True for error response
+        # is fixed from Dyte's end.
         if data.get("message"):
-            message = "Service error {error}".format(error=data.get("message"))
+            message = "Service error {error}".format(error=data.get("message", ""))
             logging.error(message)
             return None
 
-        models.LiveStream.objects.update_or_create(
+        livestream, _ = models.LiveStream.objects.update_or_create(
             livestream_id=data["id"],
             dyte_meeting=dyte_meeting,
             defaults={
@@ -932,7 +998,54 @@ class DyteServiceV2:
                 "playback_url": data["playback_url"]
             }
         )
-        print("stop_active_livestream_meeting", response_json)
+        return livestream
+
+    def get_details_of_livestream(self, stream_id):
+        """Get details for livestream from the stream id.
+
+        Args:
+            stream_id(str): Stream ID on Dyte's end.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["get_details_by_steam_id"].format(stream_id=stream_id)
+        response = requests.request(
+            "GET",
+            url,
+            headers=self._get_authorization_headers(),
+        )
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            return None
+
+        success = response_json["success"]
+        data = response_json["data"]
+        if not success:
+            logging.error(
+                "LiveStream details not found: {}".format(stream_id)
+            )
+            return None
+
+        try:
+            dyte_meeting = models.DyteMeeting.objects.get(dyte_meeting_id=data["meeting_id"])
+        except models.DyteMeeting.DoesNotExist:
+            return None
+
+        livestream, _ = models.LiveStream.objects.update_or_create(
+            livestream_id=data["id"],
+            dyte_meeting=dyte_meeting,
+            defaults={
+                "ingest_seconds": data["ingest_seconds"],
+                "viewer_seconds": data["viewer_seconds"],
+                "status": data["status"],
+                "ingest_server": data["ingest_server"],
+                "stream_key": data["stream_key"],
+                "playback_url": data["playback_url"]
+            }
+        )
+
+        return livestream
 
 
 dyte_service = DyteService(

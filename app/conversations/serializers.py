@@ -327,9 +327,6 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
     # rtmp_detail = GroupRTMPSerializer(source="rtmp", read_only=True)
     rtmp_link = serializers.CharField(required=False, write_only=True)
     series = serializers.SerializerMethodField(read_only=True, allow_null=True)
-    # Upvote for the group.
-    upvotes = serializers.SerializerMethodField(read_only=True)
-    upvote = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Group
@@ -363,8 +360,6 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
             # "rtmp_detail",
             "rtmp_link",
             "series",
-            "upvotes",
-            "upvote"
         )
 
         extra_kwargs = {
@@ -422,22 +417,6 @@ class GroupWebinarSerializer(serializers.ModelSerializer):
         if not series:
             return None
         return series.id
-
-    @staticmethod
-    def get_upvotes(group):
-        return group.upvotes.filter(upvote=True).count()
-
-    def get_upvote(self, group):
-        request = self.context.get("request")
-        if not request:
-            return False
-
-        user = request.user
-        if not user or user.is_anonymous:
-            return False
-
-        group_upvote = private.get_group_upvote(group=group, user=user)
-        return group_upvote.upvote if group_upvote else False
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -888,3 +867,32 @@ class GroupUpvoteSerializer(serializers.ModelSerializer):
             "user",
             "upvote",
         )
+
+
+class GroupUpvoteSummarySerializer(serializers.ModelSerializer):
+    upvotes = serializers.SerializerMethodField(read_only=True)
+    upvote = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Group
+        fields = (
+            "upvotes",
+            "upvote"
+        )
+        read_only_fields = ["upvotes", "upvote"]
+
+    @staticmethod
+    def get_upvotes(group):
+        return group.upvotes.filter(upvote=True).count()
+
+    def get_upvote(self, group):
+        request = self.context.get("request")
+        if not request:
+            return False
+
+        user = request.user
+        if not user or user.is_anonymous:
+            return False
+
+        group_upvote = private.get_group_upvote(group=group, user=user)
+        return group_upvote.upvote if group_upvote else False

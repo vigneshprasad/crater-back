@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 
 LOGIN_OTP_MESSAGE = "Your login code for Crater club is: {otp}"

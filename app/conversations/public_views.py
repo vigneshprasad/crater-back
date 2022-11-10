@@ -239,6 +239,40 @@ class GroupWebinarPublicViewSet(
     @action(
         methods=["GET"],
         detail=False,
+        pagination_class=paginators.FeaturedWebinarPagination,
+        queryset=models.Group.objects.filter(
+            type=constants.GROUP_TYPE_WEBINAR_ENUM,
+            is_published=True,
+            categories__name="Hacking"
+        ).select_related(
+            "topic",
+            "host__profile",
+            "host__creator"
+        ).order_by("-start"),
+        serializer_class=serializers.StreamListSerializer,
+        filterset_fields=["host", "categories"]
+    )
+    def hacking(self, request):
+        """Return webinars which are in hacking category
+
+        Note:
+            Return groups queryset sorted by start of
+            the groups.
+
+        """
+        queryset = self.filter_queryset(self._get_upcoming_webinars()).order_by("start", "-created_at")
+        page = self.paginate_queryset(queryset)
+
+        if page is None:
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=["GET"],
+        detail=False,
         pagination_class=paginators.WebinarPagination,
         queryset=models.Group.objects.filter(
             type=constants.GROUP_TYPE_WEBINAR_ENUM,

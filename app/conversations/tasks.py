@@ -4,7 +4,6 @@ import logging
 from itertools import chain
 
 import boto3
-import pytz
 from botocore import exceptions as botocore_exceptions
 from celery.schedules import crontab
 from celery.task import periodic_task, task
@@ -16,7 +15,6 @@ from rest_framework.renderers import JSONRenderer
 from communications.notifications import public as notifications_public
 from conversations import constants, models, serializers, services, signals
 from crater.creator import public as creator_public
-from crater.creator import models as creator_models
 from integrations.dyte import constants as dyte_constants, models as dyte_models, public as dyte_public
 from integrations.firebase import private as firebase_private
 from integrations.firebase.service import firebase_service

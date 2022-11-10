@@ -1,5 +1,6 @@
 import logging
 
+from celery.task import task
 from django.contrib.auth import get_user_model
 
 from conversations import constants as conversation_constants
@@ -303,3 +304,27 @@ def send_stream_reminder_messages_for_attendees(attendees, group, account=consta
 def send_top_stream_message(stream, user_ids):
     # Filter users
     pass
+
+
+@task()
+def send_otp_to_user(phone_number, otp):
+    """Send otp to a user.
+
+    Args:
+        phone_number(str): Phone number we are sending the otp to
+        otp(int): OTP we are sending to the user.
+
+    """
+
+    template_data = [
+        {
+            "name": "phone",
+            "value": otp
+        }
+    ]
+    return wati_service_8953.send_template_message_for_phone_number(
+        phone_number=phone_number,
+        template_name=constants.SIGNUP_OTP,
+        template_data=template_data,
+        broadcast_name=constants.SIGNUP_OTP
+    )

@@ -145,7 +145,8 @@ def update_user_referrals_status():
         if not time_spent_on_stream >= 20:
             continue
 
-        referral = pending_referrals.filter(user=participant)
+        # Only one referral per user will be present.
+        referral = pending_referrals.filter(user=participant).first()
         referral.mark_payment_due(stream=dyte_meeting_participant.dyte_meeting.group)
         updated_users.append(dyte_meeting_participant.participant)
 
