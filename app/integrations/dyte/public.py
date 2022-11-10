@@ -1,6 +1,6 @@
 import logging
 
-from integrations.dyte import constants, private, models, tasks
+from integrations.dyte import constants, models, private, tasks
 from integrations.dyte.service import dyte_service, dyte_service_v2
 
 
@@ -67,10 +67,11 @@ def start_recording_for_group(group):
             for.
 
     """
-    dyte_meeting = group.dyte_meeting
 
-    if not dyte_meeting:
-        logging.error("Dyte meeting not present for group: {}".format(group.id))
+    dyte_meeting = group.dyte_meeting
+    # Check if the dyte meeting already has a recording in progress.
+    # If so, don't start again.
+    if private.get_active_recording_for_dyte_meeting(dyte_meeting):
         return False
 
     return dyte_service.start_recording(dyte_meeting=dyte_meeting)
