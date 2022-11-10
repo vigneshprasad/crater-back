@@ -65,12 +65,12 @@ LIVE_STREAM_STATUS_WEBHOOK = [
 MEETING_STARTED_WEBHOOK = [
     {
         "name": "Meeting Started",
-        "events": [constants.DYTE_EVENT_MEETING_ENDED],
+        "events": [constants.DYTE_EVENT_MEETING_STARTED],
         "url": "https://api.prod.worknetwork.in/v1/integrations/dyte/meeting/started/"
     },
     {
         "name": "Meeting Started Testing",
-        "events": [constants.DYTE_EVENT_MEETING_ENDED],
+        "events": [constants.DYTE_EVENT_MEETING_STARTED],
         "url": "https://api.dev.worknetwork.in/v1/integrations/dyte/meeting/started/"
     },
 ]

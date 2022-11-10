@@ -130,8 +130,8 @@ def mark_streams_closed():
     """Mark streams closed after 3 hours of start time
 
     Note:
-        Sends reminder to attendees and followers of streams which are
-            starting 5 minutes from now.
+        Only marks the stream closed if the host and speakers
+            have left the stream.
 
     """
     now_time = datetime.datetime.now()
