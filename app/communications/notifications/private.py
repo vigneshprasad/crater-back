@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 
 from communications.notifications import constants, models
 from integrations.onesignal.services import one_signal_service
+from integrations.onesignal import models as onesignal_models
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,8 +37,16 @@ def create_notification_logs(user_pks, notification_id, notification_json, data=
         data(JSON): Addition data sent to the client.
 
     """
+    notification_logs = []
     for user_pk in user_pks:
-        create_notification_log(user_pk, notification_id, notification_json, data=data)
+        notification_logs.append(models.NotificationLog(
+            user_id=user_pk,
+            notification_id=notification_id,
+            notification_json=notification_json,
+            data=data
+        ))
+    # Bulk create all notifications.
+    return models.NotificationLog.objects.bulk_create(notification_logs)
 
 
 def create_notification_log(user_pk, notification_id, notification_json, data=None):
@@ -116,15 +125,10 @@ def send_bulk_notifications(user_pks, notification_id, notification_json, data=N
 
     """
     initial_notification_json = copy.deepcopy(notification_json)
-    users = get_user_model().objects.filter(pk__in=user_pks)
+    devices = onesignal_models.OneSignalDevice.objects.filter(user_id__in=user_pks)
+    user_os_ids = list(devices.values_list("os_id", flat=True))
     if data:
         notification_json["data"] = data
-
-    user_os_ids = []
-    for user in users:
-        devices = user.get_devices()
-        for device in devices:
-            user_os_ids.append(device.os_id)
 
     count = 0
     count_of_os_ids = len(user_os_ids)

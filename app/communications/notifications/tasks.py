@@ -5,6 +5,7 @@ from celery import shared_task
 from django.db.models import Count
 from django.utils import timezone
 
+from integrations.onesignal import models as onesignal_models
 from communications.notifications import constants, models, private
 from conversations import constants as conversation_constants, models as conversations_models
 from users import constants as user_constants, models as user_models
@@ -94,11 +95,12 @@ def send_groups_going_live_notifications(notification_name, groups=None):
         ))
         return False
 
-    # Sending to all users.
-    users = user_models.User.objects.filter(groups__name=user_constants.CRATER_CLUB_GROUP)
-    user_pks = users.values_list("pk", flat=True)
+    # Send to users who have a one signal device.
+    user_pks = list(onesignal_models.OneSignalDevice.objects.filter(
+        user__isnull=False
+    ).values_list("user", flat=True))
 
-    private.send_bulk_notifications(
+    private.send_bulk_notifications.delay(
         user_pks=user_pks,
         notification_id=stream_going_live_notification.id,
         notification_json=stream_going_live_notification_json,
