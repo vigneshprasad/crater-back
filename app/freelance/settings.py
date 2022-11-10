@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     "colorfield",
     "django_admin_row_actions",
     "admin_auto_filters",
+    "django_object_actions",
 
     "base",
     "users",
@@ -220,15 +221,10 @@ CHANNEL_LAYERS = {
 REDIS = redis.Redis(host="redis", port=6379)
 
 MATERIAL_ADMIN_SITE = {
-    "HEADER": _("Administration"),
-    "TITLE": _("Marketplace"),
-    "FAVICON": "admin/favicon.ico",
+    "HEADER": _("Crater Admin"),
+    "TITLE": _("Admin"),
     "MAIN_BG_COLOR": "#41adda",
     "MAIN_HOVER_COLOR": "#747777",
-    "PROFILE_PICTURE": "admin/logo.jpg",
-    "PROFILE_BG": "admin/profile_bg.png",
-    "LOGIN_LOGO": "admin/logo.jpg",
-    "LOGOUT_BG": "admin/logout_bg.png",
     "REVERSE_TRAY": True,
     "APP_ICONS": {
         "authtoken": "vpn_key",

@@ -6,8 +6,9 @@ from celery.task import periodic_task, task
 from django.utils import timezone
 
 from conversations import models as conversations_models
-from integrations.dyte import constants, models, service
+from integrations.dyte import constants, models, service, public
 from tokens import tasks as token_tasks
+from conversations.multistream import models as multistream_models
 
 dyte_service = service.dyte_service
 
@@ -381,3 +382,47 @@ def start_recording_for_group(group_id):
         return False
 
     return dyte_service.start_recording(dyte_meeting=dyte_meeting)
+
+
+@task()
+def start_livestream_for_multistream(multistream_id):
+    """Start recording for a multistream.
+
+    Args:
+        multistream_id(int): ID of the multistream we are
+            starting the livestream for.
+
+    """
+    multistream = multistream_models.MultiStream.objects.get(id=multistream_id)
+    groups = multistream.streams.all()
+    # Start livestream for each group in the multistream.
+    for group in groups:
+        public.start_livestream_for_stream(group)
+
+
+@task()
+def start_livestream_for_group(group_id):
+    """Start recording for a group.
+
+    Args:
+        group_id(int): ID of the group we are
+            starting the livestream for.
+
+    """
+    group = conversations_models.Group.objects.get(id=group_id)
+    # Start livestream for the group.
+    public.start_livestream_for_stream(group)
+
+
+@task()
+def check_and_update_active_session_for_stream(group_id):
+    """Start recording for a group.
+
+    Args:
+        group_id(int): ID of the group we are
+            checking active session for.
+
+    """
+    group = conversations_models.Group.objects.get(id=group_id)
+    # Get and update active session for the dyte meeting.
+    public.get_and_update_active_session_for_stream(group)

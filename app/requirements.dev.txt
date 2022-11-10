@@ -149,6 +149,8 @@ django-material-admin==1.6.42
     # via -r requirements.in
 django-model-utils==4.0.0
     # via -r requirements.in
+django-object-actions==4.0.0
+    # via -r requirements.in
 django-phonenumber-field==4.0.0
     # via -r requirements.in
 django-rest-auth==0.9.5

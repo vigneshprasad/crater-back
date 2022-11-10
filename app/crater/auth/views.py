@@ -1,21 +1,18 @@
 from django.contrib.auth.models import Group
 from rest_auth.utils import jwt_encode
-
-from rest_framework import mixins
-from rest_framework import viewsets
-from rest_framework import status
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from crater.auth import constants
-from crater.auth import exceptions
-from crater.auth import models
-from crater.auth import serializers
-from users import constants as user_constants
-from users import public as user_public
-from users import permissions as user_permissions
-from users import serializers as user_serializers
-from users import utils as user_utils
+from crater.auth import constants, exceptions, models, serializers
+from integrations.wati import public as wati_public
+from users import (
+    constants as user_constants,
+    permissions as user_permissions,
+    public as user_public,
+    serializers as user_serializers,
+    utils as user_utils
+)
 
 
 class PhoneNumberRegisterView(
@@ -33,6 +30,13 @@ class PhoneNumberRegisterView(
         serializer_class=serializers.PhoneOtpSerializer
     )
     def otp(self, request):
+        """Send OTP to user for login/signup.
+
+        Note:
+            It sends with both whatsapp and sms
+                to be sure users receivers an OTP.
+
+        """
         request_data = request.data
 
         # We have to make sure the phone numbers are E64 compliant.
@@ -56,14 +60,15 @@ class PhoneNumberRegisterView(
         serializer.is_valid(raise_exception=True)
         phone_otp = serializer.save()
 
-        # Send the OTP sms to the user.
+        # Send OTP with both whatsapp and sms.
+        wati_public.send_otp_to_user.delay(username, phone_otp.otp)
         user_utils.send_sms(
             phone_number=username,
             message=constants.LOGIN_OTP_MESSAGE.format(otp=phone_otp.otp)
         )
 
         return Response(
-            {"message": "OTP sent to: {username}".format(username=username)},
+            {"message": "OTP sent to :{}".format(username)},
             status=status.HTTP_200_OK
         )
 
