@@ -6,11 +6,15 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from crater.auth import exceptions, models, serializers
+from integrations.slack import public as slack_public
 from integrations.twiliologs import public as twilio_public
 from integrations.wati import public as wati_public
-from users import constants as user_constants, permissions as user_permissions, public as user_public, \
+from users import (
+    constants as user_constants,
+    permissions as user_permissions,
+    public as user_public,
     serializers as user_serializers
-from integrations.slack import public as slack_public
+)
 
 
 class PhoneNumberRegisterView(
