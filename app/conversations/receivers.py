@@ -51,7 +51,7 @@ def recalculate_minutes_for_group(sender, group, *args, **kwargs):
     dyte_tasks.recalculate_minutes_for_groups([group.id])
 
 
-# @receiver(signals.group_marked_closed)
+@receiver(signals.group_marked_closed)
 def mark_all_dyte_participants_offline(sender, group, *args, **kwargs):
     """Mark all dyte participants offline for a group once
         it's marked closed.

@@ -123,7 +123,9 @@ def send_whatsapp_reminder_for_stream_host():
         freshchat_public.send_whatsapp_reminder_for_webinar_host(stream)
 
 
-@periodic_task(run_every=crontab(minute="0", hour="*/3"))
+# TODO(Nishant): Turning it off since the dyte issue is fixed.
+# Can turn in on later.
+# @periodic_task(run_every=crontab(minute="0", hour="*/3"))
 def mark_streams_closed():
     """Mark streams closed after 3 hours of start time
 
