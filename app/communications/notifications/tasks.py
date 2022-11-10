@@ -95,13 +95,10 @@ def send_groups_going_live_notifications(notification_name, groups=None):
         ))
         return False
 
-    # Sending to all users.
-    # users = user_models.User.objects.filter(groups__name=user_constants.CRATER_CLUB_GROUP)
     # Send to users who have a one signal device.
-    user_pks = onesignal_models.OneSignalDevice.objects.filter(
+    user_pks = list(onesignal_models.OneSignalDevice.objects.filter(
         user__isnull=False
-    ).values_list("user", flat=True)
-    # user_pks = users.values_list("pk", flat=True)
+    ).values_list("user", flat=True))
 
     private.send_bulk_notifications.delay(
         user_pks=user_pks,

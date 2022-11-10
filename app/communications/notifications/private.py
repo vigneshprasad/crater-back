@@ -125,7 +125,6 @@ def send_bulk_notifications(user_pks, notification_id, notification_json, data=N
 
     """
     initial_notification_json = copy.deepcopy(notification_json)
-    users = get_user_model().objects.filter(pk__in=user_pks)
     devices = onesignal_models.OneSignalDevice.objects.filter(user_id__in=user_pks)
     user_os_ids = list(devices.values_list("os_id", flat=True))
     if data:
