@@ -42,7 +42,7 @@ for user in users:
 
     for participant in participants:
         total_time_spent += participant.total_minutes_watched
-        total_time_spent_minutes += participant.minutes_spent
+        total_time_spent_minutes += participant.time_spent
 
     interactions = messages.filter(sender=user).count()
 

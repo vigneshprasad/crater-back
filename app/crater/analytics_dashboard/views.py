@@ -7,9 +7,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from conversations import models as conversations_models, services as conversations_services, \
-    constants as conversations_constants
-from crater.analytics_dashboard import serializers, constants
+from conversations import constants as conversations_constants, models as conversations_models, \
+    services as conversations_services
+from crater.analytics_dashboard import constants, serializers
 from crater.creator import private as creator_private
 from integrations.dyte import models as dyte_models
 from users import permissions as user_permissions
@@ -27,14 +27,12 @@ class AnalyticsDashboardViewSet(
     )
     def my_club(self, request):
         user = request.user
-
         # Get follower count for user
         follower_count = creator_private.get_follower_count(
             user=user
         )
 
         response = {"count": follower_count}
-
         return Response(response, status=status.HTTP_200_OK)
 
     @action(
@@ -51,7 +49,6 @@ class AnalyticsDashboardViewSet(
         )
 
         response = {"percentage": percentage_growth}
-
         return Response(response, status=status.HTTP_200_OK)
 
     @action(
@@ -66,7 +63,6 @@ class AnalyticsDashboardViewSet(
         )
 
         response = {"count": average_engagement}
-
         return Response(response, status=status.HTTP_200_OK)
 
     @action(
@@ -76,14 +72,12 @@ class AnalyticsDashboardViewSet(
     )
     def top_streams(self, request):
         user = request.user
-
         top_streams = conversations_services.get_top_streams_of_creator(
             user=user,
             count=3
         )
 
         serializer = self.get_serializer(top_streams, many=True)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
@@ -109,12 +103,10 @@ class AnalyticsDashboardViewSet(
     )
     def conversion_funnel(self, request):
         user = request.user
-
         # Get all RSVPs for creator's streams
         rsvps = conversations_services.get_rsvps_for_creator_streams(
             user=user
         )
-
         rsvp_count = rsvps.count()
 
         # Get total recurring users for creator's streams
@@ -122,20 +114,16 @@ class AnalyticsDashboardViewSet(
             requests=rsvps,
             num=2
         )
-
         # Get total follower count for creator
         follower_count = conversations_services.get_users_by_number_of_rsvps(
             requests=rsvps,
             num=1
         )
-
         recurring_user_percentage = round(recurring_user_count / follower_count * 100, 2) if follower_count > 0 else None
-
         # Get total subscribers for creator
         subscriber_count = creator_private.get_subscriber_count(
             user=user
         )
-
         subscriber_percentage = round(subscriber_count / follower_count * 100, 2) if follower_count > 0 else None
 
         response = {
@@ -152,13 +140,11 @@ class AnalyticsDashboardViewSet(
     )
     def comparative_engagement(self, request):
         user = request.user
-
         comparative_engagement = conversations_services.get_comparative_engagement_of_creator(
             user=user
         )
 
         response = {"percentage": comparative_engagement}
-
         return Response(response, status=status.HTTP_200_OK)
 
     @action(
@@ -178,8 +164,8 @@ class AnalyticsDashboardViewSet(
             user=user
         )
 
-        # Filter creator's best stream based on number of number of
-        # RSVPs and messages
+        # Filter creator's best stream based on number of
+        # RSVPs and messages.
         for data in top_creators:
             best_stream = conversations_models.Group.objects.filter(
                 type=conversations_constants.GROUP_TYPE_WEBINAR_ENUM,
@@ -222,7 +208,6 @@ class AnalyticsDashboardViewSet(
     )
     def traffic_source_types(self, request):
         user = request.user
-
         traffic_source_data = conversations_services.get_traffic_sources_for_creator(
             user=user
         )
@@ -235,13 +220,10 @@ class AnalyticsDashboardViewSet(
     )
     def users_by_crater(self, request):
         user = request.user
-
         percentage = creator_private.get_percentage_creator_followers_from_crater(
             user=user
         )
-
         response = {"percentage": percentage}
-
         return Response(response, status=status.HTTP_200_OK)
 
     @action(
@@ -256,7 +238,6 @@ class AnalyticsDashboardViewSet(
         # Get total streams for past week
         end = datetime.datetime.today().date()
         start = end - datetime.timedelta(days=7)
-
         total_streams_past_week = conversations_services.get_past_streams_by_date(
             start=start,
             end=end
@@ -264,7 +245,6 @@ class AnalyticsDashboardViewSet(
 
         # Get total chat engagement
         chat_engagement = conversations_services.get_average_engagement()
-
         # Get average stream length
         avg_stream_length = conversations_services.get_avg_stream_length_for_creators()
 
@@ -284,7 +264,6 @@ class AnalyticsDashboardViewSet(
     )
     def stream_category_distribution(self, request):
         stream_category_distribution = conversations_services.get_stream_category_distribution()
-
         return Response(stream_category_distribution, status=status.HTTP_200_OK)
 
     @action(
@@ -293,20 +272,14 @@ class AnalyticsDashboardViewSet(
     )
     def channel_stats(self, request):
         user = request.user
-
         # Get average stream length
         average_stream_length, total_stream_time = conversations_services.get_avg_stream_length_for_creator(user=user)
-
         # Get total streams
         total_streams = conversations_services.get_past_streams(user=user).count()
-
         # Get total subscribers
         total_followers = creator_private.get_subscriber_count(user=user)
-
         # Get average stream engagement
-        average_stream_engagement = conversations_services.get_average_engagement(
-            user=user
-        )
+        average_stream_engagement = conversations_services.get_average_engagement(user=user)
 
         data = {
             "total_stream_time": total_stream_time,
@@ -323,8 +296,8 @@ class AnalyticsDashboardViewSet(
         detail=False
     )
     def stream_completion(self, request):
+        """Get stream completion rate for a creator."""
         user = request.user
-
         # Get recent 5 past streams of user
         past_streams = conversations_services.get_past_streams(user=user)[:5]
         if not past_streams:
@@ -343,6 +316,7 @@ class AnalyticsDashboardViewSet(
         detail=False
     )
     def stream_time(self, request):
+        """Returns stream time for today by a creator."""
         user = request.user
         today = datetime.datetime.now().date()
 
@@ -370,6 +344,6 @@ class AnalyticsDashboardViewSet(
             dyte_participants=dyte_participants_for_host
         )
 
+        # Calculate time object from the minutes spent.
         time = datetime.time(total_minutes // 60, total_minutes % 60)
-
         return Response({"time": time}, status=status.HTTP_200_OK)
