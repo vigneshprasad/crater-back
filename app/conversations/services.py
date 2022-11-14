@@ -593,11 +593,9 @@ def get_past_streams(user=None):
         closed=True,
         start__lt=now
     )
-    if not user:
-        return past_streams
 
     # Return the users past stream if user is present.
-    return past_streams.filter(host=user)
+    return past_streams.filter(host=user) if user else past_streams
 
 
 def get_messages_count_for_groups(group_ids=None):
