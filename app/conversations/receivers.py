@@ -23,7 +23,7 @@ def send_webinar_creation_signal(sender, instance, *args, **kwargs):
     if not (instance.type == constants.GROUP_TYPE_WEBINAR_ENUM):
         return
 
-    if dyte_public.get_dyte_webinar_for_group(instance):
+    if instance.dyte_meeting:
         return
 
     signals.webinar_created.send(sender=instance.__class__, group=instance)

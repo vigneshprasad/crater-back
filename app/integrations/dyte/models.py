@@ -316,3 +316,9 @@ class LiveStream(base_model.BaseModel):
 
     def __str__(self):
         return "{} - {}".format(self.dyte_meeting, self.livestream_id)
+
+    def update_status(self, status):
+        if not status:
+            return
+        self.status = status
+        self.save()

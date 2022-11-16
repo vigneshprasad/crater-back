@@ -37,7 +37,7 @@ def create_dyte_meeting_for_webinar(sender, group, *args, **kwargs):
 
 @receiver(conversation_signals.attendees_added_to_group)
 def add_participants_to_dyte_meeting(sender, group, users, *args, **kwargs):
-    """Add participant to dyte meeting once a attendee is added to the webinar.
+    """Add participant to dyte meeting once an attendee is added to the webinar.
 
     Args:
         sender(Group class): Class object for group.
@@ -47,8 +47,7 @@ def add_participants_to_dyte_meeting(sender, group, users, *args, **kwargs):
             added to the group.
 
     """
-    dyte_meeting = group.dyte_webinar.first()
-
+    dyte_meeting = group.dyte_meeting
     if not dyte_meeting:
         return False
 
@@ -63,7 +62,7 @@ def add_participants_to_dyte_meeting(sender, group, users, *args, **kwargs):
 
 @receiver(conversation_signals.attendee_added_to_group)
 def add_participant_to_dyte_meeting(sender, group, user, *args, **kwargs):
-    """Add participant to dyte meeting once a attendee is added to the webinar.
+    """Add participant to dyte meeting once an attendee is added to the webinar.
 
     Args:
         sender(Group class): Class object for group.
@@ -72,8 +71,7 @@ def add_participant_to_dyte_meeting(sender, group, user, *args, **kwargs):
         user(User): User that got added to the group.
 
     """
-    dyte_meeting = group.dyte_webinar.first()
-
+    dyte_meeting = group.dyte_meeting
     if not dyte_meeting:
         return False
 
@@ -97,8 +95,7 @@ def add_webinar_speakers_to_dyte_meeting(sender, group, speakers, *args, **kwarg
             added to the group.
 
     """
-    dyte_meeting = group.dyte_webinar.first()
-
+    dyte_meeting = group.dyte_meeting
     if not dyte_meeting:
         return False
 
@@ -126,7 +123,7 @@ def stop_recording_on_group_close(sender, group, *args, **kwargs):
             for.
 
     """
-    dyte_meeting = group.dyte_webinar.first()
+    dyte_meeting = group.dyte_meeting
     if not dyte_meeting:
         return False
 
@@ -188,8 +185,7 @@ def add_participant_to_series_dyte_meetings(sender, series_requests, user, *args
     """
 
     for request in series_requests:
-        dyte_meeting = request.group.dyte_webinar.first()
-
+        dyte_meeting = request.group.dyte_meeting
         if not dyte_meeting:
             continue
 

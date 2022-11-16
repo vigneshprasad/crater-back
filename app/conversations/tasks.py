@@ -123,6 +123,64 @@ def send_whatsapp_reminder_for_stream_host():
         freshchat_public.send_whatsapp_reminder_for_webinar_host(stream)
 
 
+# TODO(Nishant): Turning it off since the dyte issue is fixed.
+# Can turn in on later.
+# @periodic_task(run_every=crontab(minute="0", hour="*/3"))
+def mark_streams_closed():
+    """Mark streams closed after 3 hours of start time
+
+    Note:
+        Only marks the stream closed if the host and speakers
+            have left the stream.
+
+    """
+    now_time = datetime.datetime.now()
+    start_datetime = (now_time - datetime.timedelta(minutes=180))
+
+    # Get all streams that started 3 hours ago.
+    streams = models.Group.objects.filter(
+        start__lte=start_datetime,
+        is_published=True,
+        closed=False,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+
+    for stream in streams:
+        # If stream is already marked closed, don't close.
+        if stream.closed:
+            continue
+
+        host_and_speakers = stream.get_host_and_speakers()
+        online_host_and_speakers = dyte_models.DyteMeetingParticipant.objects.filter(
+            dyte_meeting__group=stream,
+            participant__in=host_and_speakers,
+            is_online=True
+        )
+        # If any host or speaker is online, don't close the meeting yet.
+        if online_host_and_speakers:
+            continue
+
+        stream.mark_closed()
+
+
+@periodic_task(run_every=crontab(hour="21", minute="00"))
+def mark_participants_offline_for_yesterdays_streams():
+    """Marks all participants offline for streams that happened
+        yesterday.
+
+    """
+    today = datetime.datetime.today()
+    yesterday = today - timezone.timedelta(days=1)
+
+    # Get all streams that happened yesterday.
+    yesterday_streams = models.Group.objects.filter(
+        start__date=yesterday,
+        type=constants.GROUP_TYPE_WEBINAR_ENUM
+    )
+    # Mark all streams participants offline.
+    dyte_public.mark_all_participants_offline_for_streams(yesterday_streams)
+
+
 @task()
 def add_previous_attendees_to_groups(group_ids):
     """Adds host's previous attendees to group.
