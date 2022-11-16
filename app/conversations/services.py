@@ -583,10 +583,9 @@ def get_past_streams(user=None):
 
     Args:
         user(User): User instance of a creator
+
     """
     now = datetime.datetime.now()
-
-    # Filter creator's past streams
     past_streams = models.Group.objects.filter(
         type=constants.GROUP_TYPE_WEBINAR_ENUM,
         is_published=True,
@@ -595,12 +594,8 @@ def get_past_streams(user=None):
         start__lt=now
     )
 
-    if user:
-        past_streams = past_streams.filter(
-            host=user
-        )
-
-    return past_streams
+    # Return the users past stream if user is present.
+    return past_streams.filter(host=user) if user else past_streams
 
 
 def get_messages_count_for_groups(group_ids=None):
@@ -948,15 +943,8 @@ def calculate_total_minutes_on_stream(dyte_participants):
     participants_joined = 0
 
     for participant in dyte_participants:
-        if not participant.last_online_at:
-            continue
-
-        if participant.last_online_at < participant.dyte_meeting.group.start:
-            continue
-        time_spent = participant.last_online_at - participant.dyte_meeting.group.start
-        minutes = time_spent.total_seconds() // 60 % 60
-
-        if not minutes and minutes > 300:
+        minutes = participant.time_spent
+        if not minutes:
             continue
 
         participants_joined += 1
@@ -974,7 +962,8 @@ def get_avg_stream_length_for_creators():
     # Filter all dyte meeting participant for hosts
     dmps_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group__in=past_streams,
-        participant=F("dyte_meeting__group__host")
+        participant=F("dyte_meeting__group__host"),
+        last_online_at__isnull=False
     )
 
     total_stream_time_for_creators, hosts_joined = calculate_total_minutes_on_stream(dmps_hosts)
@@ -994,14 +983,12 @@ def get_avg_stream_length_for_creator(user):
     """
     # Get all past streams by user
     past_streams = get_past_streams(user=user)
-
     dmps_hosts = dyte_models.DyteMeetingParticipant.objects.filter(
         dyte_meeting__group__in=past_streams,
         participant=F("dyte_meeting__group__host")
     )
 
     total_stream_time_for_creator, hosts_joined = calculate_total_minutes_on_stream(dmps_hosts)
-
     if not hosts_joined:
         return 0, total_stream_time_for_creator
 

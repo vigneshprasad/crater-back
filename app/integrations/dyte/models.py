@@ -72,6 +72,10 @@ class DyteMeetingParticipant(base_model.BaseModel):
         )
 
     @property
+    def time_spent(self):
+        return float(self.minutes_spent)
+
+    @property
     def latest_join_time(self):
         """Returns datetime after which we are calculating minutes
             spent on a stream for a user.
@@ -312,3 +316,9 @@ class LiveStream(base_model.BaseModel):
 
     def __str__(self):
         return "{} - {}".format(self.dyte_meeting, self.livestream_id)
+
+    def update_status(self, status):
+        if not status:
+            return
+        self.status = status
+        self.save()

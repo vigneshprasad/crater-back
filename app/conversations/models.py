@@ -438,14 +438,7 @@ class Group(base_model.BaseModel):
             group=self
         ).last()
 
-        # If there is latest log and the status has not changed
-        # don't create another log.
-        # TODO(Nishant): Can remove this, but it's good condition
-        # in case we want precise data.
-        if (
-                latest_group_live_log and
-                latest_group_live_log.live_status == self.is_live
-        ):
+        if latest_group_live_log and latest_group_live_log.live_status == self.is_live:
             return
 
         return GroupLiveLog.objects.create(
@@ -483,6 +476,24 @@ class Group(base_model.BaseModel):
                 continue
             users.append(user)
         return users
+
+    def can_join_group(self, user):
+        """Returns a bool based on if the user is allowed in
+            group.
+
+        """
+        # If the group is public, return True.
+        if self.privacy == constants.GROUP_PRIVACY_PUBLIC_ENUM:
+            return True
+
+        # If the user is already in the group,
+        # return True, else False.
+        return user in self.get_all_users()
+
+    @property
+    def dyte_meeting(self):
+        """Returns dyte meeting for a group."""
+        return self.dyte_webinar.first()
 
     def get_series(self):
         """Return series of the group"""
