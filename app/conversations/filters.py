@@ -23,6 +23,9 @@ class AllWebinarsFilters(filters.FilterSet):
         field_name="categories__slug",
         lookup_expr="exact"
     )
+    learn_tokens = filters.BooleanFilter(
+        field_name="host__creator__tokens_enabled"
+    )
 
     class Meta:
         model = models.Group
@@ -33,6 +36,7 @@ class AllWebinarsFilters(filters.FilterSet):
             "sort_by",
             "sort_by_category",
             "category",
+            "learn_tokens",
         )
 
     @staticmethod
