@@ -61,7 +61,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_obs",
         "viewer_count",
         "host_poc",
-
     )
     fieldsets = (
         (
