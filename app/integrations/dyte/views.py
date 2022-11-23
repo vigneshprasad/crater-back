@@ -123,7 +123,7 @@ class DyteParticipantViewSet(
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         # If the user can't join the group, return from here.
-        if not group.can_join_group():
+        if not group.can_join_group(user):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         # Determine the preset based on the user and group.
