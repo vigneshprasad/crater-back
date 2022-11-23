@@ -54,13 +54,14 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "start",
         "is_featured",
         "is_live",
+        "session_active",
         "closed",
         "is_published",
         "is_rescheduled",
         "is_obs",
         "viewer_count",
         "host_poc",
-        # "session_active"
+
     )
     fieldsets = (
         (
