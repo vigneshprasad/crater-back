@@ -53,7 +53,7 @@ class UserLearnMetaViewSet(
         )
         minutes_spent_for_today = 0
         for user_dyte_participant_for_today in user_dyte_participants_for_today:
-            minutes_spent_for_today += float(user_dyte_participant_for_today.minutes_spent)
+            minutes_spent_for_today += user_dyte_participant_for_today.time_spent
 
         engagement_for_today = conversation_models.GroupMessage.objects.filter(
             group__in=today_learn_groups,

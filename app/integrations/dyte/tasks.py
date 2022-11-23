@@ -220,7 +220,7 @@ def start_recording_for_meeting_if_required(group_id):
 
     """
     group = conversations_models.Group.objects.get(id=group_id)
-    dyte_meeting = group.dyte_webinar.first()
+    dyte_meeting = group.dyte_meeting
     # Update the meeting recording status from Dyte's end.
     update_meeting_recording_status_for_active_recordings(group_id)
 
@@ -249,7 +249,7 @@ def update_meeting_recording_status_for_active_recordings(group_id):
             status for.
     """
     group = conversations_models.Group.objects.get(id=group_id)
-    dyte_meeting = group.dyte_webinar.first()
+    dyte_meeting = group.dyte_meeting
     if not dyte_meeting:
         return False
 
@@ -375,7 +375,7 @@ def start_recording_for_group(group_id):
 
     """
     group = conversations_models.Group.objects.get(id=group_id)
-    dyte_meeting = group.dyte_webinar.first()
+    dyte_meeting = group.dyte_meeting
 
     if not dyte_meeting:
         logging.error("Dyte meeting not present for group: {}".format(group.id))

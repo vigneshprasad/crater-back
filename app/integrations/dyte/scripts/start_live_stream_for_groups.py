@@ -11,7 +11,7 @@ def run(group_ids=None, dry_run=True):
     for group in groups:
         print("Starting livestream for: {}".format(group.id))
         if not dry_run:
-            dyte_meeting = group.dyte_webinar.first()
+            dyte_meeting = group.dyte_meeting
             livestream = dyte_service_v2.start_livestream_for_meeting(dyte_meeting)
             print("Started livestream: {}".format(livestream))
         print("-----------")

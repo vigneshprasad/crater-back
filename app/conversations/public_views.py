@@ -4,6 +4,7 @@ from random import randint
 from django.contrib.auth import get_user_model
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -101,9 +102,22 @@ class GroupWebinarPublicViewSet(
                 we are getting the featured past streams.
 
         """
+
+        now = timezone.now()
+        start = now - timezone.timedelta(days=30)
+
+        # Filter past streams from last 30 days with >= 300 minutes
+        # spent by attendees
+        filtered_past_streams = past_streams.filter(
+            start__date__range=[start.date(), now.date()],
+            total_minutes_spent_by_attendees__gte=300
+        )
+
         featured_streams = []
         for category in constants.PAST_STREAM_FEATURED_CATEGORIES:
-            past_streams_category = past_streams.filter(categories__name=category)
+            past_streams_category = filtered_past_streams.filter(
+                categories__name=category
+            )
             if not past_streams_category:
                 continue
             random_index = randint(0, len(past_streams_category) - 1)

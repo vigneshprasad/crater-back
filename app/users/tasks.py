@@ -135,7 +135,7 @@ def update_user_referrals_status():
         if participant in updated_users:
             continue
 
-        time_spent_on_stream = float(dyte_meeting_participant.minutes_spent or 0)
+        time_spent_on_stream = dyte_meeting_participant.time_spent or 0
         if not time_spent_on_stream >= 20:
             continue
 

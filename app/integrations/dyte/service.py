@@ -487,7 +487,7 @@ class DyteService:
             },
             # Changing recording duration to 24 hrs, instead of
             # default 3 hours.
-            "maxSeconds": 86400
+            # "maxSeconds": 86400
         }
 
         if hasattr(dyte_meeting.group, "rtmp"):
@@ -651,11 +651,11 @@ class DyteService:
 
         return recording_data
 
-    def get_stats_for_meeting(self, webinar):
+    def get_stats_for_meeting(self, group):
         """Get stats saved on Dyte's end for a webinar.
 
         Args:
-            webinar(Group): Group object we are getting the data for.
+            group(Group): Group object we are getting the data for.
 
         Sample data:
             {
@@ -687,8 +687,9 @@ class DyteService:
             }
 
         """
+
         data = []
-        dyte_meeting = webinar.dyte_webinar.first()
+        dyte_meeting = group.dyte_meeting
         if not dyte_meeting and dyte_meeting.dyte_meeting_id:
             return data
 
@@ -727,16 +728,16 @@ class DyteService:
 
         return data
 
-    def get_stats_for_meetings(self, webinars):
+    def get_stats_for_meetings(self, groups):
         """Get combined stats for multiple meetings.
 
         Args:
-            webinars(Queryset/list): Queryset of list of groups.
+            groups(Queryset/list): Queryset of list of groups.
 
         """
         data = []
-        for webinar in webinars:
-            stats = self.get_stats_for_meeting(webinar)
+        for group in groups:
+            stats = self.get_stats_for_meeting(group)
             data += stats
 
         return data
@@ -806,6 +807,7 @@ class DyteServiceV2:
     DYTE_API_ENDPOINTS = {
         # Active session endpoints.
         "get_active_sessions": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-session",
+        "kick_all_participants_from_session": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/active-session/kick-all",
 
         # Livestream endpoints.
         "start_livestream": constants.DYTE_BASE_URL_V2 + "/meetings/{meeting_id}/livestreams",
@@ -866,6 +868,37 @@ class DyteServiceV2:
         # Get active session data.
         data = response_json["data"]
         return data["id"]
+
+    def kick_all_participants_from_active_session(self, dyte_meeting):
+        """Kick all participants for a dyte meeting.
+
+        Args:
+            dyte_meeting(DyteMeeting): Dyte meeting from which we are
+                kicking participants.
+
+        """
+        url = self.DYTE_API_ENDPOINTS["kick_all_participants_from_session"].format(
+            meeting_id=dyte_meeting.dyte_meeting_id
+        )
+        response = requests.request(
+            "POST",
+            url,
+            headers=self._get_authorization_headers()
+        )
+
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError:
+            LOGGER.error("Kick active participants bad response: {}".format(dyte_meeting.group_id))
+            return None
+
+        success = response_json["success"]
+        if not success:
+            return None
+
+        data = response_json["data"]
+        # Return number of participant kicked.
+        return data.get("kicked_participants_count", 0)
 
     def start_livestream_for_meeting(self, dyte_meeting):
         """Start live stream for a dyte meeting.

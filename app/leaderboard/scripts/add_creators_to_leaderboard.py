@@ -1,3 +1,6 @@
+import datetime
+import warnings
+
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 
@@ -5,15 +8,50 @@ from conversations import models as conversation_models
 from leaderboard import models, tasks
 
 
-def run(leaderboard_id, max_users=5, start_date=None, end_date=None, dry_run=True):
+def run(leaderboard_id=None, max_users=5, start_date=None, end_date=None, dry_run=True):
+    """Returns a leaderboard winners that will be added to a
+        leaderboard or for dates.
 
-    leaderboard = models.Leaderboard.objects.get(id=leaderboard_id)
-    if not end_date:
-        end_date = leaderboard.end
-        start_date = leaderboard.start
+    """
+    warnings.simplefilter("ignore")
+    if not leaderboard_id and not (start_date and end_date):
+        print("Need either a leaderboard id or start and end dates")
 
-    print(start_date.date(), end_date.date())
+    leaderboard = models.Leaderboard.objects.get(id=leaderboard_id) if leaderboard_id else None
+    if leaderboard:
+        end_date = leaderboard.end.date()
+        start_date = leaderboard.start.date()
+        print("Calculating winners for leaderboard: {}".format(leaderboard))
+    else:
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+        print("Getting leaderboard winner for dates: {} - {}".format(start_date, end_date))
 
+    leaderboard_participants = run_for_dates(
+        max_users=max_users,
+        start_date=start_date,
+        end_date=end_date
+    )
+    print("Adding {} participants to Leaderboard: {}".format(len(leaderboard_participants), leaderboard))
+
+    if not dry_run:
+        leaderboard.participants.add(*leaderboard_participants)
+        print("Added all participants")
+        print("Recalculating leaderboard")
+        tasks.recalculate_leaderboards([leaderboard.id])
+        print("Recalculation done")
+
+
+def run_for_dates(max_users=5, start_date=None, end_date=None):
+    """Returns a leaderboard winners that will be added to a
+        leaderboard for dates.
+
+    Note:
+        Returns leaderboard winners in a sorted dict by
+            number of minutes spent on their streams.
+
+    """
+    print(start_date, end_date)
     groups = conversation_models.Group.objects.filter(
         start__gte=start_date,
         end__lte=end_date
@@ -22,7 +60,6 @@ def run(leaderboard_id, max_users=5, start_date=None, end_date=None, dry_run=Tru
     hosts = groups.values_list("host", flat=True)
     hosts = list(set(hosts))
 
-    print("Adding creators to leaderboard: {}".format(leaderboard))
     leaderboard_participants = []
     leaderboard_participants_dict = {}
 
@@ -68,11 +105,4 @@ def run(leaderboard_id, max_users=5, start_date=None, end_date=None, dry_run=Tru
             print("-" * 30)
             leaderboard_participants.append(user)
 
-    print("Adding {} participants to Leaderboard: {}".format(len(leaderboard_participants), leaderboard))
-
-    if not dry_run:
-        leaderboard.participants.add(*leaderboard_participants)
-        print("Added all participants")
-        print("Recalculating leaderboard")
-        tasks.recalculate_leaderboards([leaderboard.id])
-        print("Recalculation done")
+    return leaderboard_participants
