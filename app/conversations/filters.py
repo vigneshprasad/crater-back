@@ -19,6 +19,13 @@ class AllWebinarsFilters(filters.FilterSet):
     sort_by_category = filters.CharFilter(
         method="custom_category_sort"
     )
+    category = filters.CharFilter(
+        field_name="categories__slug",
+        lookup_expr="exact"
+    )
+    learn_tokens = filters.BooleanFilter(
+        field_name="host__creator__tokens_enabled"
+    )
 
     class Meta:
         model = models.Group
@@ -28,6 +35,8 @@ class AllWebinarsFilters(filters.FilterSet):
             "start__gte",
             "sort_by",
             "sort_by_category",
+            "category",
+            "learn_tokens",
         )
 
     @staticmethod
