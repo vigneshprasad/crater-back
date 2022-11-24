@@ -91,7 +91,7 @@ class GroupWebinarPublicViewSet(
             is_live=False,
             closed=False,
             start__gte=min_start
-        )
+        ).order_by("start")
 
     @staticmethod
     def _get_past_streams_with_featured_recordings(past_streams):
