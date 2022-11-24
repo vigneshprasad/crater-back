@@ -168,9 +168,11 @@ class GroupWebinarPublicViewSet(
             past_streams_with_recording = self.filter_queryset(
                 self._get_past_webinars_with_recordings(featured=True)
             )
-            featured_streams = self._get_past_streams_with_featured_recordings(
+            past_streams = self._get_past_streams_with_featured_recordings(
                 past_streams=past_streams_with_recording
             )
+
+            featured_streams = past_streams + list(featured_groups)
 
         page = self.paginate_queryset(featured_streams)
 
