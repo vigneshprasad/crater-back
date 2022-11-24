@@ -184,7 +184,7 @@ class DyteParticipantViewSet(
         participant.mark_online()
 
         # If the participant is not host, return from here.
-        if group.host_id != user_pk:
+        if str(group.host_id) != user_pk:
             return Response(status=status.HTTP_200_OK)
 
         # If the group host has joined mark meeting as
@@ -234,7 +234,7 @@ class DyteParticipantViewSet(
         participant.mark_offline()
 
         # If the participant is not host, return from here.
-        if group.host_id != user_pk:
+        if str(group.host_id) != user_pk:
             return Response(status=status.HTTP_200_OK)
 
         # Mark the group inactive if host leaves the meeting.
