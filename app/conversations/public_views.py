@@ -149,17 +149,10 @@ class GroupWebinarPublicViewSet(
 
         """
         live_groups = self.filter_queryset(self._get_live_webinars())
-        featured_groups = self.filter_queryset(self._get_featured_webinars())
-        featured_streams_next_hour = False
-
-        if not live_groups:
-            # Filter featured streams within the next 1 hour
-            now = datetime.datetime.now()
-            next_hour_datetime = now + datetime.timedelta(hours=1)
-            featured_streams_next_hour = featured_groups.filter(start__lte=next_hour_datetime)
+        featured_groups = self.filter_queryset(self._get_featured_webinars())[:5]
 
         # If there are no live groups and featured stream in the next one hour.
-        if featured_streams_next_hour or live_groups:
+        if live_groups:
             featured_streams = self.filter_queryset(
                 live_groups | featured_groups
             ).order_by("-is_live", "start")
@@ -170,7 +163,7 @@ class GroupWebinarPublicViewSet(
             )
             past_streams = self._get_past_streams_with_featured_recordings(
                 past_streams=past_streams_with_recording
-            )
+            )[:5]
 
             featured_streams = past_streams + list(featured_groups)
 
