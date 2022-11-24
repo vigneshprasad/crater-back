@@ -166,7 +166,7 @@ class GroupWebinarPublicViewSet(
         else:
             self.serializer_class = serializers.StreamWithRecordingListSerializer
             past_streams_with_recording = self.filter_queryset(
-                self._get_past_webinars_with_recordings(featured=True)
+                self._get_past_webinars_with_recordings(featured=False)
             )
             past_streams = self._get_past_streams_with_featured_recordings(
                 past_streams=past_streams_with_recording
