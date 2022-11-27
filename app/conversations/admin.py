@@ -47,7 +47,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "topic",
-        # "type",
         "host",
         "co_hosts",
         "attendees_count",
@@ -60,7 +59,7 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_rescheduled",
         "is_obs",
         "viewer_count",
-        "host_poc",
+        "host_poc"
     )
     fieldsets = (
         (
