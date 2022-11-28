@@ -31,8 +31,7 @@ ENVIRONMENT_DEV = "dev"
 
 BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT) if \
     ENVIRONMENT in [ENVIRONMENT_PROD, ENVIRONMENT_DEV] else \
-    "https://025d-2401-4900-1cb8-1ad7-208d-dbaa-2df8-503b.in.ngrok.io"
-# "https://localhost:8000"
+    "https://localhost:8000"
 
 
 CRATER_FRONT_URL = "https://crater.club/" if \
