@@ -13,11 +13,11 @@ SLACK_ALERT_FOR_OTP_FAILURE = (
 
 SLACK_ALERT_FOR_LOGIN_FAILURE = (
     "*User unable to login!*\n\n"
-    " Hey <!channel>, \n Some one is trying to login with\n"
-    "*Phone Number: {phone_number}*.\n But there are {total_users}"
+    "Hey <!channel>, \n Some one is trying to login with: "
+    "*Phone Number: {phone_number}*\n But there are {total_users} "
     "users with the same phone number on backend.\n\n"
     "Please delete old/unused accounts here: "
-    "<{back_url}admin/users/user/?q={phone_number}| Admin Users Dashboard>"
+    "<{back_url}/admin/users/user/?q={phone_number}| Admin Users Dashboard>"
 )
 
 
