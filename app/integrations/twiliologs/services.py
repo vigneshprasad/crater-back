@@ -44,11 +44,21 @@ class TwilioService:
                 body=body,
                 status_callback=constants.SMS_CALLBACK_URL
             )
-        except (exceptions.TwilioRestException, requests.exceptions.ConnectionError) as e:
+        except exceptions.TwilioRestException as e:
+            error_dict = e.__dict__
+            message_data = {
+                "sid": None,
+                "error_code": error_dict["code"],
+                "error_message": error_dict["msg"],
+                "status": constants.SMS_STATUS_FAILED
+            }
+            return message_data
+        except requests.exceptions.ConnectionError as e:
             logging.error(str(e))
             return
 
-        return message
+        message_data = message._properties
+        return message_data
 
 
 twilio_service = TwilioService(

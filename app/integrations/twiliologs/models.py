@@ -12,7 +12,7 @@ class SMS(base_models.BaseModel):
         on_delete=models.CASCADE
     )
     status = models.CharField(max_length=32)
-    sid = models.CharField(max_length=128)
+    sid = models.CharField(max_length=128, null=True, blank=True)
     error_code = models.CharField(
         max_length=16,
         null=True,

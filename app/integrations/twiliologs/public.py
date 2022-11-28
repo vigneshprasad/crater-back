@@ -22,9 +22,10 @@ def send_opt_sms_for_login(phone_otp):
     sms, _ = models.SMS.objects.get_or_create(
         phone_otp=phone_otp,
         defaults={
-            "status": message_data.status,
-            "error_code": message_data.error_code,
-            "sid": message_data.sid
+            "status": message_data.get("status"),
+            "error_code": message_data.get("error_code"),
+            "error_message": message_data.get("error_message"),
+            "sid": message_data.get("sid")
         }
     )
 

@@ -31,7 +31,8 @@ ENVIRONMENT_DEV = "dev"
 
 BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT) if \
     ENVIRONMENT in [ENVIRONMENT_PROD, ENVIRONMENT_DEV] else \
-    "https://localhost:8000"
+    "https://025d-2401-4900-1cb8-1ad7-208d-dbaa-2df8-503b.in.ngrok.io"
+# "https://localhost:8000"
 
 
 CRATER_FRONT_URL = "https://crater.club/" if \
@@ -380,7 +381,8 @@ MANDRILL_API_KEY = os.getenv("MANDRILL_API_KEY", "pAoVah9eVDu70a2yxajeBg")
 MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
-ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
+ALLOW_MESSAGE_SENDING = True
+# ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
 
 # ------------- TWILIO CREDENTIALS ------------- #
 DEFAULT_SMS_PHONE_NUMBER = os.getenv("DEFAULT_SMS_PHONE_NUMBER", "")
