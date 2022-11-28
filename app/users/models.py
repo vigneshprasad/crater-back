@@ -28,7 +28,7 @@ from utils.deep_link_service import deep_link_service
 from users import constants
 
 # TODO(Nishant) Clean up tasks and move all these tasks to tasks file or don't user models in tasks.
-from .tasks import send_twilio_message, send_unique_push, send_email, start_transcoding_for_cover_file
+from .tasks import send_unique_push, send_email, start_transcoding_for_cover_file
 
 
 class User(AbstractUser):
@@ -214,13 +214,6 @@ class User(AbstractUser):
     @property
     def has_active_subscription(self):
         return self.subscriptions.filter(is_active=True).exists()
-
-    @staticmethod
-    def _send_sms(phone_number, message):
-        send_twilio_message.delay(str(phone_number), message)
-
-    def send_sms(self, message, phone_number=None):
-        self._send_sms(str(self.phone_number if not phone_number else phone_number), message)
 
     def send_push(self, data, message):
         devices = self.devices.filter(is_active=True)

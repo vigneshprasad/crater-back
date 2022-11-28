@@ -30,15 +30,3 @@ def mark_email_as_verified(user):
         email_address=email
     )
     return True
-
-
-def send_sms(phone_number, message):
-    """Send sms to a phone number.
-
-    Args:
-        phone_number(str): Phone number we are sending the
-            message to.
-        message(str): Message we are sending in the text.
-
-    """
-    tasks.send_twilio_message.delay(str(phone_number), message)

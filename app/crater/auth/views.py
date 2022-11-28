@@ -1,17 +1,19 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from rest_auth.utils import jwt_encode
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from crater.auth import constants, exceptions, models, serializers
+from crater.auth import exceptions, models, serializers
+from integrations.slack import public as slack_public
+from integrations.twiliologs import public as twilio_public
 from integrations.wati import public as wati_public
 from users import (
     constants as user_constants,
     permissions as user_permissions,
     public as user_public,
-    serializers as user_serializers,
-    utils as user_utils
+    serializers as user_serializers
 )
 
 
@@ -54,7 +56,11 @@ class PhoneNumberRegisterView(
         if not username.startswith("+91"):
             return Response(status=400)
 
-        data = {"username": username}
+        login = get_user_model().objects.filter(username=username).exists()
+        data = {
+            "username": username,
+            "is_signup": not login
+        }
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -62,10 +68,7 @@ class PhoneNumberRegisterView(
 
         # Send OTP with both whatsapp and sms.
         wati_public.send_otp_to_user.delay(username, phone_otp.otp)
-        user_utils.send_sms(
-            phone_number=username,
-            message=constants.LOGIN_OTP_MESSAGE.format(otp=phone_otp.otp)
-        )
+        twilio_public.send_opt_sms_for_login(phone_otp)
 
         return Response(
             {"message": "OTP sent to :{}".format(username)},
@@ -111,8 +114,18 @@ class PhoneNumberRegisterView(
         }
         serializer = self.get_serializer(data=data, instance=phone_otp, partial=True)
         serializer.is_valid(raise_exception=True)
+        try:
+            user, created = user_public.get_or_create_user(phone_number=username)
+        except get_user_model().MultipleObjectsReturned:
+            # Send a Slack notification for login failure.
+            # Doing contains here because of non number characters
+            # in the username in some cases.
+            users = get_user_model().objects.filter(username__icontains=username)
+            slack_public.send_login_failure_notification(username, users)
+            return Response({
+                "message": "Phone number is already registered with Crater."
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        user, created = user_public.get_or_create_user(phone_number=username)
         # Update name of the user if requested
         if name:
             if user.name != name:

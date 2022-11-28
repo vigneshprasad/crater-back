@@ -1,13 +1,10 @@
-import datetime
-
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from rest_framework import serializers
-from django.contrib.auth.models import Group
 
-from crater.auth import models, private, constants
+from crater.auth import models, private
 from users import models as user_models, services as user_services
-from wn_analytics import constants as analytics_constants
-from wn_analytics import models as analytics_models
+from wn_analytics import public as analytics_public
 
 
 class PhoneOtpSerializer(serializers.ModelSerializer):
@@ -29,7 +26,8 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             "utm_medium",
             "used",
             "is_expired",
-            "referrer"
+            "referrer",
+            "is_signup"
         )
         extra_kwargs = {
             "otp": {
@@ -44,6 +42,10 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
                 "required": False,
                 "allow_null": True
             },
+            "is_signup": {
+                "required": False,
+                "allow_null": True
+            }
         }
 
     def validate_otp(self, value):
@@ -52,84 +54,89 @@ class PhoneOtpSerializer(serializers.ModelSerializer):
             return True
 
         phone_otp = self.instance
-        if phone_otp.is_expired or phone_otp.used:
-            raise serializers.ValidationError("OTP provided has expired. Please generate new OTP.")
+        # If the OTP can't be used, return a validation error.
+        if not phone_otp.can_use_otp():
+            raise serializers.ValidationError(
+                "OTP provided has expired. Please generate new OTP."
+            )
 
         return value
 
     def validate_utm_source(self, value):
-        if self.instance and value:
-            return value.strip()
+        if not (self.instance and value):
+            return
+
+        return value.strip()
 
     def validate_utm_campaign(self, value):
-        if self.instance and value:
-            return value.strip()
+        if not (self.instance and value):
+            return
+
+        return value.strip()
 
     def validate_utm_medium(self, value):
-        if self.instance and value:
-            return value.strip()
+        if not (self.instance and value):
+            return
+
+        return value.strip()
 
     def validate_referrer(self, value):
-        if self.instance and value:
-            value = value.strip()
+        """Validates if the referrer is present
+            in the signup request.
 
-            # Check if referrer exists
-            try:
-                user = user_models.User.objects.get(pk=value)
-            except (user_models.User.DoesNotExist, ValidationError):
-                user = None
+        """
+        if not (self.instance and value):
+            return
 
-            return user
+        value = value.strip()
+        # Check if referrer exists
+        try:
+            user = user_models.User.objects.get(pk=value)
+        except (user_models.User.DoesNotExist, ValidationError):
+            user = None
+
+        return user
 
     def create(self, validated_data):
         phone_number = validated_data.get("phone_number")
-
-        validated_data["otp"] = "1111" if (
-                constants.DEBUG or phone_number in constants.TEST_PHONE_NUMBERS
-        ) else private.generate_otp()
-        # When a new OTP is created mark the old ones as expired.
-        models.PhoneOtp.objects.filter(phone_number=phone_number).update(is_expired=True)
+        validated_data["otp"] = private.generate_otp(phone_number)
+        # When a new OTP is created mark the old unused ones as expired.
+        unused_otps = models.PhoneOtp.objects.filter(
+            phone_number=phone_number,
+            used=False,
+            is_expired=False
+        )
+        unused_otps.update(is_expired=True, expired_at=timezone.now())
 
         # Creating a new OTP for the user.
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-
         validated_data["used"] = True
+        validated_data["used_at"] = timezone.now()
         utm_source = validated_data.pop("utm_source")
         utm_campaign = validated_data.pop("utm_campaign")
         utm_medium = validated_data.pop("utm_medium")
         referrer = validated_data.pop("referrer")
         is_new_user = validated_data.get("new_user", False)
-
         instance = super().update(instance, validated_data)
-        user = instance.user
 
-        if (utm_source or utm_campaign or referrer) and is_new_user:
-            # Only create if the user is a new user.
-            analytics_models.UserSource.objects.create(
-                user=user,
-                utm_source=utm_source,
-                utm_campaign=utm_campaign,
-                utm_medium=utm_medium,
-                referrer=referrer
-            )
-
-        if utm_source == analytics_constants.IGC_SOURCE and is_new_user:
-            # Get profile for user.
-            user = instance.user
-            user.refresh_from_db()
-            profile = user.profile
-            # Opt out IGC users from whatsapp messages.
-            profile.opt_out_of_whatsapp()
+        # If it's a login, return from here.
+        if not is_new_user:
             return instance
 
-        # If the referrer user is a creator don't create user referral.
-        if referrer and not referrer.is_creator and is_new_user:
-            # Create user referral.
-            user_services.create_user_referral(
-                new_user=user,
-                referrer=referrer
-            )
+        user = instance.user
+        # Create referral and source for user.
+        analytics_public.create_user_source(
+            user=user,
+            utm_source=utm_source,
+            utm_campaign=utm_campaign,
+            utm_medium=utm_medium,
+            referrer=referrer
+        )
+        user_services.create_user_referral(
+            new_user=user,
+            referrer=referrer
+        )
 
         return instance

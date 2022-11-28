@@ -7,3 +7,4 @@ class AuthConfig(AppConfig):
 
     def ready(self):
         import crater.auth.receivers
+        import crater.auth.signals

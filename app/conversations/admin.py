@@ -143,7 +143,6 @@ class GroupAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         "is_obs"
     )
     list_filter = (
-        "is_live",
         "closed",
         "is_published",
         "is_live",

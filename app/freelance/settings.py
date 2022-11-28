@@ -25,11 +25,14 @@ from sentry_sdk.integrations.redis import RedisIntegration
 # All environment variables.
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 BUILD_VERSION = os.environ.get("BUILD_VERSION", "latest")
-ENVIRONMENT_PREPROD = "preprod"
-ENVIRONMENT_PROD = "prod"
 
-ENVIRONMENT_STAGE = "stage"
+ENVIRONMENT_PROD = "prod"
 ENVIRONMENT_DEV = "dev"
+
+BACK_URL = "https://api.{}.worknetwork.in".format(ENVIRONMENT) if \
+    ENVIRONMENT in [ENVIRONMENT_PROD, ENVIRONMENT_DEV] else \
+    "https://localhost:8000"
+
 
 CRATER_FRONT_URL = "https://crater.club/" if \
     ENVIRONMENT == ENVIRONMENT_PROD else "https://penitence-pre-prod.vercel.app/"
@@ -132,6 +135,8 @@ INSTALLED_APPS = [
     "integrations.firebase",
     "integrations.wati",
     "integrations.onesignal",
+    "integrations.slack",
+    "integrations.twiliologs",
     "resources.events",
     "resources.curated_articles",
     "resources.masterclasses",
@@ -375,7 +380,8 @@ MANDRILL_API_KEY = os.getenv("MANDRILL_API_KEY", "pAoVah9eVDu70a2yxajeBg")
 MANDRILL_IGNORE_RECIPIENT_STATUS = True
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@fwmail.scenario-projects.com")
 
-ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
+ALLOW_MESSAGE_SENDING = True
+# ALLOW_MESSAGE_SENDING = False if os.getenv("ALLOW_MESSAGE_SENDING", True) == "False" else True
 
 # ------------- TWILIO CREDENTIALS ------------- #
 DEFAULT_SMS_PHONE_NUMBER = os.getenv("DEFAULT_SMS_PHONE_NUMBER", "")
@@ -596,3 +602,7 @@ SPECTACULAR_SETTINGS = {
         "persistAuthorization": True,
     },
 }
+
+# ----------- Slack credentials ---------------#
+SLACK_BASE_API_URL = "https://slack.com/api"
+SLACK_OATH_TOKEN = os.getenv("SLACK_OATH_TOKEN")

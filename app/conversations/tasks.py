@@ -89,6 +89,7 @@ def send_in_app_reminder_for_stream_attendees_and_followers(groups=None):
     streams = models.Group.objects.filter(
         start__gt=start_datetime,
         start__lte=end_datetime,
+        is_published=True,
         type=constants.GROUP_TYPE_WEBINAR_ENUM
     ) if not groups else groups
 

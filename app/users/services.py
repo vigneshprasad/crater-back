@@ -252,6 +252,9 @@ def create_user_referral(new_user, referrer):
         referrer(User): User who has referred
 
     """
+    if referrer and referrer.is_creator:
+        return
+
     return models.UserReferral.objects.create(
         user=new_user,
         referrer=referrer

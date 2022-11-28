@@ -6,4 +6,5 @@ urlpatterns = [
     path("retool/", include("integrations.retool.urls.v1")),
     path("firebase/", include("integrations.firebase.urls.v1")),
     path("onesignal/", include("integrations.onesignal.urls.v1")),
+    path("twilio/", include("integrations.twiliologs.urls.v1"))
 ]

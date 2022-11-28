@@ -132,7 +132,7 @@ class FreshChatWhatsappService:
         """
         # Added a Test {name} for testing environments.
         first_name = "Test {}".format(user.name) \
-            if settings.ENVIRONMENT == settings.ENVIRONMENT_PREPROD else user.name
+            if settings.ENVIRONMENT == settings.ENVIRONMENT_DEV else user.name
 
         if not self._can_create_user(user):
             return False

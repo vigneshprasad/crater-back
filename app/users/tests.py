@@ -680,12 +680,6 @@ class AuthTestCase(TestCase):
         self.assertEqual(resp.status_code, 405)
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
-    @patch('utils.twilio_service.TwilioService.send_message', autospec=True)
-    def test_send_sms_success(self, send_message):
-        self.user._send_sms('1111', 'message')
-        self.assertTrue(send_message.called)
-
-    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     @patch('utils.one_signal_service.OneSignalService.send_push', autospec=True)
     def test_send_push_success(self, send_push):
         models.Device.objects.create(user=self.user, os_id='testy_os_id')
