@@ -110,7 +110,6 @@ class GroupWebinarPublicViewSet(
         # spent by attendees
         filtered_past_streams = past_streams.filter(
             start__date__range=[start.date(), now.date()],
-            total_minutes_spent_by_attendees__gte=300
         )
 
         featured_streams = []
@@ -148,26 +147,16 @@ class GroupWebinarPublicViewSet(
             Returns list of live and featured webinars.
 
         """
-        live_groups = self.filter_queryset(self._get_live_webinars())
-        featured_groups = self.filter_queryset(self._get_featured_webinars())[:5]
+        past_streams_with_recording = self.filter_queryset(
+            self._get_past_webinars_with_recordings(featured=False)
+        )
+        past_streams = self._get_past_streams_with_featured_recordings(
+            past_streams=past_streams_with_recording
+        )[:5]
 
-        # If there are no live groups and featured stream in the next one hour.
-        if live_groups:
-            featured_streams = self.filter_queryset(
-                live_groups | featured_groups
-            ).order_by("-is_live", "start")
-        else:
-            self.serializer_class = serializers.StreamWithRecordingListSerializer
-            past_streams_with_recording = self.filter_queryset(
-                self._get_past_webinars_with_recordings(featured=False)
-            )
-            past_streams = self._get_past_streams_with_featured_recordings(
-                past_streams=past_streams_with_recording
-            )[:5]
+        featured_streams = past_streams
 
-            featured_streams = past_streams + list(featured_groups)
-
-        page = self.paginate_queryset(featured_streams)
+        page = self.paginate_queryset(past_streams)
 
         if page is None:
             serializer = self.get_serializer(featured_streams, many=True)
