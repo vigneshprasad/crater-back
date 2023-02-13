@@ -137,7 +137,7 @@ class GroupWebinarPublicViewSet(
             "host__creator",
             "recording",
         ).order_by("-start"),
-        serializer_class=serializers.StreamListSerializer,
+        serializer_class=serializers.StreamWithRecordingListSerializer,
         filterset_fields=["host"]
     )
     def featured(self, request):
@@ -154,12 +154,9 @@ class GroupWebinarPublicViewSet(
             past_streams=past_streams_with_recording
         )[:5]
 
-        featured_streams = past_streams
-
         page = self.paginate_queryset(past_streams)
-
         if page is None:
-            serializer = self.get_serializer(featured_streams, many=True)
+            serializer = self.get_serializer(past_streams, many=True)
             return Response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)
