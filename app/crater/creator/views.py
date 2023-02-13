@@ -14,6 +14,20 @@ from crater.creator import exceptions, models, paginators, private, serializers,
 from users import permissions as user_permissions
 
 
+TOP_CREATORS = [
+    "+918806176284",
+    "+919892591000",
+    "+917977368824",
+    "+918448704414",
+    "+919740920022",
+    "+919967516505",
+    "+919833823216",
+    "+919432493923",
+    "+918789959480",
+    "+916360687902"
+]
+
+
 class CreatorViewSet(
     mixins.UpdateModelMixin,
     mixins.RetrieveModelMixin,
@@ -99,36 +113,50 @@ class CreatorViewSet(
         detail=False
     )
     def ranking(self, request, *args, **kwargs):
-        category = request.query_params.get("category")
-        end = datetime.datetime.now()
-        start = end - datetime.timedelta(days=30)
+        # category = request.query_params.get("category")
+        # end = datetime.datetime.now()
+        # start = end - datetime.timedelta(days=30)
+        ranked_creator_array = []
+        queryset = self.get_queryset()
+        for creator in TOP_CREATORS:
+            creator = queryset.filter(user__username=creator).first()
+            if creator:
+                ranked_creator_array.append(creator)
 
-        if category:
-            queryset_filter = Q(
-                user__groups_hosted__start__gte=start,
-                user__groups_hosted__end__lte=end,
-                user__groups_hosted__categories__in=[category]
-            )
-        else:
-            queryset_filter = Q(
-                user__groups_hosted__start__gte=start,
-                user__groups_hosted__end__lte=end,
-            )
-
-        creators = self.get_queryset().annotate(
-            watch_time=Sum(
-                "user__groups_hosted__total_minutes_spent_by_attendees",
-                filter=queryset_filter
-            )
-        ).filter(watch_time__isnull=False).order_by("-watch_time")
-
-        page = self.paginate_queryset(creators)
+        page = self.paginate_queryset(ranked_creator_array)
         if page is None:
-            serializer = self.get_serializer(creators, many=True)
+            serializer = self.get_serializer(ranked_creator_array, many=True)
             return Response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
+
+        # if category:
+        #     queryset_filter = Q(
+        #         user__groups_hosted__start__gte=start,
+        #         user__groups_hosted__end__lte=end,
+        #         user__groups_hosted__categories__in=[category]
+        #     )
+        # else:
+        #     queryset_filter = Q(
+        #         user__groups_hosted__start__gte=start,
+        #         user__groups_hosted__end__lte=end,
+        #     )
+        #
+        # creators = self.get_queryset().annotate(
+        #     watch_time=Sum(
+        #         "user__groups_hosted__total_minutes_spent_by_attendees",
+        #         filter=queryset_filter
+        #     )
+        # ).filter(watch_time__isnull=False).order_by("-watch_time")
+        #
+        # page = self.paginate_queryset(creators)
+        # if page is None:
+        #     serializer = self.get_serializer(creators, many=True)
+        #     return Response(serializer.data)
+        #
+        # serializer = self.get_serializer(page, many=True)
+        # return self.get_paginated_response(serializer.data)
 
     @action(
         methods=["GET"],
