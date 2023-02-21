@@ -23,6 +23,7 @@ services:
 
   app:
     container_name: freelance_app
+    platform: linux/amd64
     entrypoint: ./bin/develop_entry_point.sh
     build:
       context: app
@@ -43,6 +44,7 @@ services:
 
   celery:
     container_name: freelance_celery
+    platform: linux/amd64
     build:
       context: app
       args:
@@ -64,6 +66,7 @@ services:
 
   celery-beat:
     container_name: freelance_celery_beat
+    platform: linux/amd64
     build:
       context: app
       args:

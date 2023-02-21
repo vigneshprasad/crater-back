@@ -1,35 +1,21 @@
-FROM python:3.9-slim-buster
+ARG builder_image=builder
+ARG runner_image=runner
 
-ENV PYTHONUNBUFFERED 1
-EXPOSE 8000 8000
+FROM python:3.8-slim-buster as builder
+ARG requirements_file=requirements.txt
+COPY $requirements_file ./
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN apt-get update && apt-get install gcc zlib1g-dev libjpeg-dev -y && pip install --upgrade pip && pip install -r $requirements_file
 
-# Add system/runtime requirements, awscli
-RUN apt-get update \
-	&& apt-get install -y -f --no-install-recommends jq gettext curl git unzip binutils gdal-bin postgresql-client gcc musl-dev libxslt-dev libffi-dev gnupg npm \
-	&& curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"\
-	&& unzip awscliv2.zip \
-	&& ./aws/install -i /usr/local/aws-cli -b /usr/local/bin \
-	&& rm -rf awscliv2.zip ./aws \
-	&& npm install -g aws-cdk@2.14.0
+FROM python:3.8-slim-buster as runner
+RUN apt-get update && apt-get install software-properties-common -y && apt-get install python3-dev gdal-bin libgdal-dev -y
 
+FROM $builder_image as final_builder
+FROM $runner_image as final
+COPY --from=final_builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Add Docker, Kubetctl
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-	&& echo \
-  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-  buster stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-  	&& apt-get update  \
-	&& apt-get install -y docker-ce docker-ce-cli containerd.io \
-	&& rm -rf /var/lib/apt/lists/*
-
-
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip-tools \
-	&& pip-sync requirements.txt
-RUN rm -f requirements.txt
-
-RUN mkdir /app
-COPY . /app/
-WORKDIR /app/
-
+WORKDIR /app
+COPY / ./
+CMD ["./bin/entry_point.sh"]

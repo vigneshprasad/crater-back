@@ -31,6 +31,7 @@ prod_connect.sh
 # Settings files to ignore.
 app/freelance/dev_settings.py
 app/freelance/prod_settings.py
+app/freelance/settings.py
 
 redis_data/
 db_data/
